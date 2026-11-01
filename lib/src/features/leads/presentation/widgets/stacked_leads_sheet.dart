@@ -66,7 +66,10 @@ class StackedLeadsSheet extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
             child: Row(
               children: [
-                const Icon(Icons.layers_outlined, color: LeadsTheme.deepPlum),
+                // An icon already bundled elsewhere: a glyph new to the app
+                // rewrites the tree-shaken icon font, and Shorebird refuses
+                // to patch an asset change.
+                const Icon(Icons.location_on, color: LeadsTheme.deepPlum),
                 const SizedBox(width: 8),
                 Text(
                   '${leads.length}',
