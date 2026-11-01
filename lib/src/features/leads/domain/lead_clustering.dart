@@ -38,6 +38,31 @@ class LeadCluster {
   Lead? get single => isSingle ? leads.first : null;
 }
 
+/// Deepest zoom the leads map allows.
+const double kLeadMapMaxZoom = 18;
+
+/// Zoom from which tapping a group lists its members instead of zooming in.
+const double kLeadMapListFromZoom = 16;
+
+/// Whether tapping [cluster] at [zoom] should list its members rather than
+/// zoom in on them.
+///
+/// Zooming is the right answer while it still pulls the pins apart. It stops
+/// being one when the members would still share one pin at the deepest zoom
+/// (two shops in the same mall, or one place saved twice) — a tap there used
+/// to zoom to the limit and then do nothing, leaving both leads unreachable.
+/// Close in, a short list is also simply quicker than another pinch.
+bool clusterNeedsPicker(
+  LeadCluster cluster,
+  double zoom, {
+  double maxZoom = kLeadMapMaxZoom,
+  double listFromZoom = kLeadMapListFromZoom,
+}) {
+  if (cluster.isSingle) return false;
+  if (zoom >= listFromZoom) return true;
+  return clusterLeads(cluster.leads, maxZoom).length == 1;
+}
+
 /// Leads that carry usable coordinates. Everything else cannot be mapped.
 ///
 /// (0, 0) is excluded: Null Island is what a failed parse looks like, not a

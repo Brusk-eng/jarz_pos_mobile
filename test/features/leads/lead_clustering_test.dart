@@ -221,6 +221,51 @@ void main() {
       expect(leads.map((l) => l.name), original.map((l) => l.name));
     });
   });
+
+  group('clusterNeedsPicker', () {
+    // Two shops in one mall, ~10 m apart: no zoom the map allows splits them.
+    final mall = [
+      _lead('Espressolab', lat: 30.08010, lng: 31.33010),
+      _lead('Cake shop', lat: 30.08015, lng: 31.33018),
+    ];
+
+    LeadCluster groupOf(List<Lead> leads, double zoom) {
+      final clusters = clusterLeads(leads, zoom);
+      expect(clusters, hasLength(1), reason: 'fixture must form one group');
+      return clusters.single;
+    }
+
+    test('lists a group that stays one pin even at max zoom', () {
+      final group = groupOf(mall, kLeadMapMaxZoom);
+      expect(group.count, 2);
+      expect(clusterNeedsPicker(group, kLeadMapMaxZoom), isTrue);
+      // Straight to the list from far out too: zooming would never help.
+      expect(clusterNeedsPicker(groupOf(mall, 11), 11), isTrue);
+    });
+
+    test('zooms a far-out group that zooming will split', () {
+      final spread = [
+        _lead('A', lat: 30.0444, lng: 31.2357),
+        _lead('B', lat: 30.0626, lng: 31.2497), // ~2 km
+      ];
+      expect(clusterNeedsPicker(groupOf(spread, 10), 10), isFalse);
+    });
+
+    test('lists any group once the map is close in', () {
+      final street = [
+        _lead('A', lat: 30.08000, lng: 31.33000),
+        _lead('B', lat: 30.08000, lng: 31.33060), // ~60 m
+      ];
+      final group = groupOf(street, kLeadMapListFromZoom);
+      expect(clusterNeedsPicker(group, kLeadMapListFromZoom), isTrue);
+      expect(clusterNeedsPicker(group, kLeadMapListFromZoom - 1.5), isFalse);
+    });
+
+    test('never lists a single pin', () {
+      final single = clusterLeads([mall.first], kLeadMapMaxZoom).single;
+      expect(clusterNeedsPicker(single, kLeadMapMaxZoom), isFalse);
+    });
+  });
 }
 
 /// Hands [body] a BuildContext under a Localizations scope, for the helpers

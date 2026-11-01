@@ -16,11 +16,13 @@ import '../widgets/filter_sheet.dart';
 import '../widgets/lead_map.dart';
 import '../../../visits/presentation/widgets/add_to_visit_sheet.dart';
 import '../widgets/sahel_badge.dart';
+import '../widgets/stacked_leads_sheet.dart';
 import '../widgets/stage_filter_bar.dart';
 import '../widgets/tier_pill.dart';
 
 /// A filterable map of the leads (same filters as the list). Tapping a marker
-/// shows a small card that navigates to the lead detail.
+/// shows a small card that navigates to the lead detail; tapping a group that
+/// zooming cannot split lists its leads to pick from.
 ///
 /// The map reads the SHARED [filteredLeadsProvider], but until it carried its
 /// own controls a rep had to go back to the list to change anything — so the
@@ -134,6 +136,17 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
             myLocationAccuracy: location.accuracyMetres,
             selected: _selected,
             onMarkerTap: (lead) => setState(() => _selected = lead),
+            onStackTap: (cluster) async {
+              final picked = await StackedLeadsSheet.show(
+                context,
+                leads: cluster.leads,
+                categoryColors: categoryColors,
+                myLocation: location.position,
+              );
+              if (picked != null && mounted) {
+                setState(() => _selected = picked);
+              }
+            },
           ),
           // Count pill.
           Positioned(

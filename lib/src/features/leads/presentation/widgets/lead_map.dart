@@ -27,6 +27,7 @@ class LeadMap extends StatefulWidget {
     required this.leads,
     required this.onMarkerTap,
     this.onClusterTap,
+    this.onStackTap,
     this.categoryColors = const {},
     this.myLocation,
     this.myLocationAccuracy,
@@ -42,6 +43,10 @@ class LeadMap extends StatefulWidget {
   /// Called when a counted cluster is tapped. The map zooms in on it either
   /// way; this lets the screen react too (e.g. list what is inside).
   final void Function(LeadCluster cluster)? onClusterTap;
+
+  /// Called INSTEAD of zooming when zooming cannot separate a group's pins
+  /// (see [clusterNeedsPicker]), so the screen can let the rep pick one.
+  final void Function(LeadCluster cluster)? onStackTap;
 
   /// Category name -> configured colour from the backend master.
   final Map<String, String?> categoryColors;
@@ -81,7 +86,7 @@ class _LeadMapState extends State<LeadMap> {
         initialCenter: widget.myLocation ?? widget.center,
         initialZoom: widget.initialZoom,
         minZoom: 4,
-        maxZoom: 18,
+        maxZoom: kLeadMapMaxZoom,
         onPositionChanged: (position, _) {
           final rounded = position.zoom.round();
           if (rounded != _clusterZoom) {
@@ -165,7 +170,12 @@ class _LeadMapState extends State<LeadMap> {
     // Grows with the log of the count: linear scaling makes a 500-cluster
     // swallow the screen while a 3-cluster stays invisible.
     final magnitude = math.log(cluster.count.toDouble()) / math.ln10;
-    final diameter = (34 + 14 * magnitude).clamp(34.0, 64.0);
+    // A group hiding the open lead is ringed, so it stays findable behind the
+    // card the same way a selected single pin does.
+    final holdsSelected = widget.selected != null &&
+        cluster.leads.any((l) => l.name == widget.selected!.name);
+    final diameter =
+        (34 + 14 * magnitude).clamp(34.0, 64.0) + (holdsSelected ? 6 : 0);
     return Marker(
       point: cluster.center,
       width: diameter,
@@ -174,11 +184,15 @@ class _LeadMapState extends State<LeadMap> {
         count: cluster.count,
         diameter: diameter,
         color: _dominantColor(cluster),
+        selected: holdsSelected,
         onTap: () {
           widget.onClusterTap?.call(cluster);
-          // Zoom toward the cluster so a tap always makes progress, even at
-          // max zoom where the members genuinely share a rooftop.
-          final target = (_zoom + 2).clamp(4.0, 18.0);
+          if (widget.onStackTap != null && clusterNeedsPicker(cluster, _zoom)) {
+            widget.onStackTap!(cluster);
+            return;
+          }
+          // Zoom toward the cluster so a tap always makes progress.
+          final target = (_zoom + 2).clamp(4.0, kLeadMapMaxZoom);
           _controller.move(cluster.center, target);
         },
       ),
@@ -266,12 +280,14 @@ class _ClusterPin extends StatelessWidget {
     required this.diameter,
     required this.color,
     required this.onTap,
+    this.selected = false,
   });
 
   final int count;
   final double diameter;
   final Color color;
   final VoidCallback onTap;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +299,10 @@ class _ClusterPin extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 2.5),
+          border: Border.all(
+            color: selected ? LeadsTheme.deepPlum : Colors.white,
+            width: selected ? 4 : 2.5,
+          ),
           boxShadow: const [
             BoxShadow(color: Colors.black38, blurRadius: 5, offset: Offset(0, 2)),
           ],
