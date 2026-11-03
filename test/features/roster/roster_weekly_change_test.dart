@@ -436,7 +436,8 @@ void main() {
       expect(find.text('Check the weekly change'), findsOneWidget);
       expect(
         find.text(
-          'Ali · Sunday: Branch Opening @ Nasr City → Branch Closing @ Dokki',
+          'Ali · Sunday: \u2068Branch Opening @ Nasr City\u2069 → '
+          '\u2068Branch Closing @ Dokki\u2069',
         ),
         findsOneWidget,
       );

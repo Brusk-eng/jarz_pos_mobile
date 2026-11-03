@@ -89,6 +89,7 @@ class RosterDaySheet extends ConsumerStatefulWidget {
 
 class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
   bool _busy = false;
+  bool _weeklyReviewOpen = false;
 
   /// "Also give POS access for this day" for a shift assignment. Off by
   /// default: access is a deliberate grant, never a side effect of rostering.
@@ -367,9 +368,17 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
   /// "Repeat every {weekday}": preview the change, let the manager apply it
   /// from the review sheet, then refresh exactly as a one-day edit does.
   Future<void> _repeatWeekly(RosterWeeklyChange change) async {
+    // A double tap on a shift must not stack two review sheets.
+    if (_weeklyReviewOpen) return;
+    _weeklyReviewOpen = true;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    final result = await showRosterWeeklyReview(context, change: change);
+    final RosterWeeklyResult? result;
+    try {
+      result = await showRosterWeeklyReview(context, change: change);
+    } finally {
+      _weeklyReviewOpen = false;
+    }
     if (result == null || !mounted) return;
     final weekday = rosterPlanWeekdayLabel(
       l10n,

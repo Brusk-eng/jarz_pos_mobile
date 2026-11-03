@@ -31,7 +31,11 @@ Future<RosterWeeklyResult?> showRosterWeeklyReview(
   return showModalBottomSheet<RosterWeeklyResult>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: true,
+    // Closed only by its own buttons: dragging it away or tapping the scrim
+    // while Apply is in flight would drop the result the server committed,
+    // leaving the grid stale and the manager believing nothing was saved.
+    isDismissible: false,
+    enableDrag: false,
     builder: (_) => RosterWeeklyReviewSheet(change: change),
   );
 }
@@ -138,75 +142,80 @@ class _RosterWeeklyReviewSheetState
     final theme = Theme.of(context);
     final maxHeight = MediaQuery.of(context).size.height * 0.85;
 
-    return SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.rosterWeeklyReviewTitle,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+    return PopScope(
+      canPop: !_applying,
+      child: SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.rosterWeeklyReviewTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Flexible(child: _body(context)),
-              if (_applyError != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 20,
-                        color: theme.colorScheme.error,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _applyError!,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.error,
+                const SizedBox(height: 8),
+                Flexible(child: _body(context)),
+                if (_applyError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 20,
+                          color: theme.colorScheme.error,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _applyError!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.error,
+                            ),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _applying
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        child: Text(l10n.commonCancel),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        key: rosterWeeklyApplyKey,
+                        onPressed: _canApply ? _apply : null,
+                        child: _applying
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(l10n.rosterWeeklyApply),
+                      ),
+                    ),
+                  ],
                 ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _applying
-                          ? null
-                          : () => Navigator.of(context).pop(),
-                      child: Text(l10n.commonCancel),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      key: rosterWeeklyApplyKey,
-                      onPressed: _canApply ? _apply : null,
-                      child: _applying
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l10n.rosterWeeklyApply),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
       ),
@@ -287,8 +296,8 @@ class _RosterWeeklyReviewSheetState
                       l10n.rosterWeeklyStandingLine(
                         line.displayName,
                         rosterPlanWeekdayLabel(l10n, line.weekday),
-                        rosterWeeklyServerLabel(l10n, line.before),
-                        rosterWeeklyServerLabel(l10n, line.after),
+                        _isolated(rosterWeeklyServerLabel(l10n, line.before)),
+                        _isolated(rosterWeeklyServerLabel(l10n, line.after)),
                       ),
                     ),
                   ),
@@ -433,3 +442,8 @@ class _SectionTitle extends StatelessWidget {
     );
   }
 }
+
+/// Wraps [text] in a first-strong bidi isolate. Shift and branch names are
+/// English, so in the Arabic line "{before} ← {after}" the arrow between two
+/// left-to-right runs would join them into one run and read backwards.
+String _isolated(String text) => '\u2068$text\u2069';

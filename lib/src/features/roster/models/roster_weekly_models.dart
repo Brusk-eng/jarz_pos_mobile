@@ -13,7 +13,10 @@ import 'roster_plan_models.dart' show rosterPlanWeekdays;
 /// The English weekday name of an ISO date (`2026-11-08` -> `Sunday`), the
 /// value the backend speaks; null when [isoDate] is not a date.
 String? rosterWeekdayOf(String isoDate) {
-  final parsed = DateTime.tryParse(isoDate);
+  // Parsed as UTC midnight: a local midnight can fall in a DST gap (Egypt
+  // springs forward at 00:00) and normalise back into the previous day.
+  if (isoDate.length < 10) return null;
+  final parsed = DateTime.tryParse('${isoDate.substring(0, 10)}T00:00:00Z');
   if (parsed == null) return null;
   // DateTime.weekday: Monday = 1 ... Sunday = 7. rosterPlanWeekdays starts
   // on Saturday, so Saturday (6) maps to index 0.
