@@ -21,6 +21,8 @@ class PaymentReceiptListDialog extends ConsumerStatefulWidget {
 
 class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDialog> {
   String? selectedPosProfile;
+  // On by default: the popup is opened to clear the receipts still waiting.
+  bool unconfirmedOnly = true;
   List<String> posProfiles = [];
   List<Map<String, dynamic>> receipts = [];
   bool loading = true;
@@ -41,8 +43,10 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     // Load receipts
     final receiptList = await ref.read(kanbanProvider.notifier).listPaymentReceipts(
       posProfile: selectedPosProfile,
+      status: unconfirmedOnly ? 'Unconfirmed' : null,
     );
-    
+
+    if (!mounted) return;
     setState(() {
       posProfiles = profiles;
       receipts = receiptList;
@@ -351,7 +355,18 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                   _loadData();
                 },
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // Status Filter
+            FilterChip(
+              label: Text(localizedStatusLabel(context, 'Unconfirmed')),
+              selected: unconfirmedOnly,
+              onSelected: (value) {
+                setState(() => unconfirmedOnly = value);
+                _loadData();
+              },
+            ),
+            const SizedBox(height: 12),
 
             // Receipt List
             if (loading)
