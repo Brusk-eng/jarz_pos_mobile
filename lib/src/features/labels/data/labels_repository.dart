@@ -344,9 +344,11 @@ class LabelsRepository {
       'client_request_id': clientRequestId,
     });
     final payload = _asMap(_unwrap(response));
+    final dedup = payload['deduplicated'];
     return BoughtBatchResult(
       printOrder: payload['print_order']?.toString(),
       purchaseInvoice: payload['purchase_invoice']?.toString(),
+      deduplicated: dedup == true || dedup == 1 || dedup == '1',
       label: CustomerLabel.fromJson(_asMap(payload['label'])),
     );
   }
@@ -370,11 +372,16 @@ class LabelsRepository {
 class BoughtBatchResult {
   final String? printOrder;
   final String? purchaseInvoice;
+
+  /// True when the `client_request_id` matched a batch already recorded: the
+  /// server replayed that one and booked nothing new. False when missing.
+  final bool deduplicated;
   final CustomerLabel label;
 
   const BoughtBatchResult({
     required this.printOrder,
     required this.purchaseInvoice,
+    this.deduplicated = false,
     required this.label,
   });
 }

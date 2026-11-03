@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
@@ -89,10 +90,8 @@ class BoughtBatchRequest {
   });
 }
 
-/// A fresh idempotency key for one bought-batch submission. Same shape as the
-/// Purchase screen's `_newIdempotencyKey`.
-String newBoughtBatchRequestId() =>
-    'lbl-bought-${DateTime.now().microsecondsSinceEpoch}-${identityHashCode(DateTime.now())}';
+/// A fresh idempotency key for one bought-batch submission.
+String newBoughtBatchRequestId() => const Uuid().v4();
 
 /// What [CountSheet] collects.
 ///
@@ -1254,6 +1253,12 @@ class _BoughtBatchSheetState extends State<BoughtBatchSheet> {
         _supplier != null &&
         cost != null &&
         !_payment.isShort(cost);
+    // A count already includes whatever was on the shelf that day, so a batch
+    // dated on or before it is most likely counted already. Warn, never block:
+    // the user may know better.
+    final lastCounted = label.lastCountedOn == null
+        ? null
+        : DateUtils.dateOnly(label.lastCountedOn!);
 
     return _SheetScaffold(
       title: l10n.labelSheetBoughtTitle,
@@ -1354,6 +1359,28 @@ class _BoughtBatchSheetState extends State<BoughtBatchSheet> {
             ),
           ),
         ),
+        if (lastCounted != null && !_boughtOn.isAfter(lastCounted)) ...[
+          const SizedBox(height: 6),
+          Row(
+            key: const ValueKey('bought-before-count-warning'),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.warning_amber_rounded,
+                  size: 18, color: Color(0xFFE65100)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  l10n.labelSheetBoughtBeforeCount(
+                    DateFormat('d MMM yyyy', l10n.localeName)
+                        .format(lastCounted),
+                  ),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: const Color(0xFFE65100)),
+                ),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: 12),
         TextField(
           controller: _notesController,

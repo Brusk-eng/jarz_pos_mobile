@@ -8504,6 +8504,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get labelSheetPaymentChange => 'غيّر مصدر الدفع';
 
   @override
+  String labelDetailBoughtAlreadyRecorded(String invoice) {
+    return 'الشراء ده اتسجل قبل كده (فاتورة $invoice)';
+  }
+
+  @override
+  String get labelDetailBoughtAlreadyRecordedNoBill =>
+      'الشراء ده اتسجل قبل كده';
+
+  @override
+  String labelSheetBoughtBeforeCount(String date) {
+    return 'الليبلات اللي اتسلمت قبل آخر جرد ($date) غالبًا محسوبة فيه — تسجيلها هيضيفها تاني.';
+  }
+
+  @override
   String get b2bStageLead => 'عميل محتمل';
 
   @override

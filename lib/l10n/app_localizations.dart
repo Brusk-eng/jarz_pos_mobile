@@ -14037,6 +14037,24 @@ abstract class AppLocalizations {
   /// **'Change payment source'**
   String get labelSheetPaymentChange;
 
+  /// No description provided for @labelDetailBoughtAlreadyRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'This purchase was already recorded (bill {invoice})'**
+  String labelDetailBoughtAlreadyRecorded(String invoice);
+
+  /// No description provided for @labelDetailBoughtAlreadyRecordedNoBill.
+  ///
+  /// In en, this message translates to:
+  /// **'This purchase was already recorded'**
+  String get labelDetailBoughtAlreadyRecordedNoBill;
+
+  /// No description provided for @labelSheetBoughtBeforeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels received before the last count ({date}) are probably already in that count — recording them adds them again.'**
+  String labelSheetBoughtBeforeCount(String date);
+
   /// No description provided for @b2bStageLead.
   ///
   /// In en, this message translates to:

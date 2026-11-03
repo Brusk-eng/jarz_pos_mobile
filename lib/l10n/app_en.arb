@@ -4865,6 +4865,23 @@
   },
   "labelSheetPaymentPickSource": "Choose where the money came from",
   "labelSheetPaymentChange": "Change payment source",
+  "labelDetailBoughtAlreadyRecorded": "This purchase was already recorded (bill {invoice})",
+  "@labelDetailBoughtAlreadyRecorded": {
+    "placeholders": {
+      "invoice": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailBoughtAlreadyRecordedNoBill": "This purchase was already recorded",
+  "labelSheetBoughtBeforeCount": "Labels received before the last count ({date}) are probably already in that count — recording them adds them again.",
+  "@labelSheetBoughtBeforeCount": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "b2bStageLead": "Lead",
   "b2bStageQualify": "Qualify",
   "b2bStageSample": "Sample",

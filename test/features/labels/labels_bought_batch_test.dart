@@ -61,6 +61,7 @@ Map<String, dynamic> _labelJson({
   int defaultSheets = 2,
   int labelsPerSheet = 21,
   List<Map<String, dynamic>> printOrders = const [],
+  String? lastCountedOn,
 }) {
   return {
     'name': 'JLBL-00001',
@@ -88,6 +89,7 @@ Map<String, dynamic> _labelJson({
     'open_print_orders': const [],
     'print_orders': printOrders,
     'movements': const [],
+    'last_counted_on': lastCountedOn,
   };
 }
 
@@ -213,6 +215,69 @@ void main() {
     });
   });
 
+  group('recordBoughtBatch deduplicated', () {
+    test('a replay comes back flagged', () async {
+      final dio = _FakeDio()
+        ..responses[ApiEndpoints.recordLabelBoughtBatch] = {
+          ..._boughtResponse(),
+          'deduplicated': true,
+        };
+      final result = await LabelsRepository(dio).recordBoughtBatch(
+        label: 'JLBL-00001',
+        qtySheets: 2,
+        supplier: 'Print House Co',
+        totalCost: 210,
+        clientRequestId: 'k',
+      );
+      expect(result.deduplicated, isTrue);
+    });
+
+    test('missing or false reads as a fresh booking', () async {
+      for (final payload in [
+        _boughtResponse(),
+        {..._boughtResponse(), 'deduplicated': false},
+        {..._boughtResponse(), 'deduplicated': 0},
+      ]) {
+        final dio = _FakeDio()
+          ..responses[ApiEndpoints.recordLabelBoughtBatch] = payload;
+        final result = await LabelsRepository(dio).recordBoughtBatch(
+          label: 'JLBL-00001',
+          qtySheets: 2,
+          supplier: 'Print House Co',
+          totalCost: 210,
+          clientRequestId: 'k',
+        );
+        expect(result.deduplicated, isFalse);
+      }
+    });
+  });
+
+  group('canBillLabels', () {
+    UserRoles withRoles(List<String> roles) =>
+        UserRoles(user: 'u@x', roles: roles);
+
+    test('mirrors the labels API manager set exactly', () {
+      for (final role in ['JARZ Manager', 'System Manager', 'Administrator']) {
+        expect(withRoles([role]).canBillLabels, isTrue, reason: role);
+      }
+    });
+
+    test('the wider purchase managers are not in it', () {
+      for (final role in [
+        'Accounts Manager',
+        'Stock Manager',
+        'Manufacturing Manager',
+        'Purchase Manager',
+        'JARZ line manager',
+        'B2B Sales Rep',
+      ]) {
+        expect(withRoles([role]).canBillLabels, isFalse, reason: role);
+      }
+      // The gap the old gate had: Purchase screen yes, labels billing no.
+      expect(withRoles(['Accounts Manager']).canAccessPurchaseInvoice, isTrue);
+    });
+  });
+
   group('billPrintOrder payment', () {
     test('without isPaid the old wire format is unchanged', () async {
       final dio = _FakeDio()
@@ -265,6 +330,7 @@ void main() {
       WidgetTester tester, {
       String? initialSupplier,
       String? clientRequestId,
+      CustomerLabel? label,
     }) async {
       BoughtBatchRequest? result;
       tester.view.physicalSize = const Size(1080, 3000);
@@ -284,7 +350,7 @@ void main() {
                       context: context,
                       isScrollControlled: true,
                       builder: (_) => BoughtBatchSheet(
-                        label: CustomerLabel.fromJson(_labelJson()),
+                        label: label ?? CustomerLabel.fromJson(_labelJson()),
                         initialSupplier: initialSupplier,
                         clientRequestId: clientRequestId,
                       ),
@@ -399,7 +465,50 @@ void main() {
       await tester.enterText(find.byKey(const ValueKey('bought-cost')), '99');
       await tester.pump();
       await save(tester);
-      expect(result()!.clientRequestId, startsWith('lbl-bought-'));
+      expect(
+        result()!.clientRequestId,
+        matches(RegExp(
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')),
+      );
+    });
+
+    String ymd(DateTime d) =>
+        '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+    testWidgets('a date on or before the last count warns, without blocking',
+        (tester) async {
+      final today = DateUtils.dateOnly(DateTime.now());
+      await pumpSheet(
+        tester,
+        initialSupplier: 'Print House Co',
+        label: CustomerLabel.fromJson(_labelJson(lastCountedOn: ymd(today))),
+      );
+
+      expect(find.byKey(const ValueKey('bought-before-count-warning')),
+          findsOneWidget);
+      expect(find.textContaining('before the last count'), findsOneWidget);
+      await tester.enterText(find.byKey(const ValueKey('bought-cost')), '210');
+      await tester.pump();
+      expect(saveButton(tester).onPressed, isNotNull);
+    });
+
+    testWidgets('a date after the last count shows no warning',
+        (tester) async {
+      final yesterday =
+          DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1));
+      await pumpSheet(
+        tester,
+        label:
+            CustomerLabel.fromJson(_labelJson(lastCountedOn: ymd(yesterday))),
+      );
+      expect(find.byKey(const ValueKey('bought-before-count-warning')),
+          findsNothing);
+    });
+
+    testWidgets('never counted: no warning', (tester) async {
+      await pumpSheet(tester);
+      expect(find.byKey(const ValueKey('bought-before-count-warning')),
+          findsNothing);
     });
   });
 
@@ -476,7 +585,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           labelsRepositoryProvider.overrideWithValue(LabelsRepository(dio)),
-          canAccessPurchaseInvoiceProvider.overrideWithValue(canBill),
+          canBillLabelsProvider.overrideWithValue(canBill),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -493,6 +602,30 @@ void main() {
       await pumpScreen(tester, canBill: false);
       expect(find.text('Order'), findsOneWidget);
       expect(find.byKey(const ValueKey('label-action-bought')), findsNothing);
+    });
+
+    testWidgets('a replayed purchase says so instead of claiming new stock',
+        (tester) async {
+      final dio = await pumpScreen(tester, canBill: true);
+      dio.responses[ApiEndpoints.recordLabelBoughtBatch] = {
+        ..._boughtResponse(),
+        'deduplicated': true,
+      };
+      await tester.tap(find.byKey(const ValueKey('label-action-bought')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('bought-cost')), '210');
+      await tester.pump();
+      final save = find.byKey(const ValueKey('bought-save'));
+      await tester.ensureVisible(save);
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+            'This purchase was already recorded (bill ACC-PINV-2026-00042)'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Recorded 42 labels'), findsNothing);
     });
 
     testWidgets('a retry after a timeout replays the same client_request_id',

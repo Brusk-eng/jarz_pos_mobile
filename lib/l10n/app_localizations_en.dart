@@ -8560,6 +8560,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelSheetPaymentChange => 'Change payment source';
 
   @override
+  String labelDetailBoughtAlreadyRecorded(String invoice) {
+    return 'This purchase was already recorded (bill $invoice)';
+  }
+
+  @override
+  String get labelDetailBoughtAlreadyRecordedNoBill =>
+      'This purchase was already recorded';
+
+  @override
+  String labelSheetBoughtBeforeCount(String date) {
+    return 'Labels received before the last count ($date) are probably already in that count — recording them adds them again.';
+  }
+
+  @override
   String get b2bStageLead => 'Lead';
 
   @override

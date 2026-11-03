@@ -7,7 +7,7 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/network/user_service.dart'
-    show canAccessPurchaseInvoiceProvider;
+    show canBillLabelsProvider;
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
 import '../../state/labels_notifier.dart' show labelErrorMessage;
@@ -155,9 +155,8 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
           _Actions(
             label: label,
             busy: _busy,
-            // Booking a bill is a supplier Purchase Invoice: the same manager
-            // set the Purchase screen is gated on. The server enforces it.
-            canRecordBought: ref.watch(canAccessPurchaseInvoiceProvider),
+            // Exactly the labels API's manager set; the server enforces it.
+            canRecordBought: ref.watch(canBillLabelsProvider),
             onOrder: () => _orderBatch(label),
             onBought: () => _recordBought(label),
             onCount: () => _count(label),
@@ -227,6 +226,7 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
     final date = DateFormat('yyyy-MM-dd').format(request.boughtOn);
     _pendingBoughtRequestId = request.clientRequestId;
     String? invoice;
+    var deduplicated = false;
     final updated = await _act(() async {
       final result = await ref.read(labelsRepositoryProvider).recordBoughtBatch(
             label: label.name,
@@ -243,6 +243,7 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             clientRequestId: request.clientRequestId,
           );
       invoice = result.purchaseInvoice;
+      deduplicated = result.deduplicated;
       return result.label;
     });
     if (updated == null || !mounted) return;
@@ -250,13 +251,20 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
     final received =
         request.receivedQty ?? label.labelsForSheets(request.qtySheets);
     final pi = invoice;
-    _messengerKey.currentState?.showSnackBar(SnackBar(
-      content: Text(
-        pi == null || pi.isEmpty
-            ? l10n.labelDetailReceivedAdded(received)
-            : l10n.labelDetailBoughtRecorded(received, pi),
-      ),
-    ));
+    final String message;
+    if (deduplicated) {
+      // A replay of an earlier attempt that had landed: nothing new was
+      // booked, so this form's count is not what is on the shelf.
+      message = pi == null || pi.isEmpty
+          ? l10n.labelDetailBoughtAlreadyRecordedNoBill
+          : l10n.labelDetailBoughtAlreadyRecorded(pi);
+    } else {
+      message = pi == null || pi.isEmpty
+          ? l10n.labelDetailReceivedAdded(received)
+          : l10n.labelDetailBoughtRecorded(received, pi);
+    }
+    _messengerKey.currentState
+        ?.showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _count(CustomerLabel label) async {

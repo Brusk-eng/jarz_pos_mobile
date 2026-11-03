@@ -390,6 +390,17 @@ class UserRoles {
       roles.contains(RoleNames.systemManager) ||
       roles.contains(RoleNames.administrator);
 
+  /// Whether this user may book money on a customer label batch (record the
+  /// printer's bill, or a bought-and-received batch). Mirrors
+  /// `api/labels._MANAGER_ROLES` exactly: JARZ Manager, System Manager,
+  /// Administrator. Narrower than [canAccessPurchaseInvoice], which also
+  /// admits the Accounts/Stock/Manufacturing/Purchase managers the labels API
+  /// refuses.
+  bool get canBillLabels =>
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator);
+
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
     final rolesList = rolesRaw is List
@@ -639,6 +650,15 @@ final canAccessPurchaseInvoiceProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canAccessPurchaseInvoice,
+    orElse: () => false,
+  );
+});
+
+/// See [UserRoles.canBillLabels].
+final canBillLabelsProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canBillLabels,
     orElse: () => false,
   );
 });
