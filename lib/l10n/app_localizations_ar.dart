@@ -8451,6 +8451,59 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get labelDetailActionBought => 'تم الشراء والاستلام';
+
+  @override
+  String labelDetailBoughtRecorded(int count, String invoice) {
+    return 'اتسجل $count ليبل، فاتورة $invoice';
+  }
+
+  @override
+  String get labelSheetBoughtTitle => 'تم الشراء والاستلام';
+
+  @override
+  String labelSheetBoughtSubtitle(String name) {
+    return '$name. لدفعة اتشرت واتسلمت خلاص: بتضيفها للمخزن وبتسجّل فاتورة المطبعة في خطوة واحدة.';
+  }
+
+  @override
+  String get labelSheetSheetsBought => 'الشيتات المشتراة';
+
+  @override
+  String get labelSheetBoughtReceivedHelper =>
+      'محسوبة من عدد الشيتات. غيّرها لو المطبعة سلّمت ناقص.';
+
+  @override
+  String get labelSheetBoughtOn => 'اتشرت / اتسلمت يوم';
+
+  @override
+  String get labelSheetRecordBought => 'ضيف للمخزن وسجّل الفاتورة';
+
+  @override
+  String get labelSheetPaymentHeading => 'الدفع';
+
+  @override
+  String get labelSheetPaymentOwed => 'على حساب المورد (ندفع بعدين)';
+
+  @override
+  String get labelSheetPaymentOwedSubtitle =>
+      'الفاتورة بتفضل مفتوحة كمستحق للمطبعة';
+
+  @override
+  String get labelSheetPaymentPaid => 'اتدفعت دلوقتي';
+
+  @override
+  String labelSheetPaymentPaidFrom(String source) {
+    return 'اتدفعت من $source';
+  }
+
+  @override
+  String get labelSheetPaymentPickSource => 'اختار الفلوس اتدفعت منين';
+
+  @override
+  String get labelSheetPaymentChange => 'غيّر مصدر الدفع';
+
+  @override
   String get b2bStageLead => 'عميل محتمل';
 
   @override

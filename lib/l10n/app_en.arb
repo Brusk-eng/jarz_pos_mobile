@@ -4826,6 +4826,45 @@
       }
     }
   },
+  "labelDetailActionBought": "Bought & received",
+  "labelDetailBoughtRecorded": "{count, plural, =1{Recorded 1 label, bill {invoice}} other{Recorded {count} labels, bill {invoice}}}",
+  "@labelDetailBoughtRecorded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "invoice": {
+        "type": "String"
+      }
+    }
+  },
+  "labelSheetBoughtTitle": "Bought & received",
+  "labelSheetBoughtSubtitle": "{name}. For a batch already bought and delivered: adds it to stock and books the printer''s bill in one step.",
+  "@labelSheetBoughtSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "labelSheetSheetsBought": "Sheets bought",
+  "labelSheetBoughtReceivedHelper": "Filled in from the sheets. Change it if the printer delivered short.",
+  "labelSheetBoughtOn": "Bought / received on",
+  "labelSheetRecordBought": "Add to stock & record bill",
+  "labelSheetPaymentHeading": "Payment",
+  "labelSheetPaymentOwed": "Owed to supplier (pay later)",
+  "labelSheetPaymentOwedSubtitle": "The bill stays open as a payable to the printer",
+  "labelSheetPaymentPaid": "Paid now",
+  "labelSheetPaymentPaidFrom": "Paid from {source}",
+  "@labelSheetPaymentPaidFrom": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "labelSheetPaymentPickSource": "Choose where the money came from",
+  "labelSheetPaymentChange": "Change payment source",
   "b2bStageLead": "Lead",
   "b2bStageQualify": "Qualify",
   "b2bStageSample": "Sample",

@@ -8501,6 +8501,65 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get labelDetailActionBought => 'Bought & received';
+
+  @override
+  String labelDetailBoughtRecorded(int count, String invoice) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Recorded $count labels, bill $invoice',
+      one: 'Recorded 1 label, bill $invoice',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelSheetBoughtTitle => 'Bought & received';
+
+  @override
+  String labelSheetBoughtSubtitle(String name) {
+    return '$name. For a batch already bought and delivered: adds it to stock and books the printer\'s bill in one step.';
+  }
+
+  @override
+  String get labelSheetSheetsBought => 'Sheets bought';
+
+  @override
+  String get labelSheetBoughtReceivedHelper =>
+      'Filled in from the sheets. Change it if the printer delivered short.';
+
+  @override
+  String get labelSheetBoughtOn => 'Bought / received on';
+
+  @override
+  String get labelSheetRecordBought => 'Add to stock & record bill';
+
+  @override
+  String get labelSheetPaymentHeading => 'Payment';
+
+  @override
+  String get labelSheetPaymentOwed => 'Owed to supplier (pay later)';
+
+  @override
+  String get labelSheetPaymentOwedSubtitle =>
+      'The bill stays open as a payable to the printer';
+
+  @override
+  String get labelSheetPaymentPaid => 'Paid now';
+
+  @override
+  String labelSheetPaymentPaidFrom(String source) {
+    return 'Paid from $source';
+  }
+
+  @override
+  String get labelSheetPaymentPickSource => 'Choose where the money came from';
+
+  @override
+  String get labelSheetPaymentChange => 'Change payment source';
+
+  @override
   String get b2bStageLead => 'Lead';
 
   @override

@@ -883,6 +883,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.labels.update_print_order';
   static const billLabelPrintOrder =
       '/api/method/jarz_pos.api.labels.bill_print_order';
+  // One step for a batch already bought AND delivered: print order + receipt
+  // + supplier bill. Manager-only; idempotent on client_request_id.
+  static const recordLabelBoughtBatch =
+      '/api/method/jarz_pos.api.labels.record_bought_batch';
 
   // ── Custom Shipping ───────────────────────────────────────────────────
   static const requestCustomShipping =

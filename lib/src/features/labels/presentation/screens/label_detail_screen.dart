@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../../../core/network/user_service.dart'
+    show canAccessPurchaseInvoiceProvider;
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
 import '../../state/labels_notifier.dart' show labelErrorMessage;
@@ -35,6 +37,12 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
   String? _error;
   bool _loading = true;
   bool _busy = false;
+
+  /// The idempotency key of a bought-batch save that did not come back (a
+  /// timeout, a dropped connection). The next sheet reuses it, so if the first
+  /// attempt did land server-side the retry replays it instead of buying the
+  /// batch twice. Cleared on success.
+  String? _pendingBoughtRequestId;
 
   @override
   void initState() {
@@ -147,7 +155,11 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
           _Actions(
             label: label,
             busy: _busy,
+            // Booking a bill is a supplier Purchase Invoice: the same manager
+            // set the Purchase screen is gated on. The server enforces it.
+            canRecordBought: ref.watch(canAccessPurchaseInvoiceProvider),
             onOrder: () => _orderBatch(label),
+            onBought: () => _recordBought(label),
             onCount: () => _count(label),
             onMovement: () => _recordMovement(label),
           ),
@@ -189,6 +201,62 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
           ),
       success: l10n.labelDetailSentToPrinter(what),
     );
+  }
+
+  /// A batch already bought and delivered: order + receipt + bill in one
+  /// form and one call.
+  Future<void> _recordBought(CustomerLabel label) async {
+    String? lastSupplier;
+    for (final order in label.printOrders) {
+      if (order.supplier != null && order.supplier!.isNotEmpty) {
+        lastSupplier = order.supplier;
+        break;
+      }
+    }
+    final request = await showModalBottomSheet<BoughtBatchRequest>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => BoughtBatchSheet(
+        label: label,
+        initialSupplier: lastSupplier,
+        clientRequestId: _pendingBoughtRequestId,
+      ),
+    );
+    if (request == null || !mounted) return;
+    final l10n = context.l10n;
+    final date = DateFormat('yyyy-MM-dd').format(request.boughtOn);
+    _pendingBoughtRequestId = request.clientRequestId;
+    String? invoice;
+    final updated = await _act(() async {
+      final result = await ref.read(labelsRepositoryProvider).recordBoughtBatch(
+            label: label.name,
+            qtySheets: request.qtySheets,
+            receivedQty: request.receivedQty,
+            supplier: request.supplier,
+            totalCost: request.totalCost,
+            billNo: request.billNo,
+            billDate: date,
+            receivedOn: date,
+            isPaid: request.isPaid,
+            paymentOption: request.paymentOption,
+            notes: request.notes,
+            clientRequestId: request.clientRequestId,
+          );
+      invoice = result.purchaseInvoice;
+      return result.label;
+    });
+    if (updated == null || !mounted) return;
+    _pendingBoughtRequestId = null;
+    final received =
+        request.receivedQty ?? label.labelsForSheets(request.qtySheets);
+    final pi = invoice;
+    _messengerKey.currentState?.showSnackBar(SnackBar(
+      content: Text(
+        pi == null || pi.isEmpty
+            ? l10n.labelDetailReceivedAdded(received)
+            : l10n.labelDetailBoughtRecorded(received, pi),
+      ),
+    ));
   }
 
   Future<void> _count(CustomerLabel label) async {
@@ -291,6 +359,8 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             supplier: request.supplier,
             totalCost: request.totalCost,
             billNo: request.billNo,
+            isPaid: request.isPaid,
+            paymentOption: request.paymentOption,
           ),
       success: l10n.labelDetailBillRecorded,
     );
@@ -493,14 +563,18 @@ class _Stat extends StatelessWidget {
 class _Actions extends StatelessWidget {
   final CustomerLabel label;
   final bool busy;
+  final bool canRecordBought;
   final VoidCallback onOrder;
+  final VoidCallback onBought;
   final VoidCallback onCount;
   final VoidCallback onMovement;
 
   const _Actions({
     required this.label,
     required this.busy,
+    required this.canRecordBought,
     required this.onOrder,
+    required this.onBought,
     required this.onCount,
     required this.onMovement,
   });
@@ -517,32 +591,70 @@ class _Actions extends StatelessWidget {
       );
     }
 
+    final order = Expanded(
+      child: FilledButton.icon(
+        onPressed: busy ? null : onOrder,
+        icon: const Icon(Icons.local_printshop, size: 18),
+        label: Text(context.l10n.labelDetailActionOrder),
+      ),
+    );
+    final count = Expanded(
+      child: OutlinedButton.icon(
+        onPressed: busy ? null : onCount,
+        icon: const Icon(Icons.checklist, size: 18),
+        label: Text(context.l10n.labelDetailActionCount),
+      ),
+    );
+    final record = Expanded(
+      child: OutlinedButton.icon(
+        onPressed: busy ? null : onMovement,
+        icon: const Icon(Icons.edit_note, size: 18),
+        label: Text(context.l10n.labelDetailActionRecord),
+      ),
+    );
+
+    if (!canRecordBought) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
+        child: Row(
+          children: [
+            order,
+            const SizedBox(width: 8),
+            count,
+            const SizedBox(width: 8),
+            record,
+          ],
+        ),
+      );
+    }
+
+    // Four actions do not fit one row on a phone: the two ways a batch
+    // arrives sit together on top, the stock corrections below.
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: FilledButton.icon(
-              onPressed: busy ? null : onOrder,
-              icon: const Icon(Icons.local_printshop, size: 18),
-              label: Text(context.l10n.labelDetailActionOrder),
-            ),
+          Row(
+            children: [
+              order,
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  key: const ValueKey('label-action-bought'),
+                  onPressed: busy ? null : onBought,
+                  icon: const Icon(Icons.inventory_2, size: 18),
+                  label: Text(context.l10n.labelDetailActionBought),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: busy ? null : onCount,
-              icon: const Icon(Icons.checklist, size: 18),
-              label: Text(context.l10n.labelDetailActionCount),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: busy ? null : onMovement,
-              icon: const Icon(Icons.edit_note, size: 18),
-              label: Text(context.l10n.labelDetailActionRecord),
-            ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              count,
+              const SizedBox(width: 8),
+              record,
+            ],
           ),
         ],
       ),

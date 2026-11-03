@@ -13947,6 +13947,96 @@ abstract class AppLocalizations {
   /// **' · {n} failed'**
   String labelsQuickOrderFailedSuffix(int n);
 
+  /// No description provided for @labelDetailActionBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought & received'**
+  String get labelDetailActionBought;
+
+  /// No description provided for @labelDetailBoughtRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Recorded 1 label, bill {invoice}} other{Recorded {count} labels, bill {invoice}}}'**
+  String labelDetailBoughtRecorded(int count, String invoice);
+
+  /// No description provided for @labelSheetBoughtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought & received'**
+  String get labelSheetBoughtTitle;
+
+  /// No description provided for @labelSheetBoughtSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}. For a batch already bought and delivered: adds it to stock and books the printer\'\'s bill in one step.'**
+  String labelSheetBoughtSubtitle(String name);
+
+  /// No description provided for @labelSheetSheetsBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheets bought'**
+  String get labelSheetSheetsBought;
+
+  /// No description provided for @labelSheetBoughtReceivedHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled in from the sheets. Change it if the printer delivered short.'**
+  String get labelSheetBoughtReceivedHelper;
+
+  /// No description provided for @labelSheetBoughtOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought / received on'**
+  String get labelSheetBoughtOn;
+
+  /// No description provided for @labelSheetRecordBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to stock & record bill'**
+  String get labelSheetRecordBought;
+
+  /// No description provided for @labelSheetPaymentHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get labelSheetPaymentHeading;
+
+  /// No description provided for @labelSheetPaymentOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to supplier (pay later)'**
+  String get labelSheetPaymentOwed;
+
+  /// No description provided for @labelSheetPaymentOwedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The bill stays open as a payable to the printer'**
+  String get labelSheetPaymentOwedSubtitle;
+
+  /// No description provided for @labelSheetPaymentPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid now'**
+  String get labelSheetPaymentPaid;
+
+  /// No description provided for @labelSheetPaymentPaidFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from {source}'**
+  String labelSheetPaymentPaidFrom(String source);
+
+  /// No description provided for @labelSheetPaymentPickSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where the money came from'**
+  String get labelSheetPaymentPickSource;
+
+  /// No description provided for @labelSheetPaymentChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change payment source'**
+  String get labelSheetPaymentChange;
+
   /// No description provided for @b2bStageLead.
   ///
   /// In en, this message translates to:

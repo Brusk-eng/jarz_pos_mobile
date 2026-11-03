@@ -284,7 +284,10 @@ class LabelsRepository {
     double? totalCost,
     String? billNo,
     String? billDate,
+    bool? isPaid,
+    String? paymentOption,
   }) async {
+    final paid = _paidOption(isPaid ?? false, paymentOption);
     final response = await _dio.post(ApiEndpoints.billLabelPrintOrder, data: {
       'print_order': printOrder,
       if (supplier != null && supplier.trim().isNotEmpty)
@@ -293,8 +296,85 @@ class LabelsRepository {
       if (billNo != null && billNo.trim().isNotEmpty) 'bill_no': billNo.trim(),
       if (billDate != null && billDate.trim().isNotEmpty)
         'bill_date': billDate.trim(),
+      // Omitted entirely when the caller does not say, so an older caller
+      // keeps the old wire format (owed to the printer).
+      if (isPaid != null) 'is_paid': paid == null ? 0 : 1,
+      if (paid != null) 'payment_option': paid,
     });
     final payload = _asMap(_unwrap(response));
     return CustomerLabel.fromJson(_asMap(payload['label']));
   }
+
+  /// A batch already bought AND delivered, in one call: the server creates the
+  /// print order, receives it into stock and books the supplier bill.
+  /// Manager-only server-side; a refusal surfaces as the server's sentence.
+  ///
+  /// [clientRequestId] must be the same on a retry of the same purchase, so a
+  /// replay after a timeout is deduplicated instead of buying twice.
+  Future<BoughtBatchResult> recordBoughtBatch({
+    required String label,
+    required int qtySheets,
+    int? receivedQty,
+    required String supplier,
+    required double totalCost,
+    String? billNo,
+    String? billDate,
+    String? receivedOn,
+    bool isPaid = false,
+    String? paymentOption,
+    String? notes,
+    required String clientRequestId,
+  }) async {
+    final paid = _paidOption(isPaid, paymentOption);
+    final response =
+        await _dio.post(ApiEndpoints.recordLabelBoughtBatch, data: {
+      'label': label,
+      'qty_sheets': qtySheets,
+      if (receivedQty != null && receivedQty > 0) 'received_qty': receivedQty,
+      'supplier': supplier.trim(),
+      'total_cost': totalCost,
+      if (billNo != null && billNo.trim().isNotEmpty) 'bill_no': billNo.trim(),
+      if (billDate != null && billDate.trim().isNotEmpty)
+        'bill_date': billDate.trim(),
+      if (receivedOn != null && receivedOn.trim().isNotEmpty)
+        'received_on': receivedOn.trim(),
+      'is_paid': paid == null ? 0 : 1,
+      if (paid != null) 'payment_option': paid,
+      if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      'client_request_id': clientRequestId,
+    });
+    final payload = _asMap(_unwrap(response));
+    return BoughtBatchResult(
+      printOrder: payload['print_order']?.toString(),
+      purchaseInvoice: payload['purchase_invoice']?.toString(),
+      label: CustomerLabel.fromJson(_asMap(payload['label'])),
+    );
+  }
+
+  /// The payment source to send, or null for "owed to the supplier". Paid with
+  /// no source is a caller bug: silently booking it as owed would leave the
+  /// money out of the drawer it actually left, so it throws instead.
+  String? _paidOption(bool isPaid, String? paymentOption) {
+    if (!isPaid) return null;
+    final option = paymentOption?.trim() ?? '';
+    if (option.isEmpty) {
+      throw ArgumentError.value(
+          paymentOption, 'paymentOption', 'required when isPaid is true');
+    }
+    return option;
+  }
+}
+
+/// What `record_bought_batch` returns: the records it created and the label's
+/// refreshed detail (the same map `bill_print_order` returns).
+class BoughtBatchResult {
+  final String? printOrder;
+  final String? purchaseInvoice;
+  final CustomerLabel label;
+
+  const BoughtBatchResult({
+    required this.printOrder,
+    required this.purchaseInvoice,
+    required this.label,
+  });
 }

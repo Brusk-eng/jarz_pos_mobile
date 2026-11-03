@@ -10,6 +10,7 @@ import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
+import 'label_payment_choice.dart';
 
 /// What [PrintOrderSheet] collects. Ordering happens in SHEETS — the print
 /// house sells sheets, not labels.
@@ -33,12 +34,65 @@ class BillRequest {
   final double totalCost;
   final String? billNo;
 
+  /// False books the bill as owed to the printer (a payable).
+  final bool isPaid;
+
+  /// Where the money came from when [isPaid]: a POS Profile name, `instapay`,
+  /// `cash` or `custody:<holder>`. Null when owed.
+  final String? paymentOption;
+
   const BillRequest({
     required this.supplier,
     required this.totalCost,
     required this.billNo,
+    this.isPaid = false,
+    this.paymentOption,
   });
 }
+
+/// What [BoughtBatchSheet] collects: a batch that was already bought AND
+/// delivered, recorded in one step (print order + receipt + bill).
+class BoughtBatchRequest {
+  final int qtySheets;
+
+  /// Labels that actually arrived. Null lets the server default it to what the
+  /// sheets hold.
+  final int? receivedQty;
+  final String supplier;
+
+  /// NET of VAT.
+  final double totalCost;
+  final String? billNo;
+
+  /// The one "bought / received on" date, sent as both `received_on` and
+  /// `bill_date`.
+  final DateTime boughtOn;
+  final bool isPaid;
+  final String? paymentOption;
+  final String? notes;
+
+  /// Generated once per sheet, so a retry after a timeout replays the first
+  /// attempt server-side instead of buying the batch twice.
+  final String clientRequestId;
+
+  const BoughtBatchRequest({
+    required this.qtySheets,
+    required this.receivedQty,
+    required this.supplier,
+    required this.totalCost,
+    required this.billNo,
+    required this.boughtOn,
+    required this.isPaid,
+    required this.paymentOption,
+    required this.notes,
+    required this.clientRequestId,
+  });
+}
+
+/// A fresh idempotency key for one bought-batch submission. Same shape as the
+/// Purchase screen's `_newIdempotencyKey`.
+String newBoughtBatchRequestId() =>
+    'lbl-bought-${DateTime.now().microsecondsSinceEpoch}-${identityHashCode(DateTime.now())}';
 
 /// What [CountSheet] collects.
 ///
@@ -1002,6 +1056,7 @@ class _RecordBillSheetState extends State<RecordBillSheet> {
   );
   final _billNoController = TextEditingController();
   LabelSupplierOption? _supplier;
+  LabelPaymentSelection _payment = const LabelPaymentSelection.owed();
 
   @override
   void initState() {
@@ -1054,9 +1109,17 @@ class _RecordBillSheetState extends State<RecordBillSheet> {
           controller: _billNoController,
           decoration: _fieldDecoration(l10n.labelSheetBillNoOptional),
         ),
+        const SizedBox(height: 12),
+        LabelPaymentChoiceField(
+          value: _payment,
+          amount: cost ?? 0,
+          onChanged: (value) => setState(() => _payment = value),
+        ),
       ],
       action: FilledButton.icon(
-        onPressed: (_supplier == null || cost == null)
+        onPressed: (_supplier == null ||
+                cost == null ||
+                _payment.isShort(cost))
             ? null
             : () => Navigator.of(context).pop(
                   BillRequest(
@@ -1065,10 +1128,270 @@ class _RecordBillSheetState extends State<RecordBillSheet> {
                     billNo: _billNoController.text.trim().isEmpty
                         ? null
                         : _billNoController.text.trim(),
+                    isPaid: _payment.isPaid,
+                    paymentOption: _payment.isPaid ? _payment.option : null,
                   ),
                 ),
         icon: const Icon(Icons.receipt_long),
         label: Text(l10n.labelSheetRecordBill),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Bought & received: order + receipt + bill in one form
+// ---------------------------------------------------------------------------
+/// For a batch that was already bought and delivered: what used to take
+/// create order -> receive -> bill is one form and one server call.
+class BoughtBatchSheet extends StatefulWidget {
+  final CustomerLabel label;
+
+  /// Pre-selects the printer, typically the one the last batch came from.
+  final String? initialSupplier;
+
+  /// Reuse the key of an attempt that failed (e.g. a timeout), so a retry
+  /// replays it rather than buying twice. Null generates a fresh one.
+  final String? clientRequestId;
+
+  const BoughtBatchSheet({
+    super.key,
+    required this.label,
+    this.initialSupplier,
+    this.clientRequestId,
+  });
+
+  @override
+  State<BoughtBatchSheet> createState() => _BoughtBatchSheetState();
+}
+
+class _BoughtBatchSheetState extends State<BoughtBatchSheet> {
+  /// Fixed for the life of the sheet: one sheet, one purchase.
+  late final String _requestId =
+      widget.clientRequestId ?? newBoughtBatchRequestId();
+
+  late final TextEditingController _sheetsController = TextEditingController(
+    text: '${_initialSheets(widget.label)}',
+  );
+  late final TextEditingController _receivedController = TextEditingController(
+    text: _labelsText(
+        widget.label.labelsForSheets(_initialSheets(widget.label))),
+  );
+  final _costController = TextEditingController();
+  final _billNoController = TextEditingController();
+  final _notesController = TextEditingController();
+  LabelSupplierOption? _supplier;
+  LabelPaymentSelection _payment = const LabelPaymentSelection.owed();
+  DateTime _boughtOn = DateUtils.dateOnly(DateTime.now());
+
+  /// Once the user types a received count it is theirs: changing the sheets
+  /// no longer overwrites it.
+  bool _receivedEdited = false;
+
+  static int _initialSheets(CustomerLabel label) =>
+      label.defaultPrintSheets > 0 ? label.defaultPrintSheets : 1;
+
+  static String _labelsText(int labels) => labels > 0 ? '$labels' : '';
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialSupplier?.trim();
+    if (initial != null && initial.isNotEmpty) {
+      _supplier = LabelSupplierOption(name: initial, supplierName: initial);
+    }
+  }
+
+  @override
+  void dispose() {
+    _sheetsController.dispose();
+    _receivedController.dispose();
+    _costController.dispose();
+    _billNoController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  int get _sheets => int.tryParse(_sheetsController.text.trim()) ?? 0;
+
+  void _onSheetsChanged() {
+    setState(() {
+      if (!_receivedEdited) {
+        _receivedController.text =
+            _labelsText(widget.label.labelsForSheets(_sheets));
+      }
+    });
+  }
+
+  void _stepSheets(int delta) {
+    final next = _sheets + delta;
+    if (next < 1) return;
+    _sheetsController.text = '$next';
+    _onSheetsChanged();
+  }
+
+  Future<void> _pickDate() async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _boughtOn,
+      firstDate: today.subtract(const Duration(days: 365)),
+      lastDate: today,
+    );
+    if (picked != null) setState(() => _boughtOn = picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final label = widget.label;
+    final sheets = _sheets;
+    final sheetLabels = label.labelsForSheets(sheets);
+    final received = int.tryParse(_receivedController.text.trim());
+    final cost = _parseCost(_costController);
+    final canSave = sheets > 0 &&
+        _supplier != null &&
+        cost != null &&
+        !_payment.isShort(cost);
+
+    return _SheetScaffold(
+      title: l10n.labelSheetBoughtTitle,
+      subtitle: l10n.labelSheetBoughtSubtitle(
+        '${label.customerName} · ${label.labelTitle}'
+        '${label.size == null ? '' : ' · ${label.size}'}',
+      ),
+      fields: [
+        Row(
+          children: [
+            IconButton(
+              key: const ValueKey('bought-sheets-minus'),
+              onPressed: sheets > 1 ? () => _stepSheets(-1) : null,
+              icon: const Icon(Icons.remove_circle_outline),
+            ),
+            Expanded(
+              child: TextField(
+                key: const ValueKey('bought-sheets'),
+                controller: _sheetsController,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: _digits,
+                decoration: _fieldDecoration(l10n.labelSheetSheetsBought),
+                onChanged: (_) => _onSheetsChanged(),
+              ),
+            ),
+            IconButton(
+              key: const ValueKey('bought-sheets-plus'),
+              onPressed: () => _stepSheets(1),
+              icon: const Icon(Icons.add_circle),
+              color: theme.colorScheme.primary,
+            ),
+          ],
+        ),
+        if (sheets > 0 && sheetLabels > 0) ...[
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              const Icon(Icons.grid_on, size: 16),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  l10n.labelSheetSheetsEquals(
+                    l10n.labelCardSheetsCount(sheets),
+                    l10n.labelCardLabelsCount(sheetLabels),
+                  ),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+        TextField(
+          key: const ValueKey('bought-received'),
+          controller: _receivedController,
+          keyboardType: TextInputType.number,
+          inputFormatters: _digits,
+          decoration: _fieldDecoration(
+            l10n.labelSheetLabelsReceived,
+            helper: l10n.labelSheetBoughtReceivedHelper,
+          ),
+          onChanged: (_) => setState(() => _receivedEdited = true),
+        ),
+        const SizedBox(height: 12),
+        SupplierField(
+          initialSupplier: widget.initialSupplier,
+          label: l10n.labelSheetPrintSupplier,
+          onChanged: (option) => setState(() => _supplier = option),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const ValueKey('bought-cost'),
+          controller: _costController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: _fieldDecoration(
+            l10n.labelSheetNetCost,
+            helper: l10n.labelSheetNetCostBillHelper,
+            suffix: currencySymbol(context),
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _billNoController,
+          decoration: _fieldDecoration(l10n.labelSheetBillNoOptional),
+        ),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: _pickDate,
+          borderRadius: BorderRadius.circular(8),
+          child: InputDecorator(
+            decoration: _fieldDecoration(l10n.labelSheetBoughtOn)
+                .copyWith(prefixIcon: const Icon(Icons.event, size: 20)),
+            child: Text(
+              DateFormat('EEE d MMM yyyy', l10n.localeName).format(_boughtOn),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _notesController,
+          maxLines: 2,
+          decoration: _fieldDecoration(l10n.labelSheetNotesOptional),
+        ),
+        const SizedBox(height: 12),
+        LabelPaymentChoiceField(
+          value: _payment,
+          amount: cost ?? 0,
+          onChanged: (value) => setState(() => _payment = value),
+        ),
+      ],
+      action: FilledButton.icon(
+        key: const ValueKey('bought-save'),
+        onPressed: !canSave
+            ? null
+            : () => Navigator.of(context).pop(
+                  BoughtBatchRequest(
+                    qtySheets: sheets,
+                    receivedQty:
+                        (received != null && received > 0) ? received : null,
+                    supplier: _supplier!.name,
+                    totalCost: cost,
+                    billNo: _billNoController.text.trim().isEmpty
+                        ? null
+                        : _billNoController.text.trim(),
+                    boughtOn: _boughtOn,
+                    isPaid: _payment.isPaid,
+                    paymentOption: _payment.isPaid ? _payment.option : null,
+                    notes: _notesController.text.trim().isEmpty
+                        ? null
+                        : _notesController.text.trim(),
+                    clientRequestId: _requestId,
+                  ),
+                ),
+        icon: const Icon(Icons.inventory_2),
+        label: Text(l10n.labelSheetRecordBought),
       ),
     );
   }
