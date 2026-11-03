@@ -28265,6 +28265,131 @@ abstract class AppLocalizations {
   /// **'Rota planned for {count} people.'**
   String rosterPlanApplied(String count);
 
+  /// No description provided for @rosterRepeatWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat every {weekday}'**
+  String rosterRepeatWeekly(String weekday);
+
+  /// No description provided for @rosterRepeatWeeklyHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'From this day on, this becomes their usual {weekday}.'**
+  String rosterRepeatWeeklyHelper(String weekday);
+
+  /// No description provided for @rosterRepeatUsualBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Their usual branch'**
+  String get rosterRepeatUsualBranch;
+
+  /// No description provided for @rosterRepeatNoPosAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'POS access is given one day at a time, so a repeating change does not give it.'**
+  String get rosterRepeatNoPosAccess;
+
+  /// No description provided for @rosterWeeklyReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the weekly change'**
+  String get rosterWeeklyReviewTitle;
+
+  /// No description provided for @rosterWeeklyChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the change…'**
+  String get rosterWeeklyChecking;
+
+  /// No description provided for @rosterWeeklyCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check the change.'**
+  String get rosterWeeklyCheckFailed;
+
+  /// No description provided for @rosterWeeklyStandingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Their usual week'**
+  String get rosterWeeklyStandingTitle;
+
+  /// No description provided for @rosterWeeklyStandingLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {weekday}: {before} → {after}'**
+  String rosterWeeklyStandingLine(
+    String name,
+    String weekday,
+    String before,
+    String after,
+  );
+
+  /// No description provided for @rosterWeeklyNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing'**
+  String get rosterWeeklyNothing;
+
+  /// No description provided for @rosterWeeklyOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get rosterWeeklyOff;
+
+  /// No description provided for @rosterWeeklyChangeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 {weekday} ({start}) will change.} other{{countText} {weekday}s from {start} to {through} will change.}}'**
+  String rosterWeeklyChangeCount(
+    int count,
+    String countText,
+    String weekday,
+    String start,
+    String through,
+  );
+
+  /// No description provided for @rosterWeeklyNoDatedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No {weekday} already on the calendar changes.'**
+  String rosterWeeklyNoDatedDays(String weekday);
+
+  /// No description provided for @rosterWeeklyRotaFromAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After {through}, the weekly rota carries it on (from {rotaFrom}).'**
+  String rosterWeeklyRotaFromAfter(String through, String rotaFrom);
+
+  /// No description provided for @rosterWeeklyRotaFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'The weekly rota carries it on from {rotaFrom}.'**
+  String rosterWeeklyRotaFrom(String rotaFrom);
+
+  /// No description provided for @rosterWeeklyReplacedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These days will be changed too.'**
+  String get rosterWeeklyReplacedHint;
+
+  /// No description provided for @rosterWeeklyApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply every week'**
+  String get rosterWeeklyApply;
+
+  /// No description provided for @rosterWeeklyApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved: every {weekday} from {start}.'**
+  String rosterWeeklyApplied(String weekday, String start);
+
+  /// No description provided for @rosterWeeklyNotApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was changed. Check the preview and try again.'**
+  String get rosterWeeklyNotApplied;
+
   /// No description provided for @courierAlertsTitle.
   ///
   /// In en, this message translates to:

@@ -17184,6 +17184,97 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String rosterRepeatWeekly(String weekday) {
+    return 'كرّر كل $weekday';
+  }
+
+  @override
+  String rosterRepeatWeeklyHelper(String weekday) {
+    return 'من اليوم ده ورايح، ده هيبقى يوم $weekday المعتاد بتاعه.';
+  }
+
+  @override
+  String get rosterRepeatUsualBranch => 'فرعه المعتاد';
+
+  @override
+  String get rosterRepeatNoPosAccess =>
+      'صلاحية الكاشير بتتدي يوم بيوم، فالتغيير المتكرر مش بيديها.';
+
+  @override
+  String get rosterWeeklyReviewTitle => 'راجع التغيير الأسبوعي';
+
+  @override
+  String get rosterWeeklyChecking => 'بنراجع التغيير…';
+
+  @override
+  String get rosterWeeklyCheckFailed => 'مقدرناش نراجع التغيير.';
+
+  @override
+  String get rosterWeeklyStandingTitle => 'الأسبوع المعتاد';
+
+  @override
+  String rosterWeeklyStandingLine(
+    String name,
+    String weekday,
+    String before,
+    String after,
+  ) {
+    return '$name · $weekday: $before ← $after';
+  }
+
+  @override
+  String get rosterWeeklyNothing => 'ولا حاجة';
+
+  @override
+  String get rosterWeeklyOff => 'إجازة';
+
+  @override
+  String rosterWeeklyChangeCount(
+    int count,
+    String countText,
+    String weekday,
+    String start,
+    String through,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countText يوم $weekday من $start لحد $through هيتغيروا.',
+      one: 'يوم $weekday واحد ($start) هيتغير.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rosterWeeklyNoDatedDays(String weekday) {
+    return 'مفيش يوم $weekday موجود في الجدول هيتغير.';
+  }
+
+  @override
+  String rosterWeeklyRotaFromAfter(String through, String rotaFrom) {
+    return 'بعد $through، الجدول الأسبوعي هيكمّل بيه (من $rotaFrom).';
+  }
+
+  @override
+  String rosterWeeklyRotaFrom(String rotaFrom) {
+    return 'الجدول الأسبوعي هيكمّل بيه من $rotaFrom.';
+  }
+
+  @override
+  String get rosterWeeklyReplacedHint => 'الأيام دي هتتغير هي كمان.';
+
+  @override
+  String get rosterWeeklyApply => 'طبّق كل أسبوع';
+
+  @override
+  String rosterWeeklyApplied(String weekday, String start) {
+    return 'اتحفظ: كل $weekday من $start.';
+  }
+
+  @override
+  String get rosterWeeklyNotApplied => 'متغيرش حاجة. راجع المعاينة وجرّب تاني.';
+
+  @override
   String get courierAlertsTitle => 'تنبيهات المناديب';
 
   @override

@@ -26,6 +26,7 @@ class RosterShiftPicker extends StatefulWidget {
     this.employee,
     this.dates = const [],
     this.selected,
+    this.allowReselect = false,
     this.maxHeight = 260,
   });
 
@@ -41,6 +42,10 @@ class RosterShiftPicker extends StatefulWidget {
   /// The shift the day is already on, if any. It is marked and not tappable:
   /// re-assigning the same shift would be a write that changes nothing.
   final String? selected;
+
+  /// Keep [selected] tappable. A repeating change ("Repeat every {weekday}")
+  /// or a branch move is a real write even onto the shift the day already has.
+  final bool allowReselect;
   final double maxHeight;
 
   @override
@@ -92,7 +97,9 @@ class _RosterShiftPickerState extends State<RosterShiftPicker> {
             trailing: isSelected
                 ? const Icon(Icons.check_circle, size: 20)
                 : null,
-            onTap: isSelected ? null : () => onPick(shift),
+            onTap: isSelected && !widget.allowReselect
+                ? null
+                : () => onPick(shift),
           );
         },
       ),

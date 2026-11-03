@@ -7,6 +7,7 @@ import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/dio_provider.dart';
 import '../models/roster_models.dart';
 import '../models/roster_plan_models.dart';
+import '../models/roster_weekly_models.dart';
 
 final rosterRepositoryProvider = Provider<RosterRepository>((ref) {
   return RosterRepository(ref.watch(dioProvider));
@@ -213,5 +214,26 @@ class RosterRepository {
       data: {'payload': jsonEncode(plan), 'dry_run': dryRun ? 1 : 0},
     );
     return RosterPlanResult.fromJson(_asMap(_unwrap(response)));
+  }
+  // ── Repeat every <weekday> ───────────────────────────────────────────
+
+  /// Preview ([dryRun] true) or apply one person's weekly change: [change]'s
+  /// day, and the same weekday every week after it, becomes their usual week.
+  ///
+  /// The same payload goes to both calls, so what is applied is exactly what
+  /// was previewed. JSON-encoded like [applyPlan]; `dry_run` is sent
+  /// explicitly both ways, since the endpoint previews when it is missing.
+  Future<RosterWeeklyResult> applyWeeklyChange(
+    RosterWeeklyChange change, {
+    required bool dryRun,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.rosterApplyWeeklyChange,
+      data: {
+        'payload': jsonEncode(change.toPayload()),
+        'dry_run': dryRun ? 1 : 0,
+      },
+    );
+    return RosterWeeklyResult.fromJson(_asMap(_unwrap(response)));
   }
 }

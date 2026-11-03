@@ -683,7 +683,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.crm.search_merge_targets';
   static const b2bPreviewMergeAsBranch =
       '/api/method/jarz_pos.api.crm.preview_merge_as_branch';
-  static const b2bMergeAsBranch = '/api/method/jarz_pos.api.crm.merge_as_branch';
+  static const b2bMergeAsBranch =
+      '/api/method/jarz_pos.api.crm.merge_as_branch';
   static const b2bLinkBranch = '/api/method/jarz_pos.api.crm.link_branch';
   static const b2bRenameBranch = '/api/method/jarz_pos.api.crm.rename_branch';
 
@@ -913,13 +914,16 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.roster.clear_day_off';
   // Applies many single-day changes in one request. Building a month one cell
   // at a time is one round trip per cell; this is the whole month in one.
-  static const rosterBulkAssign =
-      '/api/method/jarz_pos.api.roster.bulk_assign';
+  static const rosterBulkAssign = '/api/method/jarz_pos.api.roster.bulk_assign';
   // Rota plan wizard: pre-fill for "who works what", then preview/apply the
   // whole period plus the standing (HRMS Shift Schedule) rota.
   static const rosterPlanDefaults =
       '/api/method/jarz_pos.api.roster.get_plan_defaults';
   static const rosterApplyPlan = '/api/method/jarz_pos.api.roster.apply_plan';
+  // "Repeat every <weekday>": one person's single-day edit made their
+  // standing week from that day on. Previews by default (dry_run=1).
+  static const rosterApplyWeeklyChange =
+      '/api/method/jarz_pos.api.roster.apply_weekly_change';
 
   // ── Branch access (POS Profile membership + one-day access) ──────────
   // Edits `POS Profile.applicable_for_users`. The server refuses any change

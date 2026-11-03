@@ -17210,6 +17210,98 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String rosterRepeatWeekly(String weekday) {
+    return 'Repeat every $weekday';
+  }
+
+  @override
+  String rosterRepeatWeeklyHelper(String weekday) {
+    return 'From this day on, this becomes their usual $weekday.';
+  }
+
+  @override
+  String get rosterRepeatUsualBranch => 'Their usual branch';
+
+  @override
+  String get rosterRepeatNoPosAccess =>
+      'POS access is given one day at a time, so a repeating change does not give it.';
+
+  @override
+  String get rosterWeeklyReviewTitle => 'Check the weekly change';
+
+  @override
+  String get rosterWeeklyChecking => 'Checking the change…';
+
+  @override
+  String get rosterWeeklyCheckFailed => 'Could not check the change.';
+
+  @override
+  String get rosterWeeklyStandingTitle => 'Their usual week';
+
+  @override
+  String rosterWeeklyStandingLine(
+    String name,
+    String weekday,
+    String before,
+    String after,
+  ) {
+    return '$name · $weekday: $before → $after';
+  }
+
+  @override
+  String get rosterWeeklyNothing => 'Nothing';
+
+  @override
+  String get rosterWeeklyOff => 'Off';
+
+  @override
+  String rosterWeeklyChangeCount(
+    int count,
+    String countText,
+    String weekday,
+    String start,
+    String through,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countText ${weekday}s from $start to $through will change.',
+      one: '1 $weekday ($start) will change.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rosterWeeklyNoDatedDays(String weekday) {
+    return 'No $weekday already on the calendar changes.';
+  }
+
+  @override
+  String rosterWeeklyRotaFromAfter(String through, String rotaFrom) {
+    return 'After $through, the weekly rota carries it on (from $rotaFrom).';
+  }
+
+  @override
+  String rosterWeeklyRotaFrom(String rotaFrom) {
+    return 'The weekly rota carries it on from $rotaFrom.';
+  }
+
+  @override
+  String get rosterWeeklyReplacedHint => 'These days will be changed too.';
+
+  @override
+  String get rosterWeeklyApply => 'Apply every week';
+
+  @override
+  String rosterWeeklyApplied(String weekday, String start) {
+    return 'Saved: every $weekday from $start.';
+  }
+
+  @override
+  String get rosterWeeklyNotApplied =>
+      'Nothing was changed. Check the preview and try again.';
+
+  @override
   String get courierAlertsTitle => 'Courier alerts';
 
   @override

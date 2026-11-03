@@ -6,11 +6,14 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../../branch_access/presentation/server_error_text.dart';
 import '../../data/roster_repository.dart';
 import '../../models/roster_models.dart';
+import '../../models/roster_weekly_models.dart';
 import '../../state/roster_providers.dart';
 import '../roster_cell_style.dart';
 import '../roster_formats.dart';
 import 'roster_day_off_form.dart';
+import 'roster_plan_person_card.dart' show rosterPlanWeekdayLabel;
 import 'roster_shift_picker.dart';
+import 'roster_weekly_review.dart';
 
 // The POS-access helpers lived here before the day-off form was shared with
 // the bulk bar; re-exported so existing importers keep resolving them.
@@ -21,6 +24,19 @@ export 'roster_day_off_form.dart'
         isWithinPosAccessWindow,
         posAccessOutcomeMessage,
         resolveCoverLocation;
+
+const Key rosterRepeatWeeklyKey = ValueKey<String>('roster-repeat-weekly');
+const Key rosterRepeatBranchKey = ValueKey<String>('roster-repeat-branch');
+
+/// Whether [date] may start a "Repeat every {weekday}" change: the server
+/// only takes today or later, so an earlier day does not offer the switch.
+bool rosterCanRepeatFrom(String date, {DateTime? now}) {
+  final parsed = DateTime.tryParse(date);
+  if (parsed == null) return false;
+  final clock = now ?? DateTime.now();
+  final today = DateTime(clock.year, clock.month, clock.day);
+  return !DateTime(parsed.year, parsed.month, parsed.day).isBefore(today);
+}
 
 /// Edit one person's one day: change the shift, grant a day off, or undo one.
 ///
@@ -78,6 +94,15 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
   /// default: access is a deliberate grant, never a side effect of rostering.
   bool _grantPosAccess = false;
 
+  /// "Repeat every {weekday}": the edit becomes the person's usual week from
+  /// this day on (`apply_weekly_change`). Off by default, and while off the
+  /// sheet behaves exactly as it always has.
+  bool _repeat = false;
+
+  /// The branch a repeating shift is at; null keeps their usual branch (the
+  /// server's own resolution). Only offered while [_repeat] is on.
+  String? _repeatLocation;
+
   List<RosterLocation> get _locations =>
       ref.read(rosterBootstrapProvider).asData?.value.shiftLocations ??
       const <RosterLocation>[];
@@ -101,10 +126,20 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
     // Watched so the tick box appears once the bootstrap lands.
     ref.watch(rosterBootstrapProvider);
     final assignTarget = _assignTarget;
-    final offerPosAccess =
+    final posAccessAvailable =
         assignTarget != null &&
         assignTarget.canGrantPosAccess &&
         isWithinPosAccessWindow(widget.date);
+    // The weekly endpoint gives no day access, so a repeating change does not
+    // offer the tick box (and says why, where it would have been).
+    final offerPosAccess = posAccessAvailable && !_repeat;
+    final weekdayRaw = rosterWeekdayOf(widget.date);
+    final canRepeat =
+        !isOff && weekdayRaw != null && rosterCanRepeatFrom(widget.date);
+    final weekday = weekdayRaw == null
+        ? ''
+        : rosterPlanWeekdayLabel(l10n, weekdayRaw);
+    final locations = _locations;
 
     return SafeArea(
       child: Padding(
@@ -113,88 +148,152 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
           right: 16,
           bottom: MediaQuery.of(context).viewInsets.bottom + 16,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.employee.employeeName,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              parsed == null
-                  ? widget.date
-                  : formatDate(context, parsed, pattern: 'EEEE, MMM d'),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            // The overtime baseline. It used to sit under every name in the
-            // grid; the grid now shows only the overtime dot, so the number
-            // the dot is measured against lives here.
-            if (widget.employee.standardHours > 0)
+        // Scrolls on a short phone: the repeat switch and its branch picker
+        // add two rows above the shift list.
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                l10n.rosterStandardDay(
-                  rosterNumber(context, widget.employee.standardHours),
-                ),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+                widget.employee.employeeName,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            const SizedBox(height: 12),
-            _CurrentState(
-              employee: widget.employee,
-              date: widget.date,
-              cell: cell,
-              catalog: widget.catalog,
-              coveringFor: widget.coveringFor,
-            ),
-            const SizedBox(height: 16),
-            if (_busy)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else ...[
-              if (isOff)
-                FilledButton.tonalIcon(
-                  onPressed: _clearDayOff,
-                  icon: const Icon(Icons.undo),
-                  label: Text(l10n.rosterClearDayOff),
+              Text(
+                parsed == null
+                    ? widget.date
+                    : formatDate(context, parsed, pattern: 'EEEE, MMM d'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              // The overtime baseline. It used to sit under every name in the
+              // grid; the grid now shows only the overtime dot, so the number
+              // the dot is measured against lives here.
+              if (widget.employee.standardHours > 0)
+                Text(
+                  l10n.rosterStandardDay(
+                    rosterNumber(context, widget.employee.standardHours),
+                  ),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              const SizedBox(height: 12),
+              _CurrentState(
+                employee: widget.employee,
+                date: widget.date,
+                cell: cell,
+                catalog: widget.catalog,
+                coveringFor: widget.coveringFor,
+              ),
+              const SizedBox(height: 16),
+              if (_busy)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator()),
                 )
               else ...[
-                Text(l10n.rosterChangeShift, style: theme.textTheme.labelLarge),
-                const SizedBox(height: 8),
-                if (offerPosAccess)
-                  PosAccessCheckbox(
-                    value: _grantPosAccess,
-                    branch: assignTarget.posProfile!,
-                    onChanged: (value) =>
-                        setState(() => _grantPosAccess = value),
+                if (isOff)
+                  FilledButton.tonalIcon(
+                    onPressed: _clearDayOff,
+                    icon: const Icon(Icons.undo),
+                    label: Text(l10n.rosterClearDayOff),
+                  )
+                else ...[
+                  if (canRepeat) ...[
+                    SwitchListTile(
+                      key: rosterRepeatWeeklyKey,
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.event_repeat),
+                      title: Text(l10n.rosterRepeatWeekly(weekday)),
+                      subtitle: Text(l10n.rosterRepeatWeeklyHelper(weekday)),
+                      value: _repeat,
+                      onChanged: (value) => setState(() {
+                        _repeat = value;
+                        if (!value) _repeatLocation = null;
+                      }),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  Text(
+                    l10n.rosterChangeShift,
+                    style: theme.textTheme.labelLarge,
                   ),
-                RosterShiftPicker(
-                  catalog: widget.catalog,
-                  employee: widget.employee,
-                  dates: [widget.date],
-                  selected: cell?.shiftType,
-                  onPick: (shift) => _assignShift(
-                    shift,
-                    grant: offerPosAccess && _grantPosAccess,
+                  const SizedBox(height: 8),
+                  if (_repeat && locations.length > 1) ...[
+                    DropdownButtonFormField<String?>(
+                      key: rosterRepeatBranchKey,
+                      initialValue: _repeatLocation,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.rosterPlanBranch,
+                        border: const OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(l10n.rosterRepeatUsualBranch),
+                        ),
+                        for (final location in locations)
+                          DropdownMenuItem<String?>(
+                            value: location.shiftLocation,
+                            child: Text(
+                              location.shiftLocation,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                      onChanged: (value) =>
+                          setState(() => _repeatLocation = value),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (offerPosAccess)
+                    PosAccessCheckbox(
+                      value: _grantPosAccess,
+                      branch: assignTarget.posProfile!,
+                      onChanged: (value) =>
+                          setState(() => _grantPosAccess = value),
+                    ),
+                  if (_repeat && posAccessAvailable)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        l10n.rosterRepeatNoPosAccess,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  RosterShiftPicker(
+                    catalog: widget.catalog,
+                    employee: widget.employee,
+                    dates: [widget.date],
+                    selected: cell?.shiftType,
+                    // Repeating the day's own shift is a real change: it makes
+                    // that shift their usual one (or moves it to a branch).
+                    allowReselect: _repeat,
+                    onPick: (shift) => _assignShift(
+                      shift,
+                      grant: offerPosAccess && _grantPosAccess,
+                    ),
                   ),
-                ),
-                const Divider(height: 28),
-                FilledButton.icon(
-                  onPressed: _openDayOffFlow,
-                  icon: const Icon(Icons.beach_access_outlined),
-                  label: Text(l10n.rosterMarkDayOff),
-                ),
+                  const Divider(height: 28),
+                  FilledButton.icon(
+                    onPressed: _openDayOffFlow,
+                    icon: const Icon(Icons.beach_access_outlined),
+                    label: Text(l10n.rosterMarkDayOff),
+                  ),
+                ],
               ],
+              const SizedBox(height: 8),
             ],
-            const SizedBox(height: 8),
-          ],
+          ),
         ),
       ),
     );
@@ -240,6 +339,17 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
   }
 
   void _assignShift(RosterShift shift, {bool grant = false}) {
+    if (_repeat) {
+      _repeatWeekly(
+        RosterWeeklyChange.assign(
+          employee: widget.employee.employee,
+          date: widget.date,
+          shiftType: shift.shiftType,
+          shiftLocation: _repeatLocation,
+        ),
+      );
+      return;
+    }
     _run(
       () => ref
           .read(rosterRepositoryProvider)
@@ -251,6 +361,30 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
           ),
       posAccessRequested: grant,
       posAccessBranch: _assignTarget?.posProfile,
+    );
+  }
+
+  /// "Repeat every {weekday}": preview the change, let the manager apply it
+  /// from the review sheet, then refresh exactly as a one-day edit does.
+  Future<void> _repeatWeekly(RosterWeeklyChange change) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final result = await showRosterWeeklyReview(context, change: change);
+    if (result == null || !mounted) return;
+    final weekday = rosterPlanWeekdayLabel(
+      l10n,
+      result.weekday ?? change.weekday ?? '',
+    );
+    final start = formatDateString(
+      context,
+      result.start ?? change.date,
+      pattern: 'EEE d MMM',
+    );
+    ref.invalidate(rosterMonthDataProvider);
+    ref.invalidate(rosterHoursProvider);
+    Navigator.of(context).pop();
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.rosterWeeklyApplied(weekday, start))),
     );
   }
 
@@ -282,8 +416,24 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
       absentLocation: widget.cell?.shiftLocation,
       // Whoever covers normally steps onto the absent person's own shift.
       defaultCoverShift: widget.cell?.shiftType,
+      // The weekly endpoint does not give POS day access.
+      allowPosAccess: !_repeat,
     );
     if (result == null) return;
+
+    if (_repeat) {
+      await _repeatWeekly(
+        RosterWeeklyChange.dayOff(
+          employee: widget.employee.employee,
+          date: widget.date,
+          offType: result.offType,
+          coveredBy: result.coveredBy,
+          coverShiftType: result.coverShiftType,
+          notes: result.notes,
+        ),
+      );
+      return;
+    }
 
     final grant = result.grantPosAccess && result.coveredBy != null;
     await _run(
