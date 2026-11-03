@@ -22,10 +22,14 @@ class PaymentReceiptListDialog extends ConsumerStatefulWidget {
 class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDialog> {
   String? selectedPosProfile;
   // On by default: the popup is opened to clear the receipts still waiting.
-  bool unconfirmedOnly = true;
+  // "Needs action" is Unconfirmed (to confirm) plus Rejected (to re-upload).
+  bool needsActionOnly = true;
+  static const _needsActionStatuses = ['Unconfirmed', 'Rejected'];
   List<String> posProfiles = [];
   List<Map<String, dynamic>> receipts = [];
   bool loading = true;
+  // Bumped per load, so a slower earlier response cannot overwrite a newer one.
+  int _loadSeq = 0;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -35,18 +39,33 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
   }
 
   Future<void> _loadData() async {
+    final seq = ++_loadSeq;
     setState(() => loading = true);
-    
-    // Load accessible POS profiles
-    final profiles = await ref.read(kanbanProvider.notifier).getAccessiblePOSProfiles();
-    
-    // Load receipts
-    final receiptList = await ref.read(kanbanProvider.notifier).listPaymentReceipts(
-      posProfile: selectedPosProfile,
-      status: unconfirmedOnly ? 'Unconfirmed' : null,
-    );
+    final notifier = ref.read(kanbanProvider.notifier);
 
-    if (!mounted) return;
+    // Load accessible POS profiles
+    final profiles = await notifier.getAccessiblePOSProfiles();
+
+    // Load receipts. The server's status filter is an exact match, so the
+    // needs-action view asks once per status and merges, newest first.
+    final List<Map<String, dynamic>> receiptList;
+    if (needsActionOnly) {
+      final parts = await Future.wait(_needsActionStatuses.map(
+        (status) => notifier.listPaymentReceipts(
+          posProfile: selectedPosProfile,
+          status: status,
+        ),
+      ));
+      receiptList = parts.expand((part) => part).toList()
+        ..sort((a, b) => '${b['upload_date'] ?? ''}'
+            .compareTo('${a['upload_date'] ?? ''}'));
+    } else {
+      receiptList = await notifier.listPaymentReceipts(
+        posProfile: selectedPosProfile,
+      );
+    }
+
+    if (!mounted || seq != _loadSeq) return;
     setState(() {
       posProfiles = profiles;
       receipts = receiptList;
@@ -359,10 +378,12 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
             // Status Filter
             FilterChip(
-              label: Text(localizedStatusLabel(context, 'Unconfirmed')),
-              selected: unconfirmedOnly,
+              label: Text(_needsActionStatuses
+                  .map((status) => localizedStatusLabel(context, status))
+                  .join(' / ')),
+              selected: needsActionOnly,
               onSelected: (value) {
-                setState(() => unconfirmedOnly = value);
+                setState(() => needsActionOnly = value);
                 _loadData();
               },
             ),
@@ -375,8 +396,21 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
               )
             else if (receipts.isEmpty)
               Expanded(
+                // A failed load also lands here (the provider returns []), so
+                // offer a retry rather than a bare "nothing found".
                 child: Center(
-                  child: Text(context.l10n.receiptNoReceiptsFound),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(context.l10n.receiptNoReceiptsFound),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: _loadData,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(context.l10n.commonRetry),
+                      ),
+                    ],
+                  ),
                 ),
               )
             else
