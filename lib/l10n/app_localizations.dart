@@ -20811,6 +20811,36 @@ abstract class AppLocalizations {
   /// **'No salary structure for this month. This row is here because the employee still owes an advance, a staff order or a penalty.'**
   String get monthlyExpensesOffPayrollExplain;
 
+  /// Payroll section heading. month is the board month whose salaries are listed (e.g. October 2026); payMonth is the following month, when they are paid (e.g. November).
+  ///
+  /// In en, this message translates to:
+  /// **'Salaries for {month} · paid in {payMonth}'**
+  String monthlyExpensesSalariesForMonth(Object month, Object payMonth);
+
+  /// Pay sheet subtitle for a salary row: the month the salary payment is FOR.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary for {month}'**
+  String monthlyExpensesPaySalaryPeriod(Object month);
+
+  /// No description provided for @monthlyExpensesLeftStaffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Left staff – still owe money ({count})'**
+  String monthlyExpensesLeftStaffTitle(int count);
+
+  /// No description provided for @monthlyExpensesLeftStaffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on this month’s payroll. Listed only because they still owe an advance or a staff order.'**
+  String get monthlyExpensesLeftStaffHint;
+
+  /// No description provided for @monthlyExpensesLeftOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Left on {date}'**
+  String monthlyExpensesLeftOn(Object date);
+
   /// No description provided for @monthlyExpensesPenaltiesTitle.
   ///
   /// In en, this message translates to:

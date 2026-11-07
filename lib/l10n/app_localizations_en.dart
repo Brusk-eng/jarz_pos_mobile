@@ -12667,6 +12667,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'No salary structure for this month. This row is here because the employee still owes an advance, a staff order or a penalty.';
 
   @override
+  String monthlyExpensesSalariesForMonth(Object month, Object payMonth) {
+    return 'Salaries for $month · paid in $payMonth';
+  }
+
+  @override
+  String monthlyExpensesPaySalaryPeriod(Object month) {
+    return 'Salary for $month';
+  }
+
+  @override
+  String monthlyExpensesLeftStaffTitle(int count) {
+    return 'Left staff – still owe money ($count)';
+  }
+
+  @override
+  String get monthlyExpensesLeftStaffHint =>
+      'Not on this month’s payroll. Listed only because they still owe an advance or a staff order.';
+
+  @override
+  String monthlyExpensesLeftOn(Object date) {
+    return 'Left on $date';
+  }
+
+  @override
   String get monthlyExpensesPenaltiesTitle => 'Penalties';
 
   @override

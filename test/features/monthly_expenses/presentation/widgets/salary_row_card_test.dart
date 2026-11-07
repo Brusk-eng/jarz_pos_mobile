@@ -438,17 +438,27 @@ void main() {
       expect(find.text('Cash to hand over'), findsOneWidget);
       expect(find.text('Total discharged'), findsOneWidget);
 
-      await tester.tap(find.byType(Checkbox).first);
-      await tester.pumpAndSettle();
-
-      // The cash figure stays where it was; the discharge figure grows by the
-      // advance. Two numbers, because collapsing them would hand the employee
-      // money they already have.
+      // The advance the net already deducted opens ticked: 8,500 cash and
+      // 9,000 discharged. Two numbers, because collapsing them would hand the
+      // employee money they already have.
+      expect(tester.widget<Checkbox>(find.byType(Checkbox).first).value, isTrue);
       expect(find.textContaining('8,500'), findsWidgets);
       expect(find.textContaining('9,000'), findsWidgets);
+
+      // Unticking it puts the advance back in cash: the amount follows.
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('8,500'), findsNothing);
+      expect(
+        tester.widget<EditableText>(find.byType(EditableText).first)
+            .controller
+            .text,
+        '9000.00',
+      );
     });
 
-    testWidgets('sends the ticked balance as a settlement', (tester) async {
+    testWidgets('sends the pre-ticked balance as a settlement',
+        (tester) async {
       List<AdvanceSettlement> sent = const [];
       await _pump(
         tester,
@@ -487,8 +497,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(Checkbox).first);
-      await tester.pumpAndSettle();
+      // No tap: the advance the suggested net deducted is already ticked.
       // The sheet is taller than the test surface once the settlement block is
       // in it, so the submit button has to be scrolled to before it can be hit.
       await tester.ensureVisible(find.widgetWithText(FilledButton, 'Pay'));

@@ -10,6 +10,7 @@ import '../../../core/widgets/reason_prompt_dialog.dart';
 import '../models/monthly_expense_models.dart';
 import '../state/monthly_expenses_notifier.dart';
 import 'widgets/employee_penalty_sheet.dart';
+import 'widgets/left_staff_section.dart';
 import 'widgets/monthly_expense_gaps_banner.dart';
 import 'widgets/monthly_expense_pay_sheet.dart';
 import 'widgets/monthly_expenses_summary_header.dart';
@@ -136,7 +137,16 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
                       const SizedBox(height: 8),
                       ..._buildRecurring(context, state),
                       const SizedBox(height: 20),
-                      _SectionTitle(title: l10n.monthlyExpensesSalariesTitle),
+                      // Names the month the salaries are FOR and the month they
+                      // are paid in. Salaries go out around the 10th for the
+                      // previous month, and a heading that said only the board
+                      // month let September be paid off the October board.
+                      _SectionTitle(
+                        title: monthlyExpenseSalariesHeading(
+                          context,
+                          _boardMonth(state),
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       ..._buildSalaries(context, state),
                     ],
@@ -398,6 +408,33 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
       return widgets;
     }
 
+    // People who have left are not part of this month's payroll; they are
+    // listed only because they still owe money, so they go to a collapsed
+    // section at the end instead of sitting among the salaries.
+    final activeRows = payroll.activeRows;
+    final leftRows = payroll.leftRows;
+
+    Widget card(SalaryRow row) => SalaryRowCard(
+          row: row,
+          currency: payload.currency,
+          isBusy: state.isSubmitting,
+          onPay: () => _paySalary(context, state, row),
+          // See the recurring card above: cancel is gated by the server.
+          onCancelPayment: payload.canCancelPayments
+              ? (payment) =>
+                  _cancelPayment(context, payment, currency: payload.currency)
+              : null,
+          onAddPenalty:
+              payload.canManage ? () => _addPenalty(context, state, row) : null,
+          // Cancelling a penalty takes money back OUT of a deduction, so it is
+          // gated on the same narrower role set as reversing a payment rather
+          // than on `can_manage`.
+          onCancelPenalty: payload.canCancelPayments
+              ? (penalty) => _cancelPenalty(context, penalty,
+                  currency: payload.currency)
+              : null,
+        );
+
     // What the company will NOT be handing over, stated once above the rows.
     // Only when there is something to state: on a month with no advances, no
     // penalties and no staff orders this line would be three zeros.
@@ -422,29 +459,15 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
     }
 
     widgets.add(const SizedBox(height: 8));
-    for (final row in payroll.rows) {
-      widgets.add(
-        SalaryRowCard(
-          row: row,
-          currency: payload.currency,
-          isBusy: state.isSubmitting,
-          onPay: () => _paySalary(context, state, row),
-          // See the recurring card above: cancel is gated by the server.
-          onCancelPayment: payload.canCancelPayments
-              ? (payment) =>
-                  _cancelPayment(context, payment, currency: payload.currency)
-              : null,
-          onAddPenalty:
-              payload.canManage ? () => _addPenalty(context, state, row) : null,
-          // Cancelling a penalty takes money back OUT of a deduction, so it is
-          // gated on the same narrower role set as reversing a payment rather
-          // than on `can_manage`.
-          onCancelPenalty: payload.canCancelPayments
-              ? (penalty) => _cancelPenalty(context, penalty,
-                  currency: payload.currency)
-              : null,
-        ),
-      );
+    if (activeRows.isEmpty) {
+      widgets.add(_EmptyBlock(text: l10n.monthlyExpensesSalariesEmpty));
+    }
+    for (final row in activeRows) {
+      widgets.add(card(row));
+    }
+    if (leftRows.isNotEmpty) {
+      widgets.add(const SizedBox(height: 8));
+      widgets.add(LeftStaffSection(rows: leftRows, cardBuilder: card));
     }
     return widgets;
   }
@@ -526,13 +549,18 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
       isScrollControlled: true,
       builder: (ctx) => MonthlyExpensePaySheet(
         title: ctx.l10n.monthlyExpensesPayTitle(row.displayName),
-        periodLabel:
-            ctx.l10n.monthlyExpensesPayPeriod(_monthLabel(ctx, state)),
+        // "Salary for October 2026": the month this money is FOR, which is
+        // routinely not the month it is paid in.
+        periodLabel: ctx.l10n.monthlyExpensesPaySalaryPeriod(
+          monthlyExpenseMonthLabel(ctx, _boardMonth(state)),
+        ),
         remaining: row.remaining,
         // The prefill is the NET: an advance the employee is already holding
-        // must not be handed to them a second time in cash. The hint above it
-        // still shows `remaining`, so the month's obligation and today's cash
-        // stay two visibly different numbers.
+        // must not be handed to them a second time in cash. With open balances
+        // the sheet ticks those advances/orders itself and derives the cash
+        // from the ticks, so the net and the settlements always go together.
+        // The hint above it still shows `remaining`, so the month's obligation
+        // and today's cash stay two visibly different numbers.
         suggestedAmount: row.netPayable,
         currency: payload.currency,
         paymentSources: payload.paymentSources,
@@ -602,6 +630,31 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
     if (payload.monthLabel.isNotEmpty) return payload.monthLabel;
     return monthlyExpenseMonthLabel(context, state.selectedMonth);
   }
+
+  /// The month the board shows, `YYYY-MM`: the server's answer when there is
+  /// one (it picks the month on first load), else the selection.
+  String _boardMonth(MonthlyExpensesState state) {
+    final month = state.payload.month.trim();
+    return month.isNotEmpty ? month : state.selectedMonth;
+  }
+}
+
+/// "Salaries for October 2026 · paid in November" — the salary month and the
+/// month it is paid in. The pay month carries its year only when it crosses
+/// into a new one ("Salaries for December 2026 · paid in January 2027").
+/// Falls back to the plain section title when the month is unknown.
+String monthlyExpenseSalariesHeading(BuildContext context, String month) {
+  final l10n = context.l10n;
+  final salaryMonth = DateTime.tryParse('${month.trim()}-01');
+  if (salaryMonth == null) return l10n.monthlyExpensesSalariesTitle;
+  final payMonth = DateTime(salaryMonth.year, salaryMonth.month + 1);
+  final payLabel = payMonth.year == salaryMonth.year
+      ? DateFormat.MMMM(l10n.localeName).format(payMonth)
+      : DateFormat.yMMMM(l10n.localeName).format(payMonth);
+  return l10n.monthlyExpensesSalariesForMonth(
+    monthlyExpenseMonthLabel(context, month.trim()),
+    payLabel,
+  );
 }
 
 /// `YYYY-MM` rendered in the user's locale. Falls back to the raw id so a month

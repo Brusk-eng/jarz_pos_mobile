@@ -7467,6 +7467,36 @@
   },
   "monthlyExpensesOffPayrollBadge": "Off payroll",
   "monthlyExpensesOffPayrollExplain": "No salary structure for this month. This row is here because the employee still owes an advance, a staff order or a penalty.",
+  "monthlyExpensesSalariesForMonth": "Salaries for {month} · paid in {payMonth}",
+  "@monthlyExpensesSalariesForMonth": {
+    "description": "Payroll section heading. month is the board month whose salaries are listed (e.g. October 2026); payMonth is the following month, when they are paid (e.g. November).",
+    "placeholders": {
+      "month": {},
+      "payMonth": {}
+    }
+  },
+  "monthlyExpensesPaySalaryPeriod": "Salary for {month}",
+  "@monthlyExpensesPaySalaryPeriod": {
+    "description": "Pay sheet subtitle for a salary row: the month the salary payment is FOR.",
+    "placeholders": {
+      "month": {}
+    }
+  },
+  "monthlyExpensesLeftStaffTitle": "Left staff – still owe money ({count})",
+  "@monthlyExpensesLeftStaffTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyExpensesLeftStaffHint": "Not on this month’s payroll. Listed only because they still owe an advance or a staff order.",
+  "monthlyExpensesLeftOn": "Left on {date}",
+  "@monthlyExpensesLeftOn": {
+    "placeholders": {
+      "date": {}
+    }
+  },
   "monthlyExpensesPenaltiesTitle": "Penalties",
   "monthlyExpensesAdvancesTitle": "Advances",
   "monthlyExpensesOrdersTitle": "Staff orders",

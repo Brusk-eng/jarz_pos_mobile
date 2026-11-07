@@ -725,6 +725,16 @@ class SalaryRow {
   /// off payroll on production, and an advance to either still has to appear.
   final bool offPayroll;
 
+  /// This person has LEFT the company (an off-payroll row whose employee is
+  /// no longer active). They are listed apart from the staff on payroll, at the
+  /// end of the screen, because they are not paid this month — the row only
+  /// exists because they still owe an advance or a staff order. The server
+  /// sorts these last; an older server never sends the key, which reads false.
+  final bool left;
+
+  /// The HR relieving date of a [left] employee, when HR recorded one.
+  final DateTime? relievingDate;
+
   /// A submitted Salary Slip already exists for this period, so paying here
   /// would double-post. The backend refuses it; the card hides the button.
   final bool hasSalarySlip;
@@ -759,6 +769,8 @@ class SalaryRow {
     this.settledAmount = 0,
     this.netPayable = 0,
     this.offPayroll = false,
+    this.left = false,
+    this.relievingDate,
   });
 
   String get displayName =>
@@ -820,6 +832,8 @@ class SalaryRow {
       settledAmount: _num(json['settled_amount']),
       netPayable: netPayable,
       offPayroll: _bool(json['off_payroll']),
+      left: _bool(json['left']),
+      relievingDate: _date(_strOrNull(json['relieving_date'])),
       hasSalarySlip: _bool(json['has_salary_slip']),
       canPay: _bool(json['can_pay']),
       payments: MonthlyExpensePayment.listFrom(json['payments']),
@@ -887,6 +901,19 @@ class PayrollBlock {
     this.rows = const [],
     this.missing = const [],
   });
+
+  /// Rows of people still on staff, in server order. This is the salaries list.
+  List<SalaryRow> get activeRows => [
+        for (final row in rows)
+          if (!row.left) row,
+      ];
+
+  /// Rows of people who have left and still owe money. Rendered apart, at the
+  /// end, so they stop reading as part of this month's payroll.
+  List<SalaryRow> get leftRows => [
+        for (final row in rows)
+          if (row.left) row,
+      ];
 
   factory PayrollBlock.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const PayrollBlock();
@@ -1045,8 +1072,13 @@ class MonthlyExpenseGap {
 
 /// The whole `get_monthly_expenses` response.
 class MonthlyExpensesPayload {
+  /// The board's month, `YYYY-MM`. During days 1-20 the server opens on the
+  /// PREVIOUS month, because that is the month whose salaries are being paid.
   final String month;
   final String monthLabel;
+
+  /// Today's month on the server, `YYYY-MM`. Empty against an older server.
+  final String currentMonth;
   final DateTime? monthStart;
   final DateTime? monthEnd;
   final String company;
@@ -1083,6 +1115,7 @@ class MonthlyExpensesPayload {
   const MonthlyExpensesPayload({
     this.month = '',
     this.monthLabel = '',
+    this.currentMonth = '',
     this.monthStart,
     this.monthEnd,
     this.company = '',
@@ -1137,6 +1170,7 @@ class MonthlyExpensesPayload {
     return MonthlyExpensesPayload(
       month: _str(json['month']),
       monthLabel: _str(json['month_label']),
+      currentMonth: _str(json['current_month']),
       monthStart: _date(json['month_start']),
       monthEnd: _date(json['month_end']),
       company: _str(json['company']),

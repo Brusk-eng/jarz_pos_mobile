@@ -97,6 +97,34 @@ class SalaryRowCard extends StatelessWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+              // Who left and when: the reason this row sits in the left-staff
+              // section rather than among this month's salaries.
+              if (row.relievingDate != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.logout,
+                        size: 14,
+                        color: theme.colorScheme.error,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          l10n.monthlyExpensesLeftOn(
+                            formatDate(context, row.relievingDate!,
+                                pattern: 'd MMM yyyy'),
+                          ),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,

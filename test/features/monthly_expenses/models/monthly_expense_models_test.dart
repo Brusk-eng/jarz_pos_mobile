@@ -657,4 +657,69 @@ void main() {
           {'invoice': 'ACC-SINV-2026-18146', 'amount': 184.0});
     });
   });
+
+  group('left staff and salary month', () {
+    test('parses left, relieving_date and current_month', () {
+      final payload = MonthlyExpensesPayload.fromJson({
+        ..._payload(),
+        'month': '2026-10',
+        'current_month': '2026-11',
+        'payroll': {
+          'configured': 1,
+          'rows': [
+            {
+              'employee': 'HR-EMP-00001',
+              'employee_name': 'Active',
+              'remaining': 9000,
+              'left': false,
+              'relieving_date': null,
+            },
+            {
+              'employee': 'HR-EMP-00009',
+              'employee_name': 'Gone',
+              'off_payroll': 1,
+              'left': 1,
+              'relieving_date': '2026-10-25',
+              'advance_total': 500,
+            },
+          ],
+        },
+      });
+
+      expect(payload.month, '2026-10');
+      expect(payload.currentMonth, '2026-11');
+      final rows = payload.payroll.rows;
+      expect(rows.first.left, isFalse);
+      expect(rows.first.relievingDate, isNull);
+      expect(rows.last.left, isTrue);
+      expect(rows.last.relievingDate, DateTime(2026, 10, 25));
+      expect(payload.payroll.activeRows.map((r) => r.employee),
+          ['HR-EMP-00001']);
+      expect(payload.payroll.leftRows.map((r) => r.employee),
+          ['HR-EMP-00009']);
+    });
+
+    test('an older server without the new keys still parses', () {
+      final payload = MonthlyExpensesPayload.fromJson(_payload());
+      expect(payload.currentMonth, '');
+      for (final row in payload.payroll.rows) {
+        expect(row.left, isFalse);
+        expect(row.relievingDate, isNull);
+      }
+      expect(payload.payroll.leftRows, isEmpty);
+      expect(payload.payroll.activeRows.length, payload.payroll.rows.length);
+    });
+
+    test('an empty or junk relieving_date reads as null', () {
+      for (final value in ['', '   ', 'not-a-date']) {
+        final row = SalaryRow.fromJson({
+          'employee': 'HR-EMP-00009',
+          'left': true,
+          'relieving_date': value,
+        });
+        expect(row.relievingDate, isNull, reason: 'value "$value"');
+        expect(row.left, isTrue);
+      }
+    });
+  });
 }

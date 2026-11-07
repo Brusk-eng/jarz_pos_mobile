@@ -29,6 +29,10 @@ typedef MonthlyExpensePaySubmit = Future<MonthlyExpenseActionResult> Function({
 /// The amount is prefilled with `remaining` and stays editable: paying a
 /// landlord half now and half at the end of the month is the normal case, and a
 /// locked amount would send the manager to Desk to do it.
+///
+/// With open balances (a salary), the sheet opens with those balances ticked
+/// and the amount set to `remaining − ticked`; the amount keeps following the
+/// ticks until the operator types in it.
 class MonthlyExpensePaySheet extends StatefulWidget {
   final String title;
 
@@ -95,16 +99,73 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
   final _selectedAdvances = <String>{};
   final _selectedOrders = <String>{};
 
+  /// Whether the operator has typed in the amount field. Until they do, the
+  /// amount FOLLOWS the ticks (remaining − settled); after that it is theirs and
+  /// a tick no longer overwrites it.
+  bool _amountEdited = false;
+
   @override
   void initState() {
     super.initState();
-    // Two decimals, no grouping separator: this string is parsed back with
-    // `double.tryParse`, so a localised "47,000.00" would parse as 47.
-    final prefill = widget.suggestedAmount ?? widget.remaining;
-    _amountController = TextEditingController(
-      text: prefill > 0 ? prefill.toStringAsFixed(2) : '',
-    );
     _source = _resolveInitialSource();
+
+    if (_hasSettlements) {
+      // The suggested (net) amount already took these balances off. Leaving
+      // them unticked is how an advance got deducted from cash AND stayed open
+      // in HRMS, to be deducted again the next month (production, Nov 2026).
+      // So the sheet starts with them ticked and the cash derived from the
+      // ticks — the two can never disagree.
+      _preselectSettlements();
+      _amountController = TextEditingController(
+        text: _formatAmount(_followAmount),
+      );
+    } else {
+      final prefill = widget.suggestedAmount ?? widget.remaining;
+      _amountController = TextEditingController(text: _formatAmount(prefill));
+    }
+  }
+
+  /// Ticks advances first, then staff orders, in list order, for as long as
+  /// the running settled total stays within [MonthlyExpensePaySheet.remaining].
+  /// A balance that would overshoot is skipped (a smaller later one may still
+  /// fit): settling past `remaining` is refused by the server's overpay guard,
+  /// so pre-ticking it would only make the default submission fail.
+  void _preselectSettlements() {
+    final cap = widget.remaining + 0.01;
+    var running = 0.0;
+    for (final advance in widget.advances) {
+      if (advance.outstanding <= 0) continue;
+      if (running + advance.outstanding <= cap) {
+        _selectedAdvances.add(advance.name);
+        running += advance.outstanding;
+      }
+    }
+    for (final order in widget.orders) {
+      if (order.outstanding <= 0) continue;
+      if (running + order.outstanding <= cap) {
+        _selectedOrders.add(order.invoice);
+        running += order.outstanding;
+      }
+    }
+  }
+
+  /// The cash that, with the ticked settlements, discharges exactly what is
+  /// left of the month — never negative.
+  double get _followAmount {
+    final value = widget.remaining - _settleTotal;
+    return value > 0 ? value : 0;
+  }
+
+  /// Two decimals, no grouping separator: this string is parsed back with
+  /// `double.tryParse`, so a localised "47,000.00" would parse as 47.
+  static String _formatAmount(double value) =>
+      value > 0 ? value.toStringAsFixed(2) : '';
+
+  /// Called after every tick change. Re-derives the amount unless the
+  /// operator has taken it over by typing.
+  void _onSettlementsChanged() {
+    if (_amountEdited) return;
+    _amountController.text = _formatAmount(_followAmount);
   }
 
   bool get _hasSettlements =>
@@ -193,8 +254,9 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
               ),
               Text(
                 widget.periodLabel,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 4),
@@ -219,7 +281,7 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                 ),
                 // Keeps the two figures in the settlement block honest while the
                 // amount is being typed — they are the point of that block.
-                onChanged: (_) => setState(() {}),
+                onChanged: (_) => setState(() => _amountEdited = true),
                 validator: (value) {
                   final text = (value ?? '').trim();
                   final amount = text.isEmpty ? 0.0 : double.tryParse(text) ?? -1;
@@ -379,6 +441,7 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                     } else {
                       _selectedAdvances.remove(advance.name);
                     }
+                    _onSettlementsChanged();
                   }),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
@@ -409,6 +472,7 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                     } else {
                       _selectedOrders.remove(order.invoice);
                     }
+                    _onSettlementsChanged();
                   }),
                   dense: true,
                   contentPadding: EdgeInsets.zero,

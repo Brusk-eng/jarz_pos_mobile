@@ -12613,6 +12613,30 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد هيكل رواتب لهذا الشهر. يظهر هذا الصف لأن على الموظف سلفة أو طلبات أو جزاءات.';
 
   @override
+  String monthlyExpensesSalariesForMonth(Object month, Object payMonth) {
+    return 'مرتبات $month · تُصرف في $payMonth';
+  }
+
+  @override
+  String monthlyExpensesPaySalaryPeriod(Object month) {
+    return 'مرتب شهر $month';
+  }
+
+  @override
+  String monthlyExpensesLeftStaffTitle(int count) {
+    return 'موظفون تركوا العمل – عليهم مبالغ ($count)';
+  }
+
+  @override
+  String get monthlyExpensesLeftStaffHint =>
+      'ليسوا ضمن مرتبات هذا الشهر. يظهرون فقط لأن عليهم سلفة أو طلبات لم تُسدَّد.';
+
+  @override
+  String monthlyExpensesLeftOn(Object date) {
+    return 'ترك العمل في $date';
+  }
+
+  @override
   String get monthlyExpensesPenaltiesTitle => 'الجزاءات';
 
   @override
