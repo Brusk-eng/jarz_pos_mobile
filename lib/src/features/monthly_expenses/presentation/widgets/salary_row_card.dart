@@ -99,7 +99,10 @@ class SalaryRowCard extends StatelessWidget {
                 ),
               // Who left and when: the reason this row sits in the left-staff
               // section rather than among this month's salaries.
-              if (row.relievingDate != null)
+              // Only once the date has passed: an employee serving notice carries
+              // a future relieving date and has not left yet.
+              if (row.relievingDate != null &&
+                  (row.left || !row.relievingDate!.isAfter(DateTime.now())))
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Row(

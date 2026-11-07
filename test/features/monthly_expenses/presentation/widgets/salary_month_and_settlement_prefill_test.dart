@@ -114,7 +114,7 @@ SalaryRow _row({
 
 void main() {
   group('MonthlyExpensePaySheet pre-ticks what the net deducted', () {
-    testWidgets('ticks advances then orders, never past remaining',
+    testWidgets('ticks advances then orders, the overshooting one in part',
         (tester) async {
       await _pump(
         tester,
@@ -123,7 +123,7 @@ void main() {
           suggestedAmount: 0,
           advances: const [
             AdvanceEntry(name: 'ADV-A', amount: 600, outstanding: 600),
-            // 600 + 600 > 1000: ticking this would trip the overpay guard.
+            // 600 + 600 > 1000: ticked for the 400 that still fits.
             AdvanceEntry(name: 'ADV-B', amount: 600, outstanding: 600),
           ],
           orders: const [
@@ -132,9 +132,38 @@ void main() {
         ),
       );
 
-      expect(_ticks(tester), [true, false, true]);
-      // remaining 1000 − settled (600 + 300) = 100 in cash.
-      expect(_amountText(tester), '100.00');
+      expect(_ticks(tester), [true, true, false]);
+      // The whole remaining is recovered: no cash, same as the card's net 0.
+      expect(_amountText(tester), '');
+    });
+
+    testWidgets('an advance bigger than the salary is recovered in part, not paid out',
+        (tester) async {
+      _Sent? sent;
+      await _pump(
+        tester,
+        _sheet(
+          remaining: 4000,
+          suggestedAmount: 0,
+          advances: const [
+            AdvanceEntry(name: 'ADV-A', amount: 6000, outstanding: 6000),
+          ],
+          onSent: (value) => sent = value,
+        ),
+      );
+
+      expect(_ticks(tester), [true]);
+      expect(_amountText(tester), '');
+
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Pay'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Pay'));
+      await tester.pumpAndSettle();
+
+      expect(sent, isNotNull);
+      expect(sent!.amount, 0);
+      expect(sent!.advances.single.name, 'ADV-A');
+      expect(sent!.advances.single.amount, 4000);
     });
 
     testWidgets('ticks everything when it all fits and matches the net',
@@ -234,9 +263,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(sent, isNotNull);
-      expect(sent!.amount, 100);
-      expect(sent!.advances.map((a) => a.name), ['ADV-A']);
-      expect(sent!.orders.map((o) => o.invoice), ['SINV-1']);
+      expect(sent!.amount, 0);
+      expect(sent!.advances.map((a) => a.name), ['ADV-A', 'ADV-B']);
+      expect(sent!.advances.map((a) => a.amount), [600, 400]);
+      expect(sent!.orders, isEmpty);
       // Cash + settled never exceeds what is left of the month.
       final settled = sent!.advances.fold<double>(0, (s, a) => s + a.amount) +
           sent!.orders.fold<double>(0, (s, o) => s + o.amount);

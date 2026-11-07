@@ -125,29 +125,59 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
     }
   }
 
-  /// Ticks advances first, then staff orders, in list order, for as long as
-  /// the running settled total stays within [MonthlyExpensePaySheet.remaining].
-  /// A balance that would overshoot is skipped (a smaller later one may still
-  /// fit): settling past `remaining` is refused by the server's overpay guard,
-  /// so pre-ticking it would only make the default submission fail.
+  /// A PART of a balance pre-ticked because only that much of it fits in what
+  /// the month still owes, by document name. Absent = the whole outstanding.
+  final _partialAdvances = <String, double>{};
+  final _partialOrders = <String, double>{};
+
+  /// Ticks advances first, then staff orders, in list order, until the settled
+  /// total reaches [MonthlyExpensePaySheet.remaining]. The first balance that
+  /// does not fit whole is ticked for the PART that fits, so the default cash
+  /// is always `max(remaining − all balances, 0)` — the card's net to pay.
+  /// Skipping it instead would default the cash to the full salary and recover
+  /// nothing (review of d1c01c7); ticking it whole would overshoot `remaining`
+  /// and be refused by the server's overpay guard. The server settles a part of
+  /// an advance or invoice when given an amount below its outstanding.
   void _preselectSettlements() {
-    final cap = widget.remaining + 0.01;
-    var running = 0.0;
-    for (final advance in widget.advances) {
-      if (advance.outstanding <= 0) continue;
-      if (running + advance.outstanding <= cap) {
-        _selectedAdvances.add(advance.name);
-        running += advance.outstanding;
+    var room = widget.remaining;
+    void take(double outstanding, void Function() whole, void Function(double) part) {
+      if (outstanding <= 0 || room <= 0.005) return;
+      if (outstanding <= room + 0.01) {
+        whole();
+        room -= outstanding;
+      } else {
+        part(double.parse(room.toStringAsFixed(2)));
+        room = 0;
       }
+    }
+
+    for (final advance in widget.advances) {
+      take(
+        advance.outstanding,
+        () => _selectedAdvances.add(advance.name),
+        (amount) {
+          _selectedAdvances.add(advance.name);
+          _partialAdvances[advance.name] = amount;
+        },
+      );
     }
     for (final order in widget.orders) {
-      if (order.outstanding <= 0) continue;
-      if (running + order.outstanding <= cap) {
-        _selectedOrders.add(order.invoice);
-        running += order.outstanding;
-      }
+      take(
+        order.outstanding,
+        () => _selectedOrders.add(order.invoice),
+        (amount) {
+          _selectedOrders.add(order.invoice);
+          _partialOrders[order.invoice] = amount;
+        },
+      );
     }
   }
+
+  double _advanceAmount(AdvanceEntry advance) =>
+      _partialAdvances[advance.name] ?? advance.outstanding;
+
+  double _orderAmount(EmployeeOrderEntry order) =>
+      _partialOrders[order.invoice] ?? order.outstanding;
 
   /// The cash that, with the ticked settlements, discharges exactly what is
   /// left of the month — never negative.
@@ -179,12 +209,12 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
     var total = 0.0;
     for (final advance in widget.advances) {
       if (_selectedAdvances.contains(advance.name)) {
-        total += advance.outstanding;
+        total += _advanceAmount(advance);
       }
     }
     for (final order in widget.orders) {
       if (_selectedOrders.contains(order.invoice)) {
-        total += order.outstanding;
+        total += _orderAmount(order);
       }
     }
     return total;
@@ -193,13 +223,13 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
   List<AdvanceSettlement> get _advanceSettlements => [
         for (final advance in widget.advances)
           if (_selectedAdvances.contains(advance.name))
-            AdvanceSettlement(name: advance.name, amount: advance.outstanding),
+            AdvanceSettlement(name: advance.name, amount: _advanceAmount(advance)),
       ];
 
   List<OrderSettlement> get _orderSettlements => [
         for (final order in widget.orders)
           if (_selectedOrders.contains(order.invoice))
-            OrderSettlement(invoice: order.invoice, amount: order.outstanding),
+            OrderSettlement(invoice: order.invoice, amount: _orderAmount(order)),
       ];
 
   MonthlyExpensePaymentSource? _resolveInitialSource() {
@@ -436,6 +466,8 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                 CheckboxListTile(
                   value: _selectedAdvances.contains(advance.name),
                   onChanged: (checked) => setState(() {
+                    // A manual tick is always the whole balance.
+                    _partialAdvances.remove(advance.name);
                     if (checked == true) {
                       _selectedAdvances.add(advance.name);
                     } else {
@@ -446,7 +478,11 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(money(advance.outstanding)),
+                  title: Text(
+                    _partialAdvances.containsKey(advance.name)
+                        ? '${money(_advanceAmount(advance))} / ${money(advance.outstanding)}'
+                        : money(advance.outstanding),
+                  ),
                   subtitle: Text(
                     [
                       if (advance.postingDate != null)
@@ -467,6 +503,8 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                 CheckboxListTile(
                   value: _selectedOrders.contains(order.invoice),
                   onChanged: (checked) => setState(() {
+                    // A manual tick is always the whole balance.
+                    _partialOrders.remove(order.invoice);
                     if (checked == true) {
                       _selectedOrders.add(order.invoice);
                     } else {
@@ -477,7 +515,11 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(money(order.outstanding)),
+                  title: Text(
+                    _partialOrders.containsKey(order.invoice)
+                        ? '${money(_orderAmount(order))} / ${money(order.outstanding)}'
+                        : money(order.outstanding),
+                  ),
                   subtitle: Text(
                     [
                       if (order.postingDate != null)
