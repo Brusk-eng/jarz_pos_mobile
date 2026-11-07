@@ -22,7 +22,6 @@ import '../features/shift_monitor/presentation/shift_monitor_screen.dart';
 import '../features/purchase/presentation/purchase_screen.dart';
 import '../features/purchase_request/presentation/purchase_requests_screen.dart';
 import '../features/manufacturing/presentation/manufacturing_screen.dart';
-import '../features/manufacturing/presentation/screens/production_today_screen.dart';
 import '../features/manufacturing/presentation/screens/sop_execute_screen.dart';
 import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
 import '../features/production_round/presentation/production_round_screen.dart';
@@ -534,10 +533,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.productionToday,
         name: 'production-today',
-        // Same landscape opt-in as the full board: the rows carry a number
-        // field each and the tablet on the bench is usually landscape.
-        builder: (context, state) =>
-            const PhoneLandscapeScope(child: ProductionTodayScreen()),
+        // Today was retired on 2026-11-08 (owner: "we don't use it"). Kept as
+        // a redirect so an old link or a cached drawer lands on the board.
+        redirect: (context, state) => AppRoutes.manufacturing,
       ),
       GoRoute(
         path: AppRoutes.productionSop,

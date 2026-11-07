@@ -404,12 +404,9 @@ class AppDrawer extends ConsumerWidget {
         navTile(
           icon: Icons.factory,
           title: l10n.menuProductionBoard,
-          // The collapsed Today screen, not the five-tab board: the board is
-          // complete and correct and went unused for three months because it
-          // asks the person holding the tablet to hold the whole document
-          // lifecycle in their head. The full board is still one tap away,
-          // from Today's own app bar.
-          onTap: () => navigate(AppRoutes.productionToday),
+          // The board itself. The collapsed Today screen was retired on
+          // 2026-11-08 (owner: "we don't use it"); its route now redirects here.
+          onTap: () => navigate(AppRoutes.manufacturing),
         ),
       // The other half of Send to Branches: what to MAKE so there is enough
       // to send. Read only, and gated on the production view set because

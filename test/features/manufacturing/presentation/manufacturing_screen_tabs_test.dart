@@ -188,24 +188,18 @@ void main() {
     expect(find.byType(ProductionRunningTab), findsOneWidget);
   });
 
-  testWidgets('the board offers the way back to Today', (tester) async {
-    // Today reaches the board with `go`, which replaces rather than pushes —
-    // so there is no back button, and without this action the only route home
-    // is a drawer tile labelled with the board's own name.
+  testWidgets('the board no longer links to Today', (tester) async {
+    // Today was retired on 2026-11-08 (owner: "we don't use it").
     await _pumpRouted(tester);
 
-    expect(find.text('Today'), findsOneWidget);
-    await tester.tap(find.text('Today'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('today screen'), findsOneWidget);
+    expect(find.text('Today'), findsNothing);
+    expect(find.byTooltip('Today'), findsNothing);
   });
 
   testWidgets('the app bar and all three tabs fit a 360 dp phone', (
     tester,
   ) async {
-    // Title plus a labelled Today button plus two icons is the tightest the
-    // bar gets, and the narrowest tablet on the floor is a phone. Five tabs
+    // Title plus two icons is the tightest the bar gets, and the narrowest tablet on the floor is a phone. Five tabs
     // needed a scrolling bar below 420 dp; three do not, so every label has to
     // be laid out and legible without a swipe.
     tester.view.physicalSize = const Size(360, 780);
@@ -215,9 +209,6 @@ void main() {
     await _pumpRouted(tester);
 
     expect(tester.takeException(), isNull);
-    // Icon-only here, so the label does not squeeze the title into an
-    // ellipsis — but still reachable, and still announced.
-    expect(find.byTooltip('Today'), findsOneWidget);
     expect(find.text('Production Board'), findsOneWidget);
 
     final tabBar = tester.widget<TabBar>(find.byType(TabBar));
