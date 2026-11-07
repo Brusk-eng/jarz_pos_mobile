@@ -34266,6 +34266,460 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'After: {step}'**
   String followupResultsOrderAfterStep(String step);
+
+  /// No description provided for @promoLookupMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check promo code'**
+  String get promoLookupMenuTitle;
+
+  /// No description provided for @promoLookupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check promo code'**
+  String get promoLookupTitle;
+
+  /// No description provided for @promoLookupCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo code'**
+  String get promoLookupCodeLabel;
+
+  /// No description provided for @promoLookupOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order number (optional)'**
+  String get promoLookupOrderLabel;
+
+  /// No description provided for @promoLookupOrderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Website order number or invoice'**
+  String get promoLookupOrderHint;
+
+  /// No description provided for @promoLookupCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get promoLookupCheck;
+
+  /// No description provided for @promoLookupIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a promo code to see what it gives. Add an order number to see what it would do to that order.'**
+  String get promoLookupIntro;
+
+  /// No description provided for @promoLookupEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a promo code first'**
+  String get promoLookupEnterCode;
+
+  /// No description provided for @promoLookupLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check the promo code'**
+  String get promoLookupLoadFailed;
+
+  /// No description provided for @promoLookupNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No promo code {code} in the system'**
+  String promoLookupNotFound(String code);
+
+  /// No description provided for @promoLookupStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get promoLookupStatusActive;
+
+  /// No description provided for @promoLookupStatusDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get promoLookupStatusDisabled;
+
+  /// No description provided for @promoLookupStatusNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started yet'**
+  String get promoLookupStatusNotStarted;
+
+  /// No description provided for @promoLookupStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get promoLookupStatusExpired;
+
+  /// No description provided for @promoLookupStatusUsedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Used up'**
+  String get promoLookupStatusUsedUp;
+
+  /// No description provided for @promoLookupStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Status: {status}'**
+  String promoLookupStatusUnknown(String status);
+
+  /// No description provided for @promoLookupTargetWholeOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'the whole order'**
+  String get promoLookupTargetWholeOrder;
+
+  /// No description provided for @promoLookupTargetItems.
+  ///
+  /// In en, this message translates to:
+  /// **'selected items'**
+  String get promoLookupTargetItems;
+
+  /// No description provided for @promoLookupTargetGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'selected categories'**
+  String get promoLookupTargetGroups;
+
+  /// No description provided for @promoLookupOfferPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% off {target}'**
+  String promoLookupOfferPercent(String percent, String target);
+
+  /// No description provided for @promoLookupOfferPercentCapped.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% off {target}, up to {cap}'**
+  String promoLookupOfferPercentCapped(
+    String percent,
+    String target,
+    String cap,
+  );
+
+  /// No description provided for @promoLookupOfferFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} off {target}'**
+  String promoLookupOfferFixed(String amount, String target);
+
+  /// No description provided for @promoLookupOfferFreeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Free delivery'**
+  String get promoLookupOfferFreeDelivery;
+
+  /// No description provided for @promoLookupOfferUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown discount type'**
+  String get promoLookupOfferUnknown;
+
+  /// No description provided for @promoLookupMinOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum order'**
+  String get promoLookupMinOrder;
+
+  /// No description provided for @promoLookupMinNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No minimum'**
+  String get promoLookupMinNone;
+
+  /// No description provided for @promoLookupMinWholeOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} on the whole order'**
+  String promoLookupMinWholeOrder(String amount);
+
+  /// No description provided for @promoLookupMinEligibleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} on eligible items only'**
+  String promoLookupMinEligibleOnly(String amount);
+
+  /// No description provided for @promoLookupAppliesTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to'**
+  String get promoLookupAppliesTo;
+
+  /// No description provided for @promoLookupAppliesWholeOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole order'**
+  String get promoLookupAppliesWholeOrder;
+
+  /// No description provided for @promoLookupAppliesItems.
+  ///
+  /// In en, this message translates to:
+  /// **'These items'**
+  String get promoLookupAppliesItems;
+
+  /// No description provided for @promoLookupAppliesGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'These categories'**
+  String get promoLookupAppliesGroups;
+
+  /// No description provided for @promoLookupValidFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid from'**
+  String get promoLookupValidFrom;
+
+  /// No description provided for @promoLookupValidTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until'**
+  String get promoLookupValidTo;
+
+  /// No description provided for @promoLookupNoStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No start date'**
+  String get promoLookupNoStartDate;
+
+  /// No description provided for @promoLookupNoEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No end date'**
+  String get promoLookupNoEndDate;
+
+  /// No description provided for @promoLookupUses.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses'**
+  String get promoLookupUses;
+
+  /// No description provided for @promoLookupUsesOfLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} of {limit} used'**
+  String promoLookupUsesOfLimit(String used, String limit);
+
+  /// No description provided for @promoLookupUsesUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} used, no limit'**
+  String promoLookupUsesUnlimited(String used);
+
+  /// No description provided for @promoLookupRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get promoLookupRemaining;
+
+  /// No description provided for @promoLookupRemainingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} left'**
+  String promoLookupRemainingCount(String count);
+
+  /// No description provided for @promoLookupPerCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Per customer'**
+  String get promoLookupPerCustomer;
+
+  /// No description provided for @promoLookupPerCustomerLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {count} per customer'**
+  String promoLookupPerCustomerLimit(String count);
+
+  /// No description provided for @promoLookupUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get promoLookupUnlimited;
+
+  /// No description provided for @promoLookupPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup orders'**
+  String get promoLookupPickup;
+
+  /// No description provided for @promoLookupAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed'**
+  String get promoLookupAllowed;
+
+  /// No description provided for @promoLookupNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not allowed'**
+  String get promoLookupNotAllowed;
+
+  /// No description provided for @promoLookupStackable.
+  ///
+  /// In en, this message translates to:
+  /// **'With other codes'**
+  String get promoLookupStackable;
+
+  /// No description provided for @promoLookupStackableYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Can be combined'**
+  String get promoLookupStackableYes;
+
+  /// No description provided for @promoLookupStackableNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot be combined'**
+  String get promoLookupStackableNo;
+
+  /// No description provided for @promoLookupChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get promoLookupChannels;
+
+  /// No description provided for @promoLookupAllChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'All channels'**
+  String get promoLookupAllChannels;
+
+  /// No description provided for @promoLookupLockedCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for customer'**
+  String get promoLookupLockedCustomer;
+
+  /// No description provided for @promoLookupOnWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'On the website'**
+  String get promoLookupOnWebsite;
+
+  /// No description provided for @promoLookupOnWebsiteYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, code {code}'**
+  String promoLookupOnWebsiteYes(String code);
+
+  /// No description provided for @promoLookupYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get promoLookupYes;
+
+  /// No description provided for @promoLookupNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get promoLookupNo;
+
+  /// No description provided for @promoLookupRecentUses.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent uses'**
+  String get promoLookupRecentUses;
+
+  /// No description provided for @promoLookupNoRecentUses.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used yet'**
+  String get promoLookupNoRecentUses;
+
+  /// No description provided for @promoLookupUseReversed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reversed'**
+  String get promoLookupUseReversed;
+
+  /// No description provided for @promoLookupOrderCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'On this order'**
+  String get promoLookupOrderCheckTitle;
+
+  /// No description provided for @promoLookupOrderNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No order {order} found'**
+  String promoLookupOrderNotFound(String order);
+
+  /// No description provided for @promoLookupOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get promoLookupOrder;
+
+  /// No description provided for @promoLookupCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get promoLookupCustomer;
+
+  /// No description provided for @promoLookupOrderStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Order status'**
+  String get promoLookupOrderStatus;
+
+  /// No description provided for @promoLookupCurrentTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Current total'**
+  String get promoLookupCurrentTotal;
+
+  /// No description provided for @promoLookupCurrentCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Codes already on it'**
+  String get promoLookupCurrentCodes;
+
+  /// No description provided for @promoLookupCurrentPromoDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Current code discount'**
+  String get promoLookupCurrentPromoDiscount;
+
+  /// No description provided for @promoLookupNoCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get promoLookupNoCodes;
+
+  /// No description provided for @promoLookupDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get promoLookupDelivery;
+
+  /// No description provided for @promoLookupAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get promoLookupAccepted;
+
+  /// No description provided for @promoLookupNotAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not accepted'**
+  String get promoLookupNotAccepted;
+
+  /// No description provided for @promoLookupDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get promoLookupDiscount;
+
+  /// No description provided for @promoLookupFreeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Free delivery'**
+  String get promoLookupFreeDelivery;
+
+  /// No description provided for @promoLookupNewTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'New total'**
+  String get promoLookupNewTotal;
 }
 
 class _AppLocalizationsDelegate

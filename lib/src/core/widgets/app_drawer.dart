@@ -223,6 +223,13 @@ class AppDrawer extends ConsumerWidget {
       // Customer chats (WhatsApp / Instagram / Messenger) with the AI reply
       // copilot: moderators and the manager tier, as `api/chat.py` enforces.
       if (canAccessChats) _ChatsNavTile(onTap: () => navigate(AppRoutes.chats)),
+      // Ungated on purpose: `api/promo.lookup_promo_code` only needs a login,
+      // and anyone at the counter or on the phone may be asked what a code is.
+      navTile(
+        icon: Icons.local_offer_outlined,
+        title: l10n.promoLookupMenuTitle,
+        onTap: () => navigate(AppRoutes.promoLookup),
+      ),
     ];
 
     final deliveryChildren = <Widget>[
@@ -524,6 +531,7 @@ class AppDrawer extends ConsumerWidget {
           AppRoutes.kanban,
           AppRoutes.masterOrders,
           AppRoutes.chats,
+          AppRoutes.promoLookup,
         ],
       ),
       _DrawerGroupSpec(

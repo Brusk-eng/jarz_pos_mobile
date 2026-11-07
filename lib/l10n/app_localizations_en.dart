@@ -20765,4 +20765,260 @@ class AppLocalizationsEn extends AppLocalizations {
   String followupResultsOrderAfterStep(String step) {
     return 'After: $step';
   }
+
+  @override
+  String get promoLookupMenuTitle => 'Check promo code';
+
+  @override
+  String get promoLookupTitle => 'Check promo code';
+
+  @override
+  String get promoLookupCodeLabel => 'Promo code';
+
+  @override
+  String get promoLookupOrderLabel => 'Order number (optional)';
+
+  @override
+  String get promoLookupOrderHint => 'Website order number or invoice';
+
+  @override
+  String get promoLookupCheck => 'Check';
+
+  @override
+  String get promoLookupIntro =>
+      'Type a promo code to see what it gives. Add an order number to see what it would do to that order.';
+
+  @override
+  String get promoLookupEnterCode => 'Type a promo code first';
+
+  @override
+  String get promoLookupLoadFailed => 'Could not check the promo code';
+
+  @override
+  String promoLookupNotFound(String code) {
+    return 'No promo code $code in the system';
+  }
+
+  @override
+  String get promoLookupStatusActive => 'Active';
+
+  @override
+  String get promoLookupStatusDisabled => 'Disabled';
+
+  @override
+  String get promoLookupStatusNotStarted => 'Not started yet';
+
+  @override
+  String get promoLookupStatusExpired => 'Expired';
+
+  @override
+  String get promoLookupStatusUsedUp => 'Used up';
+
+  @override
+  String promoLookupStatusUnknown(String status) {
+    return 'Status: $status';
+  }
+
+  @override
+  String get promoLookupTargetWholeOrder => 'the whole order';
+
+  @override
+  String get promoLookupTargetItems => 'selected items';
+
+  @override
+  String get promoLookupTargetGroups => 'selected categories';
+
+  @override
+  String promoLookupOfferPercent(String percent, String target) {
+    return '$percent% off $target';
+  }
+
+  @override
+  String promoLookupOfferPercentCapped(
+    String percent,
+    String target,
+    String cap,
+  ) {
+    return '$percent% off $target, up to $cap';
+  }
+
+  @override
+  String promoLookupOfferFixed(String amount, String target) {
+    return '$amount off $target';
+  }
+
+  @override
+  String get promoLookupOfferFreeDelivery => 'Free delivery';
+
+  @override
+  String get promoLookupOfferUnknown => 'Unknown discount type';
+
+  @override
+  String get promoLookupMinOrder => 'Minimum order';
+
+  @override
+  String get promoLookupMinNone => 'No minimum';
+
+  @override
+  String promoLookupMinWholeOrder(String amount) {
+    return '$amount on the whole order';
+  }
+
+  @override
+  String promoLookupMinEligibleOnly(String amount) {
+    return '$amount on eligible items only';
+  }
+
+  @override
+  String get promoLookupAppliesTo => 'Applies to';
+
+  @override
+  String get promoLookupAppliesWholeOrder => 'The whole order';
+
+  @override
+  String get promoLookupAppliesItems => 'These items';
+
+  @override
+  String get promoLookupAppliesGroups => 'These categories';
+
+  @override
+  String get promoLookupValidFrom => 'Valid from';
+
+  @override
+  String get promoLookupValidTo => 'Valid until';
+
+  @override
+  String get promoLookupNoStartDate => 'No start date';
+
+  @override
+  String get promoLookupNoEndDate => 'No end date';
+
+  @override
+  String get promoLookupUses => 'Uses';
+
+  @override
+  String promoLookupUsesOfLimit(String used, String limit) {
+    return '$used of $limit used';
+  }
+
+  @override
+  String promoLookupUsesUnlimited(String used) {
+    return '$used used, no limit';
+  }
+
+  @override
+  String get promoLookupRemaining => 'Remaining';
+
+  @override
+  String promoLookupRemainingCount(String count) {
+    return '$count left';
+  }
+
+  @override
+  String get promoLookupPerCustomer => 'Per customer';
+
+  @override
+  String promoLookupPerCustomerLimit(String count) {
+    return 'Up to $count per customer';
+  }
+
+  @override
+  String get promoLookupUnlimited => 'Unlimited';
+
+  @override
+  String get promoLookupPickup => 'Pickup orders';
+
+  @override
+  String get promoLookupAllowed => 'Allowed';
+
+  @override
+  String get promoLookupNotAllowed => 'Not allowed';
+
+  @override
+  String get promoLookupStackable => 'With other codes';
+
+  @override
+  String get promoLookupStackableYes => 'Can be combined';
+
+  @override
+  String get promoLookupStackableNo => 'Cannot be combined';
+
+  @override
+  String get promoLookupChannels => 'Channels';
+
+  @override
+  String get promoLookupAllChannels => 'All channels';
+
+  @override
+  String get promoLookupLockedCustomer => 'Only for customer';
+
+  @override
+  String get promoLookupOnWebsite => 'On the website';
+
+  @override
+  String promoLookupOnWebsiteYes(String code) {
+    return 'Yes, code $code';
+  }
+
+  @override
+  String get promoLookupYes => 'Yes';
+
+  @override
+  String get promoLookupNo => 'No';
+
+  @override
+  String get promoLookupRecentUses => 'Recent uses';
+
+  @override
+  String get promoLookupNoRecentUses => 'Not used yet';
+
+  @override
+  String get promoLookupUseReversed => 'Reversed';
+
+  @override
+  String get promoLookupOrderCheckTitle => 'On this order';
+
+  @override
+  String promoLookupOrderNotFound(String order) {
+    return 'No order $order found';
+  }
+
+  @override
+  String get promoLookupOrder => 'Order';
+
+  @override
+  String get promoLookupCustomer => 'Customer';
+
+  @override
+  String get promoLookupOrderStatus => 'Order status';
+
+  @override
+  String get promoLookupCurrentTotal => 'Current total';
+
+  @override
+  String get promoLookupCurrentCodes => 'Codes already on it';
+
+  @override
+  String get promoLookupCurrentPromoDiscount => 'Current code discount';
+
+  @override
+  String get promoLookupNoCodes => 'None';
+
+  @override
+  String get promoLookupDelivery => 'Delivery';
+
+  @override
+  String get promoLookupAccepted => 'Accepted';
+
+  @override
+  String get promoLookupNotAccepted => 'Not accepted';
+
+  @override
+  String get promoLookupDiscount => 'Discount';
+
+  @override
+  String get promoLookupFreeDelivery => 'Free delivery';
+
+  @override
+  String get promoLookupNewTotal => 'New total';
 }

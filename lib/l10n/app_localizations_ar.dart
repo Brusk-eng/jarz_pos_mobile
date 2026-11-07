@@ -20745,4 +20745,260 @@ class AppLocalizationsAr extends AppLocalizations {
   String followupResultsOrderAfterStep(String step) {
     return 'بعد رسالة: $step';
   }
+
+  @override
+  String get promoLookupMenuTitle => 'فحص كود الخصم';
+
+  @override
+  String get promoLookupTitle => 'فحص كود الخصم';
+
+  @override
+  String get promoLookupCodeLabel => 'كود الخصم';
+
+  @override
+  String get promoLookupOrderLabel => 'رقم الأوردر (اختياري)';
+
+  @override
+  String get promoLookupOrderHint => 'رقم أوردر الموقع أو رقم الفاتورة';
+
+  @override
+  String get promoLookupCheck => 'افحص';
+
+  @override
+  String get promoLookupIntro =>
+      'اكتب كود الخصم عشان تعرف بيدّي إيه. ولو كتبت رقم أوردر هتعرف هيعمل إيه في الأوردر ده.';
+
+  @override
+  String get promoLookupEnterCode => 'اكتب كود الخصم الأول';
+
+  @override
+  String get promoLookupLoadFailed => 'مقدرناش نفحص الكود';
+
+  @override
+  String promoLookupNotFound(String code) {
+    return 'مفيش كود خصم $code على السيستم';
+  }
+
+  @override
+  String get promoLookupStatusActive => 'شغال';
+
+  @override
+  String get promoLookupStatusDisabled => 'متوقف';
+
+  @override
+  String get promoLookupStatusNotStarted => 'لسه مبدأش';
+
+  @override
+  String get promoLookupStatusExpired => 'انتهى';
+
+  @override
+  String get promoLookupStatusUsedUp => 'خلص عدد مرات استخدامه';
+
+  @override
+  String promoLookupStatusUnknown(String status) {
+    return 'الحالة: $status';
+  }
+
+  @override
+  String get promoLookupTargetWholeOrder => 'الأوردر كله';
+
+  @override
+  String get promoLookupTargetItems => 'أصناف معينة';
+
+  @override
+  String get promoLookupTargetGroups => 'أقسام معينة';
+
+  @override
+  String promoLookupOfferPercent(String percent, String target) {
+    return 'خصم $percent% على $target';
+  }
+
+  @override
+  String promoLookupOfferPercentCapped(
+    String percent,
+    String target,
+    String cap,
+  ) {
+    return 'خصم $percent% على $target، بحد أقصى $cap';
+  }
+
+  @override
+  String promoLookupOfferFixed(String amount, String target) {
+    return 'خصم $amount على $target';
+  }
+
+  @override
+  String get promoLookupOfferFreeDelivery => 'توصيل مجاني';
+
+  @override
+  String get promoLookupOfferUnknown => 'نوع خصم مش معروف';
+
+  @override
+  String get promoLookupMinOrder => 'أقل قيمة للأوردر';
+
+  @override
+  String get promoLookupMinNone => 'مفيش حد أدنى';
+
+  @override
+  String promoLookupMinWholeOrder(String amount) {
+    return '$amount على الأوردر كله';
+  }
+
+  @override
+  String promoLookupMinEligibleOnly(String amount) {
+    return '$amount على الأصناف اللي عليها الخصم بس';
+  }
+
+  @override
+  String get promoLookupAppliesTo => 'ينطبق على';
+
+  @override
+  String get promoLookupAppliesWholeOrder => 'الأوردر كله';
+
+  @override
+  String get promoLookupAppliesItems => 'الأصناف دي';
+
+  @override
+  String get promoLookupAppliesGroups => 'الأقسام دي';
+
+  @override
+  String get promoLookupValidFrom => 'شغال من';
+
+  @override
+  String get promoLookupValidTo => 'شغال لحد';
+
+  @override
+  String get promoLookupNoStartDate => 'من غير تاريخ بداية';
+
+  @override
+  String get promoLookupNoEndDate => 'من غير تاريخ نهاية';
+
+  @override
+  String get promoLookupUses => 'مرات الاستخدام';
+
+  @override
+  String promoLookupUsesOfLimit(String used, String limit) {
+    return 'اتستخدم $used من $limit';
+  }
+
+  @override
+  String promoLookupUsesUnlimited(String used) {
+    return 'اتستخدم $used مرة، من غير حد';
+  }
+
+  @override
+  String get promoLookupRemaining => 'الباقي';
+
+  @override
+  String promoLookupRemainingCount(String count) {
+    return 'باقي $count';
+  }
+
+  @override
+  String get promoLookupPerCustomer => 'لكل عميل';
+
+  @override
+  String promoLookupPerCustomerLimit(String count) {
+    return 'لحد $count مرة للعميل الواحد';
+  }
+
+  @override
+  String get promoLookupUnlimited => 'مفتوح';
+
+  @override
+  String get promoLookupPickup => 'أوردرات الاستلام من الفرع';
+
+  @override
+  String get promoLookupAllowed => 'مسموح';
+
+  @override
+  String get promoLookupNotAllowed => 'مش مسموح';
+
+  @override
+  String get promoLookupStackable => 'مع أكواد تانية';
+
+  @override
+  String get promoLookupStackableYes => 'ينفع يتجمع معاهم';
+
+  @override
+  String get promoLookupStackableNo => 'مينفعش يتجمع معاهم';
+
+  @override
+  String get promoLookupChannels => 'القنوات';
+
+  @override
+  String get promoLookupAllChannels => 'كل القنوات';
+
+  @override
+  String get promoLookupLockedCustomer => 'لعميل معين بس';
+
+  @override
+  String get promoLookupOnWebsite => 'على الموقع';
+
+  @override
+  String promoLookupOnWebsiteYes(String code) {
+    return 'أيوه، بكود $code';
+  }
+
+  @override
+  String get promoLookupYes => 'أيوه';
+
+  @override
+  String get promoLookupNo => 'لأ';
+
+  @override
+  String get promoLookupRecentUses => 'آخر استخدامات';
+
+  @override
+  String get promoLookupNoRecentUses => 'لسه محدش استخدمه';
+
+  @override
+  String get promoLookupUseReversed => 'اتلغى';
+
+  @override
+  String get promoLookupOrderCheckTitle => 'على الأوردر ده';
+
+  @override
+  String promoLookupOrderNotFound(String order) {
+    return 'مفيش أوردر برقم $order';
+  }
+
+  @override
+  String get promoLookupOrder => 'الأوردر';
+
+  @override
+  String get promoLookupCustomer => 'العميل';
+
+  @override
+  String get promoLookupOrderStatus => 'حالة الأوردر';
+
+  @override
+  String get promoLookupCurrentTotal => 'الإجمالي دلوقتي';
+
+  @override
+  String get promoLookupCurrentCodes => 'أكواد عليه بالفعل';
+
+  @override
+  String get promoLookupCurrentPromoDiscount => 'خصم الأكواد الحالي';
+
+  @override
+  String get promoLookupNoCodes => 'مفيش';
+
+  @override
+  String get promoLookupDelivery => 'التوصيل';
+
+  @override
+  String get promoLookupAccepted => 'الكود ينفع';
+
+  @override
+  String get promoLookupNotAccepted => 'الكود مينفعش';
+
+  @override
+  String get promoLookupDiscount => 'الخصم';
+
+  @override
+  String get promoLookupFreeDelivery => 'توصيل مجاني';
+
+  @override
+  String get promoLookupNewTotal => 'الإجمالي الجديد';
 }

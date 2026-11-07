@@ -40,6 +40,7 @@ import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
 import '../features/followups/presentation/screens/followup_results_screen.dart';
 import '../features/followups/presentation/screens/followups_screen.dart';
+import '../features/promo_lookup/presentation/screens/promo_lookup_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_inbox_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_metrics_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_thread_screen.dart';
@@ -726,6 +727,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const FollowupResultsScreen(),
           ),
         ],
+      ),
+      // Promo code lookup: every logged-in user, no role gate.
+      GoRoute(
+        path: AppRoutes.promoLookup,
+        name: 'promo-lookup',
+        builder: (context, state) => const PromoLookupScreen(),
       ),
       // Chat inbox. The thread and metrics are nested so a push that opens a
       // thread directly (`go('/chats/CHAT-00001')`) still has the inbox under

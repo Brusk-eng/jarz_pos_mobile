@@ -170,6 +170,11 @@ abstract final class AppRoutes {
   static const followups = '/followups';
   static const followupResults = '/followups/results';
 
+  // ── Promo code lookup ─────────────────────────────────────────────────
+  // Any logged-in staff member types a code and sees what the offer is,
+  // optionally checked against one order.
+  static const promoLookup = '/promo-lookup';
+
   // ── Chat inbox (moderator reply copilot) ──────────────────────────────
   // WhatsApp / Instagram / Messenger conversations with an AI-drafted reply.
   // `/chats/metrics` is matched before `/chats/:name` (it is declared first).
