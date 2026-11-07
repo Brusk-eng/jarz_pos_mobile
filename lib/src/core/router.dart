@@ -71,6 +71,7 @@ import '../features/reports/presentation/screens/unit_economics_screen.dart';
 import '../features/reports/presentation/screens/promo_performance_screen.dart';
 import '../features/reports/presentation/screens/stock_adjustments_screen.dart';
 import '../features/reports/presentation/screens/labour_cost_screen.dart';
+import '../features/reports/presentation/screens/meta_ads_screen.dart';
 import '../features/master_orders/presentation/master_orders_screen.dart';
 import '../features/instapay_reconciliation/presentation/instapay_reconciliation_screen.dart';
 import 'network/user_service.dart';
@@ -293,6 +294,7 @@ String? resolveB2bRedirect({
 ///    over/short, fulfilment SLA): the line-manager tier,
 ///    [UserRoles.canViewMaterialsReport];
 ///  - Warehouse alignment: [UserRoles.canAccessManagerDashboard];
+///  - Meta Ads: [UserRoles.canViewMetaAds];
 ///  - every other report: [UserRoles.canViewAllReports].
 ///
 /// Returns null when [location] is not a reports path.
@@ -315,6 +317,9 @@ bool? canOpenReportsLocation({
   }
   if (under(AppRoutes.reportsWarehouseAlignment)) {
     return roles.canAccessManagerDashboard;
+  }
+  if (under(AppRoutes.reportsMetaAds)) {
+    return roles.canViewMetaAds;
   }
   return roles.canViewAllReports;
 }
@@ -839,6 +844,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'reports-labour-cost',
         builder: (context, state) =>
             const PhoneLandscapeScope(child: LabourCostScreen()),
+      ),
+      // Gated on `canViewMetaAds` in `canOpenReportsLocation`.
+      GoRoute(
+        path: AppRoutes.reportsMetaAds,
+        name: 'reports-meta-ads',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: MetaAdsScreen()),
       ),
       // The two stock reports as single-report routes: no tab bar, so a
       // materials-only user cannot swipe into Final Products.

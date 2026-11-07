@@ -21001,4 +21001,109 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get promoLookupNewTotal => 'الإجمالي الجديد';
+
+  @override
+  String get metaAdsTitle => 'إعلانات ميتا';
+
+  @override
+  String get metaAdsSubtitle =>
+      'الإعلانات اللي بتجيب مبيعات: الصرف ونسبة النقر والعائد لكل حملة ومجموعة وإعلان';
+
+  @override
+  String get metaAdsLevelCampaigns => 'الحملات';
+
+  @override
+  String get metaAdsLevelAdsets => 'المجموعات';
+
+  @override
+  String get metaAdsLevelAds => 'الإعلانات';
+
+  @override
+  String get metaAdsCampaign => 'الحملة';
+
+  @override
+  String get metaAdsAdset => 'مجموعة الإعلانات';
+
+  @override
+  String get metaAdsAllCampaigns => 'كل الحملات';
+
+  @override
+  String get metaAdsAllAdsets => 'كل المجموعات';
+
+  @override
+  String get metaAdsSortBy => 'ترتيب حسب';
+
+  @override
+  String get metaAdsSpend => 'الصرف';
+
+  @override
+  String get metaAdsPurchases => 'المشتريات';
+
+  @override
+  String get metaAdsRoas => 'العائد (ROAS)';
+
+  @override
+  String get metaAdsCtr => 'نسبة النقر (CTR)';
+
+  @override
+  String get metaAdsCostPerPurchase => 'تكلفة الشراء';
+
+  @override
+  String get metaAdsErpOrders => 'طلبات النظام';
+
+  @override
+  String get metaAdsErpRoas => 'عائد النظام';
+
+  @override
+  String get metaAdsImpressions => 'مرات الظهور';
+
+  @override
+  String get metaAdsLinkClicks => 'نقرات الرابط';
+
+  @override
+  String metaAdsLinkClicksCount(String count) {
+    return '$count نقرة على الرابط';
+  }
+
+  @override
+  String metaAdsPurchaseValueOf(String amount) {
+    return 'القيمة $amount';
+  }
+
+  @override
+  String metaAdsErpRoasOf(String value) {
+    return 'عائد النظام $value';
+  }
+
+  @override
+  String metaAdsErpRevenueOf(String amount) {
+    return 'الإيراد $amount';
+  }
+
+  @override
+  String get metaAdsNotConfigured =>
+      'تقارير إعلانات ميتا مش متفعلة. ضيف توكن الإعلانات في إعدادات Meta CAPI.';
+
+  @override
+  String get metaAdsNoRows => 'مفيش إعلانات اتعرضت في الفترة دي.';
+
+  @override
+  String metaAdsFetchedAt(String time) {
+    return 'أرقام ميتا حتى $time';
+  }
+
+  @override
+  String get metaAdsNotes => 'ملاحظات';
+
+  @override
+  String get metaAdsStatusActive => 'نشط';
+
+  @override
+  String get metaAdsStatusPaused => 'متوقف';
+
+  @override
+  String get metaAdsStatusArchived => 'مؤرشف';
+
+  @override
+  String get metaAdsStatusDeleted => 'محذوف';
 }

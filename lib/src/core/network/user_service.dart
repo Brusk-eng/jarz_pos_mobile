@@ -235,7 +235,19 @@ class UserRoles {
   /// tile whose API would refuse them, so the hub is never an empty page and
   /// never a dead link. A POS Manager, who is in neither set, loses the entry
   /// entirely — every tile on it would have 403'd.
-  bool get canAccessReportsHub => canViewAllReports || canViewMaterialsReport;
+  bool get canAccessReportsHub =>
+      canViewAllReports || canViewMaterialsReport || canViewMetaAds;
+
+  /// Whether this user may open the Meta Ads report. Mirrors the role set of
+  /// `meta_ads.get_ads_report`: JARZ Manager, Administrator, System Manager
+  /// and the media buyer's Meta CAPI Manager. Wider than [canViewAllReports]
+  /// on purpose — the media buyer holds only the last role, so for them the
+  /// hub shows this one tile.
+  bool get canViewMetaAds =>
+      isJarzManager ||
+      roles.contains(RoleNames.administrator) ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.metaCapiManager);
 
   /// Holds one of the stock/manufacturing roles the backend accepts.
   bool get isProductionRole =>

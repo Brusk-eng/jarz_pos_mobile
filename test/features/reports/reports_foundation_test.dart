@@ -106,6 +106,32 @@ void main() {
       );
     });
 
+    test('Meta Ads: the media buyer opens it, and only it', () {
+      final buyer = _roles([RoleNames.metaCapiManager]);
+      expect(resolveReportsRedirect(roles: buyer, location: AppRoutes.reports), isNull);
+      expect(resolveReportsRedirect(roles: buyer, location: AppRoutes.reportsMetaAds), isNull);
+      expect(
+        resolveReportsRedirect(roles: buyer, location: AppRoutes.reportsProfitLoss),
+        AppRoutes.reports,
+      );
+      expect(resolveReportsRedirect(roles: manager, location: AppRoutes.reportsMetaAds), isNull);
+      expect(
+        resolveReportsRedirect(
+          roles: _roles([RoleNames.systemManager]),
+          location: AppRoutes.reportsMetaAds,
+        ),
+        isNull,
+      );
+      expect(
+        resolveReportsRedirect(roles: lineManager, location: AppRoutes.reportsMetaAds),
+        AppRoutes.reports,
+      );
+      expect(
+        resolveReportsRedirect(roles: cashier, location: AppRoutes.reportsMetaAds),
+        homeRouteFor(cashier),
+      );
+    });
+
     test('non-report paths are ignored', () {
       expect(resolveReportsRedirect(roles: cashier, location: AppRoutes.pos), isNull);
       expect(canOpenReportsLocation(roles: cashier, location: '/reportsx'), isNull);

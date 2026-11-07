@@ -21021,4 +21021,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get promoLookupNewTotal => 'New total';
+
+  @override
+  String get metaAdsTitle => 'Meta Ads';
+
+  @override
+  String get metaAdsSubtitle =>
+      'Which ads bring purchases: spend, CTR and ROAS by campaign, ad set and ad';
+
+  @override
+  String get metaAdsLevelCampaigns => 'Campaigns';
+
+  @override
+  String get metaAdsLevelAdsets => 'Ad sets';
+
+  @override
+  String get metaAdsLevelAds => 'Ads';
+
+  @override
+  String get metaAdsCampaign => 'Campaign';
+
+  @override
+  String get metaAdsAdset => 'Ad set';
+
+  @override
+  String get metaAdsAllCampaigns => 'All campaigns';
+
+  @override
+  String get metaAdsAllAdsets => 'All ad sets';
+
+  @override
+  String get metaAdsSortBy => 'Sort by';
+
+  @override
+  String get metaAdsSpend => 'Spend';
+
+  @override
+  String get metaAdsPurchases => 'Purchases';
+
+  @override
+  String get metaAdsRoas => 'ROAS';
+
+  @override
+  String get metaAdsCtr => 'CTR';
+
+  @override
+  String get metaAdsCostPerPurchase => 'Cost / purchase';
+
+  @override
+  String get metaAdsErpOrders => 'ERP orders';
+
+  @override
+  String get metaAdsErpRoas => 'ERP ROAS';
+
+  @override
+  String get metaAdsImpressions => 'Impressions';
+
+  @override
+  String get metaAdsLinkClicks => 'Link clicks';
+
+  @override
+  String metaAdsLinkClicksCount(String count) {
+    return '$count link clicks';
+  }
+
+  @override
+  String metaAdsPurchaseValueOf(String amount) {
+    return 'Value $amount';
+  }
+
+  @override
+  String metaAdsErpRoasOf(String value) {
+    return 'ERP ROAS $value';
+  }
+
+  @override
+  String metaAdsErpRevenueOf(String amount) {
+    return 'Revenue $amount';
+  }
+
+  @override
+  String get metaAdsNotConfigured =>
+      'Meta Ads reporting is not configured. Add the ads access token in Meta CAPI Settings.';
+
+  @override
+  String get metaAdsNoRows => 'No ads delivered in this period.';
+
+  @override
+  String metaAdsFetchedAt(String time) {
+    return 'Meta figures as of $time';
+  }
+
+  @override
+  String get metaAdsNotes => 'Notes';
+
+  @override
+  String get metaAdsStatusActive => 'Active';
+
+  @override
+  String get metaAdsStatusPaused => 'Paused';
+
+  @override
+  String get metaAdsStatusArchived => 'Archived';
+
+  @override
+  String get metaAdsStatusDeleted => 'Deleted';
 }

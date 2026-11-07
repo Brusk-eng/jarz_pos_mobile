@@ -285,6 +285,27 @@ void main() {
     test('a plain POS user has no reports at all', () {
       final r = withRole('POS User');
       expect(r.canAccessReportsHub, isFalse);
+      expect(r.canViewMetaAds, isFalse);
+    });
+
+    test('Meta Ads: the analytics set plus System Manager and Meta CAPI Manager', () {
+      for (final role in [
+        RoleNames.jarzManager,
+        RoleNames.administrator,
+        RoleNames.systemManager,
+        RoleNames.metaCapiManager,
+      ]) {
+        final r = withRole(role);
+        expect(r.canViewMetaAds, isTrue, reason: role);
+        expect(r.canAccessReportsHub, isTrue, reason: role);
+      }
+      for (final role in [RoleNames.posManager, RoleNames.jarzLineManager]) {
+        expect(withRole(role).canViewMetaAds, isFalse, reason: role);
+      }
+      // The media buyer reaches the hub for this one report and nothing else.
+      final buyer = withRole(RoleNames.metaCapiManager);
+      expect(buyer.canViewAllReports, isFalse);
+      expect(buyer.canViewMaterialsReport, isFalse);
     });
   });
 

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/dio_provider.dart';
 import '../../../core/constants/api_endpoints.dart';
+import '../state/meta_ads_providers.dart' show MetaAdsQuery;
 import '../state/reports_providers.dart' show ReportQuery, ReportRange;
+import 'models/meta_ads_report.dart';
 import 'models/shipping_analytics.dart';
 import 'models/inventory_intelligence.dart';
 import 'models/product_analytics.dart';
@@ -260,6 +262,29 @@ class ReportsRepository {
   Future<LabourCost> fetchLabourCost(ReportQuery q) async {
     final response = await _dio.post(ApiEndpoints.getLabourCost, data: _params(q));
     return LabourCost.fromJson(_asMap(response));
+  }
+
+  // ── Marketing (meta_ads.py) ─────────────────────────────────────────────
+
+  /// `meta_ads.get_ads_report`. No branch dimension. [refresh] sends
+  /// `refresh=1`, which makes the server skip its 15-minute cache and ask
+  /// Meta again (pull-to-refresh only — normal loads use the cache).
+  Future<MetaAdsReport> fetchMetaAdsReport(
+    MetaAdsQuery q, {
+    bool refresh = false,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.getAdsReport,
+      data: {
+        'level': q.level.apiValue,
+        'date_from': q.range.fromIso,
+        'date_to': q.range.toIso,
+        if (q.campaignId != null) 'campaign_id': q.campaignId,
+        if (q.adsetId != null) 'adset_id': q.adsetId,
+        if (refresh) 'refresh': 1,
+      },
+    );
+    return MetaAdsReport.fromJson(_asMap(response));
   }
 
   static ReportQuery _query(String dateFrom, String dateTo, String? branch) => ReportQuery(

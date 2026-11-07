@@ -34720,6 +34720,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New total'**
   String get promoLookupNewTotal;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Meta Ads'**
+  String get metaAdsTitle;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Which ads bring purchases: spend, CTR and ROAS by campaign, ad set and ad'**
+  String get metaAdsSubtitle;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaigns'**
+  String get metaAdsLevelCampaigns;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad sets'**
+  String get metaAdsLevelAdsets;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Ads'**
+  String get metaAdsLevelAds;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign'**
+  String get metaAdsCampaign;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad set'**
+  String get metaAdsAdset;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'All campaigns'**
+  String get metaAdsAllCampaigns;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'All ad sets'**
+  String get metaAdsAllAdsets;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get metaAdsSortBy;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend'**
+  String get metaAdsSpend;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases'**
+  String get metaAdsPurchases;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'ROAS'**
+  String get metaAdsRoas;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'CTR'**
+  String get metaAdsCtr;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost / purchase'**
+  String get metaAdsCostPerPurchase;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'ERP orders'**
+  String get metaAdsErpOrders;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'ERP ROAS'**
+  String get metaAdsErpRoas;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Impressions'**
+  String get metaAdsImpressions;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Link clicks'**
+  String get metaAdsLinkClicks;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} link clicks'**
+  String metaAdsLinkClicksCount(String count);
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Value {amount}'**
+  String metaAdsPurchaseValueOf(String amount);
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'ERP ROAS {value}'**
+  String metaAdsErpRoasOf(String value);
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue {amount}'**
+  String metaAdsErpRevenueOf(String amount);
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Meta Ads reporting is not configured. Add the ads access token in Meta CAPI Settings.'**
+  String get metaAdsNotConfigured;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'No ads delivered in this period.'**
+  String get metaAdsNoRows;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Meta figures as of {time}'**
+  String metaAdsFetchedAt(String time);
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get metaAdsNotes;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get metaAdsStatusActive;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get metaAdsStatusPaused;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get metaAdsStatusArchived;
+
+  /// Meta Ads report.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get metaAdsStatusDeleted;
 }
 
 class _AppLocalizationsDelegate

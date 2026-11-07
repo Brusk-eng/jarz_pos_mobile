@@ -107,6 +107,10 @@ abstract final class AppRoutes {
   static const reportsPromo = '/reports/promo-codes';
   static const reportsStockAdjustments = '/reports/stock-adjustments';
   static const reportsLabourCost = '/reports/labour-cost';
+
+  /// Meta Ads dashboard. Gated on `UserRoles.canViewMetaAds` (adds System
+  /// Manager and Meta CAPI Manager to the analytics set).
+  static const reportsMetaAds = '/reports/meta-ads';
   static const reportsFinalProducts = '/reports/final-products';
   static const reportsMaterials = '/reports/materials';
   static const masterOrders = '/master-orders';

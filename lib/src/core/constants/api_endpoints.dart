@@ -637,6 +637,12 @@ abstract final class ApiEndpoints {
   static const getLabourCost =
       '/api/method/jarz_pos.api.business_reports.get_labour_cost';
 
+  /// Meta Ads report: `level` (campaign | adset | ad), `date_from`, `date_to`,
+  /// optional `campaign_id` / `adset_id`, `refresh=1` to bypass the 15-min
+  /// server cache. JARZ Manager, Administrator, System Manager or
+  /// Meta CAPI Manager.
+  static const getAdsReport = '/api/method/jarz_pos.api.meta_ads.get_ads_report';
+
   // ── Settings ──────────────────────────────────────────────────────────
   static const getReceiptConfig =
       '/api/method/jarz_pos.api.pos.get_receipt_config';

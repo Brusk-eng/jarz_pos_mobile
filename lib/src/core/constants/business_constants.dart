@@ -124,6 +124,11 @@ abstract final class RoleNames {
   /// Floor role: may run batches but not back-date a posting, edit an SOP, or
   /// start a batch above the configured value limit.
   static const productionOperator = 'Production Operator';
+
+  /// The media buyer's role: manages the Meta Conversions API settings and
+  /// reads the Meta Ads report (`meta_ads.get_ads_report`), nothing else in
+  /// the Reports hub.
+  static const metaCapiManager = 'Meta CAPI Manager';
 }
 
 // ── Cancel reasons (defaults — will later be fetched from backend) ─────

@@ -36,6 +36,7 @@ class ReportsScreen extends ConsumerWidget {
     final all = roles?.canViewAllReports ?? false;
     final lineTier = roles?.canViewMaterialsReport ?? false;
     final managerTier = roles?.canAccessManagerDashboard ?? false;
+    final metaAds = roles?.canViewMetaAds ?? false;
 
     void go(String route) => context.push(route);
 
@@ -116,6 +117,17 @@ class ReportsScreen extends ConsumerWidget {
           subtitle: l10n.rptPromoSubtitle,
           onTap: () => go(AppRoutes.reportsPromo),
           visible: all,
+        ),
+        // Wider than the analytics tiles on purpose: `meta_ads.get_ads_report`
+        // also admits System Manager and the media buyer's Meta CAPI Manager,
+        // who sees this one tile and nothing else in the hub.
+        _ReportDestination(
+          icon: Icons.campaign_outlined,
+          color: Colors.blue.shade600,
+          title: l10n.metaAdsTitle,
+          subtitle: l10n.metaAdsSubtitle,
+          onTap: () => go(AppRoutes.reportsMetaAds),
+          visible: metaAds,
         ),
         _ReportDestination(
           icon: Icons.local_shipping_outlined,
