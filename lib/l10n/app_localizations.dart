@@ -320,6 +320,24 @@ abstract class AppLocalizations {
   /// **'Recent Orders'**
   String get managerRecentOrders;
 
+  /// No description provided for @managerOrdersChannelAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get managerOrdersChannelAll;
+
+  /// No description provided for @managerOrdersChannelB2c.
+  ///
+  /// In en, this message translates to:
+  /// **'B2C'**
+  String get managerOrdersChannelB2c;
+
+  /// No description provided for @managerOrdersChannelB2b.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B'**
+  String get managerOrdersChannelB2b;
+
   /// No description provided for @managerNoRecentOrders.
   ///
   /// In en, this message translates to:
@@ -18813,192 +18831,6 @@ abstract class AppLocalizations {
   /// **'Cancelled'**
   String get expensesAdvanceStatusCancelled;
 
-  /// No description provided for @managerEmployeeLedgerTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Employee Ledger'**
-  String get managerEmployeeLedgerTitle;
-
-  /// No description provided for @managerEmployeeLedgerSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'What each employee owes: cash advances plus unpaid employee orders'**
-  String get managerEmployeeLedgerSubtitle;
-
-  /// No description provided for @managerEmployeeLedgerPeriodLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Period'**
-  String get managerEmployeeLedgerPeriodLabel;
-
-  /// No description provided for @managerEmployeeLedgerWindow30.
-  ///
-  /// In en, this message translates to:
-  /// **'Last 30 days'**
-  String get managerEmployeeLedgerWindow30;
-
-  /// No description provided for @managerEmployeeLedgerWindow90.
-  ///
-  /// In en, this message translates to:
-  /// **'Last 90 days'**
-  String get managerEmployeeLedgerWindow90;
-
-  /// No description provided for @managerEmployeeLedgerWindow180.
-  ///
-  /// In en, this message translates to:
-  /// **'Last 180 days'**
-  String get managerEmployeeLedgerWindow180;
-
-  /// No description provided for @managerEmployeeLedgerWindow365.
-  ///
-  /// In en, this message translates to:
-  /// **'Last 365 days'**
-  String get managerEmployeeLedgerWindow365;
-
-  /// No description provided for @managerEmployeeLedgerActivityRange.
-  ///
-  /// In en, this message translates to:
-  /// **'Listed activity: {from} to {to}'**
-  String managerEmployeeLedgerActivityRange(Object from, Object to);
-
-  /// No description provided for @managerEmployeeLedgerActivityInPeriod.
-  ///
-  /// In en, this message translates to:
-  /// **'Activity in this period'**
-  String get managerEmployeeLedgerActivityInPeriod;
-
-  /// No description provided for @managerEmployeeLedgerTotalOutstanding.
-  ///
-  /// In en, this message translates to:
-  /// **'Total outstanding in this period'**
-  String get managerEmployeeLedgerTotalOutstanding;
-
-  /// No description provided for @managerEmployeeLedgerTotalOutstandingAllTime.
-  ///
-  /// In en, this message translates to:
-  /// **'Total outstanding (all time)'**
-  String get managerEmployeeLedgerTotalOutstandingAllTime;
-
-  /// No description provided for @managerEmployeeLedgerAllTimeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Every open item, whatever its age. The period below only controls which lines are listed.'**
-  String get managerEmployeeLedgerAllTimeHint;
-
-  /// No description provided for @managerEmployeeLedgerAdvancesLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cash advances'**
-  String get managerEmployeeLedgerAdvancesLabel;
-
-  /// No description provided for @managerEmployeeLedgerOrdersLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Unpaid orders'**
-  String get managerEmployeeLedgerOrdersLabel;
-
-  /// No description provided for @managerEmployeeLedgerAdvanceCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{No advances} =1{1 advance} other{{count} advances}}'**
-  String managerEmployeeLedgerAdvanceCount(int count);
-
-  /// No description provided for @managerEmployeeLedgerOrderCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{No orders} =1{1 order} other{{count} orders}}'**
-  String managerEmployeeLedgerOrderCount(int count);
-
-  /// No description provided for @managerEmployeeLedgerEmployeeCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{Nobody owes anything} =1{1 person owes money} other{{count} people owe money}}'**
-  String managerEmployeeLedgerEmployeeCount(int count);
-
-  /// No description provided for @managerEmployeeLedgerSplit.
-  ///
-  /// In en, this message translates to:
-  /// **'Advances {advances} • Orders {orders}'**
-  String managerEmployeeLedgerSplit(Object advances, Object orders);
-
-  /// No description provided for @managerEmployeeLedgerOutstandingLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Outstanding'**
-  String get managerEmployeeLedgerOutstandingLabel;
-
-  /// No description provided for @managerEmployeeLedgerOrderTotalLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Order total'**
-  String get managerEmployeeLedgerOrderTotalLabel;
-
-  /// No description provided for @managerEmployeeLedgerAdvanceAmountLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Advance'**
-  String get managerEmployeeLedgerAdvanceAmountLabel;
-
-  /// No description provided for @managerEmployeeLedgerEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing outstanding, and no activity in this period'**
-  String get managerEmployeeLedgerEmpty;
-
-  /// No description provided for @managerEmployeeLedgerNoAdvances.
-  ///
-  /// In en, this message translates to:
-  /// **'No cash advances in this period'**
-  String get managerEmployeeLedgerNoAdvances;
-
-  /// No description provided for @managerEmployeeLedgerNoOrders.
-  ///
-  /// In en, this message translates to:
-  /// **'No unpaid orders in this period'**
-  String get managerEmployeeLedgerNoOrders;
-
-  /// No description provided for @managerEmployeeLedgerBalancePredatesPeriod.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing listed in this period. The balance above is older than that, so widen the period to see the lines behind it.'**
-  String get managerEmployeeLedgerBalancePredatesPeriod;
-
-  /// No description provided for @managerEmployeeLedgerUnmatched.
-  ///
-  /// In en, this message translates to:
-  /// **'No employee record'**
-  String get managerEmployeeLedgerUnmatched;
-
-  /// No description provided for @managerEmployeeLedgerLoadFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load employee ledger'**
-  String get managerEmployeeLedgerLoadFailed;
-
-  /// No description provided for @managerEmployeeLedgerNoticeNoBranchAssigned.
-  ///
-  /// In en, this message translates to:
-  /// **'You have no branch assigned, so there is nothing to show here yet.'**
-  String get managerEmployeeLedgerNoticeNoBranchAssigned;
-
-  /// No description provided for @managerEmployeeLedgerNoticeBranchNotPermitted.
-  ///
-  /// In en, this message translates to:
-  /// **'You cannot view that branch, so it was ignored.'**
-  String get managerEmployeeLedgerNoticeBranchNotPermitted;
-
-  /// No description provided for @managerEmployeeLedgerNoticeHrmsUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'HRMS is not installed, so cash advances are not tracked. Unpaid employee orders are still shown.'**
-  String get managerEmployeeLedgerNoticeHrmsUnavailable;
-
-  /// No description provided for @managerEmployeeLedgerNoticeResultsTruncated.
-  ///
-  /// In en, this message translates to:
-  /// **'Only the first results are shown. Narrow the branch or the period to see the rest.'**
-  String get managerEmployeeLedgerNoticeResultsTruncated;
-
   /// Kanban column: order received, not started yet
   ///
   /// In en, this message translates to:
@@ -20859,6 +20691,24 @@ abstract class AppLocalizations {
   /// **'Staff orders'**
   String get monthlyExpensesOrdersTitle;
 
+  /// No description provided for @monthlyExpensesUnattributedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff orders not linked to an employee'**
+  String get monthlyExpensesUnattributedTitle;
+
+  /// Monthly expenses: header of the unlinked staff orders card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders · {total} unpaid'**
+  String monthlyExpensesUnattributedSummary(int count, String total);
+
+  /// No description provided for @monthlyExpensesUnattributedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These unpaid staff orders belong to a customer that is not linked to any employee, so they reach no salary row. Linking staff customers to employees fixes them.'**
+  String get monthlyExpensesUnattributedHint;
+
   /// No description provided for @monthlyExpensesPenaltyDaysAmount.
   ///
   /// In en, this message translates to:
@@ -21644,6 +21494,160 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send to Branches'**
   String get replenishmentTitle;
+
+  /// No description provided for @replenishmentCartonCountB2b.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 B2B carton} other{{count} B2B cartons}}'**
+  String replenishmentCartonCountB2b(int count);
+
+  /// No description provided for @replenishmentCartonCountLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 large carton} other{{count} large cartons}}'**
+  String replenishmentCartonCountLarge(int count);
+
+  /// No description provided for @replenishmentCartonsBar.
+  ///
+  /// In en, this message translates to:
+  /// **'📦 {text}'**
+  String replenishmentCartonsBar(String text);
+
+  /// No description provided for @replenishmentCartonsConfirmLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Cartons: {text}'**
+  String replenishmentCartonsConfirmLine(String text);
+
+  /// No description provided for @replenishmentPackingGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Packing guide'**
+  String get replenishmentPackingGuide;
+
+  /// No description provided for @replenishmentLargeInHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Large cartons in hand'**
+  String get replenishmentLargeInHand;
+
+  /// No description provided for @replenishmentCartonCapacityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B carton: 12 medium, 8 large or 20 small. Large carton: 20 medium, 11 large or 33 small. Sizes can share a carton.'**
+  String get replenishmentCartonCapacityHint;
+
+  /// No description provided for @replenishmentPackingSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{cartons} cartons · {jars} jars'**
+  String replenishmentPackingSummary(int cartons, int jars);
+
+  /// No description provided for @replenishmentCartonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Carton {number} · {type} · {fill}'**
+  String replenishmentCartonTitle(int number, String type, String fill);
+
+  /// No description provided for @replenishmentCartonTypeB2b.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B'**
+  String get replenishmentCartonTypeB2b;
+
+  /// No description provided for @replenishmentCartonTypeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get replenishmentCartonTypeLarge;
+
+  /// No description provided for @replenishmentCartonFull.
+  ///
+  /// In en, this message translates to:
+  /// **'full'**
+  String get replenishmentCartonFull;
+
+  /// No description provided for @replenishmentCartonPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% full'**
+  String replenishmentCartonPercent(int percent);
+
+  /// No description provided for @replenishmentPackByHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack by hand (jar size unknown)'**
+  String get replenishmentPackByHand;
+
+  /// No description provided for @replenishmentPackingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to pack yet'**
+  String get replenishmentPackingEmpty;
+
+  /// No description provided for @replenishmentPackingShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get replenishmentPackingShare;
+
+  /// No description provided for @replenishmentPackingShareHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Packing guide for {branch}'**
+  String replenishmentPackingShareHeader(String branch);
+
+  /// No description provided for @replenishmentMovesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Factory can\'\'t cover all of it — other branches can help'**
+  String get replenishmentMovesTitle;
+
+  /// No description provided for @replenishmentMovesFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {branch}: {items}'**
+  String replenishmentMovesFrom(String branch, String items);
+
+  /// No description provided for @replenishmentMovesRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Request from {branch}'**
+  String replenishmentMovesRequest(String branch);
+
+  /// No description provided for @replenishmentMovesConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request from {branch}?'**
+  String replenishmentMovesConfirmTitle(String branch);
+
+  /// No description provided for @replenishmentMovesConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask {branch} to send {items} to {target}. Nothing moves until {branch} confirms the handover.'**
+  String replenishmentMovesConfirmBody(
+    String branch,
+    String items,
+    String target,
+  );
+
+  /// No description provided for @replenishmentMovesSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent to {branch}'**
+  String replenishmentMovesSent(String branch);
+
+  /// No description provided for @replenishmentMovesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Request to {branch} failed: {error}'**
+  String replenishmentMovesFailed(String branch, String error);
+
+  /// No description provided for @replenishmentMoveCanSpare.
+  ///
+  /// In en, this message translates to:
+  /// **'{branch} can spare {qty}'**
+  String replenishmentMoveCanSpare(String branch, String qty);
 
   /// No description provided for @replenishmentBasis.
   ///
@@ -31959,6 +31963,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total incl. shipping {amount}'**
   String rptRevTotalInclShipping(String amount);
+
+  /// Revenue dashboard B2C tile: B2C net sales plus shipping charged on B2C orders.
+  ///
+  /// In en, this message translates to:
+  /// **'incl. shipping {amount}'**
+  String rptRevB2cInclShipping(String amount);
 
   /// Revenue dashboard report.
   ///

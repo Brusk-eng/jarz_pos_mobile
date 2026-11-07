@@ -1,4 +1,5 @@
 import '../data/models/branch_replenishment.dart';
+import 'carton_packing.dart';
 
 /// What one branch's typed load adds up to.
 class SendTotals {
@@ -73,6 +74,27 @@ SendTotals totalsFor(
     qty += typed;
   }
   return SendTotals(lineCount: count, totalQty: qty);
+}
+
+/// The typed load as packing lines: whole jars only, in the branch's row order.
+List<PackLine> packLinesFor(
+  ReplenishmentBranch branch,
+  Map<String, double> quantities,
+) {
+  final lines = <PackLine>[];
+  for (final item in branch.items) {
+    final qty = (quantities[item.itemCode] ?? 0).floor();
+    if (qty <= 0) continue;
+    lines.add(
+      PackLine(
+        itemCode: item.itemCode,
+        name: item.displayName,
+        size: item.jarSize,
+        qty: qty,
+      ),
+    );
+  }
+  return lines;
 }
 
 /// Which line a failed send was about, when the server said so.

@@ -49,6 +49,9 @@
   "managerMenuTooltip": "Menu",
   "managerDashboardTitle": "Manager Dashboard",
   "managerRecentOrders": "Recent Orders",
+  "managerOrdersChannelAll": "All",
+  "managerOrdersChannelB2c": "B2C",
+  "managerOrdersChannelB2b": "B2B",
   "managerNoRecentOrders": "No recent orders",
   "managerBranchBalances": "Branch Balances",
   "managerSwitchProfileTip": "Tip: Switch POS profiles from the POS/Kanban headers.",
@@ -6675,70 +6678,6 @@
   "expensesAdvanceStatusReturned": "Returned",
   "expensesAdvanceStatusPartlyClaimedAndReturned": "Partly Claimed and Returned",
   "expensesAdvanceStatusCancelled": "Cancelled",
-  "managerEmployeeLedgerTitle": "Employee Ledger",
-  "managerEmployeeLedgerSubtitle": "What each employee owes: cash advances plus unpaid employee orders",
-  "managerEmployeeLedgerPeriodLabel": "Period",
-  "managerEmployeeLedgerWindow30": "Last 30 days",
-  "managerEmployeeLedgerWindow90": "Last 90 days",
-  "managerEmployeeLedgerWindow180": "Last 180 days",
-  "managerEmployeeLedgerWindow365": "Last 365 days",
-  "managerEmployeeLedgerActivityRange": "Listed activity: {from} to {to}",
-  "@managerEmployeeLedgerActivityRange": {
-    "placeholders": {
-      "from": {},
-      "to": {}
-    }
-  },
-  "managerEmployeeLedgerActivityInPeriod": "Activity in this period",
-  "managerEmployeeLedgerTotalOutstanding": "Total outstanding in this period",
-  "managerEmployeeLedgerTotalOutstandingAllTime": "Total outstanding (all time)",
-  "managerEmployeeLedgerAllTimeHint": "Every open item, whatever its age. The period below only controls which lines are listed.",
-  "managerEmployeeLedgerAdvancesLabel": "Cash advances",
-  "managerEmployeeLedgerOrdersLabel": "Unpaid orders",
-  "managerEmployeeLedgerAdvanceCount": "{count, plural, =0{No advances} =1{1 advance} other{{count} advances}}",
-  "@managerEmployeeLedgerAdvanceCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "managerEmployeeLedgerOrderCount": "{count, plural, =0{No orders} =1{1 order} other{{count} orders}}",
-  "@managerEmployeeLedgerOrderCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "managerEmployeeLedgerEmployeeCount": "{count, plural, =0{Nobody owes anything} =1{1 person owes money} other{{count} people owe money}}",
-  "@managerEmployeeLedgerEmployeeCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "managerEmployeeLedgerSplit": "Advances {advances} • Orders {orders}",
-  "@managerEmployeeLedgerSplit": {
-    "placeholders": {
-      "advances": {},
-      "orders": {}
-    }
-  },
-  "managerEmployeeLedgerOutstandingLabel": "Outstanding",
-  "managerEmployeeLedgerOrderTotalLabel": "Order total",
-  "managerEmployeeLedgerAdvanceAmountLabel": "Advance",
-  "managerEmployeeLedgerEmpty": "Nothing outstanding, and no activity in this period",
-  "managerEmployeeLedgerNoAdvances": "No cash advances in this period",
-  "managerEmployeeLedgerNoOrders": "No unpaid orders in this period",
-  "managerEmployeeLedgerBalancePredatesPeriod": "Nothing listed in this period. The balance above is older than that, so widen the period to see the lines behind it.",
-  "managerEmployeeLedgerUnmatched": "No employee record",
-  "managerEmployeeLedgerLoadFailed": "Failed to load employee ledger",
-  "managerEmployeeLedgerNoticeNoBranchAssigned": "You have no branch assigned, so there is nothing to show here yet.",
-  "managerEmployeeLedgerNoticeBranchNotPermitted": "You cannot view that branch, so it was ignored.",
-  "managerEmployeeLedgerNoticeHrmsUnavailable": "HRMS is not installed, so cash advances are not tracked. Unpaid employee orders are still shown.",
-  "managerEmployeeLedgerNoticeResultsTruncated": "Only the first results are shown. Narrow the branch or the period to see the rest.",
   "kanbanStateReceived": "Received",
   "@kanbanStateReceived": {
     "description": "Kanban column: order received, not started yet"
@@ -7500,6 +7439,10 @@
   "monthlyExpensesPenaltiesTitle": "Penalties",
   "monthlyExpensesAdvancesTitle": "Advances",
   "monthlyExpensesOrdersTitle": "Staff orders",
+  "monthlyExpensesUnattributedTitle": "Staff orders not linked to an employee",
+  "monthlyExpensesUnattributedSummary": "{count} orders · {total} unpaid",
+  "@monthlyExpensesUnattributedSummary": {"description": "Monthly expenses: header of the unlinked staff orders card.", "placeholders": {"count": {"type": "int"}, "total": {"type": "String"}}},
+  "monthlyExpensesUnattributedHint": "These unpaid staff orders belong to a customer that is not linked to any employee, so they reach no salary row. Linking staff customers to employees fixes them.",
   "monthlyExpensesPenaltyDaysAmount": "{days} days",
   "@monthlyExpensesPenaltyDaysAmount": {
     "placeholders": {
@@ -7800,6 +7743,46 @@
   "creditPaymentResultAlreadyRecordedTitle": "Already recorded",
   "menuReplenishment": "Send to Branches",
   "replenishmentTitle": "Send to Branches",
+  "replenishmentCartonCountB2b": "{count, plural, =1{1 B2B carton} other{{count} B2B cartons}}",
+  "@replenishmentCartonCountB2b": {"placeholders": {"count": {"type": "int"}}},
+  "replenishmentCartonCountLarge": "{count, plural, =1{1 large carton} other{{count} large cartons}}",
+  "@replenishmentCartonCountLarge": {"placeholders": {"count": {"type": "int"}}},
+  "replenishmentCartonsBar": "📦 {text}",
+  "@replenishmentCartonsBar": {"placeholders": {"text": {"type": "String"}}},
+  "replenishmentCartonsConfirmLine": "Cartons: {text}",
+  "@replenishmentCartonsConfirmLine": {"placeholders": {"text": {"type": "String"}}},
+  "replenishmentPackingGuide": "Packing guide",
+  "replenishmentLargeInHand": "Large cartons in hand",
+  "replenishmentCartonCapacityHint": "B2B carton: 12 medium, 8 large or 20 small. Large carton: 20 medium, 11 large or 33 small. Sizes can share a carton.",
+  "replenishmentPackingSummary": "{cartons} cartons · {jars} jars",
+  "@replenishmentPackingSummary": {"placeholders": {"cartons": {"type": "int"}, "jars": {"type": "int"}}},
+  "replenishmentCartonTitle": "Carton {number} · {type} · {fill}",
+  "@replenishmentCartonTitle": {"placeholders": {"number": {"type": "int"}, "type": {"type": "String"}, "fill": {"type": "String"}}},
+  "replenishmentCartonTypeB2b": "B2B",
+  "replenishmentCartonTypeLarge": "Large",
+  "replenishmentCartonFull": "full",
+  "replenishmentCartonPercent": "{percent}% full",
+  "@replenishmentCartonPercent": {"placeholders": {"percent": {"type": "int"}}},
+  "replenishmentPackByHand": "Pack by hand (jar size unknown)",
+  "replenishmentPackingEmpty": "Nothing to pack yet",
+  "replenishmentPackingShare": "Share",
+  "replenishmentPackingShareHeader": "Packing guide for {branch}",
+  "@replenishmentPackingShareHeader": {"placeholders": {"branch": {"type": "String"}}},
+  "replenishmentMovesTitle": "Factory can''t cover all of it — other branches can help",
+  "replenishmentMovesFrom": "From {branch}: {items}",
+  "@replenishmentMovesFrom": {"placeholders": {"branch": {"type": "String"}, "items": {"type": "String"}}},
+  "replenishmentMovesRequest": "Request from {branch}",
+  "@replenishmentMovesRequest": {"placeholders": {"branch": {"type": "String"}}},
+  "replenishmentMovesConfirmTitle": "Request from {branch}?",
+  "@replenishmentMovesConfirmTitle": {"placeholders": {"branch": {"type": "String"}}},
+  "replenishmentMovesConfirmBody": "Ask {branch} to send {items} to {target}. Nothing moves until {branch} confirms the handover.",
+  "@replenishmentMovesConfirmBody": {"placeholders": {"branch": {"type": "String"}, "items": {"type": "String"}, "target": {"type": "String"}}},
+  "replenishmentMovesSent": "Request sent to {branch}",
+  "@replenishmentMovesSent": {"placeholders": {"branch": {"type": "String"}}},
+  "replenishmentMovesFailed": "Request to {branch} failed: {error}",
+  "@replenishmentMovesFailed": {"placeholders": {"branch": {"type": "String"}, "error": {"type": "String"}}},
+  "replenishmentMoveCanSpare": "{branch} can spare {qty}",
+  "@replenishmentMoveCanSpare": {"placeholders": {"branch": {"type": "String"}, "qty": {"type": "String"}}},
   "replenishmentBasis": "{coverDays} days of cover, from the last {salesDays} days of sales",
   "@replenishmentBasis": {"placeholders": {"coverDays": {"type": "int"}, "salesDays": {"type": "int"}}},
   "replenishmentSourceLine": "From {warehouse}",
@@ -10845,6 +10828,8 @@
   "@rptRevCancelledShort": {"description": "Revenue dashboard report.", "placeholders": {"count": {"type": "String"}}},
   "rptRevTotalInclShipping": "Total incl. shipping {amount}",
   "@rptRevTotalInclShipping": {"description": "Revenue dashboard report.", "placeholders": {"amount": {"type": "String"}}},
+  "rptRevB2cInclShipping": "incl. shipping {amount}",
+  "@rptRevB2cInclShipping": {"description": "Revenue dashboard B2C tile: B2C net sales plus shipping charged on B2C orders.", "placeholders": {"amount": {"type": "String"}}},
   "rptRevDailyAverageAmount": "Daily average {amount}",
   "@rptRevDailyAverageAmount": {"description": "Revenue dashboard report.", "placeholders": {"amount": {"type": "String"}}},
   "rptRevBestDayOn": "Best {day} {amount}",

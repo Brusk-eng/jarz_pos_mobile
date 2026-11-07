@@ -25,6 +25,14 @@ final replenishmentPlanProvider =
 final selectedBranchWarehouseProvider =
     StateProvider.autoDispose<String?>((ref) => null);
 
+/// Large cartons the preparer has in hand, per branch warehouse.
+///
+/// Not auto-disposed: the number is remembered for the session, so reopening
+/// the packing guide does not reset it to zero.
+final largeCartonsInHandProvider = StateProvider.family<int, String>(
+  (ref, warehouse) => 0,
+);
+
 /// The outcome of the last send, kept on screen until the next attempt.
 class ReplenishmentSendResult {
   const ReplenishmentSendResult.sent({
@@ -134,6 +142,41 @@ class ReplenishmentDraftNotifier extends AutoDisposeNotifier<ReplenishmentDraft>
       clearResult: true,
     );
     ref.invalidate(replenishmentPlanProvider);
+  }
+
+  /// Re-reads the plan but keeps what was typed (the generation change only
+  /// makes the rows re-read their quantity from the kept overrides).
+  void refreshPlan() {
+    state = state.copyWith(generation: state.generation + 1);
+    ref.invalidate(replenishmentPlanProvider);
+  }
+
+  /// Asks another branch to hand [lines] to [targetWarehouse] through the same
+  /// `submit_transfer` path the factory send uses. The server turns a
+  /// branch-to-branch transfer into a pending handover the other side confirms.
+  /// Returns null on success, the raw error otherwise.
+  Future<Object?> requestMove({
+    required String fromWarehouse,
+    required String targetWarehouse,
+    required List<Map<String, dynamic>> lines,
+  }) async {
+    if (state.sending || lines.isEmpty) return null;
+    state = state.copyWith(sending: true);
+    try {
+      await ref
+          .read(stockTransferServiceProvider)
+          .submitTransfer(
+            sourceWarehouse: fromWarehouse,
+            targetWarehouse: targetWarehouse,
+            lines: lines,
+          );
+      state = state.copyWith(sending: false);
+      refreshPlan();
+      return null;
+    } catch (error) {
+      state = state.copyWith(sending: false);
+      return error;
+    }
   }
 
   void clearResult() {

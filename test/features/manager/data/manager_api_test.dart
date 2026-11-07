@@ -119,13 +119,18 @@ void main() {
                 'net_total': 450,
                 'status': 'Paid',
                 'branch': 'B1',
+                'order_purpose': 'B2B Supply',
               },
             ],
+            'has_more': true,
           },
         },
       );
 
-      final invoices = await api.getOrders();
+      final page = await api.getOrders();
+      final invoices = page.invoices;
+      expect(page.hasMore, isTrue);
+      expect(invoices.first.isB2b, isTrue);
       expect(invoices, hasLength(1));
       expect(invoices.first.name, 'INV-1');
       expect(invoices.first.grandTotal, 500);
@@ -139,8 +144,9 @@ void main() {
         data: {'message': {}},
       );
 
-      final invoices = await api.getOrders();
-      expect(invoices, isEmpty);
+      final page = await api.getOrders();
+      expect(page.invoices, isEmpty);
+      expect(page.hasMore, isFalse);
     });
 
     test('passes branch and state filters', () async {
@@ -150,7 +156,11 @@ void main() {
         data: {'message': {'invoices': []}},
       );
 
-      await api.getOrders(branch: 'B1', state: 'Received');
+      await api.getOrders(
+          branch: 'B1', state: 'Received', channel: 'b2b', start: 20);
+      expect(dio.calls.first.query?['channel'], 'b2b');
+      expect(dio.calls.first.query?['start'], 20);
+      expect(dio.calls.first.query?['limit'], 20);
       expect(dio.calls.first.query?['branch'], 'B1');
       expect(dio.calls.first.query?['state'], 'Received');
     });

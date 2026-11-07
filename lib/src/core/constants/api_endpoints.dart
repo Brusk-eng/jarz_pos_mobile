@@ -297,10 +297,6 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.manager.get_manager_states';
   static const updateInvoiceBranch =
       '/api/method/jarz_pos.api.manager.update_invoice_branch';
-  // Per-employee outstanding: HRMS cash advances + unpaid Employee-purpose
-  // POS orders, rolled up into a single balance per person.
-  static const getEmployeeLedger =
-      '/api/method/jarz_pos.api.manager.get_employee_ledger';
 
   // ── Staff customers (Employee-purpose orders) ─────────────────────────
   // A staff order is only deducted from payroll when its Customer is linked

@@ -125,6 +125,17 @@ class _ReplenishmentItemRowState extends State<ReplenishmentItemRow> {
                       ),
                       color: theme.colorScheme.tertiary,
                     ),
+                    // Which other branch could cover the gap.
+                    for (final move in item.moveIn)
+                      if (move.qty > 0)
+                        _Note(
+                          icon: Icons.swap_horiz,
+                          text: l10n.replenishmentMoveCanSpare(
+                            move.displayFrom,
+                            trimQty(move.qty.toDouble()),
+                          ),
+                          color: theme.colorScheme.tertiary,
+                        ),
                     // What the factory actually holds, next to what is
                     // missing: without it the cap on the quantity above looks
                     // arbitrary, and somebody re-types the full suggestion.

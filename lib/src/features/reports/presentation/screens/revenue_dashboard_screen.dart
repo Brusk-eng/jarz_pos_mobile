@@ -506,7 +506,6 @@ class _HeroCard extends StatelessWidget {
     final leakage = [
       l10n.rptRevReturnsAmount(money(s.returnsValue)),
       l10n.rptRevCancelledShort(count(s.cancelled)),
-      l10n.rptRevTotalInclShipping(money(s.totalRevenue)),
     ].join(' · ');
     final best = s.bestDay;
     final worst = s.worstDay;
@@ -606,7 +605,11 @@ class _HeroCard extends StatelessWidget {
             ],
             const Divider(height: 20),
             if (_pos(s.b2c) + _pos(s.b2b) > 0) ...[
-              _ChannelSplit(b2c: s.b2c, b2b: s.b2b),
+              _ChannelSplit(
+                b2c: s.b2c,
+                b2b: s.b2b,
+                b2cInclShipping: s.b2cInclShipping,
+              ),
               const SizedBox(height: 10),
             ],
             Text(caption, style: theme.textTheme.bodySmall),
@@ -672,8 +675,12 @@ class _HeroStat extends StatelessWidget {
 class _ChannelSplit extends StatelessWidget {
   final double b2c;
   final double b2b;
-  const _ChannelSplit({required this.b2c, required this.b2b})
-    : super(key: const ValueKey('revenue-hero-channel-split'));
+  final double? b2cInclShipping;
+  const _ChannelSplit({
+    required this.b2c,
+    required this.b2b,
+    this.b2cInclShipping,
+  }) : super(key: const ValueKey('revenue-hero-channel-split'));
 
   @override
   Widget build(BuildContext context) {
@@ -697,6 +704,11 @@ class _ChannelSplit extends StatelessWidget {
                 amount: b2c,
                 share: b2cShare,
                 color: _b2cColor,
+                note: b2cInclShipping == null
+                    ? null
+                    : l10n.rptRevB2cInclShipping(
+                        formatCompactCurrency(context, b2cInclShipping!),
+                      ),
               ),
             ),
             const SizedBox(width: 8),
@@ -746,11 +758,13 @@ class _ChannelTile extends StatelessWidget {
   final double amount;
   final double share;
   final Color color;
+  final String? note;
   const _ChannelTile({
     required this.label,
     required this.amount,
     required this.share,
     required this.color,
+    this.note,
   });
 
   @override
@@ -787,6 +801,14 @@ class _ChannelTile extends StatelessWidget {
               ),
             ),
           ),
+          if (note != null)
+            Text(
+              note!,
+              key: const ValueKey('revenue-hero-b2c-incl-shipping'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(color: color),
+            ),
           Text(
             '${_pct(share * 100)}%',
             maxLines: 1,

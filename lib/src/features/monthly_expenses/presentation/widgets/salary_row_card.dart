@@ -236,20 +236,7 @@ class SalaryRowCard extends StatelessWidget {
             const SizedBox(height: 12),
             _SectionLabel(text: l10n.monthlyExpensesOrdersTitle),
             for (final order in row.orders)
-              _BalanceLine(
-                icon: Icons.shopping_bag_outlined,
-                title: l10n.monthlyExpensesOutstandingOf(
-                  money(order.outstanding),
-                  money(order.grandTotal),
-                ),
-                subtitle: [
-                  if (order.postingDate != null)
-                    formatDate(context, order.postingDate!),
-                  if (order.displayCustomer.isNotEmpty) order.displayCustomer,
-                  if (order.status.isNotEmpty) order.status,
-                ].join(' • '),
-                reference: order.invoice,
-              ),
+              StaffOrderLine(order: order, currency: currency),
           ],
           const SizedBox(height: 12),
           MonthlyExpensePaymentList(
@@ -493,6 +480,50 @@ class _PenaltyLine extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// One unpaid staff order: what is left, date, customer, status, and (when the
+/// server sent them) the branch and kanban state, e.g. "Dokki · Delivered".
+/// Shared by the salary rows and the "not linked to an employee" card.
+class StaffOrderLine extends StatelessWidget {
+  final EmployeeOrderEntry order;
+  final String currency;
+
+  const StaffOrderLine({
+    super.key,
+    required this.order,
+    required this.currency,
+    this.showCustomer = true,
+  });
+
+  /// False under a customer group header that already names the customer.
+  final bool showCustomer;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    String money(double value) =>
+        formatCurrency(context, value, currencyCode: currency);
+    final where = [
+      if (order.branch.trim().isNotEmpty) order.branch.trim(),
+      if (order.orderState.trim().isNotEmpty) order.orderState.trim(),
+    ].join(' · ');
+    return _BalanceLine(
+      icon: Icons.shopping_bag_outlined,
+      title: l10n.monthlyExpensesOutstandingOf(
+        money(order.outstanding),
+        money(order.grandTotal),
+      ),
+      subtitle: [
+        if (order.postingDate != null) formatDate(context, order.postingDate!),
+        if (showCustomer && order.displayCustomer.isNotEmpty)
+          order.displayCustomer,
+        if (order.status.isNotEmpty) order.status,
+        if (where.isNotEmpty) where,
+      ].join(' • '),
+      reference: order.invoice,
     );
   }
 }

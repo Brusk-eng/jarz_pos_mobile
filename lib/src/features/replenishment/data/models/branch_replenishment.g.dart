@@ -23,6 +23,14 @@ _$ReplenishmentItemImpl _$$ReplenishmentItemImplFromJson(
   availableAtSource: (json['available_at_source'] as num?)?.toDouble() ?? 0.0,
   sendNow: (json['send_now'] as num?)?.toDouble() ?? 0.0,
   shortBy: (json['short_by'] as num?)?.toDouble() ?? 0.0,
+  itemGroup: json['item_group'] as String? ?? '',
+  jarSize: json['jar_size'] as String? ?? '',
+  spareQty: json['spare_qty'] == null ? 0 : _toInt(json['spare_qty']),
+  moveIn:
+      (json['move_in'] as List<dynamic>?)
+          ?.map((e) => ReplenishmentMoveIn.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <ReplenishmentMoveIn>[],
 );
 
 Map<String, dynamic> _$$ReplenishmentItemImplToJson(
@@ -40,6 +48,52 @@ Map<String, dynamic> _$$ReplenishmentItemImplToJson(
   'available_at_source': instance.availableAtSource,
   'send_now': instance.sendNow,
   'short_by': instance.shortBy,
+  'item_group': instance.itemGroup,
+  'jar_size': instance.jarSize,
+  'spare_qty': instance.spareQty,
+  'move_in': instance.moveIn,
+};
+
+_$ReplenishmentMoveInImpl _$$ReplenishmentMoveInImplFromJson(
+  Map<String, dynamic> json,
+) => _$ReplenishmentMoveInImpl(
+  fromWarehouse: json['from_warehouse'] as String? ?? '',
+  fromBranch: json['from_branch'] as String? ?? '',
+  qty: json['qty'] == null ? 0 : _toInt(json['qty']),
+);
+
+Map<String, dynamic> _$$ReplenishmentMoveInImplToJson(
+  _$ReplenishmentMoveInImpl instance,
+) => <String, dynamic>{
+  'from_warehouse': instance.fromWarehouse,
+  'from_branch': instance.fromBranch,
+  'qty': instance.qty,
+};
+
+_$ReplenishmentBranchMoveImpl _$$ReplenishmentBranchMoveImplFromJson(
+  Map<String, dynamic> json,
+) => _$ReplenishmentBranchMoveImpl(
+  itemCode: json['item_code'] as String? ?? '',
+  itemName: json['item_name'] as String? ?? '',
+  jarSize: json['jar_size'] as String? ?? '',
+  fromWarehouse: json['from_warehouse'] as String? ?? '',
+  fromBranch: json['from_branch'] as String? ?? '',
+  toWarehouse: json['to_warehouse'] as String? ?? '',
+  toBranch: json['to_branch'] as String? ?? '',
+  qty: json['qty'] == null ? 0 : _toInt(json['qty']),
+);
+
+Map<String, dynamic> _$$ReplenishmentBranchMoveImplToJson(
+  _$ReplenishmentBranchMoveImpl instance,
+) => <String, dynamic>{
+  'item_code': instance.itemCode,
+  'item_name': instance.itemName,
+  'jar_size': instance.jarSize,
+  'from_warehouse': instance.fromWarehouse,
+  'from_branch': instance.fromBranch,
+  'to_warehouse': instance.toWarehouse,
+  'to_branch': instance.toBranch,
+  'qty': instance.qty,
 };
 
 _$ReplenishmentSummaryImpl _$$ReplenishmentSummaryImplFromJson(
@@ -125,6 +179,13 @@ _$ReplenishmentPlanImpl _$$ReplenishmentPlanImplFromJson(
   summary: json['summary'] == null
       ? const ReplenishmentSummary()
       : ReplenishmentSummary.fromJson(json['summary'] as Map<String, dynamic>),
+  branchMoves:
+      (json['branch_moves'] as List<dynamic>?)
+          ?.map(
+            (e) => ReplenishmentBranchMove.fromJson(e as Map<String, dynamic>),
+          )
+          .toList() ??
+      const <ReplenishmentBranchMove>[],
 );
 
 Map<String, dynamic> _$$ReplenishmentPlanImplToJson(
@@ -138,4 +199,5 @@ Map<String, dynamic> _$$ReplenishmentPlanImplToJson(
   'source': instance.source,
   'branches': instance.branches,
   'summary': instance.summary,
+  'branch_moves': instance.branchMoves,
 };

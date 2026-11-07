@@ -17,6 +17,7 @@ import 'widgets/monthly_expenses_summary_header.dart';
 import 'widgets/recurring_expense_card.dart';
 import 'widgets/recurring_expense_form_sheet.dart';
 import 'widgets/salary_row_card.dart';
+import 'widgets/unattributed_orders_card.dart';
 
 /// The company's monthly bill: what is due, what has been paid, and what
 /// REMAINS — for the recurring expense registry and for payroll, one month at a
@@ -119,6 +120,15 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
                       const SizedBox(height: 12),
                       if (payload.gaps.isNotEmpty) ...[
                         MonthlyExpenseGapsBanner(gaps: payload.gaps),
+                        const SizedBox(height: 12),
+                      ],
+                      if (payload.deductions.unattributedOrders.isNotEmpty) ...[
+                        UnattributedOrdersCard(
+                          orders: payload.deductions.unattributedOrders,
+                          total: payload.deductions.unattributedOrderTotal,
+                          currency: payload.currency,
+                          onSynced: notifier.refresh,
+                        ),
                         const SizedBox(height: 12),
                       ],
                       MonthlyExpensesSummaryHeader(

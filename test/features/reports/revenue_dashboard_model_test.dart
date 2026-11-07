@@ -67,6 +67,19 @@ void main() {
       expect(d.snapshot.monthToDate.changePct, -2.0);
     });
 
+    test('B2C incl. shipping parses, and is null on an old server', () {
+      final s = RevenueSummary.fromJson({
+        'b2c': 100,
+        'b2c_shipping_income': 12.5,
+        'b2c_incl_shipping': 112.5,
+      });
+      expect(s.b2cShippingIncome, 12.5);
+      expect(s.b2cInclShipping, 112.5);
+      final old = RevenueSummary.fromJson({'b2c': 100});
+      expect(old.b2cShippingIncome, 0);
+      expect(old.b2cInclShipping, isNull);
+    });
+
     test('reads the summary and the like-for-like previous window', () {
       final s = d.summary;
       expect(s.netSales, 4682.5);
@@ -478,6 +491,35 @@ void main() {
         findsNothing,
       );
       expect(find.byKey(const ValueKey('revenue-hero')), findsOneWidget);
+    });
+
+    testWidgets('B2C tile shows "incl. shipping" only when the server sends it', (
+      tester,
+    ) async {
+      final withIt = _json();
+      (withIt['summary'] as Map<String, dynamic>)
+        ..['b2c_shipping_income'] = 300.0
+        ..['b2c_incl_shipping'] = 4862.5;
+      await pump(tester, RevenueDashboard.fromJson(withIt), const Locale('en'));
+      expect(tester.takeException(), isNull);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('revenue-hero-channel-split')),
+          matching: find.textContaining('incl. shipping'),
+        ),
+        findsOneWidget,
+      );
+      // The grey leakage line no longer carries the total.
+      expect(inKey('revenue-hero', find.textContaining('Total incl.')),
+          findsNothing);
+    });
+
+    testWidgets('B2C tile hides "incl. shipping" on an old server', (
+      tester,
+    ) async {
+      await pump(tester, RevenueDashboard.fromJson(_json()), const Locale('en'));
+      expect(find.byKey(const ValueKey('revenue-hero-b2c-incl-shipping')),
+          findsNothing);
     });
 
     testWidgets('Arabic, 360dp: renders right-to-left without overflow', (

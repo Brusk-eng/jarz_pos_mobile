@@ -503,6 +503,34 @@ void main() {
       expect(deductions.hasAny, isTrue);
     });
 
+    test('unattributed staff orders parse with branch and kanban state', () {
+      final deductions = DeductionsSummary.fromJson({
+        'unattributed_order_total': 250.5,
+        'unattributed_orders': [
+          {
+            'invoice': 'SINV-1',
+            'customer': 'CUST-1',
+            'customer_name': 'Ali',
+            'posting_date': '2026-09-03',
+            'grand_total': 300,
+            'outstanding': 250.5,
+            'status': 'Unpaid',
+            'branch': 'Dokki',
+            'order_state': 'Delivered',
+          },
+        ],
+      });
+      expect(deductions.unattributedOrderTotal, 250.5);
+      final order = deductions.unattributedOrders.single;
+      expect(order.invoice, 'SINV-1');
+      expect(order.displayCustomer, 'Ali');
+      expect(order.outstanding, 250.5);
+      expect(order.branch, 'Dokki');
+      expect(order.orderState, 'Delivered');
+      expect(const DeductionsSummary().unattributedOrders, isEmpty);
+      expect(DeductionsSummary.fromJson({}).unattributedOrders, isEmpty);
+    });
+
     test('an absent block is zeros, and advances are assumed readable', () {
       // A server build without the block was reading HRMS fine; defaulting to
       // "unreadable" would warn about a problem that does not exist.

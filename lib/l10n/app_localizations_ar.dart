@@ -126,6 +126,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get managerRecentOrders => 'أحدث الطلبات';
 
   @override
+  String get managerOrdersChannelAll => 'الكل';
+
+  @override
+  String get managerOrdersChannelB2c => 'B2C';
+
+  @override
+  String get managerOrdersChannelB2b => 'B2B';
+
+  @override
   String get managerNoRecentOrders => 'لا توجد طلبات حديثة';
 
   @override
@@ -11445,147 +11454,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get expensesAdvanceStatusCancelled => 'ملغاة';
 
   @override
-  String get managerEmployeeLedgerTitle => 'حساب الموظفين';
-
-  @override
-  String get managerEmployeeLedgerSubtitle =>
-      'المستحق على كل موظف: السلف النقدية + الطلبات غير المدفوعة';
-
-  @override
-  String get managerEmployeeLedgerPeriodLabel => 'الفترة';
-
-  @override
-  String get managerEmployeeLedgerWindow30 => 'آخر 30 يوم';
-
-  @override
-  String get managerEmployeeLedgerWindow90 => 'آخر 90 يوم';
-
-  @override
-  String get managerEmployeeLedgerWindow180 => 'آخر 180 يوم';
-
-  @override
-  String get managerEmployeeLedgerWindow365 => 'آخر 365 يوم';
-
-  @override
-  String managerEmployeeLedgerActivityRange(Object from, Object to) {
-    return 'الحركة المعروضة: من $from إلى $to';
-  }
-
-  @override
-  String get managerEmployeeLedgerActivityInPeriod => 'الحركة في الفترة دي';
-
-  @override
-  String get managerEmployeeLedgerTotalOutstanding =>
-      'إجمالي المستحق في الفترة دي';
-
-  @override
-  String get managerEmployeeLedgerTotalOutstandingAllTime =>
-      'إجمالي المستحق (كل الفترات)';
-
-  @override
-  String get managerEmployeeLedgerAllTimeHint =>
-      'كل المستحقات المفتوحة مهما كان تاريخها. الفترة تحت بتحدد السطور المعروضة بس.';
-
-  @override
-  String get managerEmployeeLedgerAdvancesLabel => 'السلف النقدية';
-
-  @override
-  String get managerEmployeeLedgerOrdersLabel => 'طلبات غير مدفوعة';
-
-  @override
-  String managerEmployeeLedgerAdvanceCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count سلفة',
-      few: '$count سلف',
-      two: 'سلفتين',
-      one: 'سلفة واحدة',
-      zero: 'مفيش سلف',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String managerEmployeeLedgerOrderCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count طلب',
-      few: '$count طلبات',
-      two: 'طلبين',
-      one: 'طلب واحد',
-      zero: 'مفيش طلبات',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String managerEmployeeLedgerEmployeeCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count شخص عليهم مستحقات',
-      few: '$count أشخاص عليهم مستحقات',
-      two: 'شخصين عليهم مستحقات',
-      one: 'شخص واحد عليه مستحقات',
-      zero: 'مفيش حد عليه مستحقات',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String managerEmployeeLedgerSplit(Object advances, Object orders) {
-    return 'سلف $advances • طلبات $orders';
-  }
-
-  @override
-  String get managerEmployeeLedgerOutstandingLabel => 'المستحق';
-
-  @override
-  String get managerEmployeeLedgerOrderTotalLabel => 'إجمالي الطلب';
-
-  @override
-  String get managerEmployeeLedgerAdvanceAmountLabel => 'السلفة';
-
-  @override
-  String get managerEmployeeLedgerEmpty =>
-      'مفيش مستحقات، ومفيش حركة في الفترة دي';
-
-  @override
-  String get managerEmployeeLedgerNoAdvances => 'مفيش سلف نقدية في الفترة دي';
-
-  @override
-  String get managerEmployeeLedgerNoOrders =>
-      'مفيش طلبات غير مدفوعة في الفترة دي';
-
-  @override
-  String get managerEmployeeLedgerBalancePredatesPeriod =>
-      'مفيش حاجة معروضة في الفترة دي. الرصيد فوق أقدم من كده، فوسع الفترة عشان تشوف السطور اللي وراه.';
-
-  @override
-  String get managerEmployeeLedgerUnmatched => 'مش مربوط بموظف';
-
-  @override
-  String get managerEmployeeLedgerLoadFailed => 'تعذر تحميل حساب الموظفين';
-
-  @override
-  String get managerEmployeeLedgerNoticeNoBranchAssigned =>
-      'مفيش فرع متخصص ليك، فمفيش حاجة تتعرض هنا لسه.';
-
-  @override
-  String get managerEmployeeLedgerNoticeBranchNotPermitted =>
-      'مش مسموح لك تشوف الفرع ده، فاتم تجاهله.';
-
-  @override
-  String get managerEmployeeLedgerNoticeHrmsUnavailable =>
-      'نظام HRMS مش متثبت، فالسلف النقدية مش بتتسجل. الطلبات غير المدفوعة لسه بتتعرض.';
-
-  @override
-  String get managerEmployeeLedgerNoticeResultsTruncated =>
-      'بتتعرض أول النتائج بس. ضيق الفرع أو الفترة عشان تشوف الباقي.';
-
-  @override
   String get kanbanStateReceived => 'مستلم';
 
   @override
@@ -12646,6 +12514,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get monthlyExpensesOrdersTitle => 'طلبات الموظفين';
 
   @override
+  String get monthlyExpensesUnattributedTitle =>
+      'طلبات موظفين غير مرتبطة بموظف';
+
+  @override
+  String monthlyExpensesUnattributedSummary(int count, String total) {
+    return '$count طلب · $total غير مدفوع';
+  }
+
+  @override
+  String get monthlyExpensesUnattributedHint =>
+      'هذه طلبات موظفين غير مدفوعة لعميل غير مرتبط بأي موظف، لذلك لا تظهر في أي صف راتب. ربط عملاء الموظفين بالموظفين يحل المشكلة.';
+
+  @override
   String monthlyExpensesPenaltyDaysAmount(Object days) {
     return '$days يوم';
   }
@@ -13186,6 +13067,133 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get replenishmentTitle => 'تسليم للفروع';
+
+  @override
+  String replenishmentCartonCountB2b(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count كرتونة B2B',
+      few: '$count كراتين B2B',
+      two: 'كرتونتين B2B',
+      one: 'كرتونة B2B واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishmentCartonCountLarge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count كرتونة كبيرة',
+      few: '$count كراتين كبيرة',
+      two: 'كرتونتين كبيرتين',
+      one: 'كرتونة كبيرة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishmentCartonsBar(String text) {
+    return '📦 $text';
+  }
+
+  @override
+  String replenishmentCartonsConfirmLine(String text) {
+    return 'الكراتين: $text';
+  }
+
+  @override
+  String get replenishmentPackingGuide => 'دليل التعبئة';
+
+  @override
+  String get replenishmentLargeInHand => 'كراتين كبيرة معاك';
+
+  @override
+  String get replenishmentCartonCapacityHint =>
+      'كرتونة B2B: 12 وسط أو 8 كبير أو 20 صغير. كرتونة كبيرة: 20 وسط أو 11 كبير أو 33 صغير. ممكن تخلط الأحجام في كرتونة واحدة.';
+
+  @override
+  String replenishmentPackingSummary(int cartons, int jars) {
+    return '$cartons كرتونة · $jars برطمان';
+  }
+
+  @override
+  String replenishmentCartonTitle(int number, String type, String fill) {
+    return 'كرتونة $number · $type · $fill';
+  }
+
+  @override
+  String get replenishmentCartonTypeB2b => 'B2B';
+
+  @override
+  String get replenishmentCartonTypeLarge => 'كبيرة';
+
+  @override
+  String get replenishmentCartonFull => 'ممتلئة';
+
+  @override
+  String replenishmentCartonPercent(int percent) {
+    return 'ممتلئة $percent%';
+  }
+
+  @override
+  String get replenishmentPackByHand => 'تعبئة يدوية (حجم البرطمان غير معروف)';
+
+  @override
+  String get replenishmentPackingEmpty => 'مفيش حاجة تتعبّأ لسه';
+
+  @override
+  String get replenishmentPackingShare => 'مشاركة';
+
+  @override
+  String replenishmentPackingShareHeader(String branch) {
+    return 'دليل التعبئة لفرع $branch';
+  }
+
+  @override
+  String get replenishmentMovesTitle =>
+      'المصنع مش قادر يغطي كله — فروع تانية تقدر تساعد';
+
+  @override
+  String replenishmentMovesFrom(String branch, String items) {
+    return 'من $branch: $items';
+  }
+
+  @override
+  String replenishmentMovesRequest(String branch) {
+    return 'اطلب من $branch';
+  }
+
+  @override
+  String replenishmentMovesConfirmTitle(String branch) {
+    return 'تطلب من $branch؟';
+  }
+
+  @override
+  String replenishmentMovesConfirmBody(
+    String branch,
+    String items,
+    String target,
+  ) {
+    return 'هتطلب من $branch إنه يبعت $items إلى $target. مفيش حاجة بتتحرك لحد ما $branch يأكد التسليم.';
+  }
+
+  @override
+  String replenishmentMovesSent(String branch) {
+    return 'اتبعت الطلب إلى $branch';
+  }
+
+  @override
+  String replenishmentMovesFailed(String branch, String error) {
+    return 'طلب $branch فشل: $error';
+  }
+
+  @override
+  String replenishmentMoveCanSpare(String branch, String qty) {
+    return '$branch يقدر يوفر $qty';
+  }
 
   @override
   String replenishmentBasis(int coverDays, int salesDays) {
@@ -19254,6 +19262,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String rptRevTotalInclShipping(String amount) {
     return 'الإجمالي شامل الشحن $amount';
+  }
+
+  @override
+  String rptRevB2cInclShipping(String amount) {
+    return 'شامل الشحن $amount';
   }
 
   @override

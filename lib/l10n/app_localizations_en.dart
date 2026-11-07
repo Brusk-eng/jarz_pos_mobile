@@ -126,6 +126,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get managerRecentOrders => 'Recent Orders';
 
   @override
+  String get managerOrdersChannelAll => 'All';
+
+  @override
+  String get managerOrdersChannelB2c => 'B2C';
+
+  @override
+  String get managerOrdersChannelB2b => 'B2B';
+
+  @override
   String get managerNoRecentOrders => 'No recent orders';
 
   @override
@@ -11506,142 +11515,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expensesAdvanceStatusCancelled => 'Cancelled';
 
   @override
-  String get managerEmployeeLedgerTitle => 'Employee Ledger';
-
-  @override
-  String get managerEmployeeLedgerSubtitle =>
-      'What each employee owes: cash advances plus unpaid employee orders';
-
-  @override
-  String get managerEmployeeLedgerPeriodLabel => 'Period';
-
-  @override
-  String get managerEmployeeLedgerWindow30 => 'Last 30 days';
-
-  @override
-  String get managerEmployeeLedgerWindow90 => 'Last 90 days';
-
-  @override
-  String get managerEmployeeLedgerWindow180 => 'Last 180 days';
-
-  @override
-  String get managerEmployeeLedgerWindow365 => 'Last 365 days';
-
-  @override
-  String managerEmployeeLedgerActivityRange(Object from, Object to) {
-    return 'Listed activity: $from to $to';
-  }
-
-  @override
-  String get managerEmployeeLedgerActivityInPeriod => 'Activity in this period';
-
-  @override
-  String get managerEmployeeLedgerTotalOutstanding =>
-      'Total outstanding in this period';
-
-  @override
-  String get managerEmployeeLedgerTotalOutstandingAllTime =>
-      'Total outstanding (all time)';
-
-  @override
-  String get managerEmployeeLedgerAllTimeHint =>
-      'Every open item, whatever its age. The period below only controls which lines are listed.';
-
-  @override
-  String get managerEmployeeLedgerAdvancesLabel => 'Cash advances';
-
-  @override
-  String get managerEmployeeLedgerOrdersLabel => 'Unpaid orders';
-
-  @override
-  String managerEmployeeLedgerAdvanceCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count advances',
-      one: '1 advance',
-      zero: 'No advances',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String managerEmployeeLedgerOrderCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count orders',
-      one: '1 order',
-      zero: 'No orders',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String managerEmployeeLedgerEmployeeCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count people owe money',
-      one: '1 person owes money',
-      zero: 'Nobody owes anything',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String managerEmployeeLedgerSplit(Object advances, Object orders) {
-    return 'Advances $advances • Orders $orders';
-  }
-
-  @override
-  String get managerEmployeeLedgerOutstandingLabel => 'Outstanding';
-
-  @override
-  String get managerEmployeeLedgerOrderTotalLabel => 'Order total';
-
-  @override
-  String get managerEmployeeLedgerAdvanceAmountLabel => 'Advance';
-
-  @override
-  String get managerEmployeeLedgerEmpty =>
-      'Nothing outstanding, and no activity in this period';
-
-  @override
-  String get managerEmployeeLedgerNoAdvances =>
-      'No cash advances in this period';
-
-  @override
-  String get managerEmployeeLedgerNoOrders => 'No unpaid orders in this period';
-
-  @override
-  String get managerEmployeeLedgerBalancePredatesPeriod =>
-      'Nothing listed in this period. The balance above is older than that, so widen the period to see the lines behind it.';
-
-  @override
-  String get managerEmployeeLedgerUnmatched => 'No employee record';
-
-  @override
-  String get managerEmployeeLedgerLoadFailed =>
-      'Failed to load employee ledger';
-
-  @override
-  String get managerEmployeeLedgerNoticeNoBranchAssigned =>
-      'You have no branch assigned, so there is nothing to show here yet.';
-
-  @override
-  String get managerEmployeeLedgerNoticeBranchNotPermitted =>
-      'You cannot view that branch, so it was ignored.';
-
-  @override
-  String get managerEmployeeLedgerNoticeHrmsUnavailable =>
-      'HRMS is not installed, so cash advances are not tracked. Unpaid employee orders are still shown.';
-
-  @override
-  String get managerEmployeeLedgerNoticeResultsTruncated =>
-      'Only the first results are shown. Narrow the branch or the period to see the rest.';
-
-  @override
   String get kanbanStateReceived => 'Received';
 
   @override
@@ -12700,6 +12573,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get monthlyExpensesOrdersTitle => 'Staff orders';
 
   @override
+  String get monthlyExpensesUnattributedTitle =>
+      'Staff orders not linked to an employee';
+
+  @override
+  String monthlyExpensesUnattributedSummary(int count, String total) {
+    return '$count orders · $total unpaid';
+  }
+
+  @override
+  String get monthlyExpensesUnattributedHint =>
+      'These unpaid staff orders belong to a customer that is not linked to any employee, so they reach no salary row. Linking staff customers to employees fixes them.';
+
+  @override
   String monthlyExpensesPenaltyDaysAmount(Object days) {
     return '$days days';
   }
@@ -13229,6 +13115,129 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get replenishmentTitle => 'Send to Branches';
+
+  @override
+  String replenishmentCartonCountB2b(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count B2B cartons',
+      one: '1 B2B carton',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishmentCartonCountLarge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count large cartons',
+      one: '1 large carton',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishmentCartonsBar(String text) {
+    return '📦 $text';
+  }
+
+  @override
+  String replenishmentCartonsConfirmLine(String text) {
+    return 'Cartons: $text';
+  }
+
+  @override
+  String get replenishmentPackingGuide => 'Packing guide';
+
+  @override
+  String get replenishmentLargeInHand => 'Large cartons in hand';
+
+  @override
+  String get replenishmentCartonCapacityHint =>
+      'B2B carton: 12 medium, 8 large or 20 small. Large carton: 20 medium, 11 large or 33 small. Sizes can share a carton.';
+
+  @override
+  String replenishmentPackingSummary(int cartons, int jars) {
+    return '$cartons cartons · $jars jars';
+  }
+
+  @override
+  String replenishmentCartonTitle(int number, String type, String fill) {
+    return 'Carton $number · $type · $fill';
+  }
+
+  @override
+  String get replenishmentCartonTypeB2b => 'B2B';
+
+  @override
+  String get replenishmentCartonTypeLarge => 'Large';
+
+  @override
+  String get replenishmentCartonFull => 'full';
+
+  @override
+  String replenishmentCartonPercent(int percent) {
+    return '$percent% full';
+  }
+
+  @override
+  String get replenishmentPackByHand => 'Pack by hand (jar size unknown)';
+
+  @override
+  String get replenishmentPackingEmpty => 'Nothing to pack yet';
+
+  @override
+  String get replenishmentPackingShare => 'Share';
+
+  @override
+  String replenishmentPackingShareHeader(String branch) {
+    return 'Packing guide for $branch';
+  }
+
+  @override
+  String get replenishmentMovesTitle =>
+      'Factory can\'t cover all of it — other branches can help';
+
+  @override
+  String replenishmentMovesFrom(String branch, String items) {
+    return 'From $branch: $items';
+  }
+
+  @override
+  String replenishmentMovesRequest(String branch) {
+    return 'Request from $branch';
+  }
+
+  @override
+  String replenishmentMovesConfirmTitle(String branch) {
+    return 'Request from $branch?';
+  }
+
+  @override
+  String replenishmentMovesConfirmBody(
+    String branch,
+    String items,
+    String target,
+  ) {
+    return 'Ask $branch to send $items to $target. Nothing moves until $branch confirms the handover.';
+  }
+
+  @override
+  String replenishmentMovesSent(String branch) {
+    return 'Request sent to $branch';
+  }
+
+  @override
+  String replenishmentMovesFailed(String branch, String error) {
+    return 'Request to $branch failed: $error';
+  }
+
+  @override
+  String replenishmentMoveCanSpare(String branch, String qty) {
+    return '$branch can spare $qty';
+  }
 
   @override
   String replenishmentBasis(int coverDays, int salesDays) {
@@ -19278,6 +19287,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String rptRevTotalInclShipping(String amount) {
     return 'Total incl. shipping $amount';
+  }
+
+  @override
+  String rptRevB2cInclShipping(String amount) {
+    return 'incl. shipping $amount';
   }
 
   @override

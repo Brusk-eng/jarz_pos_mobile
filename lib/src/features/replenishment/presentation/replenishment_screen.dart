@@ -8,8 +8,11 @@ import '../../../core/localization/user_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../data/models/branch_replenishment.dart';
+import '../domain/carton_packing.dart';
 import '../domain/replenishment_draft.dart';
 import '../state/replenishment_providers.dart';
+import 'widgets/branch_moves_card.dart';
+import 'widgets/packing_guide_sheet.dart';
 import 'widgets/replenishment_format.dart';
 import 'widgets/replenishment_item_row.dart';
 
@@ -144,6 +147,14 @@ class _PlanView extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
                 child: _SendResultCard(result: draft.result!),
+              ),
+            if (plan.movesInto(branch.warehouse).isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+                child: BranchMovesCard(
+                  branch: branch,
+                  moves: plan.movesInto(branch.warehouse),
+                ),
               ),
             Expanded(
               child: branch.items.isEmpty
@@ -392,6 +403,11 @@ class _SendBar extends ConsumerWidget {
     final totals = totalsFor(branch, draft.quantitiesFor(branch));
     final canSend =
         !draft.sending && !totals.isEmpty && plan.source.warehouse.isNotEmpty;
+    final packing = packCartons(
+      packLinesFor(branch, draft.quantitiesFor(branch)),
+      largeInHand: ref.watch(largeCartonsInHandProvider(branch.warehouse)),
+    );
+    final cartonsText = cartonCountText(l10n, packing);
 
     return Material(
       elevation: 8,
@@ -425,6 +441,23 @@ class _SendBar extends ConsumerWidget {
                 ),
                 style: theme.textTheme.bodyMedium,
               ),
+              if (!totals.isEmpty)
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        cartonsText.isEmpty
+                            ? ''
+                            : l10n.replenishmentCartonsBar(cartonsText),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => showPackingGuide(context, branch),
+                      child: Text(l10n.replenishmentPackingGuide),
+                    ),
+                  ],
+                ),
               const SizedBox(height: 6),
               FilledButton.icon(
                 onPressed: canSend ? () => _send(context, ref) : null,
@@ -463,16 +496,31 @@ class _SendBar extends ConsumerWidget {
       return;
     }
 
+    final cartonsText = cartonCountText(
+      l10n,
+      packCartons(
+        packLinesFor(
+          branch,
+          ref.read(replenishmentDraftProvider).quantitiesFor(branch),
+        ),
+        largeInHand: ref.read(largeCartonsInHandProvider(branch.warehouse)),
+      ),
+    );
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.replenishmentConfirmTitle(branch.displayName)),
         content: Text(
-          l10n.replenishmentConfirmBody(
-            totals.lineCount,
-            trimQty(totals.totalQty),
-            isolateLtr(plan.source.warehouse),
-          ),
+          [
+            l10n.replenishmentConfirmBody(
+              totals.lineCount,
+              trimQty(totals.totalQty),
+              isolateLtr(plan.source.warehouse),
+            ),
+            if (cartonsText.isNotEmpty)
+              l10n.replenishmentCartonsConfirmLine(cartonsText),
+          ].join('\n\n'),
         ),
         actions: [
           TextButton(

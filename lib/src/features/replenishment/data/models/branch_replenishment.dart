@@ -41,6 +41,20 @@ class ReplenishmentItem with _$ReplenishmentItem {
     /// the number that tells the owner to produce more, so it is shown rather
     /// than folded silently into the capped [sendNow].
     @JsonKey(name: 'short_by') @Default(0.0) double shortBy,
+
+    /// Older servers omit everything below; the defaults keep them working.
+    @JsonKey(name: 'item_group') @Default('') String itemGroup,
+
+    /// "small" | "medium" | "large", or empty when the server cannot tell.
+    @JsonKey(name: 'jar_size') @Default('') String jarSize,
+
+    /// Jars this branch can give away and still keep its own cover.
+    @JsonKey(name: 'spare_qty', fromJson: _toInt) @Default(0) int spareQty,
+
+    /// Where the factory cannot cover [shortBy], which other branch can.
+    @JsonKey(name: 'move_in')
+    @Default(<ReplenishmentMoveIn>[])
+    List<ReplenishmentMoveIn> moveIn,
   }) = _ReplenishmentItem;
 
   factory ReplenishmentItem.fromJson(Map<String, dynamic> json) =>
@@ -57,6 +71,46 @@ class ReplenishmentItem with _$ReplenishmentItem {
   /// What the row should be titled. Item codes are the fallback because a
   /// missing `item_name` must not render an anonymous row.
   String get displayName => itemName.trim().isEmpty ? itemCode : itemName;
+}
+
+/// A branch that could hand [qty] of one row to the branch being viewed.
+@freezed
+class ReplenishmentMoveIn with _$ReplenishmentMoveIn {
+  const factory ReplenishmentMoveIn({
+    @JsonKey(name: 'from_warehouse') @Default('') String fromWarehouse,
+    @JsonKey(name: 'from_branch') @Default('') String fromBranch,
+    @JsonKey(fromJson: _toInt) @Default(0) int qty,
+  }) = _ReplenishmentMoveIn;
+
+  factory ReplenishmentMoveIn.fromJson(Map<String, dynamic> json) =>
+      _$ReplenishmentMoveInFromJson(json);
+
+  const ReplenishmentMoveIn._();
+
+  String get displayFrom => fromBranch.trim().isEmpty ? fromWarehouse : fromBranch;
+}
+
+/// One suggested branch-to-branch move for a whole plan.
+@freezed
+class ReplenishmentBranchMove with _$ReplenishmentBranchMove {
+  const factory ReplenishmentBranchMove({
+    @JsonKey(name: 'item_code') @Default('') String itemCode,
+    @JsonKey(name: 'item_name') @Default('') String itemName,
+    @JsonKey(name: 'jar_size') @Default('') String jarSize,
+    @JsonKey(name: 'from_warehouse') @Default('') String fromWarehouse,
+    @JsonKey(name: 'from_branch') @Default('') String fromBranch,
+    @JsonKey(name: 'to_warehouse') @Default('') String toWarehouse,
+    @JsonKey(name: 'to_branch') @Default('') String toBranch,
+    @JsonKey(fromJson: _toInt) @Default(0) int qty,
+  }) = _ReplenishmentBranchMove;
+
+  factory ReplenishmentBranchMove.fromJson(Map<String, dynamic> json) =>
+      _$ReplenishmentBranchMoveFromJson(json);
+
+  const ReplenishmentBranchMove._();
+
+  String get displayName => itemName.trim().isEmpty ? itemCode : itemName;
+  String get displayFrom => fromBranch.trim().isEmpty ? fromWarehouse : fromBranch;
 }
 
 /// Counts for one branch, or for the whole run.
@@ -126,6 +180,11 @@ class ReplenishmentPlan with _$ReplenishmentPlan {
     @Default(ReplenishmentSource()) ReplenishmentSource source,
     @Default(<ReplenishmentBranch>[]) List<ReplenishmentBranch> branches,
     @Default(ReplenishmentSummary()) ReplenishmentSummary summary,
+
+    /// Suggested moves between branches; empty on older servers.
+    @JsonKey(name: 'branch_moves')
+    @Default(<ReplenishmentBranchMove>[])
+    List<ReplenishmentBranchMove> branchMoves,
   }) = _ReplenishmentPlan;
 
   factory ReplenishmentPlan.fromJson(Map<String, dynamic> json) =>
@@ -137,6 +196,12 @@ class ReplenishmentPlan with _$ReplenishmentPlan {
   /// but zero suggestions still has rows worth reading.
   bool get hasBranches => branches.isNotEmpty;
 
+  /// Moves other branches could make INTO [warehouse].
+  List<ReplenishmentBranchMove> movesInto(String warehouse) => [
+    for (final move in branchMoves)
+      if (move.toWarehouse == warehouse && move.qty > 0) move,
+  ];
+
   ReplenishmentBranch? branchFor(String? warehouse) {
     if (warehouse == null) return null;
     for (final branch in branches) {
@@ -144,6 +209,12 @@ class ReplenishmentPlan with _$ReplenishmentPlan {
     }
     return null;
   }
+}
+
+int _toInt(dynamic value) {
+  if (value is num) return value.round();
+  if (value is String) return double.tryParse(value.trim())?.round() ?? 0;
+  return 0;
 }
 
 /// Frappe hands booleans back as `true`, but a checkbox read straight off a

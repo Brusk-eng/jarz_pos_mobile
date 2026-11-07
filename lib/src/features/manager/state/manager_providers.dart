@@ -18,13 +18,111 @@ final dashboardSummaryProvider = FutureProvider.autoDispose((ref) async {
   return summary;
 });
 
-final managerOrdersProvider = FutureProvider.autoDispose((ref) async {
-  final api = ref.read(managerApiProvider);
-  final branch = ref.watch(selectedBranchProvider);
-  final state = ref.watch(selectedStateProvider);
-  final normalized = (state == null || state == 'all') ? null : state;
-  return api.getOrders(branch: branch, state: normalized);
-});
+/// Which sales channel the Recent orders list shows.
+enum ManagerOrdersChannel {
+  all,
+  b2c,
+  b2b;
+
+  /// Value sent to the backend; null means no channel filter.
+  String? get apiValue => this == all ? null : name;
+}
+
+final managerOrdersChannelProvider =
+    StateProvider<ManagerOrdersChannel>((ref) => ManagerOrdersChannel.all);
+
+class ManagerOrdersState {
+  final List<ManagerInvoice> invoices;
+  final bool hasMore;
+  final bool loadingMore;
+  const ManagerOrdersState({
+    required this.invoices,
+    required this.hasMore,
+    this.loadingMore = false,
+  });
+
+  ManagerOrdersState copyWith({
+    List<ManagerInvoice>? invoices,
+    bool? hasMore,
+    bool? loadingMore,
+  }) {
+    return ManagerOrdersState(
+      invoices: invoices ?? this.invoices,
+      hasMore: hasMore ?? this.hasMore,
+      loadingMore: loadingMore ?? this.loadingMore,
+    );
+  }
+}
+
+/// Recent orders, 20 at a time. A change to the branch, state or channel
+/// rebuilds the notifier, which restarts at the first page.
+class ManagerOrdersNotifier
+    extends AutoDisposeAsyncNotifier<ManagerOrdersState> {
+  static const pageSize = 20;
+
+  /// Bumped on every rebuild so a page fetched for old filters is dropped.
+  int _generation = 0;
+
+  @override
+  Future<ManagerOrdersState> build() async {
+    _generation++;
+    final branch = ref.watch(selectedBranchProvider);
+    final stateFilter = ref.watch(selectedStateProvider);
+    final channel = ref.watch(managerOrdersChannelProvider);
+    final page = await ref.read(managerApiProvider).getOrders(
+          branch: branch,
+          state: _normalizedState(stateFilter),
+          channel: channel.apiValue,
+          limit: pageSize,
+        );
+    return ManagerOrdersState(invoices: page.invoices, hasMore: page.hasMore);
+  }
+
+  String? _normalizedState(String? state) =>
+      (state == null || state == 'all') ? null : state;
+
+  /// Appends the next page; ignored while a load is running or when the
+  /// server said there is nothing more.
+  Future<void> loadMore() async {
+    final current = state.valueOrNull;
+    if (current == null || !current.hasMore || current.loadingMore) return;
+    final branch = ref.read(selectedBranchProvider);
+    final stateFilter = ref.read(selectedStateProvider);
+    final channel = ref.read(managerOrdersChannelProvider);
+    final generation = _generation;
+    state = AsyncData(current.copyWith(loadingMore: true));
+    try {
+      final page = await ref.read(managerApiProvider).getOrders(
+            branch: branch,
+            state: _normalizedState(stateFilter),
+            channel: channel.apiValue,
+            start: current.invoices.length,
+            limit: pageSize,
+          );
+      // The filters changed (provider rebuilt) while this page was loading.
+      if (generation != _generation) return;
+      final latest = state.valueOrNull ?? current;
+      final seen = latest.invoices.map((i) => i.name).toSet();
+      state = AsyncData(latest.copyWith(
+        invoices: [
+          ...latest.invoices,
+          ...page.invoices.where((i) => !seen.contains(i.name)),
+        ],
+        hasMore: page.hasMore,
+        loadingMore: false,
+      ));
+    } catch (_) {
+      if (generation != _generation) return;
+      final latest = state.valueOrNull;
+      if (latest != null) {
+        state = AsyncData(latest.copyWith(loadingMore: false));
+      }
+    }
+  }
+}
+
+final managerOrdersProvider = AsyncNotifierProvider.autoDispose<
+    ManagerOrdersNotifier, ManagerOrdersState>(ManagerOrdersNotifier.new);
 
 final managerStatesProvider = FutureProvider.autoDispose<List<String>>((ref) async {
   final api = ref.read(managerApiProvider);
@@ -35,53 +133,6 @@ final pendingCustomShippingProvider = FutureProvider.autoDispose<List<CustomShip
   final api = ref.read(managerApiProvider);
   return api.getPendingCustomShippingRequests();
 });
-
-/// How far back the Employee Ledger looks.
-///
-/// The backend defaults to a 90-day window ending today when no dates are
-/// sent, so [EmployeeLedgerWindow.days90] is the default here too and the two
-/// agree on first paint. Outstanding money older than the window is invisible,
-/// which is why the longer presets exist.
-enum EmployeeLedgerWindow {
-  days30(30),
-  days90(90),
-  days180(180),
-  days365(365);
-
-  const EmployeeLedgerWindow(this.days);
-  final int days;
-}
-
-final employeeLedgerWindowProvider =
-    StateProvider<EmployeeLedgerWindow>((ref) => EmployeeLedgerWindow.days90);
-
-/// Per-employee outstanding: HRMS cash advances plus unpaid Employee-purpose
-/// POS orders. Watches the shared branch chips so the whole dashboard filters
-/// together, and the window dropdown so the range control refetches.
-final employeeLedgerProvider =
-    FutureProvider.autoDispose<EmployeeLedger>((ref) async {
-  final api = ref.read(managerApiProvider);
-  final branch = ref.watch(selectedBranchProvider);
-  final window = ref.watch(employeeLedgerWindowProvider);
-
-  final today = DateTime.now();
-  final from = today.subtract(Duration(days: window.days));
-
-  return api.getEmployeeLedger(
-    // `all` (any case) is the backend no-filter sentinel, so it passes through
-    // untouched; the chips already store exactly that string.
-    branch: branch,
-    fromDate: _isoDate(from),
-    toDate: _isoDate(today),
-  );
-});
-
-/// `YYYY-MM-DD`, the only date shape the endpoint accepts.
-String _isoDate(DateTime date) {
-  final month = date.month.toString().padLeft(2, '0');
-  final day = date.day.toString().padLeft(2, '0');
-  return '${date.year.toString().padLeft(4, '0')}-$month-$day';
-}
 
 // Lightweight access check for Manager Dashboard visibility
 final managerAccessProvider = FutureProvider<bool>((ref) async {

@@ -59,6 +59,22 @@ mixin _$ReplenishmentItem {
   @JsonKey(name: 'short_by')
   double get shortBy => throw _privateConstructorUsedError;
 
+  /// Older servers omit everything below; the defaults keep them working.
+  @JsonKey(name: 'item_group')
+  String get itemGroup => throw _privateConstructorUsedError;
+
+  /// "small" | "medium" | "large", or empty when the server cannot tell.
+  @JsonKey(name: 'jar_size')
+  String get jarSize => throw _privateConstructorUsedError;
+
+  /// Jars this branch can give away and still keep its own cover.
+  @JsonKey(name: 'spare_qty', fromJson: _toInt)
+  int get spareQty => throw _privateConstructorUsedError;
+
+  /// Where the factory cannot cover [shortBy], which other branch can.
+  @JsonKey(name: 'move_in')
+  List<ReplenishmentMoveIn> get moveIn => throw _privateConstructorUsedError;
+
   /// Serializes this ReplenishmentItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -89,6 +105,10 @@ abstract class $ReplenishmentItemCopyWith<$Res> {
     @JsonKey(name: 'available_at_source') double availableAtSource,
     @JsonKey(name: 'send_now') double sendNow,
     @JsonKey(name: 'short_by') double shortBy,
+    @JsonKey(name: 'item_group') String itemGroup,
+    @JsonKey(name: 'jar_size') String jarSize,
+    @JsonKey(name: 'spare_qty', fromJson: _toInt) int spareQty,
+    @JsonKey(name: 'move_in') List<ReplenishmentMoveIn> moveIn,
   });
 }
 
@@ -119,6 +139,10 @@ class _$ReplenishmentItemCopyWithImpl<$Res, $Val extends ReplenishmentItem>
     Object? availableAtSource = null,
     Object? sendNow = null,
     Object? shortBy = null,
+    Object? itemGroup = null,
+    Object? jarSize = null,
+    Object? spareQty = null,
+    Object? moveIn = null,
   }) {
     return _then(
       _value.copyWith(
@@ -170,6 +194,22 @@ class _$ReplenishmentItemCopyWithImpl<$Res, $Val extends ReplenishmentItem>
                 ? _value.shortBy
                 : shortBy // ignore: cast_nullable_to_non_nullable
                       as double,
+            itemGroup: null == itemGroup
+                ? _value.itemGroup
+                : itemGroup // ignore: cast_nullable_to_non_nullable
+                      as String,
+            jarSize: null == jarSize
+                ? _value.jarSize
+                : jarSize // ignore: cast_nullable_to_non_nullable
+                      as String,
+            spareQty: null == spareQty
+                ? _value.spareQty
+                : spareQty // ignore: cast_nullable_to_non_nullable
+                      as int,
+            moveIn: null == moveIn
+                ? _value.moveIn
+                : moveIn // ignore: cast_nullable_to_non_nullable
+                      as List<ReplenishmentMoveIn>,
           )
           as $Val,
     );
@@ -198,6 +238,10 @@ abstract class _$$ReplenishmentItemImplCopyWith<$Res>
     @JsonKey(name: 'available_at_source') double availableAtSource,
     @JsonKey(name: 'send_now') double sendNow,
     @JsonKey(name: 'short_by') double shortBy,
+    @JsonKey(name: 'item_group') String itemGroup,
+    @JsonKey(name: 'jar_size') String jarSize,
+    @JsonKey(name: 'spare_qty', fromJson: _toInt) int spareQty,
+    @JsonKey(name: 'move_in') List<ReplenishmentMoveIn> moveIn,
   });
 }
 
@@ -227,6 +271,10 @@ class __$$ReplenishmentItemImplCopyWithImpl<$Res>
     Object? availableAtSource = null,
     Object? sendNow = null,
     Object? shortBy = null,
+    Object? itemGroup = null,
+    Object? jarSize = null,
+    Object? spareQty = null,
+    Object? moveIn = null,
   }) {
     return _then(
       _$ReplenishmentItemImpl(
@@ -278,6 +326,22 @@ class __$$ReplenishmentItemImplCopyWithImpl<$Res>
             ? _value.shortBy
             : shortBy // ignore: cast_nullable_to_non_nullable
                   as double,
+        itemGroup: null == itemGroup
+            ? _value.itemGroup
+            : itemGroup // ignore: cast_nullable_to_non_nullable
+                  as String,
+        jarSize: null == jarSize
+            ? _value.jarSize
+            : jarSize // ignore: cast_nullable_to_non_nullable
+                  as String,
+        spareQty: null == spareQty
+            ? _value.spareQty
+            : spareQty // ignore: cast_nullable_to_non_nullable
+                  as int,
+        moveIn: null == moveIn
+            ? _value._moveIn
+            : moveIn // ignore: cast_nullable_to_non_nullable
+                  as List<ReplenishmentMoveIn>,
       ),
     );
   }
@@ -300,7 +364,13 @@ class _$ReplenishmentItemImpl extends _ReplenishmentItem {
     @JsonKey(name: 'available_at_source') this.availableAtSource = 0.0,
     @JsonKey(name: 'send_now') this.sendNow = 0.0,
     @JsonKey(name: 'short_by') this.shortBy = 0.0,
-  }) : super._();
+    @JsonKey(name: 'item_group') this.itemGroup = '',
+    @JsonKey(name: 'jar_size') this.jarSize = '',
+    @JsonKey(name: 'spare_qty', fromJson: _toInt) this.spareQty = 0,
+    @JsonKey(name: 'move_in')
+    final List<ReplenishmentMoveIn> moveIn = const <ReplenishmentMoveIn>[],
+  }) : _moveIn = moveIn,
+       super._();
 
   factory _$ReplenishmentItemImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReplenishmentItemImplFromJson(json);
@@ -355,9 +425,36 @@ class _$ReplenishmentItemImpl extends _ReplenishmentItem {
   @JsonKey(name: 'short_by')
   final double shortBy;
 
+  /// Older servers omit everything below; the defaults keep them working.
+  @override
+  @JsonKey(name: 'item_group')
+  final String itemGroup;
+
+  /// "small" | "medium" | "large", or empty when the server cannot tell.
+  @override
+  @JsonKey(name: 'jar_size')
+  final String jarSize;
+
+  /// Jars this branch can give away and still keep its own cover.
+  @override
+  @JsonKey(name: 'spare_qty', fromJson: _toInt)
+  final int spareQty;
+
+  /// Where the factory cannot cover [shortBy], which other branch can.
+  final List<ReplenishmentMoveIn> _moveIn;
+
+  /// Where the factory cannot cover [shortBy], which other branch can.
+  @override
+  @JsonKey(name: 'move_in')
+  List<ReplenishmentMoveIn> get moveIn {
+    if (_moveIn is EqualUnmodifiableListView) return _moveIn;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_moveIn);
+  }
+
   @override
   String toString() {
-    return 'ReplenishmentItem(itemCode: $itemCode, itemName: $itemName, stockUom: $stockUom, onHand: $onHand, stockIsNegative: $stockIsNegative, sellsPerDay: $sellsPerDay, daysOfCover: $daysOfCover, targetDays: $targetDays, suggestedQty: $suggestedQty, availableAtSource: $availableAtSource, sendNow: $sendNow, shortBy: $shortBy)';
+    return 'ReplenishmentItem(itemCode: $itemCode, itemName: $itemName, stockUom: $stockUom, onHand: $onHand, stockIsNegative: $stockIsNegative, sellsPerDay: $sellsPerDay, daysOfCover: $daysOfCover, targetDays: $targetDays, suggestedQty: $suggestedQty, availableAtSource: $availableAtSource, sendNow: $sendNow, shortBy: $shortBy, itemGroup: $itemGroup, jarSize: $jarSize, spareQty: $spareQty, moveIn: $moveIn)';
   }
 
   @override
@@ -385,7 +482,13 @@ class _$ReplenishmentItemImpl extends _ReplenishmentItem {
             (identical(other.availableAtSource, availableAtSource) ||
                 other.availableAtSource == availableAtSource) &&
             (identical(other.sendNow, sendNow) || other.sendNow == sendNow) &&
-            (identical(other.shortBy, shortBy) || other.shortBy == shortBy));
+            (identical(other.shortBy, shortBy) || other.shortBy == shortBy) &&
+            (identical(other.itemGroup, itemGroup) ||
+                other.itemGroup == itemGroup) &&
+            (identical(other.jarSize, jarSize) || other.jarSize == jarSize) &&
+            (identical(other.spareQty, spareQty) ||
+                other.spareQty == spareQty) &&
+            const DeepCollectionEquality().equals(other._moveIn, _moveIn));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -404,6 +507,10 @@ class _$ReplenishmentItemImpl extends _ReplenishmentItem {
     availableAtSource,
     sendNow,
     shortBy,
+    itemGroup,
+    jarSize,
+    spareQty,
+    const DeepCollectionEquality().hash(_moveIn),
   );
 
   /// Create a copy of ReplenishmentItem
@@ -438,6 +545,10 @@ abstract class _ReplenishmentItem extends ReplenishmentItem {
     @JsonKey(name: 'available_at_source') final double availableAtSource,
     @JsonKey(name: 'send_now') final double sendNow,
     @JsonKey(name: 'short_by') final double shortBy,
+    @JsonKey(name: 'item_group') final String itemGroup,
+    @JsonKey(name: 'jar_size') final String jarSize,
+    @JsonKey(name: 'spare_qty', fromJson: _toInt) final int spareQty,
+    @JsonKey(name: 'move_in') final List<ReplenishmentMoveIn> moveIn,
   }) = _$ReplenishmentItemImpl;
   const _ReplenishmentItem._() : super._();
 
@@ -494,12 +605,606 @@ abstract class _ReplenishmentItem extends ReplenishmentItem {
   @JsonKey(name: 'short_by')
   double get shortBy;
 
+  /// Older servers omit everything below; the defaults keep them working.
+  @override
+  @JsonKey(name: 'item_group')
+  String get itemGroup;
+
+  /// "small" | "medium" | "large", or empty when the server cannot tell.
+  @override
+  @JsonKey(name: 'jar_size')
+  String get jarSize;
+
+  /// Jars this branch can give away and still keep its own cover.
+  @override
+  @JsonKey(name: 'spare_qty', fromJson: _toInt)
+  int get spareQty;
+
+  /// Where the factory cannot cover [shortBy], which other branch can.
+  @override
+  @JsonKey(name: 'move_in')
+  List<ReplenishmentMoveIn> get moveIn;
+
   /// Create a copy of ReplenishmentItem
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ReplenishmentItemImplCopyWith<_$ReplenishmentItemImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+ReplenishmentMoveIn _$ReplenishmentMoveInFromJson(Map<String, dynamic> json) {
+  return _ReplenishmentMoveIn.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ReplenishmentMoveIn {
+  @JsonKey(name: 'from_warehouse')
+  String get fromWarehouse => throw _privateConstructorUsedError;
+  @JsonKey(name: 'from_branch')
+  String get fromBranch => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _toInt)
+  int get qty => throw _privateConstructorUsedError;
+
+  /// Serializes this ReplenishmentMoveIn to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ReplenishmentMoveIn
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ReplenishmentMoveInCopyWith<ReplenishmentMoveIn> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ReplenishmentMoveInCopyWith<$Res> {
+  factory $ReplenishmentMoveInCopyWith(
+    ReplenishmentMoveIn value,
+    $Res Function(ReplenishmentMoveIn) then,
+  ) = _$ReplenishmentMoveInCopyWithImpl<$Res, ReplenishmentMoveIn>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'from_warehouse') String fromWarehouse,
+    @JsonKey(name: 'from_branch') String fromBranch,
+    @JsonKey(fromJson: _toInt) int qty,
+  });
+}
+
+/// @nodoc
+class _$ReplenishmentMoveInCopyWithImpl<$Res, $Val extends ReplenishmentMoveIn>
+    implements $ReplenishmentMoveInCopyWith<$Res> {
+  _$ReplenishmentMoveInCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ReplenishmentMoveIn
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? fromWarehouse = null,
+    Object? fromBranch = null,
+    Object? qty = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            fromWarehouse: null == fromWarehouse
+                ? _value.fromWarehouse
+                : fromWarehouse // ignore: cast_nullable_to_non_nullable
+                      as String,
+            fromBranch: null == fromBranch
+                ? _value.fromBranch
+                : fromBranch // ignore: cast_nullable_to_non_nullable
+                      as String,
+            qty: null == qty
+                ? _value.qty
+                : qty // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ReplenishmentMoveInImplCopyWith<$Res>
+    implements $ReplenishmentMoveInCopyWith<$Res> {
+  factory _$$ReplenishmentMoveInImplCopyWith(
+    _$ReplenishmentMoveInImpl value,
+    $Res Function(_$ReplenishmentMoveInImpl) then,
+  ) = __$$ReplenishmentMoveInImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'from_warehouse') String fromWarehouse,
+    @JsonKey(name: 'from_branch') String fromBranch,
+    @JsonKey(fromJson: _toInt) int qty,
+  });
+}
+
+/// @nodoc
+class __$$ReplenishmentMoveInImplCopyWithImpl<$Res>
+    extends _$ReplenishmentMoveInCopyWithImpl<$Res, _$ReplenishmentMoveInImpl>
+    implements _$$ReplenishmentMoveInImplCopyWith<$Res> {
+  __$$ReplenishmentMoveInImplCopyWithImpl(
+    _$ReplenishmentMoveInImpl _value,
+    $Res Function(_$ReplenishmentMoveInImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ReplenishmentMoveIn
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? fromWarehouse = null,
+    Object? fromBranch = null,
+    Object? qty = null,
+  }) {
+    return _then(
+      _$ReplenishmentMoveInImpl(
+        fromWarehouse: null == fromWarehouse
+            ? _value.fromWarehouse
+            : fromWarehouse // ignore: cast_nullable_to_non_nullable
+                  as String,
+        fromBranch: null == fromBranch
+            ? _value.fromBranch
+            : fromBranch // ignore: cast_nullable_to_non_nullable
+                  as String,
+        qty: null == qty
+            ? _value.qty
+            : qty // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ReplenishmentMoveInImpl extends _ReplenishmentMoveIn {
+  const _$ReplenishmentMoveInImpl({
+    @JsonKey(name: 'from_warehouse') this.fromWarehouse = '',
+    @JsonKey(name: 'from_branch') this.fromBranch = '',
+    @JsonKey(fromJson: _toInt) this.qty = 0,
+  }) : super._();
+
+  factory _$ReplenishmentMoveInImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ReplenishmentMoveInImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'from_warehouse')
+  final String fromWarehouse;
+  @override
+  @JsonKey(name: 'from_branch')
+  final String fromBranch;
+  @override
+  @JsonKey(fromJson: _toInt)
+  final int qty;
+
+  @override
+  String toString() {
+    return 'ReplenishmentMoveIn(fromWarehouse: $fromWarehouse, fromBranch: $fromBranch, qty: $qty)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ReplenishmentMoveInImpl &&
+            (identical(other.fromWarehouse, fromWarehouse) ||
+                other.fromWarehouse == fromWarehouse) &&
+            (identical(other.fromBranch, fromBranch) ||
+                other.fromBranch == fromBranch) &&
+            (identical(other.qty, qty) || other.qty == qty));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, fromWarehouse, fromBranch, qty);
+
+  /// Create a copy of ReplenishmentMoveIn
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ReplenishmentMoveInImplCopyWith<_$ReplenishmentMoveInImpl> get copyWith =>
+      __$$ReplenishmentMoveInImplCopyWithImpl<_$ReplenishmentMoveInImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ReplenishmentMoveInImplToJson(this);
+  }
+}
+
+abstract class _ReplenishmentMoveIn extends ReplenishmentMoveIn {
+  const factory _ReplenishmentMoveIn({
+    @JsonKey(name: 'from_warehouse') final String fromWarehouse,
+    @JsonKey(name: 'from_branch') final String fromBranch,
+    @JsonKey(fromJson: _toInt) final int qty,
+  }) = _$ReplenishmentMoveInImpl;
+  const _ReplenishmentMoveIn._() : super._();
+
+  factory _ReplenishmentMoveIn.fromJson(Map<String, dynamic> json) =
+      _$ReplenishmentMoveInImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'from_warehouse')
+  String get fromWarehouse;
+  @override
+  @JsonKey(name: 'from_branch')
+  String get fromBranch;
+  @override
+  @JsonKey(fromJson: _toInt)
+  int get qty;
+
+  /// Create a copy of ReplenishmentMoveIn
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ReplenishmentMoveInImplCopyWith<_$ReplenishmentMoveInImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+ReplenishmentBranchMove _$ReplenishmentBranchMoveFromJson(
+  Map<String, dynamic> json,
+) {
+  return _ReplenishmentBranchMove.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ReplenishmentBranchMove {
+  @JsonKey(name: 'item_code')
+  String get itemCode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'item_name')
+  String get itemName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'jar_size')
+  String get jarSize => throw _privateConstructorUsedError;
+  @JsonKey(name: 'from_warehouse')
+  String get fromWarehouse => throw _privateConstructorUsedError;
+  @JsonKey(name: 'from_branch')
+  String get fromBranch => throw _privateConstructorUsedError;
+  @JsonKey(name: 'to_warehouse')
+  String get toWarehouse => throw _privateConstructorUsedError;
+  @JsonKey(name: 'to_branch')
+  String get toBranch => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _toInt)
+  int get qty => throw _privateConstructorUsedError;
+
+  /// Serializes this ReplenishmentBranchMove to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ReplenishmentBranchMove
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ReplenishmentBranchMoveCopyWith<ReplenishmentBranchMove> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ReplenishmentBranchMoveCopyWith<$Res> {
+  factory $ReplenishmentBranchMoveCopyWith(
+    ReplenishmentBranchMove value,
+    $Res Function(ReplenishmentBranchMove) then,
+  ) = _$ReplenishmentBranchMoveCopyWithImpl<$Res, ReplenishmentBranchMove>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    @JsonKey(name: 'jar_size') String jarSize,
+    @JsonKey(name: 'from_warehouse') String fromWarehouse,
+    @JsonKey(name: 'from_branch') String fromBranch,
+    @JsonKey(name: 'to_warehouse') String toWarehouse,
+    @JsonKey(name: 'to_branch') String toBranch,
+    @JsonKey(fromJson: _toInt) int qty,
+  });
+}
+
+/// @nodoc
+class _$ReplenishmentBranchMoveCopyWithImpl<
+  $Res,
+  $Val extends ReplenishmentBranchMove
+>
+    implements $ReplenishmentBranchMoveCopyWith<$Res> {
+  _$ReplenishmentBranchMoveCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ReplenishmentBranchMove
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? jarSize = null,
+    Object? fromWarehouse = null,
+    Object? fromBranch = null,
+    Object? toWarehouse = null,
+    Object? toBranch = null,
+    Object? qty = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            itemCode: null == itemCode
+                ? _value.itemCode
+                : itemCode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            itemName: null == itemName
+                ? _value.itemName
+                : itemName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            jarSize: null == jarSize
+                ? _value.jarSize
+                : jarSize // ignore: cast_nullable_to_non_nullable
+                      as String,
+            fromWarehouse: null == fromWarehouse
+                ? _value.fromWarehouse
+                : fromWarehouse // ignore: cast_nullable_to_non_nullable
+                      as String,
+            fromBranch: null == fromBranch
+                ? _value.fromBranch
+                : fromBranch // ignore: cast_nullable_to_non_nullable
+                      as String,
+            toWarehouse: null == toWarehouse
+                ? _value.toWarehouse
+                : toWarehouse // ignore: cast_nullable_to_non_nullable
+                      as String,
+            toBranch: null == toBranch
+                ? _value.toBranch
+                : toBranch // ignore: cast_nullable_to_non_nullable
+                      as String,
+            qty: null == qty
+                ? _value.qty
+                : qty // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ReplenishmentBranchMoveImplCopyWith<$Res>
+    implements $ReplenishmentBranchMoveCopyWith<$Res> {
+  factory _$$ReplenishmentBranchMoveImplCopyWith(
+    _$ReplenishmentBranchMoveImpl value,
+    $Res Function(_$ReplenishmentBranchMoveImpl) then,
+  ) = __$$ReplenishmentBranchMoveImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    @JsonKey(name: 'jar_size') String jarSize,
+    @JsonKey(name: 'from_warehouse') String fromWarehouse,
+    @JsonKey(name: 'from_branch') String fromBranch,
+    @JsonKey(name: 'to_warehouse') String toWarehouse,
+    @JsonKey(name: 'to_branch') String toBranch,
+    @JsonKey(fromJson: _toInt) int qty,
+  });
+}
+
+/// @nodoc
+class __$$ReplenishmentBranchMoveImplCopyWithImpl<$Res>
+    extends
+        _$ReplenishmentBranchMoveCopyWithImpl<
+          $Res,
+          _$ReplenishmentBranchMoveImpl
+        >
+    implements _$$ReplenishmentBranchMoveImplCopyWith<$Res> {
+  __$$ReplenishmentBranchMoveImplCopyWithImpl(
+    _$ReplenishmentBranchMoveImpl _value,
+    $Res Function(_$ReplenishmentBranchMoveImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ReplenishmentBranchMove
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? jarSize = null,
+    Object? fromWarehouse = null,
+    Object? fromBranch = null,
+    Object? toWarehouse = null,
+    Object? toBranch = null,
+    Object? qty = null,
+  }) {
+    return _then(
+      _$ReplenishmentBranchMoveImpl(
+        itemCode: null == itemCode
+            ? _value.itemCode
+            : itemCode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        itemName: null == itemName
+            ? _value.itemName
+            : itemName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        jarSize: null == jarSize
+            ? _value.jarSize
+            : jarSize // ignore: cast_nullable_to_non_nullable
+                  as String,
+        fromWarehouse: null == fromWarehouse
+            ? _value.fromWarehouse
+            : fromWarehouse // ignore: cast_nullable_to_non_nullable
+                  as String,
+        fromBranch: null == fromBranch
+            ? _value.fromBranch
+            : fromBranch // ignore: cast_nullable_to_non_nullable
+                  as String,
+        toWarehouse: null == toWarehouse
+            ? _value.toWarehouse
+            : toWarehouse // ignore: cast_nullable_to_non_nullable
+                  as String,
+        toBranch: null == toBranch
+            ? _value.toBranch
+            : toBranch // ignore: cast_nullable_to_non_nullable
+                  as String,
+        qty: null == qty
+            ? _value.qty
+            : qty // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ReplenishmentBranchMoveImpl extends _ReplenishmentBranchMove {
+  const _$ReplenishmentBranchMoveImpl({
+    @JsonKey(name: 'item_code') this.itemCode = '',
+    @JsonKey(name: 'item_name') this.itemName = '',
+    @JsonKey(name: 'jar_size') this.jarSize = '',
+    @JsonKey(name: 'from_warehouse') this.fromWarehouse = '',
+    @JsonKey(name: 'from_branch') this.fromBranch = '',
+    @JsonKey(name: 'to_warehouse') this.toWarehouse = '',
+    @JsonKey(name: 'to_branch') this.toBranch = '',
+    @JsonKey(fromJson: _toInt) this.qty = 0,
+  }) : super._();
+
+  factory _$ReplenishmentBranchMoveImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ReplenishmentBranchMoveImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'item_code')
+  final String itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  final String itemName;
+  @override
+  @JsonKey(name: 'jar_size')
+  final String jarSize;
+  @override
+  @JsonKey(name: 'from_warehouse')
+  final String fromWarehouse;
+  @override
+  @JsonKey(name: 'from_branch')
+  final String fromBranch;
+  @override
+  @JsonKey(name: 'to_warehouse')
+  final String toWarehouse;
+  @override
+  @JsonKey(name: 'to_branch')
+  final String toBranch;
+  @override
+  @JsonKey(fromJson: _toInt)
+  final int qty;
+
+  @override
+  String toString() {
+    return 'ReplenishmentBranchMove(itemCode: $itemCode, itemName: $itemName, jarSize: $jarSize, fromWarehouse: $fromWarehouse, fromBranch: $fromBranch, toWarehouse: $toWarehouse, toBranch: $toBranch, qty: $qty)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ReplenishmentBranchMoveImpl &&
+            (identical(other.itemCode, itemCode) ||
+                other.itemCode == itemCode) &&
+            (identical(other.itemName, itemName) ||
+                other.itemName == itemName) &&
+            (identical(other.jarSize, jarSize) || other.jarSize == jarSize) &&
+            (identical(other.fromWarehouse, fromWarehouse) ||
+                other.fromWarehouse == fromWarehouse) &&
+            (identical(other.fromBranch, fromBranch) ||
+                other.fromBranch == fromBranch) &&
+            (identical(other.toWarehouse, toWarehouse) ||
+                other.toWarehouse == toWarehouse) &&
+            (identical(other.toBranch, toBranch) ||
+                other.toBranch == toBranch) &&
+            (identical(other.qty, qty) || other.qty == qty));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    itemCode,
+    itemName,
+    jarSize,
+    fromWarehouse,
+    fromBranch,
+    toWarehouse,
+    toBranch,
+    qty,
+  );
+
+  /// Create a copy of ReplenishmentBranchMove
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ReplenishmentBranchMoveImplCopyWith<_$ReplenishmentBranchMoveImpl>
+  get copyWith =>
+      __$$ReplenishmentBranchMoveImplCopyWithImpl<
+        _$ReplenishmentBranchMoveImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ReplenishmentBranchMoveImplToJson(this);
+  }
+}
+
+abstract class _ReplenishmentBranchMove extends ReplenishmentBranchMove {
+  const factory _ReplenishmentBranchMove({
+    @JsonKey(name: 'item_code') final String itemCode,
+    @JsonKey(name: 'item_name') final String itemName,
+    @JsonKey(name: 'jar_size') final String jarSize,
+    @JsonKey(name: 'from_warehouse') final String fromWarehouse,
+    @JsonKey(name: 'from_branch') final String fromBranch,
+    @JsonKey(name: 'to_warehouse') final String toWarehouse,
+    @JsonKey(name: 'to_branch') final String toBranch,
+    @JsonKey(fromJson: _toInt) final int qty,
+  }) = _$ReplenishmentBranchMoveImpl;
+  const _ReplenishmentBranchMove._() : super._();
+
+  factory _ReplenishmentBranchMove.fromJson(Map<String, dynamic> json) =
+      _$ReplenishmentBranchMoveImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'item_code')
+  String get itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  String get itemName;
+  @override
+  @JsonKey(name: 'jar_size')
+  String get jarSize;
+  @override
+  @JsonKey(name: 'from_warehouse')
+  String get fromWarehouse;
+  @override
+  @JsonKey(name: 'from_branch')
+  String get fromBranch;
+  @override
+  @JsonKey(name: 'to_warehouse')
+  String get toWarehouse;
+  @override
+  @JsonKey(name: 'to_branch')
+  String get toBranch;
+  @override
+  @JsonKey(fromJson: _toInt)
+  int get qty;
+
+  /// Create a copy of ReplenishmentBranchMove
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ReplenishmentBranchMoveImplCopyWith<_$ReplenishmentBranchMoveImpl>
+  get copyWith => throw _privateConstructorUsedError;
 }
 
 ReplenishmentSummary _$ReplenishmentSummaryFromJson(Map<String, dynamic> json) {
@@ -1273,6 +1978,11 @@ mixin _$ReplenishmentPlan {
   List<ReplenishmentBranch> get branches => throw _privateConstructorUsedError;
   ReplenishmentSummary get summary => throw _privateConstructorUsedError;
 
+  /// Suggested moves between branches; empty on older servers.
+  @JsonKey(name: 'branch_moves')
+  List<ReplenishmentBranchMove> get branchMoves =>
+      throw _privateConstructorUsedError;
+
   /// Serializes this ReplenishmentPlan to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -1299,6 +2009,7 @@ abstract class $ReplenishmentPlanCopyWith<$Res> {
     ReplenishmentSource source,
     List<ReplenishmentBranch> branches,
     ReplenishmentSummary summary,
+    @JsonKey(name: 'branch_moves') List<ReplenishmentBranchMove> branchMoves,
   });
 
   $ReplenishmentSourceCopyWith<$Res> get source;
@@ -1328,6 +2039,7 @@ class _$ReplenishmentPlanCopyWithImpl<$Res, $Val extends ReplenishmentPlan>
     Object? source = null,
     Object? branches = null,
     Object? summary = null,
+    Object? branchMoves = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1363,6 +2075,10 @@ class _$ReplenishmentPlanCopyWithImpl<$Res, $Val extends ReplenishmentPlan>
                 ? _value.summary
                 : summary // ignore: cast_nullable_to_non_nullable
                       as ReplenishmentSummary,
+            branchMoves: null == branchMoves
+                ? _value.branchMoves
+                : branchMoves // ignore: cast_nullable_to_non_nullable
+                      as List<ReplenishmentBranchMove>,
           )
           as $Val,
     );
@@ -1407,6 +2123,7 @@ abstract class _$$ReplenishmentPlanImplCopyWith<$Res>
     ReplenishmentSource source,
     List<ReplenishmentBranch> branches,
     ReplenishmentSummary summary,
+    @JsonKey(name: 'branch_moves') List<ReplenishmentBranchMove> branchMoves,
   });
 
   @override
@@ -1437,6 +2154,7 @@ class __$$ReplenishmentPlanImplCopyWithImpl<$Res>
     Object? source = null,
     Object? branches = null,
     Object? summary = null,
+    Object? branchMoves = null,
   }) {
     return _then(
       _$ReplenishmentPlanImpl(
@@ -1472,6 +2190,10 @@ class __$$ReplenishmentPlanImplCopyWithImpl<$Res>
             ? _value.summary
             : summary // ignore: cast_nullable_to_non_nullable
                   as ReplenishmentSummary,
+        branchMoves: null == branchMoves
+            ? _value._branchMoves
+            : branchMoves // ignore: cast_nullable_to_non_nullable
+                  as List<ReplenishmentBranchMove>,
       ),
     );
   }
@@ -1489,7 +2211,11 @@ class _$ReplenishmentPlanImpl extends _ReplenishmentPlan {
     this.source = const ReplenishmentSource(),
     final List<ReplenishmentBranch> branches = const <ReplenishmentBranch>[],
     this.summary = const ReplenishmentSummary(),
+    @JsonKey(name: 'branch_moves')
+    final List<ReplenishmentBranchMove> branchMoves =
+        const <ReplenishmentBranchMove>[],
   }) : _branches = branches,
+       _branchMoves = branchMoves,
        super._();
 
   factory _$ReplenishmentPlanImpl.fromJson(Map<String, dynamic> json) =>
@@ -1529,9 +2255,21 @@ class _$ReplenishmentPlanImpl extends _ReplenishmentPlan {
   @JsonKey()
   final ReplenishmentSummary summary;
 
+  /// Suggested moves between branches; empty on older servers.
+  final List<ReplenishmentBranchMove> _branchMoves;
+
+  /// Suggested moves between branches; empty on older servers.
+  @override
+  @JsonKey(name: 'branch_moves')
+  List<ReplenishmentBranchMove> get branchMoves {
+    if (_branchMoves is EqualUnmodifiableListView) return _branchMoves;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_branchMoves);
+  }
+
   @override
   String toString() {
-    return 'ReplenishmentPlan(generatedOn: $generatedOn, company: $company, coverDays: $coverDays, salesDays: $salesDays, notice: $notice, source: $source, branches: $branches, summary: $summary)';
+    return 'ReplenishmentPlan(generatedOn: $generatedOn, company: $company, coverDays: $coverDays, salesDays: $salesDays, notice: $notice, source: $source, branches: $branches, summary: $summary, branchMoves: $branchMoves)';
   }
 
   @override
@@ -1549,7 +2287,11 @@ class _$ReplenishmentPlanImpl extends _ReplenishmentPlan {
             (identical(other.notice, notice) || other.notice == notice) &&
             (identical(other.source, source) || other.source == source) &&
             const DeepCollectionEquality().equals(other._branches, _branches) &&
-            (identical(other.summary, summary) || other.summary == summary));
+            (identical(other.summary, summary) || other.summary == summary) &&
+            const DeepCollectionEquality().equals(
+              other._branchMoves,
+              _branchMoves,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1564,6 +2306,7 @@ class _$ReplenishmentPlanImpl extends _ReplenishmentPlan {
     source,
     const DeepCollectionEquality().hash(_branches),
     summary,
+    const DeepCollectionEquality().hash(_branchMoves),
   );
 
   /// Create a copy of ReplenishmentPlan
@@ -1593,6 +2336,8 @@ abstract class _ReplenishmentPlan extends ReplenishmentPlan {
     final ReplenishmentSource source,
     final List<ReplenishmentBranch> branches,
     final ReplenishmentSummary summary,
+    @JsonKey(name: 'branch_moves')
+    final List<ReplenishmentBranchMove> branchMoves,
   }) = _$ReplenishmentPlanImpl;
   const _ReplenishmentPlan._() : super._();
 
@@ -1622,6 +2367,11 @@ abstract class _ReplenishmentPlan extends ReplenishmentPlan {
   List<ReplenishmentBranch> get branches;
   @override
   ReplenishmentSummary get summary;
+
+  /// Suggested moves between branches; empty on older servers.
+  @override
+  @JsonKey(name: 'branch_moves')
+  List<ReplenishmentBranchMove> get branchMoves;
 
   /// Create a copy of ReplenishmentPlan
   /// with the given fields replaced by the non-null parameter values.

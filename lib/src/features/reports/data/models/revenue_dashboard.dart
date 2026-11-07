@@ -239,6 +239,13 @@ class RevenueSummary {
 
   /// [netSales] + [shippingIncome].
   final double totalRevenue;
+
+  /// Delivery fees charged on B2C orders.
+  final double b2cShippingIncome;
+
+  /// B2C net sales + [b2cShippingIncome]; null when the server is too old to
+  /// send it (the hero then hides the line rather than show a wrong number).
+  final double? b2cInclShipping;
   final int orders;
   final int b2cOrders;
   final int b2bOrders;
@@ -274,6 +281,8 @@ class RevenueSummary {
     this.samples = 0,
     this.shippingIncome = 0,
     this.totalRevenue = 0,
+    this.b2cShippingIncome = 0,
+    this.b2cInclShipping,
     this.orders = 0,
     this.b2cOrders = 0,
     this.b2bOrders = 0,
@@ -315,11 +324,13 @@ class RevenueSummary {
     samples: ReportJson.dbl(j['samples']),
     shippingIncome: ReportJson.dbl(j['shipping_income']),
     totalRevenue: ReportJson.dbl(j['total_revenue']),
+    b2cShippingIncome: ReportJson.dbl(j['b2c_shipping_income']),
+    b2cInclShipping: ReportJson.dblOrNull(j['b2c_incl_shipping']),
     orders: ReportJson.integer(j['orders']),
     b2cOrders: ReportJson.integer(j['b2c_orders']),
     b2bOrders: ReportJson.integer(j['b2b_orders']),
     otherOrders: ReportJson.integer(j['other_orders']),
-    aov: ReportJson.dblOrNull(j['aov']),
+    aov:ReportJson.dblOrNull(j['aov']),
     b2cAov: ReportJson.dblOrNull(j['b2c_aov']),
     b2bAov: ReportJson.dblOrNull(j['b2b_aov']),
     b2bSharePct: ReportJson.dblOrNull(j['b2b_share_pct']),

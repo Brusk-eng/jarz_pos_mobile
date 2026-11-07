@@ -523,6 +523,12 @@ class EmployeeOrderEntry {
   final double outstanding;
   final String status;
 
+  /// POS profile (branch) the order was rung up on.
+  final String branch;
+
+  /// Kanban state of the order (Delivered, Out for delivery, ...).
+  final String orderState;
+
   const EmployeeOrderEntry({
     required this.invoice,
     this.postingDate,
@@ -531,6 +537,8 @@ class EmployeeOrderEntry {
     this.grandTotal = 0,
     this.outstanding = 0,
     this.status = '',
+    this.branch = '',
+    this.orderState = '',
   });
 
   String get displayCustomer =>
@@ -545,6 +553,8 @@ class EmployeeOrderEntry {
       grandTotal: _num(json['grand_total']),
       outstanding: _num(json['outstanding']),
       status: _str(json['status']),
+      branch: _str(json['branch']),
+      orderState: _str(json['order_state']),
     );
   }
 
@@ -578,6 +588,11 @@ class DeductionsSummary {
   /// The fixed calendar basis behind the day rate: monthly salary / this.
   final int daysPerMonth;
 
+  /// Unpaid Employee-purpose orders whose customer is linked to no employee:
+  /// they reach no salary row, so they are listed on their own.
+  final List<EmployeeOrderEntry> unattributedOrders;
+  final double unattributedOrderTotal;
+
   const DeductionsSummary({
     this.penaltyTotal = 0,
     this.penaltyDays = 0,
@@ -589,6 +604,8 @@ class DeductionsSummary {
     this.employeeOrdersPresent = false,
     this.penaltyUnits = PenaltyUnit.all,
     this.daysPerMonth = 30,
+    this.unattributedOrders = const [],
+    this.unattributedOrderTotal = 0,
   });
 
   bool get hasAny =>
@@ -616,6 +633,9 @@ class DeductionsSummary {
       penaltyUnits: units.isEmpty ? PenaltyUnit.all : units,
       daysPerMonth:
           json['days_per_month'] == null ? 30 : _int(json['days_per_month']),
+      unattributedOrders:
+          EmployeeOrderEntry.listFrom(json['unattributed_orders']),
+      unattributedOrderTotal: _num(json['unattributed_order_total']),
     );
   }
 }
