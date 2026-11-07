@@ -127,6 +127,30 @@ void main() {
       expect(c.hasError, isTrue);
       expect(c.orderNotFound, isTrue);
       expect(c.order, '99999');
+      expect(c.notPermitted, isFalse);
+    });
+
+    test('order_check: not_permitted and waived delivery', () {
+      final denied = PromoLookupResult.fromJson(
+        _found(orderCheck: {'error': 'not_permitted', 'order': '21471'}),
+      ).orderCheck!;
+      expect(denied.hasError, isTrue);
+      expect(denied.notPermitted, isTrue);
+      expect(denied.orderNotFound, isFalse);
+
+      final waived = PromoLookupResult.fromJson(
+        _found(
+          orderCheck: {
+            'invoice': 'SI-1',
+            'current_total': 450,
+            'waived_delivery': 50,
+            'accepted': true,
+            'new_total': 455,
+          },
+        ),
+      ).orderCheck!;
+      expect(waived.waivedDelivery, 50.0);
+      expect(waived.notPermitted, isFalse);
     });
 
     test('order_check: accepted, numbers as int and double', () {

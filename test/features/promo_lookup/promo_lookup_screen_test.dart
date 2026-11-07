@@ -101,6 +101,7 @@ void main() {
           'current_codes': ['WELCOME'],
           'current_promo_discount': 0,
           'delivery_amount': 50,
+          'waived_delivery': 30,
           'accepted': true,
           'reason': null,
           'discount_amount': 100,
@@ -141,6 +142,29 @@ void main() {
       find.byKey(const ValueKey('promoLookupNewTotal')),
     );
     expect(newTotal.data, 'EGP900.00');
+    // The order already carries WELCOME, so the total is labelled as a swap.
+    expect(
+      find.text('New total (this code instead of the current ones)'),
+      findsOneWidget,
+    );
+    expect(find.text('Delivery waived by the current code'), findsOneWidget);
+    expect(find.text('EGP30.00'), findsOneWidget);
+  });
+
+  testWidgets('order the user may not see', (tester) async {
+    final repo = _FakeRepo(
+      (code, order) =>
+          _summer(orderCheck: {'error': 'not_permitted', 'order': '21471'}),
+    );
+    await _pump(tester, repo);
+
+    await tester.enterText(_codeField(), 'SUMMER10');
+    await tester.enterText(_orderField(), '21471');
+    await tester.tap(find.byKey(const ValueKey('promoLookupCheckButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No access to order 21471'), findsOneWidget);
+    expect(find.byKey(const ValueKey('promoLookupNewTotal')), findsNothing);
   });
 
   testWidgets('refused order shows the engine reason', (tester) async {

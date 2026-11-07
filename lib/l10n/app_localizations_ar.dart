@@ -20964,6 +20964,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String promoLookupOrderNotPermitted(String order) {
+    return 'مش مسموح لك تشوف الأوردر $order';
+  }
+
+  @override
+  String get promoLookupWaivedDelivery => 'توصيل متشال بالكود الحالي';
+
+  @override
+  String get promoLookupNewTotalReplacing =>
+      'الإجمالي الجديد (بالكود ده بدل الأكواد الحالية)';
+
+  @override
   String get promoLookupOrder => 'الأوردر';
 
   @override

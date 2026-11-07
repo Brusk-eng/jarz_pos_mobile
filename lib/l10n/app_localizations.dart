@@ -34643,6 +34643,24 @@ abstract class AppLocalizations {
   /// **'No order {order} found'**
   String promoLookupOrderNotFound(String order);
 
+  /// No description provided for @promoLookupOrderNotPermitted.
+  ///
+  /// In en, this message translates to:
+  /// **'No access to order {order}'**
+  String promoLookupOrderNotPermitted(String order);
+
+  /// No description provided for @promoLookupWaivedDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery waived by the current code'**
+  String get promoLookupWaivedDelivery;
+
+  /// No description provided for @promoLookupNewTotalReplacing.
+  ///
+  /// In en, this message translates to:
+  /// **'New total (this code instead of the current ones)'**
+  String get promoLookupNewTotalReplacing;
+
   /// No description provided for @promoLookupOrder.
   ///
   /// In en, this message translates to:

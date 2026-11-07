@@ -190,6 +190,7 @@ class PromoRecentUse {
 class PromoOrderCheck {
   const PromoOrderCheck({
     this.orderNotFound = false,
+    this.notPermitted = false,
     this.error,
     this.order,
     this.invoice = '',
@@ -201,6 +202,7 @@ class PromoOrderCheck {
     this.currentCodes = const [],
     this.currentPromoDiscount = 0,
     this.deliveryAmount = 0,
+    this.waivedDelivery = 0,
     this.accepted = false,
     this.reason,
     this.discountAmount = 0,
@@ -212,6 +214,7 @@ class PromoOrderCheck {
     final error = _nullableString(json['error']);
     return PromoOrderCheck(
       orderNotFound: error == 'order_not_found',
+      notPermitted: error == 'not_permitted',
       error: error,
       order: _nullableString(json['order']),
       invoice: _string(json['invoice']),
@@ -223,6 +226,7 @@ class PromoOrderCheck {
       currentCodes: _stringList(json['current_codes']),
       currentPromoDiscount: _double(json['current_promo_discount']),
       deliveryAmount: _double(json['delivery_amount']),
+      waivedDelivery: _double(json['waived_delivery']),
       accepted: _bool(json['accepted']),
       reason: _nullableString(json['reason']),
       discountAmount: _double(json['discount_amount']),
@@ -232,6 +236,10 @@ class PromoOrderCheck {
   }
 
   final bool orderNotFound;
+
+  /// The order exists but the user may not read it (no Sales Invoice read
+  /// permission, or another branch's order).
+  final bool notPermitted;
 
   /// Any `error` the server sent; [orderNotFound] is the one it documents.
   final String? error;
@@ -248,6 +256,10 @@ class PromoOrderCheck {
   final List<String> currentCodes;
   final double currentPromoDiscount;
   final double deliveryAmount;
+
+  /// Delivery fee a current Free Delivery code already took off the order;
+  /// the new total puts it back when this code replaces the current ones.
+  final double waivedDelivery;
   final bool accepted;
 
   /// English engine text explaining a refusal; shown as-is.

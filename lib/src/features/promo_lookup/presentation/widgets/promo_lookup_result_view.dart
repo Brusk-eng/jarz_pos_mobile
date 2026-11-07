@@ -546,12 +546,17 @@ class _OrderCheckCard extends StatelessWidget {
       final order = check.order ?? '';
       body = Row(
         children: [
-          Icon(Icons.search_off, color: theme.colorScheme.error),
+          Icon(
+            check.notPermitted ? Icons.lock_outline : Icons.search_off,
+            color: theme.colorScheme.error,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               check.orderNotFound
                   ? l10n.promoLookupOrderNotFound(order)
+                  : check.notPermitted
+                  ? l10n.promoLookupOrderNotPermitted(order)
                   : [check.error!, if (order.isNotEmpty) order].join(' · '),
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.error,
@@ -619,6 +624,11 @@ class _OrderCheckCard extends StatelessWidget {
               label: l10n.promoLookupDelivery,
               value: money(check.deliveryAmount),
             ),
+          if (check.waivedDelivery > 0)
+            _DetailRow(
+              label: l10n.promoLookupWaivedDelivery,
+              value: money(check.waivedDelivery),
+            ),
           const Divider(height: 20),
           Row(
             children: [
@@ -666,7 +676,9 @@ class _OrderCheckCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    l10n.promoLookupNewTotal,
+                    check.currentCodes.isEmpty
+                        ? l10n.promoLookupNewTotal
+                        : l10n.promoLookupNewTotalReplacing,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.onSecondaryContainer,
                     ),

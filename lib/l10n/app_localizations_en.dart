@@ -20984,6 +20984,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String promoLookupOrderNotPermitted(String order) {
+    return 'No access to order $order';
+  }
+
+  @override
+  String get promoLookupWaivedDelivery => 'Delivery waived by the current code';
+
+  @override
+  String get promoLookupNewTotalReplacing =>
+      'New total (this code instead of the current ones)';
+
+  @override
   String get promoLookupOrder => 'Order';
 
   @override
