@@ -25,7 +25,9 @@ String _plainQty(double value, int decimals) {
   }
   final fixed = value.toStringAsFixed(decimals);
   if (!fixed.contains('.')) return fixed;
-  return fixed.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+  return fixed
+      .replaceFirst(RegExp(r'0+$'), '')
+      .replaceFirst(RegExp(r'\.$'), '');
 }
 
 /// Wraps always-Latin data (a warehouse name, an item code) in a directional

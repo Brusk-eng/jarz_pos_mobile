@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/user_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
@@ -92,38 +93,87 @@ class _ReplenishmentBody extends ConsumerWidget {
     return Column(
       children: [
         if (planAsync.isLoading) const LinearProgressIndicator(minHeight: 2),
-        Expanded(child: _PlanView(plan: plan)),
+        Expanded(
+          child: plan.hasBranches
+              ? _PlanView(
+                  key: ValueKey(
+                    plan.branches.map((b) => b.warehouse).join('|'),
+                  ),
+                  plan: plan,
+                )
+              : _Message(
+                  text: l10n.replenishmentEmptyTitle,
+                  detail: (plan.notice ?? '').trim().isNotEmpty
+                      ? plan.notice!.trim()
+                      : l10n.replenishmentEmptyNoBranches,
+                ),
+        ),
       ],
     );
   }
 }
 
-class _PlanView extends ConsumerWidget {
-  const _PlanView({required this.plan});
+class _PlanView extends ConsumerStatefulWidget {
+  const _PlanView({super.key, required this.plan});
 
   final ReplenishmentPlan plan;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
+  ConsumerState<_PlanView> createState() => _PlanViewState();
+}
 
-    if (!plan.hasBranches) {
-      // An empty run always has a reason, and the server sends it. Rendering a
-      // bare empty list here is what teaches people the screen is broken.
-      return _Message(
-        text: l10n.replenishmentEmptyTitle,
-        detail: (plan.notice ?? '').trim().isNotEmpty
-            ? plan.notice!.trim()
-            : l10n.replenishmentEmptyNoBranches,
-      );
-    }
+class _PlanViewState extends ConsumerState<_PlanView>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tab;
+  late int _shownIndex;
+  bool _needsOnly = false;
 
-    final picked = ref.watch(selectedBranchWarehouseProvider);
-    final branch =
+  @override
+  void initState() {
+    super.initState();
+    final plan = widget.plan;
+    final picked = ref.read(selectedBranchWarehouseProvider);
+    final start =
         plan.branchFor(picked) ??
         plan.branchFor(defaultBranchWarehouse(plan)) ??
         plan.branches.first;
+    _shownIndex = plan.branches.indexWhere(
+      (b) => b.warehouse == start.warehouse,
+    );
+    if (_shownIndex < 0) _shownIndex = 0;
+    _tab = TabController(
+      length: plan.branches.length,
+      initialIndex: _shownIndex,
+      vsync: this,
+    );
+    _tab.addListener(_onTab);
+  }
+
+  void _onTab() {
+    if (_tab.index == _shownIndex) return;
+    // Tap and swipe both land here. Each branch keeps its own draft in the
+    // provider, so changing the page only changes which one is on show.
+    setState(() => _shownIndex = _tab.index);
+    ref.read(selectedBranchWarehouseProvider.notifier).state =
+        widget.plan.branches[_tab.index].warehouse;
+    ref.read(replenishmentDraftProvider.notifier).clearResult();
+  }
+
+  @override
+  void dispose() {
+    _tab.removeListener(_onTab);
+    _tab.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final plan = widget.plan;
     final draft = ref.watch(replenishmentDraftProvider);
+    final branch =
+        plan.branches[_shownIndex.clamp(0, plan.branches.length - 1)];
+    final moves = plan.movesInto(branch.warehouse);
 
     return Center(
       child: ConstrainedBox(
@@ -132,67 +182,140 @@ class _PlanView extends ConsumerWidget {
         constraints: const BoxConstraints(maxWidth: 760),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _PlanHeader(plan: plan),
-                  const SizedBox(height: 10),
-                  _BranchSelector(plan: plan, selected: branch),
+            // Pinned: branches are the one control that must stay reachable
+            // however far the list has been scrolled.
+            Material(
+              color: Theme.of(context).colorScheme.surface,
+              child: TabBar(
+                controller: _tab,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                tabs: [
+                  for (final b in plan.branches)
+                    Tab(
+                      height: 40,
+                      text: l10n.replenishmentTabLabel(
+                        b.displayName,
+                        b.summary.itemsBelowCover,
+                      ),
+                    ),
                 ],
               ),
             ),
-            if (draft.result != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-                child: _SendResultCard(result: draft.result!),
-              ),
-            if (plan.movesInto(branch.warehouse).isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-                child: BranchMovesCard(
-                  branch: branch,
-                  moves: plan.movesInto(branch.warehouse),
+            Expanded(
+              child: NestedScrollView(
+                // One scroll for the page: the header slides away with the
+                // list instead of holding a third of the screen.
+                headerSliverBuilder: (context, _) => [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _PlanHeader(plan: plan),
+                          if (draft.result != null) ...[
+                            const SizedBox(height: 8),
+                            _SendResultCard(result: draft.result!),
+                          ],
+                          if (moves.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            BranchMovesCard(branch: branch, moves: moves),
+                          ],
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              ChoiceChip(
+                                visualDensity: VisualDensity.compact,
+                                label: Text(l10n.replenishmentFilterAll),
+                                selected: !_needsOnly,
+                                onSelected: (_) =>
+                                    setState(() => _needsOnly = false),
+                              ),
+                              ChoiceChip(
+                                visualDensity: VisualDensity.compact,
+                                label: Text(l10n.replenishmentFilterNeeds),
+                                selected: _needsOnly,
+                                onSelected: (_) =>
+                                    setState(() => _needsOnly = true),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+                body: TabBarView(
+                  controller: _tab,
+                  children: [
+                    for (final b in plan.branches)
+                      _BranchList(branch: b, needsOnly: _needsOnly),
+                  ],
                 ),
               ),
-            Expanded(
-              child: branch.items.isEmpty
-                  ? _Message(
-                      text: l10n.replenishmentEmptyTitle,
-                      detail: l10n.replenishmentBranchCovered(
-                        branch.displayName,
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                      itemCount: branch.items.length,
-                      itemBuilder: (context, index) {
-                        final item = branch.items[index];
-                        return ReplenishmentItemRow(
-                          // The generation is part of the key so a refresh (or
-                          // a completed send) rebuilds the field from the new
-                          // plan instead of keeping a stale typed number.
-                          key: ValueKey(
-                            '${branch.warehouse}|${item.itemCode}|${draft.generation}',
-                          ),
-                          item: item,
-                          initialQty: draft.qtyFor(branch.warehouse, item),
-                          enabled: !draft.sending,
-                          flagged:
-                              draft.result?.success == false &&
-                              draft.result?.failedItemName == item.displayName,
-                          onQtyChanged: (qty) => ref
-                              .read(replenishmentDraftProvider.notifier)
-                              .setQty(branch.warehouse, item.itemCode, qty),
-                        );
-                      },
-                    ),
             ),
             _SendBar(plan: plan, branch: branch),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The scrolling item list for one branch: one page of the swipeable body.
+class _BranchList extends ConsumerWidget {
+  const _BranchList({required this.branch, required this.needsOnly});
+
+  final ReplenishmentBranch branch;
+  final bool needsOnly;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final draft = ref.watch(replenishmentDraftProvider);
+    final items = needsOnly
+        ? [
+            for (final i in branch.items)
+              if (i.sendNow > 0 ||
+                  i.suggestedQty > 0 ||
+                  i.isShort ||
+                  i.stockIsNegative)
+                i,
+          ]
+        : branch.items;
+
+    if (items.isEmpty) {
+      return _Message(
+        text: l10n.replenishmentEmptyTitle,
+        detail: l10n.replenishmentBranchCovered(branch.displayName),
+      );
+    }
+    return ListView.builder(
+      key: PageStorageKey<String>('replenishment-${branch.warehouse}'),
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return ReplenishmentItemRow(
+          // The generation is part of the key so a refresh (or a completed
+          // send) rebuilds the field from the new plan instead of keeping a
+          // stale typed number.
+          key: ValueKey(
+            '${branch.warehouse}|${item.itemCode}|${draft.generation}',
+          ),
+          item: item,
+          initialQty: draft.qtyFor(branch.warehouse, item),
+          enabled: !draft.sending,
+          flagged:
+              draft.result?.success == false &&
+              draft.result?.failedItemName == item.displayName,
+          onQtyChanged: (qty) => ref
+              .read(replenishmentDraftProvider.notifier)
+              .setQty(branch.warehouse, item.itemCode, qty),
+        );
+      },
     );
   }
 }
@@ -208,47 +331,68 @@ class _PlanHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final summary = plan.summary;
 
+    // How fresh the figures are. Shown because the answer moves with the day's
+    // sales, and somebody deciding a van load needs to know whether they are
+    // reading this morning or last Thursday.
+    final raw = plan.generatedOn.trim();
+    String? updated;
+    if (raw.isNotEmpty) {
+      final parsed = DateTime.tryParse(raw);
+      updated = l10n.replenishmentUpdatedAt(
+        parsed == null
+            ? isolateLtr(raw)
+            : formatDateTime(context, parsed, pattern: 'HH:mm'),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.replenishmentSourceLine(isolateLtr(plan.source.warehouse)),
-          style: theme.textTheme.titleSmall,
-        ),
-        Text(
-          l10n.replenishmentBasis(plan.coverDays, plan.salesDays),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: l10n.replenishmentSourceLine(
+                  isolateLtr(plan.source.warehouse),
+                ),
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              TextSpan(
+                text:
+                    ' · ${l10n.replenishmentHeaderBasis(plan.coverDays, plan.salesDays)}',
+              ),
+              if (updated != null) TextSpan(text: ' · $updated'),
+            ],
+          ),
           style: theme.textTheme.bodySmall,
         ),
-        // How fresh the figures are. Shown because the answer moves with the
-        // day's sales, and somebody deciding a van load needs to know whether
-        // they are reading this morning or last Thursday.
-        if (plan.generatedOn.trim().isNotEmpty)
-          Text(
-            l10n.replenishmentGeneratedOn(isolateLtr(plan.generatedOn.trim())),
-            style: theme.textTheme.bodySmall,
-          ),
-        if (summary.negativeBins > 0)
+        if (summary.negativeBins > 0 || summary.totalShortBy > 0)
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              l10n.replenishmentNegativeBinsCount(summary.negativeBins),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.error,
-              ),
-            ),
-          ),
-        // The company-wide shortfall is the owner's number, not the van
-        // loader's: it is the one figure on the screen that says "produce
-        // more" rather than "move stock".
-        if (summary.totalShortBy > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              l10n.replenishmentTotalShort(trimQty(summary.totalShortBy)),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.tertiary,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                if (summary.negativeBins > 0)
+                  _WarnChip(
+                    icon: Icons.report_gmailerrorred,
+                    text: l10n.replenishmentNegativeBinsCount(
+                      summary.negativeBins,
+                    ),
+                    color: theme.colorScheme.error,
+                  ),
+                // The company-wide shortfall is the owner's number, not the
+                // van loader's: it is the one figure on the screen that says
+                // "produce more" rather than "move stock".
+                if (summary.totalShortBy > 0)
+                  _WarnChip(
+                    icon: Icons.trending_down,
+                    text: l10n.replenishmentTotalShort(
+                      trimQty(summary.totalShortBy),
+                    ),
+                    color: theme.colorScheme.tertiary,
+                  ),
+              ],
             ),
           ),
       ],
@@ -256,44 +400,42 @@ class _PlanHeader extends StatelessWidget {
   }
 }
 
-class _BranchSelector extends ConsumerWidget {
-  const _BranchSelector({required this.plan, required this.selected});
+class _WarnChip extends StatelessWidget {
+  const _WarnChip({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
 
-  final ReplenishmentPlan plan;
-  final ReplenishmentBranch selected;
+  final IconData icon;
+  final String text;
+  final Color color;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    return DropdownButtonFormField<String>(
-      initialValue: selected.warehouse,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: l10n.replenishmentBranchLabel,
-        isDense: true,
-        border: const OutlineInputBorder(),
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(12),
       ),
-      items: [
-        for (final branch in plan.branches)
-          DropdownMenuItem(
-            value: branch.warehouse,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Flexible(
             child: Text(
-              // The headline is in the option itself: picking a branch is a
-              // triage decision, and a bare list of names does not say which
-              // one is bleeding.
-              l10n.replenishmentBranchOption(
-                branch.displayName,
-                branch.summary.itemsBelowCover,
+              text,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
           ),
-      ],
-      onChanged: (value) {
-        if (value == null) return;
-        ref.read(selectedBranchWarehouseProvider.notifier).state = value;
-        ref.read(replenishmentDraftProvider.notifier).clearResult();
-      },
+        ],
+      ),
     );
   }
 }
@@ -408,70 +550,74 @@ class _SendBar extends ConsumerWidget {
       largeInHand: ref.watch(largeCartonsInHandProvider(branch.warehouse)),
     );
     final cartonsText = cartonCountText(l10n, packing);
+    final cartonCount = packing.cartons.length;
 
     return Material(
       elevation: 8,
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-          // Stacked, not side by side: the action carries the branch name, so
-          // at 360 dp a Row lets the button take the whole width and squeezes
-          // the total into a one-character-per-line column. The button is
-          // full-width here on every size, which is also the bigger target for
-          // somebody holding a tablet in one hand.
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+          // One slim row: what is typed (tap for the packing guide) and the
+          // send button. The button's long name lives in its tooltip and the
+          // confirmation dialog, so it no longer needs a full-width row.
+          child: Row(
             children: [
-              // What the branch needs, then what is actually typed. Both, in
-              // that order: the gap between them is the decision the person
-              // loading the van just made, and it should be visible while they
-              // are making it.
-              Text(
-                l10n.replenishmentBelowCoverCount(
-                  branch.summary.itemsBelowCover,
-                ),
-                style: theme.textTheme.bodySmall,
-              ),
-              Text(
-                l10n.replenishmentTypedTotal(
-                  totals.lineCount,
-                  trimQty(totals.totalQty),
-                ),
-                style: theme.textTheme.bodyMedium,
-              ),
-              if (!totals.isEmpty)
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        cartonsText.isEmpty
-                            ? ''
-                            : l10n.replenishmentCartonsBar(cartonsText),
-                        style: theme.textTheme.bodyMedium,
-                      ),
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: totals.isEmpty
+                      ? null
+                      : () => showPackingGuide(context, branch),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            l10n.replenishmentTypedTotal(
+                              totals.lineCount,
+                              trimQty(totals.totalQty),
+                            ),
+                            style: theme.textTheme.bodyMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (!totals.isEmpty && cartonCount > 0) ...[
+                          const SizedBox(width: 8),
+                          Tooltip(
+                            message: cartonsText,
+                            child: Text(
+                              '📦 $cartonCount',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ),
+                        ],
+                        if (!totals.isEmpty)
+                          Icon(
+                            Icons.chevron_right,
+                            size: 18,
+                            semanticLabel: l10n.replenishmentPackingGuide,
+                          ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () => showPackingGuide(context, branch),
-                      child: Text(l10n.replenishmentPackingGuide),
-                    ),
-                  ],
+                  ),
                 ),
-              const SizedBox(height: 6),
-              FilledButton.icon(
-                onPressed: canSend ? () => _send(context, ref) : null,
-                icon: draft.sending
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.local_shipping),
-                label: Text(
-                  l10n.replenishmentSendAction(branch.displayName),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: l10n.replenishmentSendAction(branch.displayName),
+                child: FilledButton.icon(
+                  onPressed: canSend ? () => _send(context, ref) : null,
+                  icon: draft.sending
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.local_shipping, size: 18),
+                  label: Text(l10n.replenishmentSendShort),
                 ),
               ),
             ],

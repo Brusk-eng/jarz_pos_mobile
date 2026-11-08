@@ -5,6 +5,7 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../data/models/branch_replenishment.dart';
 import '../../state/replenishment_providers.dart';
+import 'replenishment_format.dart';
 
 /// The factory cannot cover everything, but other branches can help.
 ///
@@ -12,11 +13,7 @@ import '../../state/replenishment_providers.dart';
 /// and even then stock only moves once the receiving branch confirms it got
 /// the jars. A move already requested drops out of the plan until then.
 class BranchMovesCard extends ConsumerWidget {
-  const BranchMovesCard({
-    super.key,
-    required this.branch,
-    required this.moves,
-  });
+  const BranchMovesCard({super.key, required this.branch, required this.moves});
 
   final ReplenishmentBranch branch;
   final List<ReplenishmentBranchMove> moves;
@@ -35,17 +32,32 @@ class BranchMovesCard extends ConsumerWidget {
       groups.putIfAbsent(move.fromWarehouse, () => []).add(move);
     }
 
+    final total = moves.fold<double>(0, (sum, m) => sum + m.qty.toDouble());
+
+    // Collapsed by default: this is the exception, not the job, and an open
+    // card here pushes the item list off a phone screen.
     return Card(
       margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
       color: theme.colorScheme.tertiaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          expandedAlignment: AlignmentDirectional.centerStart,
+          leading: const Icon(Icons.swap_horiz, size: 20),
+          title: Text(
+            l10n.replenishmentMovesSummary(trimQty(total)),
+            style: theme.textTheme.titleSmall,
+          ),
           children: [
             Text(
               l10n.replenishmentMovesTitle,
-              style: theme.textTheme.titleSmall,
+              style: theme.textTheme.bodySmall,
             ),
             for (final entry in groups.entries) ...[
               const SizedBox(height: 8),

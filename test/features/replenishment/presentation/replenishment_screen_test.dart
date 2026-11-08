@@ -151,6 +151,9 @@ Future<void> _pump(
 /// By row identity rather than by index: the list is lazy, so a result banner
 /// or a taller warning above can change how many rows exist without changing
 /// which row the assertion is about.
+Finder get _sendBarButton =>
+    find.byWidgetPredicate((w) => w is FilledButton).last;
+
 Finder _qtyFieldFor(String itemName) {
   return find.descendant(
     of: find
@@ -198,7 +201,10 @@ void main() {
     // the branch wants.
     expect(_qtyTextFor(tester, 'Lotus Jar'), '18');
 
-    // And says so, with the number that means "produce more".
+    // The per-row reason is one tap away, with the number that means
+    // "produce more".
+    await tester.tap(find.text('Lotus Jar'));
+    await tester.pumpAndSettle();
     expect(
       find.textContaining("Factory can't cover this — short by 45 Nos"),
       findsOneWidget,
@@ -214,6 +220,8 @@ void main() {
   ) async {
     await _pump(tester, dio);
 
+    await tester.tap(find.text('Lotus Jar'));
+    await tester.pumpAndSettle();
     expect(find.text('Stock is negative, count this item'), findsOneWidget);
     expect(find.text('1 item has negative stock'), findsOneWidget);
     // The minus is wrapped in a bidi isolate, so match on the digits.
@@ -225,10 +233,10 @@ void main() {
   ) async {
     await _pump(tester, dio);
 
-    expect(find.text('No sales yet'), findsOneWidget);
-    expect(find.text('0 days cover'), findsNothing);
+    expect(find.textContaining('No sales yet'), findsOneWidget);
+    expect(find.textContaining('· 0 days cover'), findsNothing);
     // The item that DOES sell still reports its own cover.
-    expect(find.text('2 days cover'), findsOneWidget);
+    expect(find.textContaining('2 days cover'), findsOneWidget);
   });
 
   testWidgets('sends exactly the typed quantities to the chosen branch', (
@@ -248,14 +256,16 @@ void main() {
 
     expect(find.text('3 lines · 20 units'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Send to Nasr City'));
+    await tester.tap(_sendBarButton);
     await tester.pumpAndSettle();
-    expect(
-      find.textContaining('3 lines · 20 units, out of'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('3 lines · 20 units, out of'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Send'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(FilledButton, 'Send'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     final submit = dio.requestLog
@@ -271,10 +281,7 @@ void main() {
     ]);
 
     expect(find.text('Sent to Nasr City'), findsWidgets);
-    expect(
-      find.textContaining('3 lines · 20 units · entry'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('3 lines · 20 units · entry'), findsOneWidget);
   });
 
   testWidgets('a failed send keeps the numbers and names the line', (
@@ -296,15 +303,17 @@ void main() {
     await tester.enterText(_qtyFieldFor('Lotus Jar'), '5');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Send to Nasr City'));
+    await tester.tap(_sendBarButton);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Send'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(FilledButton, 'Send'),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    expect(
-      find.textContaining("Couldn't send to Nasr City"),
-      findsOneWidget,
-    );
+    expect(find.textContaining("Couldn't send to Nasr City"), findsOneWidget);
     expect(find.text('The line the server refused: Mango Jar'), findsOneWidget);
     expect(
       find.text('Your quantities are still on screen — fix it and send again.'),
@@ -316,9 +325,7 @@ void main() {
     expect(_qtyTextFor(tester, 'Lotus Jar'), '5');
     expect(find.text('2 lines · 17 units'), findsOneWidget);
 
-    // The row the banner pushed below the fold kept its number too.
-    await tester.drag(find.byType(ListView), const Offset(0, -160));
-    await tester.pumpAndSettle();
+    // The row the banner pushed down kept its number too.
     expect(_qtyTextFor(tester, 'Mango Jar'), '12');
   });
 
@@ -362,20 +369,78 @@ void main() {
     await _pump(tester, dio, size: const Size(1024, 600));
 
     expect(find.text('Mango Jar'), findsOneWidget);
-    expect(
-      find.widgetWithText(FilledButton, 'Send to Nasr City'),
-      findsOneWidget,
+    expect(_sendBarButton, findsOneWidget);
+  });
+
+  testWidgets('branches are tabs and swiping the body changes the branch', (
+    tester,
+  ) async {
+    await _pump(tester, dio);
+
+    expect(find.byType(TabBar), findsOneWidget);
+    expect(find.text('Nasr City · 2'), findsOneWidget);
+    expect(find.text('Dokki · 1'), findsOneWidget);
+    expect(find.text('Mango Jar'), findsOneWidget);
+
+    // Nasr City is the 2nd tab, so the next page to the left is nothing; swipe
+    // right (toward the start) to reach Dokki.
+    await tester.drag(find.byType(TabBarView), const Offset(400, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('Mango Jar'), findsNothing);
+    expect(find.text('Lotus Jar'), findsOneWidget);
+    expect(_qtyTextFor(tester, 'Lotus Jar'), '12');
+
+    // Tapping the tab goes back, and the typed draft per branch survives.
+    await tester.tap(find.text('Nasr City · 2'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mango Jar'), findsOneWidget);
+  });
+
+  testWidgets('shows at least five item rows on a 390x844 phone', (
+    tester,
+  ) async {
+    final plan = _plan();
+    final nasr = (plan['branches'] as List)[1] as Map<String, dynamic>;
+    nasr['items'] = [
+      for (var i = 0; i < 12; i++)
+        {
+          'item_code': 'JAR-$i',
+          'item_name': 'Jar number $i',
+          'stock_uom': 'Nos',
+          'on_hand': 8,
+          'stock_is_negative': false,
+          'sells_per_day': 5.1,
+          'days_of_cover': 1.6,
+          'target_days': 14,
+          'suggested_qty': 20,
+          'available_at_source': 100,
+          'send_now': 20,
+          'short_by': 0,
+        },
+    ];
+    dio.setResponse(
+      ApiEndpoints.getBranchReplenishment,
+      createSuccessResponse(data: plan),
     );
+    await _pump(tester, dio, size: const Size(390, 844));
+
+    var visible = 0;
+    for (var i = 0; i < 12; i++) {
+      final finder = find.text('Jar number $i');
+      if (finder.evaluate().isEmpty) continue;
+      final rect = tester.getRect(finder);
+      if (rect.top >= 0 && rect.bottom <= 844) visible++;
+    }
+    expect(visible, greaterThanOrEqualTo(5));
   });
 
   testWidgets('renders right-to-left on a 360 dp phone', (tester) async {
     await _pump(tester, dio, locale: const Locale('ar'));
 
     expect(find.byType(Directionality), findsWidgets);
-    expect(
-      find.text('الرصيد بالسالب، اعمل جرد للصنف ده'),
-      findsOneWidget,
-    );
-    expect(find.text('لسه مفيش مبيعات'), findsOneWidget);
+    await tester.tap(find.text('Lotus Jar'));
+    await tester.pumpAndSettle();
+    expect(find.text('الرصيد بالسالب، اعمل جرد للصنف ده'), findsOneWidget);
+    expect(find.textContaining('لسه مفيش مبيعات'), findsOneWidget);
   });
 }
