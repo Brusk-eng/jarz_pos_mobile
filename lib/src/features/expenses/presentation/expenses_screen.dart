@@ -12,6 +12,7 @@ import '../models/employee_advance_models.dart';
 import '../models/expense_models.dart';
 import '../state/employee_advances_notifier.dart';
 import '../state/expenses_notifier.dart';
+import 'widgets/advance_salary_payment_card.dart';
 import 'widgets/employee_advance_card.dart';
 import 'widgets/employee_advance_form_sheet.dart';
 import 'widgets/expense_card.dart';
@@ -491,13 +492,16 @@ class _EmployeeAdvancesTab extends ConsumerWidget {
             _AdvancesSummaryHeader(
               summary: state.summary,
               currency: state.currency,
+              showSalaryPaid: state.salaryPaymentsVisible,
             ),
             if (state.notice != null && state.notice!.isNotEmpty) ...[
               const SizedBox(height: 12),
               _AdvanceNoticeBanner(notice: state.notice!),
             ],
             const SizedBox(height: 16),
-            if (state.advances.isEmpty)
+            if (state.advances.isEmpty &&
+                !(state.salaryPaymentsVisible &&
+                    state.salaryPayments.isNotEmpty))
               _AdvanceEmptyState(
                 canApprove: canApprove,
                 canRequest: canRequest,
@@ -512,6 +516,21 @@ class _EmployeeAdvancesTab extends ConsumerWidget {
                   onReject: () => _confirmReject(context, ref, advance),
                 ),
               ),
+            if (state.salaryPaymentsVisible &&
+                state.salaryPayments.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _SalaryPaymentsHeader(
+                total: formatCurrency(
+                  context,
+                  state.summary.salaryPaidAmount,
+                  currencyCode: state.currency,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...state.salaryPayments.map(
+                (payment) => AdvanceSalaryPaymentCard(payment: payment),
+              ),
+            ],
           ],
         ],
       ),
@@ -711,7 +730,13 @@ class _AdvancesSummaryHeader extends StatelessWidget {
   final EmployeeAdvanceSummary summary;
   final String? currency;
 
-  const _AdvancesSummaryHeader({required this.summary, this.currency});
+  final bool showSalaryPaid;
+
+  const _AdvancesSummaryHeader({
+    required this.summary,
+    this.currency,
+    this.showSalaryPaid = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -751,6 +776,25 @@ class _AdvancesSummaryHeader extends StatelessWidget {
         color: Colors.purple.shade50,
         accent: Colors.purple,
       ),
+      if (showSalaryPaid) ...[
+        _AdvanceSummaryInfo(
+          title: l10n.expensesAdvanceSummarySalaryPaid,
+          value: l10n.expensesAdvanceSummaryPendingValue(
+            summary.salaryPaidCount,
+            money(summary.salaryPaidAmount),
+          ),
+          icon: Icons.payments_outlined,
+          color: Colors.teal.shade50,
+          accent: Colors.teal,
+        ),
+        _AdvanceSummaryInfo(
+          title: l10n.expensesAdvanceSummaryHandedOut,
+          value: money(summary.handedOutAmount),
+          icon: Icons.volunteer_activism_outlined,
+          color: Colors.indigo.shade50,
+          accent: Colors.indigo,
+        ),
+      ],
     ];
 
     return GridView.builder(
@@ -809,6 +853,47 @@ class _AdvancesSummaryHeader extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Heading above the read-only salary payments from the Monthly Expenses
+/// board, with their total and a one-line explanation of where they come from.
+class _SalaryPaymentsHeader extends StatelessWidget {
+  final String total;
+
+  const _SalaryPaymentsHeader({required this.total});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.expensesAdvanceSalarySectionTitle,
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ),
+            Text(
+              total,
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.expensesAdvanceSalarySectionHelp,
+          style: theme.textTheme.bodySmall
+              ?.copyWith(color: Colors.grey.shade600),
+        ),
+      ],
     );
   }
 }

@@ -11515,6 +11515,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expensesAdvanceStatusCancelled => 'Cancelled';
 
   @override
+  String get expensesAdvanceSummarySalaryPaid =>
+      'Salary paid (Monthly Expenses)';
+
+  @override
+  String get expensesAdvanceSummaryHandedOut => 'Total handed to staff';
+
+  @override
+  String get expensesAdvanceSalarySectionTitle =>
+      'Salary paid from Monthly Expenses';
+
+  @override
+  String get expensesAdvanceSalarySectionHelp =>
+      'Paid from the Monthly Expenses pay sheet, counted against the salary month shown.';
+
+  @override
+  String expensesAdvanceSalaryPaidByValue(String name) {
+    return 'Paid by $name';
+  }
+
+  @override
   String get kanbanStateReceived => 'Received';
 
   @override

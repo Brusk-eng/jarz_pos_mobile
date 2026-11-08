@@ -11454,6 +11454,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get expensesAdvanceStatusCancelled => 'ملغاة';
 
   @override
+  String get expensesAdvanceSummarySalaryPaid =>
+      'مرتبات اتصرفت (المصاريف الشهرية)';
+
+  @override
+  String get expensesAdvanceSummaryHandedOut => 'إجمالي اللي اتسلم للموظفين';
+
+  @override
+  String get expensesAdvanceSalarySectionTitle =>
+      'مرتبات اتصرفت من المصاريف الشهرية';
+
+  @override
+  String get expensesAdvanceSalarySectionHelp =>
+      'اتصرفت من كشف المرتبات في المصاريف الشهرية، وتتحسب على شهر المرتب المكتوب.';
+
+  @override
+  String expensesAdvanceSalaryPaidByValue(String name) {
+    return 'صرفها $name';
+  }
+
+  @override
   String get kanbanStateReceived => 'مستلم';
 
   @override

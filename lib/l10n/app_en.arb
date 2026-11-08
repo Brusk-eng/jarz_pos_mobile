@@ -6678,6 +6678,18 @@
   "expensesAdvanceStatusReturned": "Returned",
   "expensesAdvanceStatusPartlyClaimedAndReturned": "Partly Claimed and Returned",
   "expensesAdvanceStatusCancelled": "Cancelled",
+  "expensesAdvanceSummarySalaryPaid": "Salary paid (Monthly Expenses)",
+  "expensesAdvanceSummaryHandedOut": "Total handed to staff",
+  "expensesAdvanceSalarySectionTitle": "Salary paid from Monthly Expenses",
+  "expensesAdvanceSalarySectionHelp": "Paid from the Monthly Expenses pay sheet, counted against the salary month shown.",
+  "expensesAdvanceSalaryPaidByValue": "Paid by {name}",
+  "@expensesAdvanceSalaryPaidByValue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "kanbanStateReceived": "Received",
   "@kanbanStateReceived": {
     "description": "Kanban column: order received, not started yet"

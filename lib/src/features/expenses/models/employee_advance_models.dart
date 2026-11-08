@@ -253,6 +253,77 @@ class EmployeeAdvance {
   }
 }
 
+/// Cash a manager handed over as salary from the Monthly Expenses board
+/// (Jarz Expense Request, kind Salary). Read-only: nothing to approve here.
+class AdvanceSalaryPayment {
+  final String name;
+  final String employee;
+  final String employeeName;
+  final String? branch;
+  final DateTime? postingDate;
+
+  /// `YYYY-MM` of the salary this payment counts against.
+  final String? salaryMonth;
+  final String? salaryMonthLabel;
+  final String? currency;
+  final double amount;
+  final String paymentLabel;
+  final String? paymentLabelEn;
+  final String? paymentLabelAr;
+  final String? paidBy;
+  final String? paidByName;
+  final String? remarks;
+
+  const AdvanceSalaryPayment({
+    required this.name,
+    required this.employee,
+    required this.employeeName,
+    this.branch,
+    this.postingDate,
+    this.salaryMonth,
+    this.salaryMonthLabel,
+    this.currency,
+    required this.amount,
+    this.paymentLabel = '',
+    this.paymentLabelEn,
+    this.paymentLabelAr,
+    this.paidBy,
+    this.paidByName,
+    this.remarks,
+  });
+
+  String localizedPaymentLabel(String languageCode) {
+    return localizedExpenseLabel(
+      languageCode: languageCode,
+      fallbackLabel: paymentLabel,
+      englishLabel: paymentLabelEn,
+      arabicLabel: paymentLabelAr,
+    );
+  }
+
+  factory AdvanceSalaryPayment.fromJson(Map<String, dynamic> json) {
+    final employeeId = (json['employee'] ?? '').toString();
+    final employeeName = (json['employee_name'] ?? '').toString();
+    return AdvanceSalaryPayment(
+      name: (json['name'] ?? '').toString(),
+      employee: employeeId,
+      employeeName: employeeName.isNotEmpty ? employeeName : employeeId,
+      branch: _optionalString(json['branch']),
+      postingDate: _parseDate(json['posting_date']),
+      salaryMonth: _optionalString(json['salary_month']),
+      salaryMonthLabel: _optionalString(json['salary_month_label']),
+      currency: _optionalString(json['currency']),
+      amount: _parseAmount(json['amount']),
+      paymentLabel: (json['payment_label'] ?? '').toString(),
+      paymentLabelEn: _optionalString(json['payment_label_en']),
+      paymentLabelAr: _optionalString(json['payment_label_ar']),
+      paidBy: _optionalString(json['paid_by']),
+      paidByName: _optionalString(json['paid_by_name']),
+      remarks: _optionalString(json['remarks']),
+    );
+  }
+}
+
 class EmployeeAdvanceSummary {
   final double totalAmount;
   final int pendingCount;
@@ -260,12 +331,22 @@ class EmployeeAdvanceSummary {
   final int approvedCount;
   final double outstandingAmount;
 
+  /// Salary paid from the Monthly Expenses board (managers only; 0 otherwise).
+  final int salaryPaidCount;
+  final double salaryPaidAmount;
+
+  /// Advances total plus salary paid.
+  final double handedOutAmount;
+
   const EmployeeAdvanceSummary({
     required this.totalAmount,
     required this.pendingCount,
     required this.pendingAmount,
     required this.approvedCount,
     required this.outstandingAmount,
+    this.salaryPaidCount = 0,
+    this.salaryPaidAmount = 0,
+    this.handedOutAmount = 0,
   });
 
   static const empty = EmployeeAdvanceSummary(
@@ -284,6 +365,10 @@ class EmployeeAdvanceSummary {
       pendingAmount: _parseAmount(json['pending_amount']),
       approvedCount: int.tryParse(json['approved_count']?.toString() ?? '') ?? 0,
       outstandingAmount: _parseAmount(json['outstanding_amount']),
+      salaryPaidCount:
+          int.tryParse(json['salary_paid_count']?.toString() ?? '') ?? 0,
+      salaryPaidAmount: _parseAmount(json['salary_paid_amount']),
+      handedOutAmount: _parseAmount(json['handed_out_amount']),
     );
   }
 }
@@ -317,6 +402,11 @@ class EmployeeAdvanceBootstrap {
   final EmployeeAdvanceSummary summary;
   final String? notice;
 
+  /// True only for managers on a backend that sends salary payments. Anything
+  /// but an explicit true/1 hides the section.
+  final bool salaryPaymentsVisible;
+  final List<AdvanceSalaryPayment> salaryPayments;
+
   const EmployeeAdvanceBootstrap({
     required this.hrmsAvailable,
     required this.canRequest,
@@ -336,6 +426,8 @@ class EmployeeAdvanceBootstrap {
     required this.advances,
     required this.summary,
     this.notice,
+    this.salaryPaymentsVisible = false,
+    this.salaryPayments = const [],
   });
 
   factory EmployeeAdvanceBootstrap.fromJson(Map<String, dynamic> json) {
@@ -381,6 +473,10 @@ class EmployeeAdvanceBootstrap {
             : null,
       ),
       notice: _optionalString(json['notice']),
+      salaryPaymentsVisible: json['salary_payments_visible'] == true ||
+          json['salary_payments_visible'] == 1,
+      salaryPayments:
+          rows('salary_payments').map(AdvanceSalaryPayment.fromJson).toList(),
     );
   }
 }

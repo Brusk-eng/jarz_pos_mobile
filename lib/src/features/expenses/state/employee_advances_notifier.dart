@@ -30,6 +30,8 @@ class EmployeeAdvancesState {
   final List<EmployeeAdvance> advances;
   final EmployeeAdvanceSummary summary;
   final String? notice;
+  final bool salaryPaymentsVisible;
+  final List<AdvanceSalaryPayment> salaryPayments;
 
   const EmployeeAdvancesState({
     required this.isLoading,
@@ -50,6 +52,8 @@ class EmployeeAdvancesState {
     required this.advances,
     required this.summary,
     required this.notice,
+    this.salaryPaymentsVisible = false,
+    this.salaryPayments = const [],
   });
 
   factory EmployeeAdvancesState.initial() => const EmployeeAdvancesState(
@@ -96,6 +100,8 @@ class EmployeeAdvancesState {
     EmployeeAdvanceSummary? summary,
     String? notice,
     bool? clearNotice,
+    bool? salaryPaymentsVisible,
+    List<AdvanceSalaryPayment>? salaryPayments,
   }) {
     return EmployeeAdvancesState(
       isLoading: isLoading ?? this.isLoading,
@@ -117,6 +123,9 @@ class EmployeeAdvancesState {
       advances: advances ?? this.advances,
       summary: summary ?? this.summary,
       notice: clearNotice == true ? null : notice ?? this.notice,
+      salaryPaymentsVisible:
+          salaryPaymentsVisible ?? this.salaryPaymentsVisible,
+      salaryPayments: salaryPayments ?? this.salaryPayments,
     );
   }
 }
@@ -171,6 +180,8 @@ class EmployeeAdvancesNotifier extends StateNotifier<EmployeeAdvancesState> {
         summary: bootstrap.summary,
         notice: bootstrap.notice,
         clearNotice: bootstrap.notice == null,
+        salaryPaymentsVisible: bootstrap.salaryPaymentsVisible,
+        salaryPayments: bootstrap.salaryPayments,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

@@ -18831,6 +18831,36 @@ abstract class AppLocalizations {
   /// **'Cancelled'**
   String get expensesAdvanceStatusCancelled;
 
+  /// No description provided for @expensesAdvanceSummarySalaryPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary paid (Monthly Expenses)'**
+  String get expensesAdvanceSummarySalaryPaid;
+
+  /// No description provided for @expensesAdvanceSummaryHandedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Total handed to staff'**
+  String get expensesAdvanceSummaryHandedOut;
+
+  /// No description provided for @expensesAdvanceSalarySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary paid from Monthly Expenses'**
+  String get expensesAdvanceSalarySectionTitle;
+
+  /// No description provided for @expensesAdvanceSalarySectionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from the Monthly Expenses pay sheet, counted against the salary month shown.'**
+  String get expensesAdvanceSalarySectionHelp;
+
+  /// No description provided for @expensesAdvanceSalaryPaidByValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by {name}'**
+  String expensesAdvanceSalaryPaidByValue(String name);
+
   /// Kanban column: order received, not started yet
   ///
   /// In en, this message translates to:

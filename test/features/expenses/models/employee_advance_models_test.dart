@@ -308,4 +308,87 @@ void main() {
       expect(salaryMonthDate(null), isNull);
     });
   });
+
+  group('salary payments', () {
+    Map<String, dynamic> payment() => {
+          'name': 'JEXP-00149',
+          'employee': 'HR-EMP-0001',
+          'employee_name': 'Mona Adel',
+          'branch': '',
+          'posting_date': '2026-11-02',
+          'salary_month': '2026-10',
+          'salary_month_label': 'October 2026',
+          'amount': 1960,
+          'currency': 'EGP',
+          'payment_label': 'Cash',
+          'payment_label_en': 'Cash drawer',
+          'payment_label_ar': 'الدرج',
+          'paid_by': 'boss@example.com',
+          'paid_by_name': 'Boss',
+          'remarks': 'Oct salary',
+        };
+
+    test('parses visible bootstrap with payments and summary', () {
+      final bootstrap = EmployeeAdvanceBootstrap.fromJson({
+        'salary_payments_visible': true,
+        'salary_payments': [payment()],
+        'summary': {
+          'total_amount': 100,
+          'salary_paid_count': 3,
+          'salary_paid_amount': 5880,
+          'handed_out_amount': 5980,
+        },
+      });
+      expect(bootstrap.salaryPaymentsVisible, isTrue);
+      expect(bootstrap.salaryPayments, hasLength(1));
+      final row = bootstrap.salaryPayments.single;
+      expect(row.name, 'JEXP-00149');
+      expect(row.employeeName, 'Mona Adel');
+      expect(row.branch, isNull);
+      expect(row.postingDate, DateTime(2026, 11, 2));
+      expect(row.salaryMonth, '2026-10');
+      expect(row.salaryMonthLabel, 'October 2026');
+      expect(row.amount, 1960);
+      expect(row.paidByName, 'Boss');
+      expect(row.remarks, 'Oct salary');
+      expect(row.localizedPaymentLabel('en'), 'Cash drawer');
+      expect(row.localizedPaymentLabel('ar'), 'الدرج');
+      expect(bootstrap.summary.salaryPaidCount, 3);
+      expect(bootstrap.summary.salaryPaidAmount, 5880);
+      expect(bootstrap.summary.handedOutAmount, 5980);
+    });
+
+    test('old backend omits everything: hidden, empty, zeros', () {
+      final bootstrap = EmployeeAdvanceBootstrap.fromJson({'success': true});
+      expect(bootstrap.salaryPaymentsVisible, isFalse);
+      expect(bootstrap.salaryPayments, isEmpty);
+      expect(EmployeeAdvanceSummary.empty.salaryPaidAmount, 0);
+      expect(bootstrap.summary.handedOutAmount, 0);
+    });
+
+    test('visible=false and non-explicit values stay hidden', () {
+      for (final v in [false, 0, null, 'true', '1']) {
+        final bootstrap = EmployeeAdvanceBootstrap.fromJson({
+          'salary_payments_visible': v,
+          'salary_payments': <dynamic>[],
+        });
+        expect(bootstrap.salaryPaymentsVisible, isFalse, reason: '$v');
+      }
+      expect(
+        EmployeeAdvanceBootstrap.fromJson({'salary_payments_visible': 1})
+            .salaryPaymentsVisible,
+        isTrue,
+      );
+    });
+
+    test('payment falls back to employee id and tolerates missing fields', () {
+      final row = AdvanceSalaryPayment.fromJson(
+          {'employee': 'HR-EMP-0002', 'amount': '250'});
+      expect(row.employeeName, 'HR-EMP-0002');
+      expect(row.amount, 250);
+      expect(row.postingDate, isNull);
+      expect(row.salaryMonthLabel, isNull);
+      expect(row.localizedPaymentLabel('en'), '');
+    });
+  });
 }
