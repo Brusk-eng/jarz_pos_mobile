@@ -12193,6 +12193,66 @@ class AppLocalizationsAr extends AppLocalizations {
   String get monthlyExpensesStatusOverpaid => 'مدفوع بالزيادة';
 
   @override
+  String get monthlyExpensesStatusAwaitingVisit => 'في انتظار الزيارة';
+
+  @override
+  String get monthlyExpensesStatusNoVisit => 'بدون زيارة';
+
+  @override
+  String get monthlyExpensesPaidOnVisit => 'يُدفع عند الزيارة';
+
+  @override
+  String monthlyExpensesAmountRaised(
+    Object amount,
+    Object month,
+    Object previous,
+  ) {
+    return 'ارتفع إلى $amount من $month (كان $previous)';
+  }
+
+  @override
+  String monthlyExpensesAmountLowered(
+    Object amount,
+    Object month,
+    Object previous,
+  ) {
+    return 'انخفض إلى $amount من $month (كان $previous)';
+  }
+
+  @override
+  String monthlyExpensesAmountUpcoming(Object amount, Object month) {
+    return '$amount من $month';
+  }
+
+  @override
+  String get monthlyExpensesAppliesFromLabel => 'يسري من';
+
+  @override
+  String get monthlyExpensesAppliesFromHelper =>
+      'الأشهر السابقة تحتفظ بالمبلغ القديم.';
+
+  @override
+  String get monthlyExpensesPayOnVisitLabel =>
+      'يُدفع عند إنجاز الخدمة (بدون يوم ثابت)';
+
+  @override
+  String get monthlyExpensesAmountHistoryTitle => 'سجل المبالغ';
+
+  @override
+  String get monthlyExpensesAmountHistoryRemoveTooltip => 'حذف هذا التغيير';
+
+  @override
+  String get monthlyExpensesAmountHistoryRemoveTitle => 'حذف تغيير المبلغ؟';
+
+  @override
+  String monthlyExpensesAmountHistoryRemoveBody(Object amount, Object month) {
+    return 'حذف مبلغ $amount الذي يبدأ في $month؟ سيعود هذا الشهر والأشهر التالية إلى المبلغ السابق.';
+  }
+
+  @override
+  String get monthlyExpensesAmountHistoryRemoved => 'تم حذف تغيير المبلغ';
+
+  @override
   String get monthlyExpensesLifecyclePaused => 'موقوف مؤقتاً';
 
   @override
@@ -13087,6 +13147,44 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get replenishmentTitle => 'تسليم للفروع';
+
+  @override
+  String replenishmentHeaderBasis(int coverDays, int salesDays) {
+    return 'تغطية $coverDays يوم · مبيعات $salesDays يوم';
+  }
+
+  @override
+  String replenishmentUpdatedAt(String time) {
+    return 'آخر تحديث $time';
+  }
+
+  @override
+  String replenishmentTabLabel(String name, int count) {
+    return '$name · $count';
+  }
+
+  @override
+  String replenishmentMovesSummary(String qty) {
+    return 'فروع تانية تقدر تغطي $qty وحدة';
+  }
+
+  @override
+  String get replenishmentFilterNeeds => 'الناقص فقط';
+
+  @override
+  String get replenishmentFilterAll => 'كل الأصناف';
+
+  @override
+  String get replenishmentItemDetails => 'التفاصيل';
+
+  @override
+  String get replenishmentQtyIncrease => 'زوّد واحد';
+
+  @override
+  String get replenishmentQtyDecrease => 'قلّل واحد';
+
+  @override
+  String get replenishmentSendShort => 'ابعت';
 
   @override
   String replenishmentCartonCountB2b(int count) {

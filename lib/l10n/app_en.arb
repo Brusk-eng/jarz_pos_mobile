@@ -7260,6 +7260,46 @@
   "monthlyExpensesStatusUnpaid": "Unpaid",
   "monthlyExpensesStatusNotDue": "Not due",
   "monthlyExpensesStatusOverpaid": "Overpaid",
+  "monthlyExpensesStatusAwaitingVisit": "Awaiting visit",
+  "monthlyExpensesStatusNoVisit": "No visit",
+  "monthlyExpensesPaidOnVisit": "Paid on the visit",
+  "monthlyExpensesAmountRaised": "Raised to {amount} from {month} (was {previous})",
+  "@monthlyExpensesAmountRaised": {
+    "placeholders": {
+      "amount": {},
+      "month": {},
+      "previous": {}
+    }
+  },
+  "monthlyExpensesAmountLowered": "Lowered to {amount} from {month} (was {previous})",
+  "@monthlyExpensesAmountLowered": {
+    "placeholders": {
+      "amount": {},
+      "month": {},
+      "previous": {}
+    }
+  },
+  "monthlyExpensesAmountUpcoming": "{amount} from {month}",
+  "@monthlyExpensesAmountUpcoming": {
+    "placeholders": {
+      "amount": {},
+      "month": {}
+    }
+  },
+  "monthlyExpensesAppliesFromLabel": "Applies from",
+  "monthlyExpensesAppliesFromHelper": "Earlier months keep the old amount.",
+  "monthlyExpensesPayOnVisitLabel": "Paid when the service is done (no fixed day)",
+  "monthlyExpensesAmountHistoryTitle": "Amount history",
+  "monthlyExpensesAmountHistoryRemoveTooltip": "Remove this change",
+  "monthlyExpensesAmountHistoryRemoveTitle": "Remove amount change?",
+  "monthlyExpensesAmountHistoryRemoveBody": "Remove the {amount} that starts in {month}? That month and the following ones go back to the previous amount.",
+  "@monthlyExpensesAmountHistoryRemoveBody": {
+    "placeholders": {
+      "amount": {},
+      "month": {}
+    }
+  },
+  "monthlyExpensesAmountHistoryRemoved": "Amount change removed",
   "monthlyExpensesLifecyclePaused": "Paused",
   "monthlyExpensesLifecycleEnded": "Ended",
   "monthlyExpensesPayAction": "Pay",
@@ -7755,6 +7795,20 @@
   "creditPaymentResultAlreadyRecordedTitle": "Already recorded",
   "menuReplenishment": "Send to Branches",
   "replenishmentTitle": "Send to Branches",
+  "replenishmentHeaderBasis": "{coverDays} days cover · {salesDays} days sales",
+  "@replenishmentHeaderBasis": {"placeholders": {"coverDays": {"type": "int"}, "salesDays": {"type": "int"}}},
+  "replenishmentUpdatedAt": "updated {time}",
+  "@replenishmentUpdatedAt": {"placeholders": {"time": {"type": "String"}}},
+  "replenishmentTabLabel": "{name} · {count}",
+  "@replenishmentTabLabel": {"placeholders": {"name": {"type": "String"}, "count": {"type": "int"}}},
+  "replenishmentMovesSummary": "Other branches can cover {qty} units",
+  "@replenishmentMovesSummary": {"placeholders": {"qty": {"type": "String"}}},
+  "replenishmentFilterNeeds": "Needs stock",
+  "replenishmentFilterAll": "All items",
+  "replenishmentItemDetails": "Details",
+  "replenishmentQtyIncrease": "One more",
+  "replenishmentQtyDecrease": "One less",
+  "replenishmentSendShort": "Send",
   "replenishmentCartonCountB2b": "{count, plural, =1{1 B2B carton} other{{count} B2B cartons}}",
   "@replenishmentCartonCountB2b": {"placeholders": {"count": {"type": "int"}}},
   "replenishmentCartonCountLarge": "{count, plural, =1{1 large carton} other{{count} large cartons}}",

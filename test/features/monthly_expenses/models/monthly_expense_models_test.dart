@@ -350,6 +350,73 @@ void main() {
     });
   });
 
+  group('amount history and pay-on-visit', () {
+    test('parses month_amount, amount_history (sorted) and pay_on_visit', () {
+      final item = RecurringExpenseItem.fromJson({
+        'name': 'JRE-0001',
+        'amount': 6500,
+        'month_amount': '5500',
+        'amount_history': [
+          {'effective_from': '2026-11-01', 'amount': 6500},
+          {'effective_from': '2025-01-01', 'amount': 5500},
+        ],
+        'pay_on_visit': 1,
+        'due_date': null,
+        'payment_status': 'Awaiting Visit',
+      });
+      expect(item.amount, 6500);
+      expect(item.monthAmount, 5500);
+      expect(item.amountHistory.length, 2);
+      expect(item.amountHistory.first.amount, 5500);
+      expect(item.amountHistory.last.effectiveMonth, '2026-11');
+      expect(item.amountHistory.last.effectiveFromIso, '2026-11-01');
+      expect(item.payOnVisit, isTrue);
+      expect(item.dueDate, isNull);
+      expect(item.paymentStatus, MonthlyExpenseStatus.awaitingVisit);
+    });
+
+    test('old servers: monthAmount falls back to amount, no history', () {
+      final item =
+          RecurringExpenseItem.fromJson({'name': 'JRE-1', 'amount': 20000});
+      expect(item.monthAmount, 20000);
+      expect(item.amountHistory, isEmpty);
+      expect(item.payOnVisit, isFalse);
+    });
+
+    test('new status strings match the server vocabulary', () {
+      expect(MonthlyExpenseStatus.awaitingVisit, 'Awaiting Visit');
+      expect(MonthlyExpenseStatus.noVisit, 'No Visit');
+    });
+
+    test('draft sends amount_effective_from only when set, pay_on_visit 0/1',
+        () {
+      const base = RecurringExpenseDraft(
+        name: 'JRE-1',
+        expenseName: 'Rent',
+        category: 'Rent',
+        amount: 6500,
+        frequency: 'Monthly',
+        expenseAccount: 'Rent - J',
+      );
+      final plain = base.toJson();
+      expect(plain.containsKey('amount_effective_from'), isFalse);
+      expect(plain['pay_on_visit'], 0);
+
+      final json = const RecurringExpenseDraft(
+        name: 'JRE-1',
+        expenseName: 'Pest',
+        category: 'Services',
+        amount: 800,
+        frequency: 'Monthly',
+        expenseAccount: 'Pest - J',
+        amountEffectiveFrom: '2026-11',
+        payOnVisit: true,
+      ).toJson();
+      expect(json['amount_effective_from'], '2026-11');
+      expect(json['pay_on_visit'], 1);
+    });
+  });
+
   group('recurringByCategory', () {
     test('groups items and orders the groups like by_category', () {
       final json = _payload();

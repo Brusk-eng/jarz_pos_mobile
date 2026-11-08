@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
@@ -16,6 +17,10 @@ class RecurringExpenseCard extends StatelessWidget {
   final bool canManage;
   final bool isBusy;
 
+  /// The board month, `YYYY-MM`. Lets the card say whether an amount change
+  /// already applies or is still upcoming. Empty hides that note.
+  final String boardMonth;
+
   final VoidCallback? onPay;
   final void Function(RecurringExpenseMenuAction action)? onMenuAction;
   final void Function(MonthlyExpensePayment payment)? onCancelPayment;
@@ -26,10 +31,40 @@ class RecurringExpenseCard extends StatelessWidget {
     required this.currency,
     required this.canManage,
     this.isBusy = false,
+    this.boardMonth = '',
     this.onPay,
     this.onMenuAction,
     this.onCancelPayment,
   });
+
+  /// "Raised to 6,500 from Nov 2026 (was 5,500)" once the board month has
+  /// reached the latest change, or "6,500 from Nov 2026" while that change is
+  /// still ahead of the board month. Null when the history has a single row.
+  String? _amountChangeNote(
+    BuildContext context,
+    String Function(double) money,
+  ) {
+    final history = item.amountHistory;
+    if (history.length < 2) return null;
+    final l10n = context.l10n;
+    final latest = history.last;
+    final previous = history[history.length - 2];
+    final monthLabel = DateFormat.yMMM(l10n.localeName)
+        .format(DateTime(latest.effectiveFrom.year, latest.effectiveFrom.month));
+
+    final board = DateTime.tryParse('$boardMonth-01');
+    if (board != null && board.isBefore(latest.effectiveFrom)) {
+      return l10n.monthlyExpensesAmountUpcoming(
+        money(latest.amount),
+        monthLabel,
+      );
+    }
+    return latest.amount >= previous.amount
+        ? l10n.monthlyExpensesAmountRaised(
+            money(latest.amount), monthLabel, money(previous.amount))
+        : l10n.monthlyExpensesAmountLowered(
+            money(latest.amount), monthLabel, money(previous.amount));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +155,16 @@ class RecurringExpenseCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
+              if (_amountChangeNote(context, money) case final note?)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    note,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               _AmountsRow(
                 due: money(item.dueAmount),
                 paid: money(item.paidAmount),
@@ -148,7 +193,7 @@ class RecurringExpenseCard extends StatelessWidget {
             ),
           _InfoRow(
             label: l10n.monthlyExpensesAmountLabel,
-            value: money(item.amount),
+            value: money(item.monthAmount),
           ),
           _InfoRow(
             label: l10n.monthlyExpensesFrequencyLabel,
@@ -160,7 +205,12 @@ class RecurringExpenseCard extends StatelessWidget {
               label: l10n.monthlyExpensesMonthlyEquivalentLabel,
               value: money(item.monthlyEquivalent),
             ),
-          if (item.dueDate != null)
+          if (item.payOnVisit)
+            _InfoRow(
+              label: l10n.monthlyExpensesDueDateLabel,
+              value: l10n.monthlyExpensesPaidOnVisit,
+            )
+          else if (item.dueDate != null)
             _InfoRow(
               label: l10n.monthlyExpensesDueDateLabel,
               value: formatDate(context, item.dueDate!),

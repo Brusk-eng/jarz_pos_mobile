@@ -233,6 +233,18 @@ class MonthlyExpensesNotifier extends StateNotifier<MonthlyExpensesState> {
     return _mutate(() => _repository.saveRecurringExpense(draft));
   }
 
+  Future<MonthlyExpenseActionResult> removeAmountChange({
+    required String name,
+    required String effectiveFrom,
+  }) {
+    return _mutate(
+      () => _repository.removeRecurringAmountChange(
+        name: name,
+        effectiveFrom: effectiveFrom,
+      ),
+    );
+  }
+
   Future<MonthlyExpenseActionResult> setStatus({
     required String name,
     required String status,

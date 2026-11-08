@@ -48,7 +48,7 @@ List<Map<String, dynamic>> _maps(dynamic value) {
       .toList();
 }
 
-/// The five states the backend reports for a recurring item or a salary row.
+/// The states the backend reports for a recurring item or a salary row.
 ///
 /// Kept as raw server strings rather than an enum: an unrecognised status still
 /// has to render (as itself) instead of crashing the month, and the server owns
@@ -59,6 +59,14 @@ class MonthlyExpenseStatus {
   static const unpaid = 'Unpaid';
   static const notDue = 'Not Due';
   static const overpaid = 'Overpaid';
+
+  /// Pay-on-visit item in the current or a future month, not yet paid. Not a
+  /// debt: nothing is owed until the visit happens.
+  static const awaitingVisit = 'Awaiting Visit';
+
+  /// Pay-on-visit item in a past month that never had a visit (nothing paid,
+  /// nothing remaining).
+  static const noVisit = 'No Visit';
 
   const MonthlyExpenseStatus._();
 }
@@ -222,6 +230,37 @@ class MonthlyExpensePayment {
       _maps(value).map(MonthlyExpensePayment.fromJson).toList();
 }
 
+/// One dated step of a recurring expense's amount history.
+class AmountHistoryEntry {
+  /// Always the 1st of a month (`YYYY-MM-DD`).
+  final DateTime effectiveFrom;
+  final double amount;
+
+  const AmountHistoryEntry({required this.effectiveFrom, required this.amount});
+
+  /// `YYYY-MM`, the shape the save endpoint takes.
+  String get effectiveMonth =>
+      '${effectiveFrom.year.toString().padLeft(4, '0')}-'
+      '${effectiveFrom.month.toString().padLeft(2, '0')}';
+
+  /// The date string the remove endpoint expects back (`YYYY-MM-DD`).
+  String get effectiveFromIso => '$effectiveMonth-01';
+
+  static List<AmountHistoryEntry> listFrom(dynamic value) {
+    final entries = <AmountHistoryEntry>[];
+    for (final row in _maps(value)) {
+      final date = _date(row['effective_from']);
+      if (date == null) continue;
+      entries.add(AmountHistoryEntry(
+        effectiveFrom: date,
+        amount: _num(row['amount']),
+      ));
+    }
+    entries.sort((a, b) => a.effectiveFrom.compareTo(b.effectiveFrom));
+    return entries;
+  }
+}
+
 /// A single registry item resolved against the selected month.
 class RecurringExpenseItem {
   final String name;
@@ -229,6 +268,16 @@ class RecurringExpenseItem {
   final String category;
   final String status;
   final double amount;
+
+  /// What the selected month owes. Older servers do not send it; it then
+  /// falls back to [amount].
+  final double monthAmount;
+
+  /// Dated amount steps, ascending. Empty on older servers.
+  final List<AmountHistoryEntry> amountHistory;
+
+  /// Paid on the visit, no fixed day (e.g. pest control).
+  final bool payOnVisit;
   final String frequency;
   final double monthlyEquivalent;
   final int? dayOfMonth;
@@ -269,6 +318,9 @@ class RecurringExpenseItem {
     required this.category,
     required this.status,
     required this.amount,
+    double? monthAmount,
+    this.amountHistory = const [],
+    this.payOnVisit = false,
     required this.frequency,
     required this.monthlyEquivalent,
     this.dayOfMonth,
@@ -292,7 +344,7 @@ class RecurringExpenseItem {
     required this.inferred,
     required this.canPay,
     required this.payments,
-  });
+  }) : monthAmount = monthAmount ?? amount;
 
   bool get isActive => status == RecurringExpenseLifecycle.active;
   bool get isPaused => status == RecurringExpenseLifecycle.paused;
@@ -314,6 +366,10 @@ class RecurringExpenseItem {
       category: _str(json['category']),
       status: _str(json['status']),
       amount: _num(json['amount']),
+      monthAmount:
+          json['month_amount'] == null ? null : _num(json['month_amount']),
+      amountHistory: AmountHistoryEntry.listFrom(json['amount_history']),
+      payOnVisit: _bool(json['pay_on_visit']),
       frequency: _str(json['frequency']),
       monthlyEquivalent: _num(json['monthly_equivalent']),
       dayOfMonth: json['day_of_month'] == null
@@ -1270,6 +1326,13 @@ class RecurringExpenseDraft {
   final String? endDate;
   final String? notes;
 
+  /// `YYYY-MM`: the month a changed amount takes effect from. Only sent when
+  /// set (an edit that changed the amount).
+  final String? amountEffectiveFrom;
+
+  /// Paid when the service is done, no fixed day.
+  final bool payOnVisit;
+
   const RecurringExpenseDraft({
     this.name,
     required this.expenseName,
@@ -1284,6 +1347,8 @@ class RecurringExpenseDraft {
     this.startDate,
     this.endDate,
     this.notes,
+    this.amountEffectiveFrom,
+    this.payOnVisit = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -1302,5 +1367,8 @@ class RecurringExpenseDraft {
         if (startDate != null && startDate!.isNotEmpty) 'start_date': startDate,
         if (endDate != null && endDate!.isNotEmpty) 'end_date': endDate,
         if (notes != null && notes!.isNotEmpty) 'notes': notes,
+        if (amountEffectiveFrom != null && amountEffectiveFrom!.isNotEmpty)
+          'amount_effective_from': amountEffectiveFrom,
+        'pay_on_visit': payOnVisit ? 1 : 0,
       };
 }

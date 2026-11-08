@@ -12253,6 +12253,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String get monthlyExpensesStatusOverpaid => 'Overpaid';
 
   @override
+  String get monthlyExpensesStatusAwaitingVisit => 'Awaiting visit';
+
+  @override
+  String get monthlyExpensesStatusNoVisit => 'No visit';
+
+  @override
+  String get monthlyExpensesPaidOnVisit => 'Paid on the visit';
+
+  @override
+  String monthlyExpensesAmountRaised(
+    Object amount,
+    Object month,
+    Object previous,
+  ) {
+    return 'Raised to $amount from $month (was $previous)';
+  }
+
+  @override
+  String monthlyExpensesAmountLowered(
+    Object amount,
+    Object month,
+    Object previous,
+  ) {
+    return 'Lowered to $amount from $month (was $previous)';
+  }
+
+  @override
+  String monthlyExpensesAmountUpcoming(Object amount, Object month) {
+    return '$amount from $month';
+  }
+
+  @override
+  String get monthlyExpensesAppliesFromLabel => 'Applies from';
+
+  @override
+  String get monthlyExpensesAppliesFromHelper =>
+      'Earlier months keep the old amount.';
+
+  @override
+  String get monthlyExpensesPayOnVisitLabel =>
+      'Paid when the service is done (no fixed day)';
+
+  @override
+  String get monthlyExpensesAmountHistoryTitle => 'Amount history';
+
+  @override
+  String get monthlyExpensesAmountHistoryRemoveTooltip => 'Remove this change';
+
+  @override
+  String get monthlyExpensesAmountHistoryRemoveTitle => 'Remove amount change?';
+
+  @override
+  String monthlyExpensesAmountHistoryRemoveBody(Object amount, Object month) {
+    return 'Remove the $amount that starts in $month? That month and the following ones go back to the previous amount.';
+  }
+
+  @override
+  String get monthlyExpensesAmountHistoryRemoved => 'Amount change removed';
+
+  @override
   String get monthlyExpensesLifecyclePaused => 'Paused';
 
   @override
@@ -13135,6 +13195,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get replenishmentTitle => 'Send to Branches';
+
+  @override
+  String replenishmentHeaderBasis(int coverDays, int salesDays) {
+    return '$coverDays days cover · $salesDays days sales';
+  }
+
+  @override
+  String replenishmentUpdatedAt(String time) {
+    return 'updated $time';
+  }
+
+  @override
+  String replenishmentTabLabel(String name, int count) {
+    return '$name · $count';
+  }
+
+  @override
+  String replenishmentMovesSummary(String qty) {
+    return 'Other branches can cover $qty units';
+  }
+
+  @override
+  String get replenishmentFilterNeeds => 'Needs stock';
+
+  @override
+  String get replenishmentFilterAll => 'All items';
+
+  @override
+  String get replenishmentItemDetails => 'Details';
+
+  @override
+  String get replenishmentQtyIncrease => 'One more';
+
+  @override
+  String get replenishmentQtyDecrease => 'One less';
+
+  @override
+  String get replenishmentSendShort => 'Send';
 
   @override
   String replenishmentCartonCountB2b(int count) {

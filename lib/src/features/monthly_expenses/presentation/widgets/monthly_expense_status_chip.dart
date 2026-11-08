@@ -21,6 +21,10 @@ String localizedMonthlyExpenseStatus(BuildContext context, String status) {
       return l10n.monthlyExpensesStatusNotDue;
     case MonthlyExpenseStatus.overpaid:
       return l10n.monthlyExpensesStatusOverpaid;
+    case MonthlyExpenseStatus.awaitingVisit:
+      return l10n.monthlyExpensesStatusAwaitingVisit;
+    case MonthlyExpenseStatus.noVisit:
+      return l10n.monthlyExpensesStatusNoVisit;
     default:
       return status;
   }
@@ -39,6 +43,9 @@ Color monthlyExpenseStatusColor(BuildContext context, String status) {
       // worth looking at — usually an Auto Repeat draft submitted in Desk on
       // top of a payment made here.
       return Colors.purple;
+    case MonthlyExpenseStatus.noVisit:
+      return Colors.grey;
+    case MonthlyExpenseStatus.awaitingVisit:
     case MonthlyExpenseStatus.notDue:
     default:
       return Colors.blueGrey;
@@ -55,6 +62,10 @@ IconData monthlyExpenseStatusIcon(String status) {
       return Icons.error_outline;
     case MonthlyExpenseStatus.overpaid:
       return Icons.priority_high;
+    case MonthlyExpenseStatus.awaitingVisit:
+      return Icons.schedule;
+    case MonthlyExpenseStatus.noVisit:
+      return Icons.event_busy;
     case MonthlyExpenseStatus.notDue:
     default:
       return Icons.event_available;

@@ -21,10 +21,16 @@ class RecurringExpenseFormSheet extends StatefulWidget {
   final Future<MonthlyExpenseActionResult> Function(RecurringExpenseDraft draft)
       onSubmit;
 
+  /// Removes one dated amount change (`effectiveFrom` is `YYYY-MM-DD`) and
+  /// refreshes the board. Null hides the remove icons.
+  final Future<MonthlyExpenseActionResult> Function(
+      String name, String effectiveFrom)? onRemoveAmountChange;
+
   const RecurringExpenseFormSheet({
     super.key,
     required this.payload,
     required this.onSubmit,
+    this.onRemoveAmountChange,
     this.item,
   });
 
@@ -49,8 +55,44 @@ class _RecurringExpenseFormSheetState extends State<RecurringExpenseFormSheet> {
   DateTime? _startDate;
   DateTime? _endDate;
   bool _submitting = false;
+  bool _payOnVisit = false;
+
+  /// `YYYY-MM` the changed amount applies from; defaults to the current month.
+  late String _effectiveMonth;
 
   bool get _isEdit => widget.item != null;
+
+  static String _monthId(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}';
+
+  /// True once an existing item's amount field no longer matches the saved one.
+  bool get _amountChanged {
+    final item = widget.item;
+    if (item == null) return false;
+    final typed = double.tryParse(_amountController.text.trim());
+    return typed != null && (typed - item.amount).abs() > 0.004;
+  }
+
+  /// Months an amount change can start in: from the item's first month up to
+  /// three months ahead.
+  List<DateTime> _effectiveMonthOptions() {
+    final now = DateTime.now();
+    final last = DateTime(now.year, now.month + 3);
+    final item = widget.item;
+    DateTime first = DateTime(now.year, now.month);
+    final origin = (item != null && item.amountHistory.isNotEmpty)
+        ? item.amountHistory.first.effectiveFrom
+        : item?.startDate;
+    if (origin != null) {
+      final originMonth = DateTime(origin.year, origin.month);
+      if (originMonth.isBefore(first)) first = originMonth;
+    }
+    final months = <DateTime>[];
+    for (var m = first; !m.isAfter(last); m = DateTime(m.year, m.month + 1)) {
+      months.add(m);
+    }
+    return months;
+  }
 
   @override
   void initState() {
@@ -81,6 +123,11 @@ class _RecurringExpenseFormSheetState extends State<RecurringExpenseFormSheet> {
     _defaultPayingAccount = item?.defaultPayingAccount;
     _startDate = item?.startDate;
     _endDate = item?.endDate;
+    _payOnVisit = item?.payOnVisit ?? false;
+    _effectiveMonth = _monthId(DateTime.now());
+    _amountController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   String? _initial(List<String> options, String? current) {
@@ -169,6 +216,14 @@ class _RecurringExpenseFormSheetState extends State<RecurringExpenseFormSheet> {
                   return null;
                 },
               ),
+              if (_isEdit && _amountChanged) ...[
+                const SizedBox(height: 16),
+                _appliesFromDropdown(context),
+              ],
+              if (_isEdit && (widget.item?.amountHistory.isNotEmpty ?? false)) ...[
+                const SizedBox(height: 16),
+                _amountHistory(context),
+              ],
               const SizedBox(height: 16),
               _dropdown<String>(
                 label: l10n.monthlyExpensesCategoryLabel,
@@ -235,27 +290,36 @@ class _RecurringExpenseFormSheetState extends State<RecurringExpenseFormSheet> {
                     setState(() => _defaultPayingAccount = value),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _dayController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: l10n.monthlyExpensesDayOfMonthLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  final text = (value ?? '').trim();
-                  if (text.isEmpty) return null;
-                  final day = int.tryParse(text);
-                  // 28, not 31: the server REFUSES a day that does not
-                  // exist in February rather than silently clamping it,
-                  // so accepting 30 here would only defer the rejection
-                  // to a failed save.
-                  if (day == null || day < 1 || day > 28) {
-                    return l10n.monthlyExpensesDayOfMonthInvalid;
-                  }
-                  return null;
-                },
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.monthlyExpensesPayOnVisitLabel),
+                value: _payOnVisit,
+                onChanged: (value) => setState(() => _payOnVisit = value),
               ),
+              if (!_payOnVisit) ...[
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _dayController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: l10n.monthlyExpensesDayOfMonthLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    final text = (value ?? '').trim();
+                    if (text.isEmpty) return null;
+                    final day = int.tryParse(text);
+                    // 28, not 31: the server REFUSES a day that does not
+                    // exist in February rather than silently clamping it,
+                    // so accepting 30 here would only defer the rejection
+                    // to a failed save.
+                    if (day == null || day < 1 || day > 28) {
+                      return l10n.monthlyExpensesDayOfMonthInvalid;
+                    }
+                    return null;
+                  },
+                ),
+              ],
               const SizedBox(height: 16),
               _datePicker(
                 label: l10n.monthlyExpensesStartDateLabel,
@@ -315,6 +379,113 @@ class _RecurringExpenseFormSheetState extends State<RecurringExpenseFormSheet> {
         ),
       ),
     );
+  }
+
+  Widget _appliesFromDropdown(BuildContext context) {
+    final l10n = context.l10n;
+    final locale = l10n.localeName;
+    final options = _effectiveMonthOptions();
+    final ids = options.map(_monthId).toList();
+    final selected = ids.contains(_effectiveMonth) ? _effectiveMonth : ids.first;
+    return DropdownButtonFormField<String>(
+      key: ValueKey<String>('applies-from:$selected:${ids.length}'),
+      initialValue: selected,
+      isExpanded: true,
+      items: [
+        for (final m in options)
+          DropdownMenuItem<String>(
+            value: _monthId(m),
+            child: Text(DateFormat.yMMMM(locale).format(m)),
+          ),
+      ],
+      onChanged: (value) {
+        if (value != null) setState(() => _effectiveMonth = value);
+      },
+      decoration: InputDecoration(
+        labelText: l10n.monthlyExpensesAppliesFromLabel,
+        helperText: l10n.monthlyExpensesAppliesFromHelper,
+        border: const OutlineInputBorder(),
+      ),
+    );
+  }
+
+  Widget _amountHistory(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final item = widget.item!;
+    final canRemove = widget.onRemoveAmountChange != null && !_submitting;
+    String money(double v) =>
+        formatCurrency(context, v, currencyCode: widget.payload.currency);
+    String monthName(DateTime d) => DateFormat.yMMMM(l10n.localeName)
+        .format(DateTime(d.year, d.month));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.monthlyExpensesAmountHistoryTitle,
+            style: theme.textTheme.titleSmall),
+        const SizedBox(height: 4),
+        for (var i = 0; i < item.amountHistory.length; i++)
+          Row(
+            children: [
+              Expanded(
+                child: Text(monthName(item.amountHistory[i].effectiveFrom)),
+              ),
+              Text(
+                money(item.amountHistory[i].amount),
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              // The first row is the baseline; the server refuses removing it.
+              if (i > 0)
+                IconButton(
+                  tooltip: l10n.monthlyExpensesAmountHistoryRemoveTooltip,
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: canRemove
+                      ? () => _confirmRemove(item.amountHistory[i])
+                      : null,
+                )
+              else
+                const SizedBox(width: 48, height: 48),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Future<void> _confirmRemove(AmountHistoryEntry entry) async {
+    final l10n = context.l10n;
+    final month = DateFormat.yMMMM(l10n.localeName).format(
+        DateTime(entry.effectiveFrom.year, entry.effectiveFrom.month));
+    final amount = formatCurrency(context, entry.amount,
+        currencyCode: widget.payload.currency);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.monthlyExpensesAmountHistoryRemoveTitle),
+        content: Text(l10n.monthlyExpensesAmountHistoryRemoveBody(amount, month)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _submitting = true);
+    final result = await widget.onRemoveAmountChange!(
+        widget.item!.name, entry.effectiveFromIso);
+    if (!mounted) return;
+    setState(() => _submitting = false);
+    // The sheet holds a snapshot of the item, so close it on success; the
+    // refreshed board shows the new history when it is reopened.
+    if (result.success) Navigator.of(context).pop(false);
   }
 
   /// Keeps a value the server no longer offers in the list, so the dropdown
@@ -435,13 +606,16 @@ class _RecurringExpenseFormSheetState extends State<RecurringExpenseFormSheet> {
       amount: double.tryParse(_amountController.text.trim()) ?? 0,
       frequency: _frequency ?? '',
       expenseAccount: _expenseAccount ?? '',
-      dayOfMonth: int.tryParse(_dayController.text.trim()),
+      dayOfMonth:
+          _payOnVisit ? null : int.tryParse(_dayController.text.trim()),
       costCenter: _costCenter,
       supplier: trimmedOrNull(_supplierController),
       defaultPayingAccount: _defaultPayingAccount,
       startDate: iso(_startDate),
       endDate: iso(_endDate),
       notes: trimmedOrNull(_notesController),
+      amountEffectiveFrom: (_isEdit && _amountChanged) ? _effectiveMonth : null,
+      payOnVisit: _payOnVisit,
     );
 
     setState(() => _submitting = true);

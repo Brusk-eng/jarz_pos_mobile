@@ -538,6 +538,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.monthly_expenses.pay_salary';
   static const saveRecurringExpense =
       '/api/method/jarz_pos.api.monthly_expenses.save_recurring_expense';
+  static const removeRecurringAmountChange =
+      '/api/method/jarz_pos.api.monthly_expenses.remove_recurring_amount_change';
   static const setRecurringExpenseStatus =
       '/api/method/jarz_pos.api.monthly_expenses.set_recurring_expense_status';
   // Delegates to `expenses.cancel_expense`, so cancelling a monthly payment

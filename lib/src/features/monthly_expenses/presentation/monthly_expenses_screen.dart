@@ -204,6 +204,7 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
             currency: payload.currency,
             canManage: payload.canManage,
             isBusy: state.isSubmitting,
+            boardMonth: _boardMonth(state),
             onPay: () => _payRecurring(context, state, item),
             onMenuAction: (action) => _handleMenuAction(context, state, item, action),
             // Null hides the cancel affordance. Reversing a payment is gated
@@ -348,6 +349,16 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
         payload: state.payload,
         item: item,
         onSubmit: notifier.saveRecurringExpense,
+        onRemoveAmountChange: (name, effectiveFrom) async {
+          final result = await notifier.removeAmountChange(
+              name: name, effectiveFrom: effectiveFrom);
+          if (result.success && mounted) {
+            _messengerKey.currentState?.showSnackBar(
+              SnackBar(content: Text(l10n.monthlyExpensesAmountHistoryRemoved)),
+            );
+          }
+          return result;
+        },
       ),
     );
 

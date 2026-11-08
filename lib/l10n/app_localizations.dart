@@ -20151,6 +20151,98 @@ abstract class AppLocalizations {
   /// **'Overpaid'**
   String get monthlyExpensesStatusOverpaid;
 
+  /// No description provided for @monthlyExpensesStatusAwaitingVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting visit'**
+  String get monthlyExpensesStatusAwaitingVisit;
+
+  /// No description provided for @monthlyExpensesStatusNoVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'No visit'**
+  String get monthlyExpensesStatusNoVisit;
+
+  /// No description provided for @monthlyExpensesPaidOnVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid on the visit'**
+  String get monthlyExpensesPaidOnVisit;
+
+  /// No description provided for @monthlyExpensesAmountRaised.
+  ///
+  /// In en, this message translates to:
+  /// **'Raised to {amount} from {month} (was {previous})'**
+  String monthlyExpensesAmountRaised(
+    Object amount,
+    Object month,
+    Object previous,
+  );
+
+  /// No description provided for @monthlyExpensesAmountLowered.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowered to {amount} from {month} (was {previous})'**
+  String monthlyExpensesAmountLowered(
+    Object amount,
+    Object month,
+    Object previous,
+  );
+
+  /// No description provided for @monthlyExpensesAmountUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} from {month}'**
+  String monthlyExpensesAmountUpcoming(Object amount, Object month);
+
+  /// No description provided for @monthlyExpensesAppliesFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies from'**
+  String get monthlyExpensesAppliesFromLabel;
+
+  /// No description provided for @monthlyExpensesAppliesFromHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier months keep the old amount.'**
+  String get monthlyExpensesAppliesFromHelper;
+
+  /// No description provided for @monthlyExpensesPayOnVisitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid when the service is done (no fixed day)'**
+  String get monthlyExpensesPayOnVisitLabel;
+
+  /// No description provided for @monthlyExpensesAmountHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount history'**
+  String get monthlyExpensesAmountHistoryTitle;
+
+  /// No description provided for @monthlyExpensesAmountHistoryRemoveTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this change'**
+  String get monthlyExpensesAmountHistoryRemoveTooltip;
+
+  /// No description provided for @monthlyExpensesAmountHistoryRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove amount change?'**
+  String get monthlyExpensesAmountHistoryRemoveTitle;
+
+  /// No description provided for @monthlyExpensesAmountHistoryRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {amount} that starts in {month}? That month and the following ones go back to the previous amount.'**
+  String monthlyExpensesAmountHistoryRemoveBody(Object amount, Object month);
+
+  /// No description provided for @monthlyExpensesAmountHistoryRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount change removed'**
+  String get monthlyExpensesAmountHistoryRemoved;
+
   /// No description provided for @monthlyExpensesLifecyclePaused.
   ///
   /// In en, this message translates to:
@@ -21524,6 +21616,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send to Branches'**
   String get replenishmentTitle;
+
+  /// No description provided for @replenishmentHeaderBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'{coverDays} days cover · {salesDays} days sales'**
+  String replenishmentHeaderBasis(int coverDays, int salesDays);
+
+  /// No description provided for @replenishmentUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'updated {time}'**
+  String replenishmentUpdatedAt(String time);
+
+  /// No description provided for @replenishmentTabLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {count}'**
+  String replenishmentTabLabel(String name, int count);
+
+  /// No description provided for @replenishmentMovesSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Other branches can cover {qty} units'**
+  String replenishmentMovesSummary(String qty);
+
+  /// No description provided for @replenishmentFilterNeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs stock'**
+  String get replenishmentFilterNeeds;
+
+  /// No description provided for @replenishmentFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All items'**
+  String get replenishmentFilterAll;
+
+  /// No description provided for @replenishmentItemDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get replenishmentItemDetails;
+
+  /// No description provided for @replenishmentQtyIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'One more'**
+  String get replenishmentQtyIncrease;
+
+  /// No description provided for @replenishmentQtyDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'One less'**
+  String get replenishmentQtyDecrease;
+
+  /// No description provided for @replenishmentSendShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get replenishmentSendShort;
 
   /// No description provided for @replenishmentCartonCountB2b.
   ///

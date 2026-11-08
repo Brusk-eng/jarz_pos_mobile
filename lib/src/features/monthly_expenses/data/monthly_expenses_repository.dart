@@ -176,6 +176,18 @@ class MonthlyExpensesRepository {
     await _post(ApiEndpoints.saveRecurringExpense, {'payload': draft.toJson()});
   }
 
+  /// Drop one dated step from a recurring expense's amount history.
+  /// `effectiveFrom` is `YYYY-MM-DD`. The server refuses the first row.
+  Future<void> removeRecurringAmountChange({
+    required String name,
+    required String effectiveFrom,
+  }) async {
+    await _post(ApiEndpoints.removeRecurringAmountChange, {
+      'name': name,
+      'effective_from': effectiveFrom,
+    });
+  }
+
   /// `Active` / `Paused` / `Ended`.
   Future<void> setRecurringExpenseStatus({
     required String name,
