@@ -84,6 +84,9 @@ class ManagerOrdersNotifier
   /// Appends the next page; ignored while a load is running or when the
   /// server said there is nothing more.
   Future<void> loadMore() async {
+    // A rebuild for new filters is in flight: valueOrNull still holds the old
+    // list, so its length would be the wrong offset for the new filters.
+    if (state.isLoading) return;
     final current = state.valueOrNull;
     if (current == null || !current.hasMore || current.loadingMore) return;
     final branch = ref.read(selectedBranchProvider);

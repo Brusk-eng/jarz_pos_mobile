@@ -9,7 +9,8 @@ import '../../state/replenishment_providers.dart';
 /// The factory cannot cover everything, but other branches can help.
 ///
 /// Suggestions only: nothing moves until the person presses a request button,
-/// and even then the other branch confirms the handover.
+/// and even then stock only moves once the receiving branch confirms it got
+/// the jars. A move already requested drops out of the plan until then.
 class BranchMovesCard extends ConsumerWidget {
   const BranchMovesCard({
     super.key,

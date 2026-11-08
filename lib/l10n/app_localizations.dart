@@ -21624,7 +21624,7 @@ abstract class AppLocalizations {
   /// No description provided for @replenishmentMovesConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Ask {branch} to send {items} to {target}. Nothing moves until {branch} confirms the handover.'**
+  /// **'Ask {branch} to send {items} to {target}. The stock moves when {target} confirms it received them.'**
   String replenishmentMovesConfirmBody(
     String branch,
     String items,

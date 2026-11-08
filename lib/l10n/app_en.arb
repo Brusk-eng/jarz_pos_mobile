@@ -7775,7 +7775,7 @@
   "@replenishmentMovesRequest": {"placeholders": {"branch": {"type": "String"}}},
   "replenishmentMovesConfirmTitle": "Request from {branch}?",
   "@replenishmentMovesConfirmTitle": {"placeholders": {"branch": {"type": "String"}}},
-  "replenishmentMovesConfirmBody": "Ask {branch} to send {items} to {target}. Nothing moves until {branch} confirms the handover.",
+  "replenishmentMovesConfirmBody": "Ask {branch} to send {items} to {target}. The stock moves when {target} confirms it received them.",
   "@replenishmentMovesConfirmBody": {"placeholders": {"branch": {"type": "String"}, "items": {"type": "String"}, "target": {"type": "String"}}},
   "replenishmentMovesSent": "Request sent to {branch}",
   "@replenishmentMovesSent": {"placeholders": {"branch": {"type": "String"}}},

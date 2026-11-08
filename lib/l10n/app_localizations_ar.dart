@@ -13177,7 +13177,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String items,
     String target,
   ) {
-    return 'هتطلب من $branch إنه يبعت $items إلى $target. مفيش حاجة بتتحرك لحد ما $branch يأكد التسليم.';
+    return 'هتطلب من $branch إنه يبعت $items إلى $target. المخزون بيتحرك لما $target يأكد إنه استلم.';
   }
 
   @override

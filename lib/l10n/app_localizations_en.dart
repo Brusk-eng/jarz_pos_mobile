@@ -13221,7 +13221,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String items,
     String target,
   ) {
-    return 'Ask $branch to send $items to $target. Nothing moves until $branch confirms the handover.';
+    return 'Ask $branch to send $items to $target. The stock moves when $target confirms it received them.';
   }
 
   @override

@@ -5167,7 +5167,7 @@
   "replenishmentMovesFrom": "من {branch}: {items}",
   "replenishmentMovesRequest": "اطلب من {branch}",
   "replenishmentMovesConfirmTitle": "تطلب من {branch}؟",
-  "replenishmentMovesConfirmBody": "هتطلب من {branch} إنه يبعت {items} إلى {target}. مفيش حاجة بتتحرك لحد ما {branch} يأكد التسليم.",
+  "replenishmentMovesConfirmBody": "هتطلب من {branch} إنه يبعت {items} إلى {target}. المخزون بيتحرك لما {target} يأكد إنه استلم.",
   "replenishmentMovesSent": "اتبعت الطلب إلى {branch}",
   "replenishmentMovesFailed": "طلب {branch} فشل: {error}",
   "replenishmentMoveCanSpare": "{branch} يقدر يوفر {qty}",
