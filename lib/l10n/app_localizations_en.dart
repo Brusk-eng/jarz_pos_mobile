@@ -21167,6 +21167,124 @@ class AppLocalizationsEn extends AppLocalizations {
   String get promoLookupNewTotal => 'New total';
 
   @override
+  String get promoLookupTabCustomer => 'Customer';
+
+  @override
+  String get promoLookupTabCode => 'Code';
+
+  @override
+  String get promoCustomerSearchHint => 'Name or phone number';
+
+  @override
+  String get promoCustomerSearch => 'Search';
+
+  @override
+  String get promoCustomerIntro =>
+      'Type a customer name or phone number to see their promo codes: what is active, what they used before and what expired.';
+
+  @override
+  String get promoCustomerQueryTooShort =>
+      'Type at least 3 characters of a name or phone number';
+
+  @override
+  String get promoCustomerLoadFailed => 'Could not look the customer up';
+
+  @override
+  String promoCustomerNoneFound(String query) {
+    return 'No customer found for $query';
+  }
+
+  @override
+  String get promoCustomerTruncated =>
+      'Showing first 10 matches — type more of the name';
+
+  @override
+  String promoCustomerOrderCount(String count) {
+    return 'Orders: $count';
+  }
+
+  @override
+  String get promoCustomerNoOrders => 'No orders yet';
+
+  @override
+  String promoCustomerLastOrder(String order, String date) {
+    return 'Last order $order on $date';
+  }
+
+  @override
+  String promoCustomerLastOrderDate(String date) {
+    return 'Last order on $date';
+  }
+
+  @override
+  String promoCustomerLastOrderId(String order) {
+    return 'Last order $order';
+  }
+
+  @override
+  String get promoCustomerPhoneOnly => 'Phone number only, no customer record';
+
+  @override
+  String get promoCustomerActiveCodes => 'Active personal codes';
+
+  @override
+  String get promoCustomerNoActiveCode => 'No active personal code';
+
+  @override
+  String get promoCustomerPublicCodes => 'Open codes they can use';
+
+  @override
+  String get promoCustomerNoPublicCodes => 'No open codes right now';
+
+  @override
+  String get promoCustomerUsedCodes => 'Used before';
+
+  @override
+  String get promoCustomerNeverUsed => 'Never used a promo code';
+
+  @override
+  String promoCustomerInactiveCodes(String count) {
+    return 'Expired / used-up codes ($count)';
+  }
+
+  @override
+  String get promoCustomerCopyCode => 'Copy code';
+
+  @override
+  String get promoCustomerCodeCopied => 'Code copied';
+
+  @override
+  String promoCustomerUsesLeft(String count) {
+    return 'Uses left for this customer: $count';
+  }
+
+  @override
+  String get promoCustomerUsesUnlimited => 'No use limit for this customer';
+
+  @override
+  String promoCustomerStarts(String date) {
+    return 'Starts $date';
+  }
+
+  @override
+  String promoCustomerValidUntil(String date) {
+    return 'Valid until $date';
+  }
+
+  @override
+  String get promoCustomerUseCancelled => 'Cancelled / reversed';
+
+  @override
+  String promoCustomerUseDiscount(String amount) {
+    return '$amount off';
+  }
+
+  @override
+  String promoCustomerUseDiscountOfTotal(String amount, String total) {
+    return '$amount off a $total order';
+  }
+
+  @override
   String get metaAdsTitle => 'Meta Ads';
 
   @override

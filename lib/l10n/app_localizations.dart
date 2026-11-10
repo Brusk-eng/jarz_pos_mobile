@@ -34931,6 +34931,192 @@ abstract class AppLocalizations {
   /// **'New total'**
   String get promoLookupNewTotal;
 
+  /// No description provided for @promoLookupTabCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get promoLookupTabCustomer;
+
+  /// No description provided for @promoLookupTabCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get promoLookupTabCode;
+
+  /// No description provided for @promoCustomerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name or phone number'**
+  String get promoCustomerSearchHint;
+
+  /// No description provided for @promoCustomerSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get promoCustomerSearch;
+
+  /// No description provided for @promoCustomerIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a customer name or phone number to see their promo codes: what is active, what they used before and what expired.'**
+  String get promoCustomerIntro;
+
+  /// No description provided for @promoCustomerQueryTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Type at least 3 characters of a name or phone number'**
+  String get promoCustomerQueryTooShort;
+
+  /// No description provided for @promoCustomerLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not look the customer up'**
+  String get promoCustomerLoadFailed;
+
+  /// No description provided for @promoCustomerNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer found for {query}'**
+  String promoCustomerNoneFound(String query);
+
+  /// No description provided for @promoCustomerTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing first 10 matches — type more of the name'**
+  String get promoCustomerTruncated;
+
+  /// No description provided for @promoCustomerOrderCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders: {count}'**
+  String promoCustomerOrderCount(String count);
+
+  /// No description provided for @promoCustomerNoOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders yet'**
+  String get promoCustomerNoOrders;
+
+  /// No description provided for @promoCustomerLastOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Last order {order} on {date}'**
+  String promoCustomerLastOrder(String order, String date);
+
+  /// No description provided for @promoCustomerLastOrderDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last order on {date}'**
+  String promoCustomerLastOrderDate(String date);
+
+  /// No description provided for @promoCustomerLastOrderId.
+  ///
+  /// In en, this message translates to:
+  /// **'Last order {order}'**
+  String promoCustomerLastOrderId(String order);
+
+  /// No description provided for @promoCustomerPhoneOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number only, no customer record'**
+  String get promoCustomerPhoneOnly;
+
+  /// No description provided for @promoCustomerActiveCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Active personal codes'**
+  String get promoCustomerActiveCodes;
+
+  /// No description provided for @promoCustomerNoActiveCode.
+  ///
+  /// In en, this message translates to:
+  /// **'No active personal code'**
+  String get promoCustomerNoActiveCode;
+
+  /// No description provided for @promoCustomerPublicCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Open codes they can use'**
+  String get promoCustomerPublicCodes;
+
+  /// No description provided for @promoCustomerNoPublicCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'No open codes right now'**
+  String get promoCustomerNoPublicCodes;
+
+  /// No description provided for @promoCustomerUsedCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Used before'**
+  String get promoCustomerUsedCodes;
+
+  /// No description provided for @promoCustomerNeverUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Never used a promo code'**
+  String get promoCustomerNeverUsed;
+
+  /// No description provided for @promoCustomerInactiveCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired / used-up codes ({count})'**
+  String promoCustomerInactiveCodes(String count);
+
+  /// No description provided for @promoCustomerCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get promoCustomerCopyCode;
+
+  /// No description provided for @promoCustomerCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get promoCustomerCodeCopied;
+
+  /// No description provided for @promoCustomerUsesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses left for this customer: {count}'**
+  String promoCustomerUsesLeft(String count);
+
+  /// No description provided for @promoCustomerUsesUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'No use limit for this customer'**
+  String get promoCustomerUsesUnlimited;
+
+  /// No description provided for @promoCustomerStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts {date}'**
+  String promoCustomerStarts(String date);
+
+  /// No description provided for @promoCustomerValidUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until {date}'**
+  String promoCustomerValidUntil(String date);
+
+  /// No description provided for @promoCustomerUseCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled / reversed'**
+  String get promoCustomerUseCancelled;
+
+  /// No description provided for @promoCustomerUseDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} off'**
+  String promoCustomerUseDiscount(String amount);
+
+  /// No description provided for @promoCustomerUseDiscountOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} off a {total} order'**
+  String promoCustomerUseDiscountOfTotal(String amount, String total);
+
   /// Meta Ads report.
   ///
   /// In en, this message translates to:

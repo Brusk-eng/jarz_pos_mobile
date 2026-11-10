@@ -21146,6 +21146,123 @@ class AppLocalizationsAr extends AppLocalizations {
   String get promoLookupNewTotal => 'الإجمالي الجديد';
 
   @override
+  String get promoLookupTabCustomer => 'العميل';
+
+  @override
+  String get promoLookupTabCode => 'الكود';
+
+  @override
+  String get promoCustomerSearchHint => 'الاسم أو رقم الموبايل';
+
+  @override
+  String get promoCustomerSearch => 'بحث';
+
+  @override
+  String get promoCustomerIntro =>
+      'اكتب اسم العميل أو رقم موبايله عشان تشوف أكواد الخصم بتاعته: الفعال، اللي استخدمه قبل كده، واللي انتهى.';
+
+  @override
+  String get promoCustomerQueryTooShort =>
+      'اكتب 3 حروف أو أرقام على الأقل من الاسم أو الرقم';
+
+  @override
+  String get promoCustomerLoadFailed => 'مقدرناش ندور على العميل';
+
+  @override
+  String promoCustomerNoneFound(String query) {
+    return 'مفيش عميل بالاسم أو الرقم ده: $query';
+  }
+
+  @override
+  String get promoCustomerTruncated => 'بنعرض أول 10 نتايج بس، اكتب الاسم أكتر';
+
+  @override
+  String promoCustomerOrderCount(String count) {
+    return 'عدد الأوردرات: $count';
+  }
+
+  @override
+  String get promoCustomerNoOrders => 'لسه مفيش أوردرات';
+
+  @override
+  String promoCustomerLastOrder(String order, String date) {
+    return 'آخر أوردر $order يوم $date';
+  }
+
+  @override
+  String promoCustomerLastOrderDate(String date) {
+    return 'آخر أوردر يوم $date';
+  }
+
+  @override
+  String promoCustomerLastOrderId(String order) {
+    return 'آخر أوردر $order';
+  }
+
+  @override
+  String get promoCustomerPhoneOnly => 'رقم موبايل بس، مش متسجل كعميل';
+
+  @override
+  String get promoCustomerActiveCodes => 'أكواد الخصم الشخصية الفعالة';
+
+  @override
+  String get promoCustomerNoActiveCode => 'لا يوجد كود خصم شخصي فعال';
+
+  @override
+  String get promoCustomerPublicCodes => 'أكواد عامة يقدر يستخدمها';
+
+  @override
+  String get promoCustomerNoPublicCodes => 'مفيش أكواد عامة دلوقتي';
+
+  @override
+  String get promoCustomerUsedCodes => 'استخدمه قبل كده';
+
+  @override
+  String get promoCustomerNeverUsed => 'عمره ما استخدم كود خصم';
+
+  @override
+  String promoCustomerInactiveCodes(String count) {
+    return 'أكواد منتهية أو مستخدمة ($count)';
+  }
+
+  @override
+  String get promoCustomerCopyCode => 'نسخ الكود';
+
+  @override
+  String get promoCustomerCodeCopied => 'تم نسخ الكود';
+
+  @override
+  String promoCustomerUsesLeft(String count) {
+    return 'مرات الاستخدام الفاضلة للعميل ده: $count';
+  }
+
+  @override
+  String get promoCustomerUsesUnlimited => 'مفيش حد لاستخدام العميل ده';
+
+  @override
+  String promoCustomerStarts(String date) {
+    return 'يبدأ $date';
+  }
+
+  @override
+  String promoCustomerValidUntil(String date) {
+    return 'صالح لحد $date';
+  }
+
+  @override
+  String get promoCustomerUseCancelled => 'اتلغى / اترجع';
+
+  @override
+  String promoCustomerUseDiscount(String amount) {
+    return 'خصم $amount';
+  }
+
+  @override
+  String promoCustomerUseDiscountOfTotal(String amount, String total) {
+    return 'خصم $amount من أوردر $total';
+  }
+
+  @override
   String get metaAdsTitle => 'إعلانات ميتا';
 
   @override

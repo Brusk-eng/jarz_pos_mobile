@@ -108,6 +108,11 @@ abstract final class ApiEndpoints {
   /// order (`order` = Woo order number or invoice name). Login only.
   static const lookupPromoCode =
       '/api/method/jarz_pos.api.promo.lookup_promo_code';
+
+  /// Read-only: a customer's promo codes (personal active, open, used,
+  /// expired) found by name or phone (`query`, >= 3 chars). Login only.
+  static const lookupCustomerPromos =
+      '/api/method/jarz_pos.api.promo.lookup_customer_promos';
   static const submitInvoiceAmendment =
       '/api/method/jarz_pos.api.manager.submit_invoice_amendment';
   static const payInvoice = '/api/method/jarz_pos.api.invoices.pay_invoice';

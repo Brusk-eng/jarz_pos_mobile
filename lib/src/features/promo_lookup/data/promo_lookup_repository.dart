@@ -10,8 +10,8 @@ final promoLookupRepositoryProvider = Provider<PromoLookupRepository>((ref) {
   return PromoLookupRepository(dio);
 });
 
-/// Talks to `jarz_pos.api.promo.lookup_promo_code`. Read-only; the endpoint
-/// only needs a login.
+/// Talks to `jarz_pos.api.promo.lookup_promo_code` and
+/// `lookup_customer_promos`. Read-only; both only need a login.
 class PromoLookupRepository {
   final Dio _dio;
   PromoLookupRepository(this._dio);
@@ -38,5 +38,15 @@ class PromoLookupRepository {
       },
     );
     return PromoLookupResult.fromJson(_payload(response));
+  }
+
+  /// A customer's promo codes, found by [query] (a name, or a phone number
+  /// or its tail). The server refuses fewer than 3 characters.
+  Future<CustomerPromoLookup> lookupCustomerPromos(String query) async {
+    final response = await _dio.get(
+      ApiEndpoints.lookupCustomerPromos,
+      queryParameters: {'query': query.trim()},
+    );
+    return CustomerPromoLookup.fromJson(_payload(response));
   }
 }

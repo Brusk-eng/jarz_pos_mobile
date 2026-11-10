@@ -37,3 +37,41 @@ final promoLookupProvider =
     AsyncNotifierProvider.autoDispose<PromoLookupNotifier, PromoLookupResult?>(
       PromoLookupNotifier.new,
     );
+
+/// The last search on the Customer tab: `AsyncData(null)` before the first
+/// search, then loading / the answer / the error.
+class CustomerPromoLookupNotifier
+    extends AutoDisposeAsyncNotifier<CustomerPromoLookup?> {
+  int _generation = 0;
+
+  /// The server refuses shorter queries; the screen checks first.
+  static const minQueryLength = 3;
+
+  @override
+  Future<CustomerPromoLookup?> build() async => null;
+
+  /// Searches [query] (name or phone). A slower earlier answer never
+  /// overwrites a newer one.
+  Future<void> search(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.length < minQueryLength) return;
+    final generation = ++_generation;
+    state = const AsyncLoading<CustomerPromoLookup?>();
+    final next = await AsyncValue.guard<CustomerPromoLookup?>(
+      () =>
+          ref.read(promoLookupRepositoryProvider).lookupCustomerPromos(trimmed),
+    );
+    if (generation == _generation) state = next;
+  }
+
+  void clear() {
+    _generation++;
+    state = const AsyncData<CustomerPromoLookup?>(null);
+  }
+}
+
+final customerPromoLookupProvider =
+    AsyncNotifierProvider.autoDispose<
+      CustomerPromoLookupNotifier,
+      CustomerPromoLookup?
+    >(CustomerPromoLookupNotifier.new);

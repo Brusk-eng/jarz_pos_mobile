@@ -1,4 +1,6 @@
-// Promo code lookup: the payload of `jarz_pos.api.promo.lookup_promo_code`.
+// Promo code lookup: the payloads of `jarz_pos.api.promo.lookup_promo_code`
+// (one code) and `jarz_pos.api.promo.lookup_customer_promos` (one customer's
+// codes; each `CodeSummary` parses into the same [PromoLookupResult]).
 //
 // Plain classes with hand-written, defensive `fromJson` (the same loose
 // parsing the follow-ups and reports features use): Frappe sends numbers as
@@ -29,6 +31,12 @@ double _double(dynamic value, {double fallback = 0}) {
   if (value is bool) return value ? 1 : 0;
   if (value is num) return value.toDouble();
   return double.tryParse(value.toString().trim()) ?? fallback;
+}
+
+double? _nullableDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is String && value.trim().isEmpty) return null;
+  return _double(value);
 }
 
 bool _bool(dynamic value) => _int(value) != 0;
@@ -303,7 +311,16 @@ class PromoLookupResult {
     this.onWebsite = false,
     this.recentUses = const [],
     this.orderCheck,
+    this.personal = false,
+    this.customerTimesUsed = 0,
+    this.customerRemainingUses,
   });
+
+  /// One `CodeSummary` from `lookup_customer_promos`: the same code shape
+  /// without `found` (a summary is always a real code) and with the
+  /// per-customer counters.
+  factory PromoLookupResult.fromCodeSummary(dynamic raw) =>
+      PromoLookupResult.fromJson({..._map(raw), 'found': true});
 
   factory PromoLookupResult.fromJson(dynamic raw) {
     final json = _map(raw);
@@ -346,6 +363,9 @@ class PromoLookupResult {
       orderCheck: orderCheckRaw is Map
           ? PromoOrderCheck.fromJson(_map(orderCheckRaw))
           : null,
+      personal: _bool(json['personal']),
+      customerTimesUsed: _int(json['customer_times_used']),
+      customerRemainingUses: _nullableInt(json['customer_remaining_uses']),
     );
   }
 
@@ -393,9 +413,179 @@ class PromoLookupResult {
   final List<PromoRecentUse> recentUses;
   final PromoOrderCheck? orderCheck;
 
+  /// Customer lookup only: the code is locked to a customer or phone.
+  final bool personal;
+
+  /// Customer lookup only: Active redemptions by the customer looked up.
+  final int customerTimesUsed;
+
+  /// Customer lookup only: uses this customer has left; null = unlimited
+  /// (or not sent).
+  final int? customerRemainingUses;
+
   bool get isActive => status == PromoStatus.active;
   bool get isUnlimited => usageLimit <= 0;
   bool get hasCap => maxDiscountAmount > 0;
   bool get isLockedToCustomer =>
       customer != null || customerName != null || customerPhone != null;
+
+  /// How many more times the looked-up customer can use the code: the
+  /// smaller of their own allowance and what is left overall. Null when
+  /// neither is limited.
+  int? get usesLeftForCustomer {
+    final own = customerRemainingUses;
+    final overall = remainingUses;
+    if (own == null) return overall;
+    if (overall == null) return own;
+    return own < overall ? own : overall;
+  }
+}
+
+/// `lookup_customer_promos` match mode.
+enum CustomerPromoMatchType {
+  phone('phone'),
+  name('name'),
+  unknown('');
+
+  const CustomerPromoMatchType(this.wire);
+  final String wire;
+
+  static CustomerPromoMatchType fromWire(dynamic value) {
+    final text = _string(value).trim().toLowerCase();
+    for (final type in values) {
+      if (type != unknown && type.wire == text) return type;
+    }
+    return unknown;
+  }
+}
+
+/// One redemption of a promo code by the customer looked up (`UseRow`).
+class PromoUse {
+  const PromoUse({
+    required this.code,
+    required this.invoice,
+    this.wooOrderId,
+    this.date,
+    this.status = '',
+    this.discount = 0,
+    this.orderTotal,
+  });
+
+  factory PromoUse.fromJson(Map<String, dynamic> json) => PromoUse(
+    code: _string(json['code']),
+    invoice: _string(json['invoice']),
+    wooOrderId: _nullableInt(json['woo_order_id']),
+    date: _nullableString(json['date']),
+    status: _string(json['status']),
+    discount: _double(json['discount']),
+    orderTotal: _nullableDouble(json['order_total']),
+  );
+
+  final String code;
+  final String invoice;
+  final int? wooOrderId;
+  final String? date;
+
+  /// `Active` or `Reversed`.
+  final String status;
+
+  /// What the code took off that order.
+  final double discount;
+
+  /// The invoice grand total, when the invoice was found.
+  final double? orderTotal;
+
+  bool get isReversed => status.trim().toLowerCase() == 'reversed';
+}
+
+/// One customer matched by the lookup, with their codes and past uses.
+/// [customer] is null for a phone-only entry (a personal code locked to a
+/// phone that no Customer owns).
+class CustomerPromoEntry {
+  const CustomerPromoEntry({
+    this.customer,
+    this.customerName,
+    this.phone,
+    this.orderCount = 0,
+    this.lastOrderDate,
+    this.lastWooOrderId,
+    this.activeCodes = const [],
+    this.publicCodes = const [],
+    this.inactiveCodes = const [],
+    this.usedCodes = const [],
+  });
+
+  factory CustomerPromoEntry.fromJson(Map<String, dynamic> json) =>
+      CustomerPromoEntry(
+        customer: _nullableString(json['customer']),
+        customerName: _nullableString(json['customer_name']),
+        phone: _nullableString(json['phone']),
+        orderCount: _int(json['order_count']),
+        lastOrderDate: _nullableString(json['last_order_date']),
+        lastWooOrderId: _nullableInt(json['last_woo_order_id']),
+        activeCodes: _codeList(json['active_codes']),
+        publicCodes: _codeList(json['public_codes']),
+        inactiveCodes: _codeList(json['inactive_codes']),
+        usedCodes: [
+          for (final use in _mapList(json['used_codes']))
+            PromoUse.fromJson(use),
+        ],
+      );
+
+  static List<PromoLookupResult> _codeList(dynamic value) => [
+    for (final code in _mapList(value)) PromoLookupResult.fromCodeSummary(code),
+  ];
+
+  /// Customer docname; null for a phone-only entry.
+  final String? customer;
+  final String? customerName;
+  final String? phone;
+  final int orderCount;
+  final String? lastOrderDate;
+  final int? lastWooOrderId;
+
+  /// Personal codes that are active or not started yet.
+  final List<PromoLookupResult> activeCodes;
+
+  /// Codes open to everyone that this customer can still use.
+  final List<PromoLookupResult> publicCodes;
+
+  /// Personal codes that expired, were used up or were disabled.
+  final List<PromoLookupResult> inactiveCodes;
+  final List<PromoUse> usedCodes;
+
+  bool get isPhoneOnly => customer == null;
+
+  /// What to call the entry: name, else docname, else the phone.
+  String get displayName => customerName ?? customer ?? phone ?? '';
+}
+
+/// The whole `lookup_customer_promos` answer.
+class CustomerPromoLookup {
+  const CustomerPromoLookup({
+    required this.query,
+    this.matchType = CustomerPromoMatchType.unknown,
+    this.truncated = false,
+    this.customers = const [],
+  });
+
+  factory CustomerPromoLookup.fromJson(dynamic raw) {
+    final json = _map(raw);
+    return CustomerPromoLookup(
+      query: _string(json['query']),
+      matchType: CustomerPromoMatchType.fromWire(json['match_type']),
+      truncated: _bool(json['truncated']),
+      customers: [
+        for (final entry in _mapList(json['customers']))
+          CustomerPromoEntry.fromJson(entry),
+      ],
+    );
+  }
+
+  final String query;
+  final CustomerPromoMatchType matchType;
+
+  /// More customers matched than were sent (the server caps at 10).
+  final bool truncated;
+  final List<CustomerPromoEntry> customers;
 }

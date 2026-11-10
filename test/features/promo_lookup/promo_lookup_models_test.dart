@@ -216,6 +216,207 @@ void main() {
     });
   });
 
+  group('CustomerPromoLookup.fromJson', () {
+    // The example from CONTRACT.md (promo-customer-lookup), with the
+    // CodeSummary and UseRow examples placed in the customer.
+    final contractCode = {
+      'code': 'BACK96R8TB',
+      'title': 'Win-back one - Amal Bedross',
+      'description': '...',
+      'status': 'expired',
+      'personal': true,
+      'discount_type': 'Percentage',
+      'discount_value': 15.0,
+      'max_discount_amount': 100.0,
+      'min_order_amount': 400.0,
+      'min_on_whole_order': false,
+      'applies_to': 'Whole Order',
+      'scope': [
+        {'type': 'Item', 'name': '...', 'label': '...'},
+      ],
+      'channels': ['woo', 'flutter'],
+      'allow_pickup': true,
+      'stackable': false,
+      'usage_limit': 1,
+      'times_used': 1,
+      'remaining_uses': 0,
+      'per_customer_limit': 1,
+      'customer_times_used': 1,
+      'customer_remaining_uses': 0,
+      'active_from': '2026-10-31 00:03:04',
+      'active_to': '2026-11-07 00:03:04',
+      'on_website': false,
+      'woo_coupon_code': null,
+    };
+    final contractUse = {
+      'code': 'BACK96R8TB',
+      'invoice': 'ACC-SINV-2026-19228-1',
+      'woo_order_id': 20240,
+      'date': '2026-10-31',
+      'status': 'Active',
+      'discount': 90.0,
+      'order_total': 510.0,
+    };
+    final contractExample = {
+      'query': '0122 549',
+      'match_type': 'phone',
+      'truncated': false,
+      'customers': [
+        {
+          'customer': 'Amal Bedross',
+          'customer_name': 'Amal Bedross',
+          'phone': '01225495533',
+          'order_count': 2,
+          'last_order_date': '2026-11-10',
+          'last_woo_order_id': 21658,
+          'active_codes': [],
+          'public_codes': [],
+          'inactive_codes': [contractCode],
+          'used_codes': [contractUse],
+        },
+      ],
+    };
+
+    test('contract example', () {
+      final r = CustomerPromoLookup.fromJson(contractExample);
+
+      expect(r.query, '0122 549');
+      expect(r.matchType, CustomerPromoMatchType.phone);
+      expect(r.truncated, isFalse);
+      expect(r.customers, hasLength(1));
+
+      final c = r.customers.single;
+      expect(c.customer, 'Amal Bedross');
+      expect(c.customerName, 'Amal Bedross');
+      expect(c.displayName, 'Amal Bedross');
+      expect(c.isPhoneOnly, isFalse);
+      expect(c.phone, '01225495533');
+      expect(c.orderCount, 2);
+      expect(c.lastOrderDate, '2026-11-10');
+      expect(c.lastWooOrderId, 21658);
+      expect(c.activeCodes, isEmpty);
+      expect(c.publicCodes, isEmpty);
+
+      final code = c.inactiveCodes.single;
+      expect(code.found, isTrue, reason: 'a summary is always a real code');
+      expect(code.code, 'BACK96R8TB');
+      expect(code.status, PromoStatus.expired);
+      expect(code.personal, isTrue);
+      expect(code.discountType, PromoDiscountType.percentage);
+      expect(code.discountValue, 15.0);
+      expect(code.maxDiscountAmount, 100.0);
+      expect(code.minOrderAmount, 400.0);
+      expect(code.minOnWholeOrder, isFalse);
+      expect(code.appliesTo, PromoAppliesTo.wholeOrder);
+      expect(code.scope.single.label, '...');
+      expect(code.channels, ['woo', 'flutter']);
+      expect(code.allowPickup, isTrue);
+      expect(code.usageLimit, 1);
+      expect(code.timesUsed, 1);
+      expect(code.remainingUses, 0);
+      expect(code.perCustomerLimit, 1);
+      expect(code.customerTimesUsed, 1);
+      expect(code.customerRemainingUses, 0);
+      expect(code.usesLeftForCustomer, 0);
+      expect(code.activeTo, '2026-11-07 00:03:04');
+      expect(code.onWebsite, isFalse);
+      expect(code.wooCouponCode, isNull);
+
+      final use = c.usedCodes.single;
+      expect(use.code, 'BACK96R8TB');
+      expect(use.invoice, 'ACC-SINV-2026-19228-1');
+      expect(use.wooOrderId, 20240);
+      expect(use.date, '2026-10-31');
+      expect(use.isReversed, isFalse);
+      expect(use.discount, 90.0);
+      expect(use.orderTotal, 510.0);
+    });
+
+    test('phone-only entry, ints as doubles, missing lists, nulls', () {
+      final r = CustomerPromoLookup.fromJson({
+        'query': 'mon',
+        'match_type': 'something-new',
+        'truncated': 1,
+        'customers': [
+          {
+            'customer': null,
+            'customer_name': null,
+            'phone': '01000000001',
+            'order_count': 3.0,
+            'last_order_date': null,
+            'last_woo_order_id': 0,
+            'active_codes': [
+              {
+                'code': 'X1',
+                'status': 'not_started',
+                'discount_type': 'Fixed Amount',
+                'discount_value': '50',
+                'usage_limit': 0,
+                'remaining_uses': null,
+                'customer_remaining_uses': 2.0,
+              },
+              'junk',
+            ],
+            'used_codes': [
+              {
+                'code': 'X0',
+                'invoice': 'ACC-SINV-2026-1',
+                'woo_order_id': '',
+                'status': 'Reversed',
+                'discount': 25,
+                'order_total': null,
+              },
+            ],
+          },
+          'junk',
+        ],
+      });
+
+      expect(r.matchType, CustomerPromoMatchType.unknown);
+      expect(r.truncated, isTrue);
+      expect(r.customers, hasLength(1));
+      final c = r.customers.single;
+      expect(c.isPhoneOnly, isTrue);
+      expect(c.displayName, '01000000001');
+      expect(c.orderCount, 3);
+      expect(c.lastWooOrderId, 0);
+      expect(c.publicCodes, isEmpty);
+      expect(c.inactiveCodes, isEmpty);
+      final code = c.activeCodes.single;
+      expect(code.status, PromoStatus.notStarted);
+      expect(code.discountType, PromoDiscountType.fixedAmount);
+      expect(code.discountValue, 50.0);
+      expect(code.personal, isFalse);
+      expect(code.customerRemainingUses, 2);
+      expect(code.usesLeftForCustomer, 2);
+      final use = c.usedCodes.single;
+      expect(use.wooOrderId, isNull);
+      expect(use.isReversed, isTrue);
+      expect(use.discount, 25.0);
+      expect(use.orderTotal, isNull);
+      expect(use.date, isNull);
+    });
+
+    test('empty or odd payloads do not throw', () {
+      final empty = CustomerPromoLookup.fromJson(null);
+      expect(empty.customers, isEmpty);
+      expect(empty.query, '');
+      final noList = CustomerPromoLookup.fromJson({'customers': 'x'});
+      expect(noList.customers, isEmpty);
+    });
+
+    test('uses left takes the smaller of own and overall', () {
+      final code = PromoLookupResult.fromCodeSummary({
+        'code': 'Y',
+        'remaining_uses': 1,
+        'customer_remaining_uses': 3,
+      });
+      expect(code.usesLeftForCustomer, 1);
+      final unlimited = PromoLookupResult.fromCodeSummary({'code': 'Z'});
+      expect(unlimited.usesLeftForCustomer, isNull);
+    });
+  });
+
   group('promoOfferText', () {
     String money(num v) => '${v.toStringAsFixed(0)} EGP';
     String number(num v) => v == v.roundToDouble() ? '${v.toInt()}' : '$v';

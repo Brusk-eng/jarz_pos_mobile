@@ -1,56 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'package:jarz_pos/l10n/app_localizations.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/utils/order_display_id.dart';
 import '../../data/models/promo_lookup_models.dart';
+import 'promo_code_parts.dart';
 
-/// The offer in one plain line: "10% off the whole order, up to 150 EGP",
-/// "50 EGP off the whole order", "Free delivery".
-///
-/// [money] and [number] are passed in so the line can be built (and tested)
-/// without a widget tree.
-String promoOfferText(
-  AppLocalizations l10n,
-  PromoLookupResult result, {
-  required String Function(num amount) money,
-  required String Function(num value) number,
-}) {
-  final target = switch (result.appliesTo) {
-    PromoAppliesTo.specificItems => l10n.promoLookupTargetItems,
-    PromoAppliesTo.itemGroups => l10n.promoLookupTargetGroups,
-    _ => l10n.promoLookupTargetWholeOrder,
-  };
-  switch (result.discountType) {
-    case PromoDiscountType.percentage:
-      final percent = number(result.discountValue);
-      return result.hasCap
-          ? l10n.promoLookupOfferPercentCapped(
-              percent,
-              target,
-              money(result.maxDiscountAmount),
-            )
-          : l10n.promoLookupOfferPercent(percent, target);
-    case PromoDiscountType.fixedAmount:
-      return l10n.promoLookupOfferFixed(money(result.discountValue), target);
-    case PromoDiscountType.freeDelivery:
-      return l10n.promoLookupOfferFreeDelivery;
-    case PromoDiscountType.unknown:
-      return l10n.promoLookupOfferUnknown;
-  }
-}
-
-/// The localized label for a code's [PromoStatus].
-String promoStatusLabel(AppLocalizations l10n, PromoLookupResult result) =>
-    switch (result.status) {
-      PromoStatus.active => l10n.promoLookupStatusActive,
-      PromoStatus.disabled => l10n.promoLookupStatusDisabled,
-      PromoStatus.notStarted => l10n.promoLookupStatusNotStarted,
-      PromoStatus.expired => l10n.promoLookupStatusExpired,
-      PromoStatus.usedUp => l10n.promoLookupStatusUsedUp,
-      PromoStatus.unknown => l10n.promoLookupStatusUnknown(result.rawStatus),
-    };
+// The helpers moved to promo_code_parts.dart; re-exported so existing
+// imports of this file keep working.
+export 'promo_code_parts.dart' show promoOfferText, promoStatusLabel;
 
 /// Everything one lookup answered: not-found, or the code card, its recent
 /// uses and the order check.
@@ -63,7 +21,7 @@ class PromoLookupResultView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     if (!result.found) {
-      return _NotFoundCard(
+      return PromoNotFoundCard(
         text: l10n.promoLookupNotFound(result.code.toUpperCase()),
       );
     }
@@ -86,141 +44,6 @@ class PromoLookupResultView extends StatelessWidget {
 String _money(BuildContext context, num amount) =>
     formatCurrency(context, amount);
 
-class _NotFoundCard extends StatelessWidget {
-  const _NotFoundCard({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            Icon(Icons.search_off, color: theme.colorScheme.outline, size: 32),
-            const SizedBox(width: 12),
-            Expanded(child: Text(text, style: theme.textTheme.titleMedium)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.result});
-
-  final PromoLookupResult result;
-
-  @override
-  Widget build(BuildContext context) {
-    final (Color fg, Color bg, IconData icon) = switch (result.status) {
-      PromoStatus.active => (
-        Colors.green.shade800,
-        Colors.green.shade50,
-        Icons.check_circle,
-      ),
-      PromoStatus.expired || PromoStatus.usedUp => (
-        Colors.red.shade800,
-        Colors.red.shade50,
-        Icons.cancel,
-      ),
-      _ => (
-        Colors.blueGrey.shade700,
-        Colors.blueGrey.shade50,
-        Icons.pause_circle,
-      ),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: fg.withValues(alpha: 0.4)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: fg, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            promoStatusLabel(context.l10n, result),
-            style: TextStyle(
-              color: fg,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Label on the start side, value filling the rest.
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({required this.label, this.value, this.child});
-
-  final String label;
-  final String? value;
-  final Widget? child;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child:
-                child ??
-                Text(
-                  value ?? '',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Codes, order numbers and phones are Latin and must read left to right
-/// inside an Arabic sentence too.
-class _LtrText extends StatelessWidget {
-  const _LtrText(this.text, {this.style});
-
-  final String text;
-  final TextStyle? style;
-
-  @override
-  Widget build(BuildContext context) {
-    final base = Theme.of(
-      context,
-    ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600);
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Text(text, textDirection: TextDirection.ltr, style: style ?? base),
-    );
-  }
-}
-
 class _CodeCard extends StatelessWidget {
   const _CodeCard({required this.result});
 
@@ -233,17 +56,8 @@ class _CodeCard extends StatelessWidget {
     String money(num v) => _money(context, v);
     String yesNo(bool v) => v ? l10n.promoLookupYes : l10n.promoLookupNo;
 
-    final minText = result.minOrderAmount <= 0
-        ? l10n.promoLookupMinNone
-        : result.minOnWholeOrder
-        ? l10n.promoLookupMinWholeOrder(money(result.minOrderAmount))
-        : l10n.promoLookupMinEligibleOnly(money(result.minOrderAmount));
-
-    final appliesText = switch (result.appliesTo) {
-      PromoAppliesTo.specificItems => l10n.promoLookupAppliesItems,
-      PromoAppliesTo.itemGroups => l10n.promoLookupAppliesGroups,
-      _ => l10n.promoLookupAppliesWholeOrder,
-    };
+    final minText = promoMinOrderText(l10n, result, money: money);
+    final appliesText = promoAppliesText(l10n, result);
 
     final usesText = result.isUnlimited
         ? l10n.promoLookupUsesUnlimited(formatCount(context, result.timesUsed))
@@ -275,7 +89,7 @@ class _CodeCard extends StatelessWidget {
                     letterSpacing: 1,
                   ),
                 ),
-                _StatusChip(result: result),
+                PromoStatusChip(result: result),
               ],
             ),
             if (result.title != null) ...[
@@ -323,8 +137,8 @@ class _CodeCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            _DetailRow(label: l10n.promoLookupMinOrder, value: minText),
-            _DetailRow(
+            PromoDetailRow(label: l10n.promoLookupMinOrder, value: minText),
+            PromoDetailRow(
               label: l10n.promoLookupAppliesTo,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,27 +172,27 @@ class _CodeCard extends StatelessWidget {
                 ],
               ),
             ),
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupValidFrom,
               value: result.activeFrom == null
                   ? l10n.promoLookupNoStartDate
                   : formatDateString(context, result.activeFrom),
             ),
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupValidTo,
               value: result.activeTo == null
                   ? l10n.promoLookupNoEndDate
                   : formatDateString(context, result.activeTo),
             ),
-            _DetailRow(label: l10n.promoLookupUses, value: usesText),
+            PromoDetailRow(label: l10n.promoLookupUses, value: usesText),
             if (result.remainingUses != null)
-              _DetailRow(
+              PromoDetailRow(
                 label: l10n.promoLookupRemaining,
                 value: l10n.promoLookupRemainingCount(
                   formatCount(context, result.remainingUses!),
                 ),
               ),
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupPerCustomer,
               value: result.perCustomerLimit <= 0
                   ? l10n.promoLookupUnlimited
@@ -386,28 +200,24 @@ class _CodeCard extends StatelessWidget {
                       formatCount(context, result.perCustomerLimit),
                     ),
             ),
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupPickup,
               value: result.allowPickup
                   ? l10n.promoLookupAllowed
                   : l10n.promoLookupNotAllowed,
             ),
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupStackable,
               value: result.stackable
                   ? l10n.promoLookupStackableYes
                   : l10n.promoLookupStackableNo,
             ),
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupChannels,
-              value: result.channels.isEmpty
-                  ? l10n.promoLookupAllChannels
-                  : result.channels.join(
-                      l10n.localeName.startsWith('ar') ? '، ' : ', ',
-                    ),
+              value: promoChannelsText(l10n, result.channels),
             ),
             if (result.isLockedToCustomer)
-              _DetailRow(
+              PromoDetailRow(
                 label: l10n.promoLookupLockedCustomer,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,11 +230,11 @@ class _CodeCard extends StatelessWidget {
                         ),
                       ),
                     if (result.customerPhone != null)
-                      _LtrText(result.customerPhone!),
+                      PromoLtrText(result.customerPhone!),
                   ],
                 ),
               ),
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupOnWebsite,
               value: result.onWebsite && result.wooCouponCode != null
                   ? l10n.promoLookupOnWebsiteYes(result.wooCouponCode!)
@@ -494,7 +304,7 @@ class _RecentUseRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _LtrText(
+                PromoLtrText(
                   orderDisplayId(use.invoice, wooOrderId: use.wooOrderId),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
@@ -512,18 +322,7 @@ class _RecentUseRow extends StatelessWidget {
               ],
             ),
           ),
-          if (reversed)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                l10n.promoLookupUseReversed,
-                style: TextStyle(color: Colors.red.shade800, fontSize: 12),
-              ),
-            ),
+          if (reversed) PromoReversedTag(label: l10n.promoLookupUseReversed),
         ],
       ),
     );
@@ -573,27 +372,27 @@ class _OrderCheckCard extends StatelessWidget {
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _DetailRow(
+          PromoDetailRow(
             label: l10n.promoLookupOrder,
-            child: _LtrText(
+            child: PromoLtrText(
               orderDisplayId(check.invoice, wooOrderId: check.wooOrderId),
             ),
           ),
           if (check.customerName != null)
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupCustomer,
               value: check.customerName,
             ),
           if (check.invoiceStatus.trim().isNotEmpty)
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupOrderStatus,
               value: check.invoiceStatus,
             ),
-          _DetailRow(
+          PromoDetailRow(
             label: l10n.promoLookupCurrentTotal,
             value: money(check.currentTotal),
           ),
-          _DetailRow(
+          PromoDetailRow(
             label: l10n.promoLookupCurrentCodes,
             child: check.currentCodes.isEmpty
                 ? Text(
@@ -615,17 +414,17 @@ class _OrderCheckCard extends StatelessWidget {
                   ),
           ),
           if (check.currentPromoDiscount > 0)
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupCurrentPromoDiscount,
               value: money(check.currentPromoDiscount),
             ),
           if (check.deliveryAmount > 0)
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupDelivery,
               value: money(check.deliveryAmount),
             ),
           if (check.waivedDelivery > 0)
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupWaivedDelivery,
               value: money(check.waivedDelivery),
             ),
@@ -656,12 +455,12 @@ class _OrderCheckCard extends StatelessWidget {
             Text(check.reason!, style: theme.textTheme.bodyMedium),
           ],
           const SizedBox(height: 8),
-          _DetailRow(
+          PromoDetailRow(
             label: l10n.promoLookupDiscount,
             value: money(check.discountAmount),
           ),
           if (check.freeDelivery)
-            _DetailRow(
+            PromoDetailRow(
               label: l10n.promoLookupFreeDelivery,
               value: l10n.promoLookupYes,
             ),
