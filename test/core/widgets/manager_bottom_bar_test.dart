@@ -512,6 +512,64 @@ void main() {
       );
     });
 
+    testWidgets('adds cash with couriers and a combined total', (tester) async {
+      await pumpCard(
+        tester,
+        () async => DashboardSummary(
+          branches: [
+            BranchBalance(
+              name: 'Zayed',
+              title: 'Zayed',
+              cashAccount: 'Cash Zayed - J',
+              balance: 1200,
+              courierBalance: 3000,
+            ),
+            BranchBalance(
+              name: 'Nasr City',
+              title: 'Nasr City',
+              cashAccount: 'Cash Nasr - J',
+              balance: 3450.5,
+            ),
+          ],
+          totalBalance: 4650.5,
+          totalCourierBalance: 3000,
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      String keyed(String k) =>
+          tester.widget<Text>(find.byKey(ValueKey(k))).data!;
+      expect(keyed('branch-cash-total'), contains('4,650.50'));
+      expect(keyed('branch-cash-courier-total'), contains('3,000.00'));
+      expect(keyed('branch-cash-combined-total'), contains('7,650.50'));
+      expect(find.text('With couriers'), findsOneWidget);
+      // Ordered by drawer + couriers: Zayed (4,200) above Nasr City (3,450.50).
+      expect(
+        tester.getTopLeft(find.text('Zayed')).dy,
+        lessThan(tester.getTopLeft(find.text('Nasr City')).dy),
+      );
+    });
+
+    test('summary parses the courier fields and tolerates an old server', () {
+      final withCouriers = DashboardSummary.fromJson({
+        'branches': [
+          {'name': 'Zayed', 'balance': 100, 'courier_balance': 50},
+        ],
+        'total_balance': 100,
+        'total_courier_balance': 50,
+      });
+      expect(withCouriers.branches.single.combinedBalance, 150);
+      expect(withCouriers.totalCombinedBalance, 150);
+
+      final old = DashboardSummary.fromJson({
+        'branches': [
+          {'name': 'Zayed', 'balance': 100},
+        ],
+        'total_balance': 100,
+      });
+      expect(old.totalCourierBalance, 0);
+      expect(old.totalCombinedBalance, 100);
+    });
+
     testWidgets('a failure stays inside the card with a retry', (tester) async {
       await pumpCard(tester, () async => throw Exception('403'));
       await tester.pump();

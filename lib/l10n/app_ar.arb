@@ -7014,6 +7014,8 @@
   "rptRevUpdatedAt": "آخر تحديث {time}",
   "rptRevBranchCashTitle": "النقدية في الفروع الآن",
   "rptRevBranchCashError": "تعذر تحميل نقدية الفروع",
+  "rptRevBranchCashDrawer": "في الدرج",
+  "rptRevBranchCashCouriers": "مع المندوبين",
   "managerBarOrders": "الطلبات",
   "managerBarProducts": "المنتجات",
   "managerBarMore": "المزيد",

@@ -19568,6 +19568,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rptRevBranchCashError => 'تعذر تحميل نقدية الفروع';
 
   @override
+  String get rptRevBranchCashDrawer => 'في الدرج';
+
+  @override
+  String get rptRevBranchCashCouriers => 'مع المندوبين';
+
+  @override
   String get managerBarOrders => 'الطلبات';
 
   @override

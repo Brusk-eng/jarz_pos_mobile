@@ -1357,50 +1357,86 @@ class BranchCashCard extends ConsumerWidget {
     final summary = async.valueOrNull;
     if (summary != null) {
       final branches = [...summary.branches]
-        ..sort((a, b) => b.balance.compareTo(a.balance));
+        ..sort((a, b) => b.combinedBalance.compareTo(a.combinedBalance));
+      const figures = [FontFeature.tabularFigures()];
+      Color? tint(double v) => v < 0 ? theme.colorScheme.error : null;
+      final smallMuted = theme.textTheme.bodySmall?.copyWith(color: muted);
+      // One labelled amount on a line: label on the start side, figure on
+      // the end side. Stacked rather than three columns so a full
+      // "EGP 12,345.00" never has to squeeze into a third of a phone.
+      Widget line(
+        String label,
+        double v, {
+        Key? key,
+        bool bold = false,
+        TextStyle? labelStyle,
+      }) =>
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: labelStyle ??
+                      (bold
+                          ? const TextStyle(fontWeight: FontWeight.bold)
+                          : null),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                money(v),
+                key: key,
+                style: TextStyle(
+                  fontWeight: bold ? FontWeight.bold : null,
+                  fontFeatures: figures,
+                  color: tint(v),
+                ),
+              ),
+            ],
+          );
       body = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (final b in branches)
             Padding(
-              padding: const EdgeInsetsDirectional.only(top: 6),
-              child: Row(
+              padding: const EdgeInsetsDirectional.only(top: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      b.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
+                  line(b.title, b.combinedBalance),
+                  const SizedBox(height: 2),
                   Text(
-                    money(b.balance),
-                    style: TextStyle(
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                      color: b.balance < 0 ? theme.colorScheme.error : null,
-                    ),
+                    '${l10n.rptRevBranchCashDrawer} ${money(b.balance)}'
+                    '  ·  '
+                    '${l10n.rptRevBranchCashCouriers} ${money(b.courierBalance)}',
+                    maxLines: 2,
+                    style: smallMuted?.copyWith(fontFeatures: figures),
                   ),
                 ],
               ),
             ),
           const Divider(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.managerTotalCash,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              Text(
-                money(summary.totalBalance),
-                key: const ValueKey('branch-cash-total'),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontFeatures: [FontFeature.tabularFigures()],
-                ),
-              ),
-            ],
+          line(
+            l10n.rptRevBranchCashDrawer,
+            summary.totalBalance,
+            key: const ValueKey('branch-cash-total'),
+            labelStyle: smallMuted,
+          ),
+          const SizedBox(height: 4),
+          line(
+            l10n.rptRevBranchCashCouriers,
+            summary.totalCourierBalance,
+            key: const ValueKey('branch-cash-courier-total'),
+            labelStyle: smallMuted,
+          ),
+          const SizedBox(height: 6),
+          line(
+            l10n.managerTotalCash,
+            summary.totalCombinedBalance,
+            key: const ValueKey('branch-cash-combined-total'),
+            bold: true,
           ),
         ],
       );

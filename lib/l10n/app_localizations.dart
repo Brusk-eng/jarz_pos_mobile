@@ -32396,6 +32396,18 @@ abstract class AppLocalizations {
   /// **'Could not load branch cash'**
   String get rptRevBranchCashError;
 
+  /// Branch cash card: label for cash physically in the branch drawer.
+  ///
+  /// In en, this message translates to:
+  /// **'In drawer'**
+  String get rptRevBranchCashDrawer;
+
+  /// Branch cash card: label for cash still out with couriers, not yet settled.
+  ///
+  /// In en, this message translates to:
+  /// **'With couriers'**
+  String get rptRevBranchCashCouriers;
+
   /// Manager bottom bar tab that opens the orders Kanban.
   ///
   /// In en, this message translates to:

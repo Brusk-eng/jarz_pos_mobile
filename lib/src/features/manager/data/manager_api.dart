@@ -163,13 +163,27 @@ class ManagerApi {
 
 class DashboardSummary {
   final List<BranchBalance> branches;
+  /// Cash in the branch drawers (POS cash accounts).
   final double totalBalance;
-  DashboardSummary({required this.branches, required this.totalBalance});
+
+  /// Cash still out with couriers (unsettled, net of the courier's shipping).
+  final double totalCourierBalance;
+
+  /// Drawer cash plus cash with couriers.
+  double get totalCombinedBalance => totalBalance + totalCourierBalance;
+
+  DashboardSummary({
+    required this.branches,
+    required this.totalBalance,
+    this.totalCourierBalance = 0.0,
+  });
   factory DashboardSummary.fromJson(Map<String, dynamic> json) => DashboardSummary(
         branches: (json['branches'] as List<dynamic>? ?? const [])
             .map((e) => BranchBalance.fromJson(e as Map<String, dynamic>))
             .toList(),
         totalBalance: (json['total_balance'] as num?)?.toDouble() ?? 0.0,
+        totalCourierBalance:
+            (json['total_courier_balance'] as num?)?.toDouble() ?? 0.0,
       );
 }
 
@@ -191,12 +205,25 @@ class BranchBalance {
   final String title;
   final String? cashAccount;
   final double balance;
-  BranchBalance({required this.name, required this.title, required this.cashAccount, required this.balance});
+
+  /// This branch's cash still out with couriers.
+  final double courierBalance;
+
+  double get combinedBalance => balance + courierBalance;
+
+  BranchBalance({
+    required this.name,
+    required this.title,
+    required this.cashAccount,
+    required this.balance,
+    this.courierBalance = 0.0,
+  });
   factory BranchBalance.fromJson(Map<String, dynamic> json) => BranchBalance(
         name: json['name'] as String,
         title: (json['title'] as String?) ?? json['name'] as String,
         cashAccount: json['cash_account'] as String?,
         balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+        courierBalance: (json['courier_balance'] as num?)?.toDouble() ?? 0.0,
       );
 }
 

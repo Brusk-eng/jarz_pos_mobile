@@ -19589,6 +19589,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rptRevBranchCashError => 'Could not load branch cash';
 
   @override
+  String get rptRevBranchCashDrawer => 'In drawer';
+
+  @override
+  String get rptRevBranchCashCouriers => 'With couriers';
+
+  @override
   String get managerBarOrders => 'Orders';
 
   @override
