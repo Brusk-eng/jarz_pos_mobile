@@ -21366,4 +21366,64 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get metaAdsStatusDeleted => 'محذوف';
+
+  @override
+  String get metaAdsBlendedRoas => 'العائد الإجمالي على الإعلانات';
+
+  @override
+  String get metaAdsBlendedSubtitle =>
+      'كل مبيعات الموقع والفروع والشات قصاد كل صرف ميتا';
+
+  @override
+  String metaAdsBlendedRevenueOfSpend(String revenue, String spend) {
+    return '$revenue مبيعات / $spend صرف';
+  }
+
+  @override
+  String get metaAdsBlendedOrders => 'الطلبات';
+
+  @override
+  String get metaAdsBlendedAov => 'متوسط الطلب';
+
+  @override
+  String get metaAdsBlendedWholeAccount =>
+      'الرقم ده للحساب الإعلاني كله، مش للحملة أو المجموعة المختارة بس.';
+
+  @override
+  String get metaAdsBlendedWhatsCounted => 'إيه اللي محسوب';
+
+  @override
+  String get metaAdsBlendedIncluded => 'محسوب';
+
+  @override
+  String get metaAdsBlendedExcluded => 'مش محسوب';
+
+  @override
+  String metaAdsBlendedGroupLine(String orders, String revenue) {
+    return '$orders طلب · $revenue';
+  }
+
+  @override
+  String get metaAdsGroupWebsite => 'الموقع';
+
+  @override
+  String get metaAdsGroupPos => 'الفروع والشات';
+
+  @override
+  String get metaAdsGroupWhatsappFollowup => 'متابعات واتساب';
+
+  @override
+  String get metaAdsGroupB2b => 'B2B';
+
+  @override
+  String get metaAdsGroupStaff => 'الموظفين';
+
+  @override
+  String get metaAdsGroupSamples => 'العينات';
+
+  @override
+  String get metaAdsGroupTalabat => 'طلبات';
+
+  @override
+  String get metaAdsGroupPartner => 'شركاء آخرون';
 }

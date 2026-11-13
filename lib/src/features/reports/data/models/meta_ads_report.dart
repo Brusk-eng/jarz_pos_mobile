@@ -26,6 +26,10 @@ class MetaAdsReport {
   /// Short English caveats from the backend, shown as-is.
   final List<String> notes;
 
+  /// Every retail sale in the range against all Meta spend. Account-wide:
+  /// it ignores the campaign / ad set filters and the level.
+  final MetaAdsBlended blended;
+
   const MetaAdsReport({
     this.configured = true,
     this.level = MetaAdsLevel.ad,
@@ -38,6 +42,7 @@ class MetaAdsReport {
     this.campaigns = const [],
     this.adsets = const [],
     this.notes = const [],
+    this.blended = const MetaAdsBlended(),
   });
 
   factory MetaAdsReport.fromJson(JsonMap json) {
@@ -57,8 +62,75 @@ class MetaAdsReport {
       ),
       adsets: ReportJson.listOf(filters['adsets'], MetaAdsFilterOption.fromJson),
       notes: ReportJson.strings(json['notes']),
+      blended: MetaAdsBlended.fromJson(ReportJson.map(json['blended'])),
     );
   }
+}
+
+/// The `blended` block: every website and shop/chat sale in the period
+/// against total Meta spend. A backend that predates it (key missing or null)
+/// reads as all zeros with no groups.
+class MetaAdsBlended {
+  final double spend;
+  final int orders;
+  final double revenue;
+  final double roas;
+  final double avgOrderValue;
+
+  /// Groups counted in [revenue] (`website`, `pos`), in the backend's order.
+  final List<MetaAdsBlendedGroup> included;
+
+  /// Groups left out (`whatsapp_followup`, `b2b`, `staff`, `samples`,
+  /// `talabat`, `partner`), in the backend's order.
+  final List<MetaAdsBlendedGroup> excluded;
+
+  const MetaAdsBlended({
+    this.spend = 0,
+    this.orders = 0,
+    this.revenue = 0,
+    this.roas = 0,
+    this.avgOrderValue = 0,
+    this.included = const [],
+    this.excluded = const [],
+  });
+
+  factory MetaAdsBlended.fromJson(JsonMap j) => MetaAdsBlended(
+    spend: ReportJson.dbl(j['spend']),
+    orders: ReportJson.integer(j['orders']),
+    revenue: ReportJson.dbl(j['revenue']),
+    roas: ReportJson.dbl(j['roas']),
+    avgOrderValue: ReportJson.dbl(j['avg_order_value']),
+    included: ReportJson.listOf(j['included'], MetaAdsBlendedGroup.fromJson)
+        .where((g) => g.group.isNotEmpty)
+        .toList(),
+    excluded: ReportJson.listOf(j['excluded'], MetaAdsBlendedGroup.fromJson)
+        .where((g) => g.group.isNotEmpty)
+        .toList(),
+  );
+
+  /// True when there is nothing to break down (old backend or empty range).
+  bool get hasGroups => included.isNotEmpty || excluded.isNotEmpty;
+}
+
+/// One row of `blended.included` / `blended.excluded`.
+class MetaAdsBlendedGroup {
+  /// The backend key, lower-cased: `website`, `pos`, `whatsapp_followup`,
+  /// `b2b`, `staff`, `samples`, `talabat`, `partner`.
+  final String group;
+  final int orders;
+  final double revenue;
+
+  const MetaAdsBlendedGroup({
+    required this.group,
+    this.orders = 0,
+    this.revenue = 0,
+  });
+
+  factory MetaAdsBlendedGroup.fromJson(JsonMap j) => MetaAdsBlendedGroup(
+    group: ReportJson.str(j['group']).trim().toLowerCase(),
+    orders: ReportJson.integer(j['orders']),
+    revenue: ReportJson.dbl(j['revenue']),
+  );
 }
 
 /// The entity the rows describe. [apiValue] is what the endpoint's `level`

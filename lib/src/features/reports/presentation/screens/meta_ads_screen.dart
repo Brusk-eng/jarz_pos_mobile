@@ -95,6 +95,7 @@ class _MetaAdsScreenState extends ConsumerState<MetaAdsScreen> {
                 report: r,
                 level: q.level,
                 sort: filters.sort,
+                filtered: q.campaignId != null || q.adsetId != null,
                 onRowTap: q.level.child == null ? null : notifier.drillInto,
               ),
             ],
@@ -340,6 +341,10 @@ class MetaAdsResults extends StatelessWidget {
   final MetaAdsLevel level;
   final MetaAdsSort sort;
 
+  /// A campaign or ad set filter is active: the blended card says it still
+  /// covers the whole account.
+  final bool filtered;
+
   /// Drill-down; null at ad level (no level below it).
   final ValueChanged<MetaAdsRow>? onRowTap;
 
@@ -348,6 +353,7 @@ class MetaAdsResults extends StatelessWidget {
     required this.report,
     required this.level,
     required this.sort,
+    this.filtered = false,
     this.onRowTap,
   });
 
@@ -362,6 +368,12 @@ class MetaAdsResults extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          MetaAdsBlendedCard(
+            blended: report.blended,
+            currency: report.currency,
+            filtered: filtered,
+          ),
+          const SizedBox(height: 8),
           _KpiGrid(totals: report.totals, currency: report.currency),
           if (fetched != null)
             Padding(
@@ -406,6 +418,260 @@ class MetaAdsResults extends StatelessWidget {
     if (dt == null) return raw;
     return formatDateTime(context, dt, pattern: 'MMM d, h:mm a');
   }
+}
+
+/// Blended ROAS: every website and shop/chat sale in the period against all
+/// Meta spend. Account-wide, so it is the same at every level and filter; a
+/// caption says so when a campaign or ad set filter is active.
+class MetaAdsBlendedCard extends StatelessWidget {
+  final MetaAdsBlended blended;
+  final String currency;
+  final bool filtered;
+
+  const MetaAdsBlendedCard({
+    super.key,
+    required this.blended,
+    required this.currency,
+    this.filtered = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final b = blended;
+    final muted = theme.colorScheme.onSurfaceVariant;
+    // Neutral on purpose: break-even ROAS depends on product margin, not on 1.0x.
+    final roasColor = theme.colorScheme.onSurface;
+
+    return Card(
+      key: const ValueKey('meta-ads-blended'),
+      margin: EdgeInsetsDirectional.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.insights_outlined, size: 18, color: muted),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        l10n.metaAdsBlendedRoas,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.metaAdsBlendedSubtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  metaAdsRoas(context, b.roas),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: roasColor,
+                  ),
+                ),
+                Text(
+                  l10n.metaAdsBlendedRevenueOfSpend(
+                    formatCompactCurrency(
+                      context,
+                      b.revenue,
+                      currencyCode: currency,
+                    ),
+                    formatCompactCurrency(
+                      context,
+                      b.spend,
+                      currencyCode: currency,
+                    ),
+                  ),
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 6,
+                  children: [
+                    _Metric(
+                      label: l10n.metaAdsBlendedOrders,
+                      value: formatCount(context, b.orders),
+                    ),
+                    _Metric(
+                      label: l10n.metaAdsBlendedAov,
+                      value: b.orders > 0
+                          ? formatCurrency(
+                              context,
+                              b.avgOrderValue,
+                              currencyCode: currency,
+                            )
+                          : '—',
+                    ),
+                  ],
+                ),
+                if (filtered) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.metaAdsBlendedWholeAccount,
+                    key: const ValueKey('meta-ads-blended-whole-account'),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: muted,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (b.hasGroups)
+            ExpansionTile(
+              key: const ValueKey('meta-ads-blended-breakdown'),
+              shape: const Border(),
+              collapsedShape: const Border(),
+              dense: true,
+              tilePadding: const EdgeInsetsDirectional.symmetric(
+                horizontal: 12,
+              ),
+              childrenPadding: const EdgeInsetsDirectional.fromSTEB(
+                12,
+                0,
+                12,
+                12,
+              ),
+              expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+              title: Text(
+                l10n.metaAdsBlendedWhatsCounted,
+                style: theme.textTheme.labelLarge,
+              ),
+              children: [
+                if (b.included.isNotEmpty)
+                  _BlendedGroupList(
+                    title: l10n.metaAdsBlendedIncluded,
+                    icon: Icons.check_circle_outline,
+                    color: Colors.green.shade700,
+                    groups: b.included,
+                    currency: currency,
+                  ),
+                if (b.included.isNotEmpty && b.excluded.isNotEmpty)
+                  const SizedBox(height: 10),
+                if (b.excluded.isNotEmpty)
+                  _BlendedGroupList(
+                    title: l10n.metaAdsBlendedExcluded,
+                    icon: Icons.remove_circle_outline,
+                    color: muted,
+                    groups: b.excluded,
+                    currency: currency,
+                  ),
+              ],
+            )
+          else
+            const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _BlendedGroupList extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final List<MetaAdsBlendedGroup> groups;
+  final String currency;
+
+  const _BlendedGroupList({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.groups,
+    required this.currency,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        for (final g in groups)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 22, top: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    metaAdsBlendedGroupLabel(context, g.group),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    l10n.metaAdsBlendedGroupLine(
+                      formatCount(context, g.orders),
+                      formatCompactCurrency(
+                        context,
+                        g.revenue,
+                        currencyCode: currency,
+                      ),
+                    ),
+                    textAlign: TextAlign.end,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Localised label of a `blended` group key; an unknown key is shown as-is
+/// so a newer backend group still renders.
+String metaAdsBlendedGroupLabel(BuildContext context, String group) {
+  final l10n = context.l10n;
+  return switch (group) {
+    'website' => l10n.metaAdsGroupWebsite,
+    'pos' => l10n.metaAdsGroupPos,
+    'whatsapp_followup' => l10n.metaAdsGroupWhatsappFollowup,
+    'b2b' => l10n.metaAdsGroupB2b,
+    'staff' => l10n.metaAdsGroupStaff,
+    'samples' => l10n.metaAdsGroupSamples,
+    'talabat' => l10n.metaAdsGroupTalabat,
+    'partner' => l10n.metaAdsGroupPartner,
+    _ => group.replaceAll('_', ' '),
+  };
 }
 
 class _KpiGrid extends StatelessWidget {

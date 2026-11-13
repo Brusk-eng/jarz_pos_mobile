@@ -21388,4 +21388,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get metaAdsStatusDeleted => 'Deleted';
+
+  @override
+  String get metaAdsBlendedRoas => 'Blended ROAS';
+
+  @override
+  String get metaAdsBlendedSubtitle =>
+      'All website and shop/chat sales against all Meta spend';
+
+  @override
+  String metaAdsBlendedRevenueOfSpend(String revenue, String spend) {
+    return '$revenue sales / $spend spend';
+  }
+
+  @override
+  String get metaAdsBlendedOrders => 'Orders';
+
+  @override
+  String get metaAdsBlendedAov => 'Avg order';
+
+  @override
+  String get metaAdsBlendedWholeAccount =>
+      'Covers the whole ad account, not just the selected campaign or ad set.';
+
+  @override
+  String get metaAdsBlendedWhatsCounted => 'What\'s counted';
+
+  @override
+  String get metaAdsBlendedIncluded => 'Included';
+
+  @override
+  String get metaAdsBlendedExcluded => 'Left out';
+
+  @override
+  String metaAdsBlendedGroupLine(String orders, String revenue) {
+    return '$orders orders · $revenue';
+  }
+
+  @override
+  String get metaAdsGroupWebsite => 'Website';
+
+  @override
+  String get metaAdsGroupPos => 'Shops & chat';
+
+  @override
+  String get metaAdsGroupWhatsappFollowup => 'WhatsApp follow-ups';
+
+  @override
+  String get metaAdsGroupB2b => 'B2B';
+
+  @override
+  String get metaAdsGroupStaff => 'Staff';
+
+  @override
+  String get metaAdsGroupSamples => 'Samples';
+
+  @override
+  String get metaAdsGroupTalabat => 'Talabat';
+
+  @override
+  String get metaAdsGroupPartner => 'Other partners';
 }

@@ -98,6 +98,25 @@ Map<String, dynamic> _payload({String level = 'ad'}) => {
     ],
   },
   'notes': ['Meta counts every placed web order, cancelled ones too.'],
+  'blended': {
+    'spend': 23456.78,
+    'orders': 192,
+    'revenue': '97356.0', // string
+    'roas': 4.15,
+    'avg_order_value': 507.06,
+    'included': [
+      {'group': 'website', 'orders': 112, 'revenue': 56150.0},
+      {'group': 'pos', 'orders': '80', 'revenue': 41206},
+    ],
+    'excluded': [
+      {'group': 'whatsapp_followup', 'orders': 37, 'revenue': 20718.0},
+      {'group': 'b2b', 'orders': 25, 'revenue': 29393.0},
+      {'group': 'staff', 'orders': 4, 'revenue': 1106.0},
+      {'group': 'samples', 'orders': 1, 'revenue': 0.0},
+      {'group': 'talabat', 'orders': 10, 'revenue': 3080.0},
+      {'group': 'partner', 'orders': 0, 'revenue': 0.0},
+    ],
+  },
 };
 
 MetaAdsRow _row(
@@ -200,6 +219,75 @@ void main() {
       expect(r.rows, isEmpty);
       expect(r.level, MetaAdsLevel.ad);
       expect(r.totals.roas, 0);
+    });
+
+    test('blended: the full payload', () {
+      final b = report.blended;
+      expect(b.spend, 23456.78);
+      expect(b.orders, 192);
+      expect(b.revenue, 97356.0);
+      expect(b.roas, 4.15);
+      expect(b.avgOrderValue, 507.06);
+      expect(b.hasGroups, isTrue);
+      expect(b.included.map((g) => g.group), ['website', 'pos']);
+      expect(b.included.last.orders, 80);
+      expect(b.included.last.revenue, 41206.0);
+      expect(b.excluded.map((g) => g.group), [
+        'whatsapp_followup',
+        'b2b',
+        'staff',
+        'samples',
+        'talabat',
+        'partner',
+      ]);
+      expect(b.excluded.first.orders, 37);
+      expect(b.excluded.first.revenue, 20718.0);
+    });
+
+    test('blended: missing or null reads as zeros (old backend)', () {
+      for (final json in <Map<String, dynamic>>[
+        const {},
+        const {'blended': null},
+        const {'blended': 'garbage'},
+      ]) {
+        final b = MetaAdsReport.fromJson(json).blended;
+        expect(b.spend, 0, reason: '$json');
+        expect(b.orders, 0);
+        expect(b.revenue, 0);
+        expect(b.roas, 0);
+        expect(b.avgOrderValue, 0);
+        expect(b.included, isEmpty);
+        expect(b.excluded, isEmpty);
+        expect(b.hasGroups, isFalse);
+      }
+    });
+
+    test('blended: null numbers, null lists and bad groups', () {
+      final b = MetaAdsReport.fromJson({
+        'blended': {
+          'spend': null,
+          'orders': null,
+          'revenue': 'n/a',
+          'roas': null,
+          'avg_order_value': null,
+          'included': null,
+          'excluded': [
+            {'group': 'B2B', 'orders': null, 'revenue': null},
+            {'group': null, 'orders': 3, 'revenue': 10},
+            'not a map',
+          ],
+        },
+      }).blended;
+      expect(b.spend, 0);
+      expect(b.orders, 0);
+      expect(b.revenue, 0);
+      expect(b.roas, 0);
+      expect(b.avgOrderValue, 0);
+      expect(b.included, isEmpty);
+      expect(b.excluded, hasLength(1));
+      expect(b.excluded.single.group, 'b2b');
+      expect(b.excluded.single.orders, 0);
+      expect(b.excluded.single.revenue, 0);
     });
 
     test('configured=false is read in every spelling', () {
@@ -426,6 +514,67 @@ void main() {
       expect(find.textContaining('Meta counts every placed'), findsOneWidget);
     });
 
+    testWidgets('blended card: ROAS, breakdown, no caption unfiltered', (
+      tester,
+    ) async {
+      await pump(tester, const Locale('en'));
+      expect(find.text('Blended ROAS'), findsOneWidget);
+      expect(find.text('4.15x'), findsOneWidget);
+      expect(find.text('192'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('meta-ads-blended-whole-account')),
+        findsNothing,
+      );
+      expect(find.text('Shops & chat'), findsNothing);
+
+      await tester.tap(find.text("What's counted"));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      for (final label in [
+        'Included',
+        'Left out',
+        'Website',
+        'Shops & chat',
+        'WhatsApp follow-ups',
+        'B2B',
+        'Staff',
+        'Samples',
+        'Talabat',
+        'Other partners',
+      ]) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+    });
+
+    testWidgets(
+      'blended card stays, with a whole-account caption, when filtered',
+      (tester) async {
+        final asked = await pump(tester, const Locale('en'));
+        await tester.tap(find.text('Campaigns'));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(
+          find.byKey(const ValueKey('meta-ads-blended-whole-account')),
+          findsNothing,
+        );
+        await tester.tap(find.text('UGC-Sarah v2'));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(asked.last.campaignId, isNotNull);
+        expect(find.text('Blended ROAS'), findsOneWidget);
+        expect(find.textContaining('whole ad account'), findsOneWidget);
+      },
+    );
+
+    testWidgets('blended card renders zeros for an old backend', (
+      tester,
+    ) async {
+      final payload = _payload()..remove('blended');
+      await pump(tester, const Locale('en'), payload: payload);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Blended ROAS'), findsOneWidget);
+      expect(find.text('0.00x'), findsWidgets);
+      expect(find.text("What's counted"), findsNothing);
+    });
+
     testWidgets('Arabic, 360dp: renders right-to-left without overflow', (
       tester,
     ) async {
@@ -433,6 +582,12 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('إعلانات ميتا'), findsOneWidget);
       expect(find.text('UGC-Sarah v2'), findsOneWidget);
+      expect(find.text('العائد الإجمالي على الإعلانات'), findsOneWidget);
+      await tester.tap(find.text('إيه اللي محسوب'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('الفروع والشات'), findsOneWidget);
+      expect(find.text('متابعات واتساب'), findsOneWidget);
     });
 
     testWidgets('tapping a campaign drills into its ad sets', (tester) async {

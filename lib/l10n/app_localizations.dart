@@ -35302,6 +35302,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deleted'**
   String get metaAdsStatusDeleted;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Blended ROAS'**
+  String get metaAdsBlendedRoas;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'All website and shop/chat sales against all Meta spend'**
+  String get metaAdsBlendedSubtitle;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'{revenue} sales / {spend} spend'**
+  String metaAdsBlendedRevenueOfSpend(String revenue, String spend);
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get metaAdsBlendedOrders;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg order'**
+  String get metaAdsBlendedAov;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers the whole ad account, not just the selected campaign or ad set.'**
+  String get metaAdsBlendedWholeAccount;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'\'s counted'**
+  String get metaAdsBlendedWhatsCounted;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Included'**
+  String get metaAdsBlendedIncluded;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Left out'**
+  String get metaAdsBlendedExcluded;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'{orders} orders · {revenue}'**
+  String metaAdsBlendedGroupLine(String orders, String revenue);
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get metaAdsGroupWebsite;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops & chat'**
+  String get metaAdsGroupPos;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp follow-ups'**
+  String get metaAdsGroupWhatsappFollowup;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B'**
+  String get metaAdsGroupB2b;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get metaAdsGroupStaff;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Samples'**
+  String get metaAdsGroupSamples;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat'**
+  String get metaAdsGroupTalabat;
+
+  /// Meta Ads report, blended ROAS.
+  ///
+  /// In en, this message translates to:
+  /// **'Other partners'**
+  String get metaAdsGroupPartner;
 }
 
 class _AppLocalizationsDelegate
