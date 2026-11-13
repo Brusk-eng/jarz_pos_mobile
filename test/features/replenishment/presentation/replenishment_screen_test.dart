@@ -247,9 +247,11 @@ void main() {
     // The van is smaller than the plan: 5 Lotus, the suggested 12 Mango, and
     // 3 Date off a row the server suggested nothing for.
     await tester.enterText(_qtyFieldFor('Lotus Jar'), '5');
-    // Date Jar sits below the fold on an 800x600 test window, and a
-    // ListView.builder does not build what it has not scrolled to, so the
-    // finder has nothing to find until we go there.
+    // Date Jar has nothing suggested, so it sits in the collapsed
+    // "Nothing to send" group until that group is opened.
+    expect(find.text('Date Jar'), findsNothing);
+    await tester.tap(find.text('Nothing to send (1)'));
+    await tester.pumpAndSettle();
 
     await tester.enterText(_qtyFieldFor('Date Jar'), '3');
     await tester.pumpAndSettle();
@@ -283,6 +285,55 @@ void main() {
     expect(find.text('Sent to Nasr City'), findsWidgets);
     expect(find.textContaining('3 lines · 20 units · entry'), findsOneWidget);
   });
+
+  testWidgets(
+    'groups rows: to send open, nothing-to-send and small collapsed',
+    (tester) async {
+      final plan = _plan();
+      final nasr = (plan['branches'] as List)[1] as Map<String, dynamic>;
+      (nasr['items'] as List).add({
+        'item_code': 'JAR-SMALL',
+        'item_name': 'Small Lotus Jar',
+        'stock_uom': 'Nos',
+        'on_hand': 0,
+        'stock_is_negative': false,
+        'sells_per_day': 0.2,
+        'days_of_cover': 0.0,
+        'target_days': 14,
+        'suggested_qty': 4,
+        'available_at_source': 10,
+        'send_now': 4,
+        'short_by': 0,
+        'jar_size': 'small',
+      });
+      dio.setResponse(
+        ApiEndpoints.getBranchReplenishment,
+        createSuccessResponse(data: plan),
+      );
+      await _pump(tester, dio, size: const Size(420, 1600));
+
+      expect(find.text('To send (2)'), findsOneWidget);
+      expect(find.text('Mango Jar'), findsOneWidget);
+      expect(find.text('Nothing to send (1)'), findsOneWidget);
+      expect(find.text('Date Jar'), findsNothing);
+      // Small is collapsed even though the plan puts 4 on it, and the header
+      // says so: a hidden row must never ship unnoticed.
+      expect(find.text('Small jars (1)'), findsOneWidget);
+      expect(find.text('Small Lotus Jar'), findsNothing);
+      expect(find.text('4 set to send'), findsOneWidget);
+
+      await tester.tap(find.text('Small jars (1)'));
+      await tester.pumpAndSettle();
+      expect(find.text('Small Lotus Jar'), findsOneWidget);
+      await tester.enterText(_qtyFieldFor('Small Lotus Jar'), '0');
+      await tester.pumpAndSettle();
+      expect(find.text('4 set to send'), findsNothing);
+      expect(
+        find.text('Not in regular use. Kept here for reference.'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('a failed send keeps the numbers and names the line', (
     tester,

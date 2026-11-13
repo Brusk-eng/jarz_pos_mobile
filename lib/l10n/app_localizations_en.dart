@@ -13223,6 +13223,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get replenishmentFilterAll => 'All items';
 
   @override
+  String replenishmentGroupToSend(int count) {
+    return 'To send ($count)';
+  }
+
+  @override
+  String replenishmentGroupNothing(int count) {
+    return 'Nothing to send ($count)';
+  }
+
+  @override
+  String replenishmentGroupSmall(int count) {
+    return 'Small jars ($count)';
+  }
+
+  @override
+  String get replenishmentGroupSmallHint =>
+      'Not in regular use. Kept here for reference.';
+
+  @override
+  String replenishmentGroupSmallSending(String qty) {
+    return '$qty set to send';
+  }
+
+  @override
   String get replenishmentItemDetails => 'Details';
 
   @override

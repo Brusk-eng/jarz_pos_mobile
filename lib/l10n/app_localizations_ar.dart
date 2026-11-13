@@ -13175,6 +13175,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get replenishmentFilterAll => 'كل الأصناف';
 
   @override
+  String replenishmentGroupToSend(int count) {
+    return 'هيتبعت ($count)';
+  }
+
+  @override
+  String replenishmentGroupNothing(int count) {
+    return 'مفيش حاجة تتبعت ($count)';
+  }
+
+  @override
+  String replenishmentGroupSmall(int count) {
+    return 'البرطمانات الصغيرة ($count)';
+  }
+
+  @override
+  String get replenishmentGroupSmallHint =>
+      'مش بنشتغل بيها حاليًا، موجودة هنا للرجوع ليها.';
+
+  @override
+  String replenishmentGroupSmallSending(String qty) {
+    return '$qty محطوط للإرسال';
+  }
+
+  @override
   String get replenishmentItemDetails => 'التفاصيل';
 
   @override

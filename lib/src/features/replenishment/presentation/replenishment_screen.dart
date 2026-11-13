@@ -126,7 +126,6 @@ class _PlanViewState extends ConsumerState<_PlanView>
     with SingleTickerProviderStateMixin {
   late final TabController _tab;
   late int _shownIndex;
-  bool _needsOnly = false;
 
   @override
   void initState() {
@@ -223,25 +222,6 @@ class _PlanViewState extends ConsumerState<_PlanView>
                             BranchMovesCard(branch: branch, moves: moves),
                           ],
                           const SizedBox(height: 4),
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              ChoiceChip(
-                                visualDensity: VisualDensity.compact,
-                                label: Text(l10n.replenishmentFilterAll),
-                                selected: !_needsOnly,
-                                onSelected: (_) =>
-                                    setState(() => _needsOnly = false),
-                              ),
-                              ChoiceChip(
-                                visualDensity: VisualDensity.compact,
-                                label: Text(l10n.replenishmentFilterNeeds),
-                                selected: _needsOnly,
-                                onSelected: (_) =>
-                                    setState(() => _needsOnly = true),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -250,8 +230,7 @@ class _PlanViewState extends ConsumerState<_PlanView>
                 body: TabBarView(
                   controller: _tab,
                   children: [
-                    for (final b in plan.branches)
-                      _BranchList(branch: b, needsOnly: _needsOnly),
+                    for (final b in plan.branches) _BranchList(branch: b),
                   ],
                 ),
               ),
@@ -265,57 +244,183 @@ class _PlanViewState extends ConsumerState<_PlanView>
 }
 
 /// The scrolling item list for one branch: one page of the swipeable body.
-class _BranchList extends ConsumerWidget {
-  const _BranchList({required this.branch, required this.needsOnly});
+///
+/// Split into three groups so the van loader reads only what moves:
+/// - **To send**: rows the plan puts a quantity on. Open.
+/// - **Nothing to send**: the rest, collapsed. Still editable once opened, for
+///   the odd extra jar typed by hand.
+/// - **Small jars**: collapsed in a section of their own whatever their
+///   quantity. Small was a one-off line (owner, 2026-11-13), kept reachable but
+///   out of the way. Its header warns when any small row is still set to go,
+///   because a hidden row that ships would be worse than a cluttered list.
+///
+/// Grouping reads the PLAN's `send_now`, not the typed figure, so a row never
+/// jumps sections (and loses its keyboard) while someone is typing into it.
+class _BranchList extends ConsumerStatefulWidget {
+  const _BranchList({required this.branch});
 
   final ReplenishmentBranch branch;
-  final bool needsOnly;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final draft = ref.watch(replenishmentDraftProvider);
-    final items = needsOnly
-        ? [
-            for (final i in branch.items)
-              if (i.sendNow > 0 ||
-                  i.suggestedQty > 0 ||
-                  i.isShort ||
-                  i.stockIsNegative)
-                i,
-          ]
-        : branch.items;
+  ConsumerState<_BranchList> createState() => _BranchListState();
+}
 
-    if (items.isEmpty) {
-      return _Message(
-        text: l10n.replenishmentEmptyTitle,
-        detail: l10n.replenishmentBranchCovered(branch.displayName),
-      );
+class _BranchListState extends ConsumerState<_BranchList> {
+  bool _showIdle = false;
+  bool _showSmall = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final branch = widget.branch;
+    final draft = ref.watch(replenishmentDraftProvider);
+
+    final toSend = <ReplenishmentItem>[];
+    final idle = <ReplenishmentItem>[];
+    final small = <ReplenishmentItem>[];
+    for (final item in branch.items) {
+      if (item.jarSize.toLowerCase() == 'small') {
+        small.add(item);
+      } else if (item.sendNow > 0) {
+        toSend.add(item);
+      } else {
+        idle.add(item);
+      }
     }
+    final smallTyped = small.fold<double>(
+      0,
+      (sum, item) => sum + draft.qtyFor(branch.warehouse, item),
+    );
+
+    final entries = <Widget Function()>[
+      () => _GroupHeader(
+        title: l10n.replenishmentGroupToSend(toSend.length),
+        icon: Icons.local_shipping_outlined,
+      ),
+      if (toSend.isEmpty)
+        () => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Text(
+            l10n.replenishmentBranchCovered(branch.displayName),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      for (final item in toSend) () => _row(item, draft),
+      if (idle.isNotEmpty)
+        () => _GroupHeader(
+          title: l10n.replenishmentGroupNothing(idle.length),
+          icon: Icons.inventory_2_outlined,
+          expanded: _showIdle,
+          onTap: () => setState(() => _showIdle = !_showIdle),
+        ),
+      if (_showIdle)
+        for (final item in idle) () => _row(item, draft),
+      if (small.isNotEmpty)
+        () => _GroupHeader(
+          title: l10n.replenishmentGroupSmall(small.length),
+          subtitle: smallTyped > 0
+              ? l10n.replenishmentGroupSmallSending(trimQty(smallTyped))
+              : l10n.replenishmentGroupSmallHint,
+          warn: smallTyped > 0,
+          icon: Icons.visibility_off_outlined,
+          expanded: _showSmall,
+          onTap: () => setState(() => _showSmall = !_showSmall),
+        ),
+      if (_showSmall)
+        for (final item in small) () => _row(item, draft),
+    ];
+
     return ListView.builder(
       key: PageStorageKey<String>('replenishment-${branch.warehouse}'),
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return ReplenishmentItemRow(
-          // The generation is part of the key so a refresh (or a completed
-          // send) rebuilds the field from the new plan instead of keeping a
-          // stale typed number.
-          key: ValueKey(
-            '${branch.warehouse}|${item.itemCode}|${draft.generation}',
+      itemCount: entries.length,
+      itemBuilder: (context, index) => entries[index](),
+    );
+  }
+
+  Widget _row(ReplenishmentItem item, ReplenishmentDraft draft) {
+    final branch = widget.branch;
+    return ReplenishmentItemRow(
+      // The generation is part of the key so a refresh (or a completed
+      // send) rebuilds the field from the new plan instead of keeping a
+      // stale typed number.
+      key: ValueKey('${branch.warehouse}|${item.itemCode}|${draft.generation}'),
+      item: item,
+      initialQty: draft.qtyFor(branch.warehouse, item),
+      enabled: !draft.sending,
+      flagged:
+          draft.result?.success == false &&
+          draft.result?.failedItemName == item.displayName,
+      onQtyChanged: (qty) => ref
+          .read(replenishmentDraftProvider.notifier)
+          .setQty(branch.warehouse, item.itemCode, qty),
+    );
+  }
+}
+
+/// A section title in the branch list; tappable (with a chevron) when the
+/// section can be collapsed.
+class _GroupHeader extends StatelessWidget {
+  const _GroupHeader({
+    required this.title,
+    required this.icon,
+    this.subtitle,
+    this.expanded = true,
+    this.onTap,
+    this.warn = false,
+  });
+
+  final String title;
+  final IconData icon;
+  final String? subtitle;
+  final bool expanded;
+  final VoidCallback? onTap;
+  final bool warn;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final subColor = warn
+        ? theme.colorScheme.error
+        : theme.colorScheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 2),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: theme.colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: subColor,
+                          fontWeight: warn ? FontWeight.w600 : null,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (onTap != null)
+                Icon(expanded ? Icons.expand_less : Icons.expand_more),
+            ],
           ),
-          item: item,
-          initialQty: draft.qtyFor(branch.warehouse, item),
-          enabled: !draft.sending,
-          flagged:
-              draft.result?.success == false &&
-              draft.result?.failedItemName == item.displayName,
-          onQtyChanged: (qty) => ref
-              .read(replenishmentDraftProvider.notifier)
-              .setQty(branch.warehouse, item.itemCode, qty),
-        );
-      },
+        ),
+      ),
     );
   }
 }

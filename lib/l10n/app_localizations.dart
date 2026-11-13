@@ -21653,6 +21653,36 @@ abstract class AppLocalizations {
   /// **'All items'**
   String get replenishmentFilterAll;
 
+  /// No description provided for @replenishmentGroupToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'To send ({count})'**
+  String replenishmentGroupToSend(int count);
+
+  /// No description provided for @replenishmentGroupNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to send ({count})'**
+  String replenishmentGroupNothing(int count);
+
+  /// No description provided for @replenishmentGroupSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small jars ({count})'**
+  String replenishmentGroupSmall(int count);
+
+  /// No description provided for @replenishmentGroupSmallHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in regular use. Kept here for reference.'**
+  String get replenishmentGroupSmallHint;
+
+  /// No description provided for @replenishmentGroupSmallSending.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} set to send'**
+  String replenishmentGroupSmallSending(String qty);
+
   /// No description provided for @replenishmentItemDetails.
   ///
   /// In en, this message translates to:
