@@ -41,6 +41,8 @@ Map<String, dynamic> _payload({String level = 'ad'}) => {
     'erp_orders': '18',
     'erp_revenue': 12600,
     'erp_roas': 8.4,
+    'blended_revenue': '42001.0', // string
+    'blended_roas': 28.0,
   },
   'rows': [
     {
@@ -63,6 +65,8 @@ Map<String, dynamic> _payload({String level = 'ad'}) => {
       'erp_orders': 12,
       'erp_revenue': 9000,
       'erp_roas': 9.0,
+      'blended_revenue': 30000,
+      'blended_roas': 30,
     },
     {
       'id': 120002, // id as a number
@@ -84,6 +88,8 @@ Map<String, dynamic> _payload({String level = 'ad'}) => {
       'erp_orders': 6,
       'erp_revenue': 3600,
       'erp_roas': 7.2,
+      'blended_revenue': 12001.0,
+      'blended_roas': '24.0',
     },
   ],
   'filters': {
@@ -92,9 +98,19 @@ Map<String, dynamic> _payload({String level = 'ad'}) => {
       {'id': 'c2', 'name': 'Awareness', 'status': 'PAUSED'},
     ],
     'adsets': [
-      {'id': 's1', 'name': 'Cairo 25-45', 'campaign_id': 'c1', 'status': 'ACTIVE'},
+      {
+        'id': 's1',
+        'name': 'Cairo 25-45',
+        'campaign_id': 'c1',
+        'status': 'ACTIVE',
+      },
       {'id': 's2', 'name': 'Giza', 'campaign_id': 'c1', 'status': 'ACTIVE'},
-      {'id': 's3', 'name': 'Lookalike', 'campaign_id': 'c2', 'status': 'PAUSED'},
+      {
+        'id': 's3',
+        'name': 'Lookalike',
+        'campaign_id': 'c2',
+        'status': 'PAUSED',
+      },
     ],
   },
   'notes': ['Meta counts every placed web order, cancelled ones too.'],
@@ -104,6 +120,8 @@ Map<String, dynamic> _payload({String level = 'ad'}) => {
     'revenue': '97356.0', // string
     'roas': 4.15,
     'avg_order_value': 507.06,
+    'scale': 2.0,
+    'meta_purchase_value': '48678.0',
     'included': [
       {'group': 'website', 'orders': 112, 'revenue': 56150.0},
       {'group': 'pos', 'orders': '80', 'revenue': 41206},
@@ -127,6 +145,7 @@ MetaAdsRow _row(
   double ctr = 0,
   double cpp = 0,
   int erp = 0,
+  double blended = 0,
 }) => MetaAdsRow(
   id: name,
   name: name,
@@ -137,7 +156,13 @@ MetaAdsRow _row(
     ctr: ctr,
     costPerPurchase: cpp,
     erpOrders: erp,
+    blendedRoas: blended,
   ),
+);
+
+Finder _inBlendedCard(Finder f) => find.descendant(
+  of: find.byKey(const ValueKey('meta-ads-blended')),
+  matching: f,
 );
 
 void main() {
@@ -172,22 +197,25 @@ void main() {
       expect(t.erpRoas, 8.4);
     });
 
-    test('rows read metrics from the row itself, ids and status normalised', () {
-      final a = report.rows.first;
-      expect(a.name, 'UGC-Sarah v2');
-      expect(a.adsetName, 'Cairo 25-45');
-      expect(a.thumbnailUrl, startsWith('https://'));
-      expect(a.metrics.spend, 1000.0);
-      expect(a.metrics.erpOrders, 12);
+    test(
+      'rows read metrics from the row itself, ids and status normalised',
+      () {
+        final a = report.rows.first;
+        expect(a.name, 'UGC-Sarah v2');
+        expect(a.adsetName, 'Cairo 25-45');
+        expect(a.thumbnailUrl, startsWith('https://'));
+        expect(a.metrics.spend, 1000.0);
+        expect(a.metrics.erpOrders, 12);
 
-      final b = report.rows.last;
-      expect(b.id, '120002');
-      expect(b.status, 'PAUSED');
-      expect(b.thumbnailUrl, isNull);
-      expect(b.metrics.spend, 500.0);
-      expect(b.metrics.purchases, 10);
-      expect(b.metrics.costPerPurchase, 50.0);
-    });
+        final b = report.rows.last;
+        expect(b.id, '120002');
+        expect(b.status, 'PAUSED');
+        expect(b.thumbnailUrl, isNull);
+        expect(b.metrics.spend, 500.0);
+        expect(b.metrics.purchases, 10);
+        expect(b.metrics.costPerPurchase, 50.0);
+      },
+    );
 
     test('nulls, garbage and missing keys fall back to zero / empty', () {
       final r = MetaAdsReport.fromJson({
@@ -290,6 +318,46 @@ void main() {
       expect(b.excluded.single.revenue, 0);
     });
 
+    test('per-row blended ROAS: read on totals, rows and the scale', () {
+      expect(report.totals.blendedRevenue, 42001.0);
+      expect(report.totals.blendedRoas, 28.0);
+      expect(report.rows.first.metrics.blendedRevenue, 30000.0);
+      expect(report.rows.first.metrics.blendedRoas, 30.0);
+      expect(report.rows.last.metrics.blendedRevenue, 12001.0);
+      expect(report.rows.last.metrics.blendedRoas, 24.0);
+      expect(report.blended.scale, 2.0);
+      expect(report.blended.metaPurchaseValue, 48678.0);
+    });
+
+    test('per-row blended ROAS: missing or null keys read as zero', () {
+      final payload = _payload();
+      (payload['totals'] as Map)
+        ..remove('blended_revenue')
+        ..remove('blended_roas');
+      final rows = payload['rows'] as List;
+      (rows.first as Map)
+        ..remove('blended_revenue')
+        ..remove('blended_roas');
+      (rows.last as Map)
+        ..['blended_revenue'] = null
+        ..['blended_roas'] = null;
+      (payload['blended'] as Map)
+        ..remove('scale')
+        ..remove('meta_purchase_value');
+      final r = MetaAdsReport.fromJson(payload);
+      expect(r.totals.blendedRevenue, 0);
+      expect(r.totals.blendedRoas, 0);
+      for (final row in r.rows) {
+        expect(row.metrics.blendedRevenue, 0);
+        expect(row.metrics.blendedRoas, 0);
+      }
+      expect(r.blended.scale, 0);
+      expect(r.blended.metaPurchaseValue, 0);
+      // The rest of the payload is untouched.
+      expect(r.totals.erpRoas, 8.4);
+      expect(r.blended.roas, 4.15);
+    });
+
     test('configured=false is read in every spelling', () {
       for (final v in [false, 0, '0', 'false']) {
         expect(
@@ -303,9 +371,36 @@ void main() {
 
   group('sorting', () {
     final rows = [
-      _row('a', spend: 100, purchases: 2, roas: 3, ctr: 1.5, cpp: 50, erp: 1),
-      _row('b', spend: 300, purchases: 0, roas: 0, ctr: 2.5, cpp: 0, erp: 0),
-      _row('c', spend: 200, purchases: 8, roas: 5, ctr: 0.5, cpp: 25, erp: 4),
+      _row(
+        'a',
+        spend: 100,
+        purchases: 2,
+        roas: 3,
+        ctr: 1.5,
+        cpp: 50,
+        erp: 1,
+        blended: 6,
+      ),
+      _row(
+        'b',
+        spend: 300,
+        purchases: 0,
+        roas: 0,
+        ctr: 2.5,
+        cpp: 0,
+        erp: 0,
+        blended: 0,
+      ),
+      _row(
+        'c',
+        spend: 200,
+        purchases: 8,
+        roas: 5,
+        ctr: 0.5,
+        cpp: 25,
+        erp: 4,
+        blended: 2,
+      ),
     ];
     List<String> names(MetaAdsSort s) =>
         sortMetaAdsRows(rows, s).map((r) => r.name).toList();
@@ -316,6 +411,7 @@ void main() {
       expect(names(MetaAdsSort.roas), ['c', 'a', 'b']);
       expect(names(MetaAdsSort.ctr), ['b', 'a', 'c']);
       expect(names(MetaAdsSort.erpOrders), ['c', 'a', 'b']);
+      expect(names(MetaAdsSort.blendedRoas), ['a', 'c', 'b']);
     });
 
     test('cost per purchase is cheapest first, no purchases last', () {
@@ -327,10 +423,10 @@ void main() {
         _row('low', spend: 10, roas: 2),
         _row('high', spend: 90, roas: 2),
       ];
-      expect(
-        sortMetaAdsRows(tied, MetaAdsSort.roas).map((r) => r.name),
-        ['high', 'low'],
-      );
+      expect(sortMetaAdsRows(tied, MetaAdsSort.roas).map((r) => r.name), [
+        'high',
+        'low',
+      ]);
     });
 
     test('does not mutate the input', () {
@@ -340,16 +436,19 @@ void main() {
   });
 
   group('filters', () {
-    test('campaign level clears both filters; ad set level clears the ad set', () {
-      final n = MetaAdsFiltersNotifier(
-        const MetaAdsFilters(campaignId: 'c1', adsetId: 's1'),
-      );
-      n.setLevel(MetaAdsLevel.adset);
-      expect(n.state.campaignId, 'c1');
-      expect(n.state.adsetId, isNull);
-      n.setLevel(MetaAdsLevel.campaign);
-      expect(n.state.campaignId, isNull);
-    });
+    test(
+      'campaign level clears both filters; ad set level clears the ad set',
+      () {
+        final n = MetaAdsFiltersNotifier(
+          const MetaAdsFilters(campaignId: 'c1', adsetId: 's1'),
+        );
+        n.setLevel(MetaAdsLevel.adset);
+        expect(n.state.campaignId, 'c1');
+        expect(n.state.adsetId, isNull);
+        n.setLevel(MetaAdsLevel.campaign);
+        expect(n.state.campaignId, isNull);
+      },
+    );
 
     test('changing the campaign clears the ad set', () {
       final n = MetaAdsFiltersNotifier(
@@ -379,10 +478,7 @@ void main() {
       expect(n.drillInto(const MetaAdsRow(id: 'c1', name: 'C')), isTrue);
       expect(n.state.level, MetaAdsLevel.adset);
       expect(n.state.campaignId, 'c1');
-      expect(
-        n.drillInto(const MetaAdsRow(id: 's1', campaignId: 'c1')),
-        isTrue,
-      );
+      expect(n.drillInto(const MetaAdsRow(id: 's1', campaignId: 'c1')), isTrue);
       expect(n.state.level, MetaAdsLevel.ad);
       expect(n.state.adsetId, 's1');
       expect(n.state.campaignId, 'c1');
@@ -410,11 +506,7 @@ void main() {
       final repo = ReportsRepository(dio);
 
       final r = await repo.fetchMetaAdsReport(
-        MetaAdsQuery(
-          range: range,
-          level: MetaAdsLevel.adset,
-          campaignId: 'c1',
-        ),
+        MetaAdsQuery(range: range, level: MetaAdsLevel.adset, campaignId: 'c1'),
         refresh: true,
       );
 
@@ -435,9 +527,9 @@ void main() {
       dio.setResponse(ApiEndpoints.getAdsReport, {
         'message': {'configured': false, 'rows': []},
       });
-      final r = await ReportsRepository(dio).fetchMetaAdsReport(
-        MetaAdsQuery(range: range),
-      );
+      final r = await ReportsRepository(
+        dio,
+      ).fetchMetaAdsReport(MetaAdsQuery(range: range));
       expect(r.configured, isFalse);
       expect(dio.requestLog.single['data'], {
         'level': 'ad',
@@ -518,7 +610,7 @@ void main() {
       tester,
     ) async {
       await pump(tester, const Locale('en'));
-      expect(find.text('Blended ROAS'), findsOneWidget);
+      expect(_inBlendedCard(find.text('Blended ROAS')), findsOneWidget);
       expect(find.text('4.15x'), findsOneWidget);
       expect(find.text('192'), findsOneWidget);
       expect(
@@ -559,7 +651,7 @@ void main() {
         await tester.tap(find.text('UGC-Sarah v2'));
         await tester.pump(const Duration(milliseconds: 300));
         expect(asked.last.campaignId, isNotNull);
-        expect(find.text('Blended ROAS'), findsOneWidget);
+        expect(_inBlendedCard(find.text('Blended ROAS')), findsOneWidget);
         expect(find.textContaining('whole ad account'), findsOneWidget);
       },
     );
@@ -570,9 +662,80 @@ void main() {
       final payload = _payload()..remove('blended');
       await pump(tester, const Locale('en'), payload: payload);
       expect(tester.takeException(), isNull);
-      expect(find.text('Blended ROAS'), findsOneWidget);
+      expect(_inBlendedCard(find.text('Blended ROAS')), findsOneWidget);
       expect(find.text('0.00x'), findsWidgets);
       expect(find.text("What's counted"), findsNothing);
+    });
+
+    testWidgets('row cards and the KPI tile show per-row blended ROAS', (
+      tester,
+    ) async {
+      await pump(tester, const Locale('en'));
+      expect(tester.takeException(), isNull);
+      // Both row cards, neutral like the other row metrics.
+      expect(find.text('30.00x'), findsOneWidget);
+      expect(find.text('24.00x'), findsOneWidget);
+      // The filtered-scope tile reads `totals`.
+      final tile = find.byKey(const ValueKey('meta-ads-kpi-blended-roas'));
+      expect(tile, findsOneWidget);
+      expect(
+        find.descendant(of: tile, matching: find.text('28.00x')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: tile, matching: find.text('Blended ROAS')),
+        findsOneWidget,
+      );
+      // The account-wide card still shows the account figure.
+      expect(_inBlendedCard(find.text('4.15x')), findsOneWidget);
+
+      // The "What's counted" section explains the per-row figure.
+      await tester.tap(find.text("What's counted"));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('meta-ads-blended-per-row-note')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Per ad: real sales'), findsOneWidget);
+    });
+
+    testWidgets('sorting by blended ROAS puts the highest row first', (
+      tester,
+    ) async {
+      Future<void> sortByBlended() async {
+        await tester.tap(find.byType(DropdownButton<MetaAdsSort>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Blended ROAS').last);
+        await tester.pumpAndSettle();
+      }
+
+      double top(String name) => tester.getTopLeft(find.text(name)).dy;
+
+      // Default sort (spend): UGC-Sarah (1000) above the gift box (500).
+      final payload = _payload();
+      ((payload['rows'] as List).first as Map)['blended_roas'] = 1;
+      await pump(tester, const Locale('en'), payload: payload);
+      expect(top('UGC-Sarah v2'), lessThan(top('Static - Gift box')));
+
+      // Blended ROAS: the gift box (24x) now leads UGC-Sarah (1x).
+      await sortByBlended();
+      expect(tester.takeException(), isNull);
+      expect(top('Static - Gift box'), lessThan(top('UGC-Sarah v2')));
+    });
+
+    testWidgets('row cards render 0.00x for a backend without the keys', (
+      tester,
+    ) async {
+      final payload = _payload();
+      for (final row in payload['rows'] as List) {
+        (row as Map)
+          ..remove('blended_revenue')
+          ..remove('blended_roas');
+      }
+      await pump(tester, const Locale('en'), payload: payload);
+      expect(tester.takeException(), isNull);
+      expect(find.text('30.00x'), findsNothing);
+      expect(find.text('0.00x'), findsNWidgets(2));
     });
 
     testWidgets('Arabic, 360dp: renders right-to-left without overflow', (
@@ -588,6 +751,10 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('الفروع والشات'), findsOneWidget);
       expect(find.text('متابعات واتساب'), findsOneWidget);
+      // Per-row blended ROAS: KPI tile + both row cards, short label.
+      expect(find.text('العائد الإجمالي'), findsAtLeastNWidgets(3));
+      expect(find.text('30.00x'), findsOneWidget);
+      expect(find.textContaining('لكل إعلان'), findsOneWidget);
     });
 
     testWidgets('tapping a campaign drills into its ad sets', (tester) async {

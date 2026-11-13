@@ -328,6 +328,7 @@ String metaAdsSortLabel(BuildContext context, MetaAdsSort s) {
     MetaAdsSort.ctr => l10n.metaAdsCtr,
     MetaAdsSort.costPerPurchase => l10n.metaAdsCostPerPurchase,
     MetaAdsSort.erpOrders => l10n.metaAdsErpOrders,
+    MetaAdsSort.blendedRoas => l10n.metaAdsBlendedRoasShort,
   };
 }
 
@@ -574,6 +575,15 @@ class MetaAdsBlendedCard extends StatelessWidget {
                     groups: b.excluded,
                     currency: currency,
                   ),
+                const SizedBox(height: 10),
+                Text(
+                  l10n.metaAdsBlendedPerRowNote,
+                  key: const ValueKey('meta-ads-blended-per-row-note'),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: muted,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ],
             )
           else
@@ -702,7 +712,11 @@ class _KpiGrid extends StatelessWidget {
         value: metaAdsCount(context, t.purchases),
         icon: Icons.shopping_bag_outlined,
         caption: l10n.metaAdsPurchaseValueOf(
-          formatCompactCurrency(context, t.purchaseValue, currencyCode: currency),
+          formatCompactCurrency(
+            context,
+            t.purchaseValue,
+            currencyCode: currency,
+          ),
         ),
       ),
       (w) => KpiCard(
@@ -717,7 +731,9 @@ class _KpiGrid extends StatelessWidget {
         label: l10n.metaAdsCtr,
         value: metaAdsPercent(context, t.ctr),
         icon: Icons.ads_click,
-        caption: l10n.metaAdsLinkClicksCount(formatCount(context, t.linkClicks)),
+        caption: l10n.metaAdsLinkClicksCount(
+          formatCount(context, t.linkClicks),
+        ),
       ),
       (w) => KpiCard(
         width: w,
@@ -738,12 +754,29 @@ class _KpiGrid extends StatelessWidget {
           formatCompactCurrency(context, t.erpRevenue, currencyCode: currency),
         ),
       ),
+      // The filtered scope's share of real sales (from `totals`); the
+      // account-wide figure stays on the blended card above. Neutral colour:
+      // break-even depends on margin, not on 1.0x.
+      (w) => KpiCard(
+        key: const ValueKey('meta-ads-kpi-blended-roas'),
+        width: w,
+        label: l10n.metaAdsBlendedRoasShort,
+        value: metaAdsRoas(context, t.blendedRoas),
+        icon: Icons.insights_outlined,
+        caption: l10n.metaAdsErpRevenueOf(
+          formatCompactCurrency(
+            context,
+            t.blendedRevenue,
+            currencyCode: currency,
+          ),
+        ),
+      ),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final cols = constraints.maxWidth >= 900
-            ? 6
+            ? 7
             : constraints.maxWidth >= 600
             ? 3
             : 2;
@@ -856,6 +889,12 @@ class _RowCard extends StatelessWidget {
         formatCount(context, m.erpOrders),
       ),
       (null, l10n.metaAdsErpRoas, metaAdsRoas(context, m.erpRoas)),
+      // Neutral like every other row metric: no >=1x colouring.
+      (
+        MetaAdsSort.blendedRoas,
+        l10n.metaAdsBlendedRoasShort,
+        metaAdsRoas(context, m.blendedRoas),
+      ),
     ];
 
     return Card(
@@ -996,7 +1035,10 @@ class _StatusChip extends StatelessWidget {
       ),
     };
     return Container(
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 6,
+        vertical: 2,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
@@ -1108,7 +1150,6 @@ String metaAdsRoas(BuildContext context, double v) =>
 
 /// A purchase count: whole numbers plain, fractional ones (Meta can report
 /// them) with up to two decimals.
-String metaAdsCount(BuildContext context, double v) =>
-    v == v.roundToDouble()
-        ? formatCount(context, v.round())
-        : _twoDecimals(context, v);
+String metaAdsCount(BuildContext context, double v) => v == v.roundToDouble()
+    ? formatCount(context, v.round())
+    : _twoDecimals(context, v);

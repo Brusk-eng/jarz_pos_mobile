@@ -35410,6 +35410,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other partners'**
   String get metaAdsGroupPartner;
+
+  /// Meta Ads report: short label of the per-row / filtered-scope blended ROAS (real retail sales shared out by Meta's purchase value, against spend).
+  ///
+  /// In en, this message translates to:
+  /// **'Blended ROAS'**
+  String get metaAdsBlendedRoasShort;
+
+  /// Meta Ads report, blended ROAS: explains the per-row Blended ROAS figure.
+  ///
+  /// In en, this message translates to:
+  /// **'Per ad: real sales shared out by Meta\'\'s purchase value (estimate).'**
+  String get metaAdsBlendedPerRowNote;
 }
 
 class _AppLocalizationsDelegate

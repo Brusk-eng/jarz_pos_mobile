@@ -21448,4 +21448,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get metaAdsGroupPartner => 'Other partners';
+
+  @override
+  String get metaAdsBlendedRoasShort => 'Blended ROAS';
+
+  @override
+  String get metaAdsBlendedPerRowNote =>
+      'Per ad: real sales shared out by Meta\'s purchase value (estimate).';
 }

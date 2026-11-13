@@ -11721,5 +11721,9 @@
   "metaAdsGroupTalabat": "Talabat",
   "@metaAdsGroupTalabat": {"description": "Meta Ads report, blended ROAS."},
   "metaAdsGroupPartner": "Other partners",
-  "@metaAdsGroupPartner": {"description": "Meta Ads report, blended ROAS."}
+  "@metaAdsGroupPartner": {"description": "Meta Ads report, blended ROAS."},
+  "metaAdsBlendedRoasShort": "Blended ROAS",
+  "@metaAdsBlendedRoasShort": {"description": "Meta Ads report: short label of the per-row / filtered-scope blended ROAS (real retail sales shared out by Meta's purchase value, against spend)."},
+  "metaAdsBlendedPerRowNote": "Per ad: real sales shared out by Meta''s purchase value (estimate).",
+  "@metaAdsBlendedPerRowNote": {"description": "Meta Ads report, blended ROAS: explains the per-row Blended ROAS figure."}
 }

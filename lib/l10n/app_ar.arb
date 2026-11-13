@@ -7582,5 +7582,7 @@
   "metaAdsGroupStaff": "الموظفين",
   "metaAdsGroupSamples": "العينات",
   "metaAdsGroupTalabat": "طلبات",
-  "metaAdsGroupPartner": "شركاء آخرون"
+  "metaAdsGroupPartner": "شركاء آخرون",
+  "metaAdsBlendedRoasShort": "العائد الإجمالي",
+  "metaAdsBlendedPerRowNote": "لكل إعلان: المبيعات الحقيقية متوزعة حسب مشتريات ميتا (تقدير)."
 }

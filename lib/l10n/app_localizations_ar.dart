@@ -21426,4 +21426,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get metaAdsGroupPartner => 'شركاء آخرون';
+
+  @override
+  String get metaAdsBlendedRoasShort => 'العائد الإجمالي';
+
+  @override
+  String get metaAdsBlendedPerRowNote =>
+      'لكل إعلان: المبيعات الحقيقية متوزعة حسب مشتريات ميتا (تقدير).';
 }

@@ -60,7 +60,10 @@ class MetaAdsReport {
         filters['campaigns'],
         MetaAdsFilterOption.fromJson,
       ),
-      adsets: ReportJson.listOf(filters['adsets'], MetaAdsFilterOption.fromJson),
+      adsets: ReportJson.listOf(
+        filters['adsets'],
+        MetaAdsFilterOption.fromJson,
+      ),
       notes: ReportJson.strings(json['notes']),
       blended: MetaAdsBlended.fromJson(ReportJson.map(json['blended'])),
     );
@@ -77,6 +80,13 @@ class MetaAdsBlended {
   final double roas;
   final double avgOrderValue;
 
+  /// `revenue` ÷ account-wide Meta purchase value: the factor that shares
+  /// real sales out to rows. 0 on an older backend or when Meta has no value.
+  final double scale;
+
+  /// Account-wide Meta purchase value for the range (unfiltered).
+  final double metaPurchaseValue;
+
   /// Groups counted in [revenue] (`website`, `pos`), in the backend's order.
   final List<MetaAdsBlendedGroup> included;
 
@@ -90,6 +100,8 @@ class MetaAdsBlended {
     this.revenue = 0,
     this.roas = 0,
     this.avgOrderValue = 0,
+    this.scale = 0,
+    this.metaPurchaseValue = 0,
     this.included = const [],
     this.excluded = const [],
   });
@@ -100,12 +112,16 @@ class MetaAdsBlended {
     revenue: ReportJson.dbl(j['revenue']),
     roas: ReportJson.dbl(j['roas']),
     avgOrderValue: ReportJson.dbl(j['avg_order_value']),
-    included: ReportJson.listOf(j['included'], MetaAdsBlendedGroup.fromJson)
-        .where((g) => g.group.isNotEmpty)
-        .toList(),
-    excluded: ReportJson.listOf(j['excluded'], MetaAdsBlendedGroup.fromJson)
-        .where((g) => g.group.isNotEmpty)
-        .toList(),
+    scale: ReportJson.dbl(j['scale']),
+    metaPurchaseValue: ReportJson.dbl(j['meta_purchase_value']),
+    included: ReportJson.listOf(
+      j['included'],
+      MetaAdsBlendedGroup.fromJson,
+    ).where((g) => g.group.isNotEmpty).toList(),
+    excluded: ReportJson.listOf(
+      j['excluded'],
+      MetaAdsBlendedGroup.fromJson,
+    ).where((g) => g.group.isNotEmpty).toList(),
   );
 
   /// True when there is nothing to break down (old backend or empty range).
@@ -185,6 +201,14 @@ class MetaAdsMetrics {
   final double erpRevenue;
   final double erpRoas;
 
+  /// Real retail sales shared out to this row by its Meta purchase value
+  /// (`purchase_value` × `blended.scale`). An estimate, not a per-ad count;
+  /// 0 on a backend that predates it.
+  final double blendedRevenue;
+
+  /// [blendedRevenue] ÷ spend (0 when spend is 0).
+  final double blendedRoas;
+
   const MetaAdsMetrics({
     this.spend = 0,
     this.impressions = 0,
@@ -201,6 +225,8 @@ class MetaAdsMetrics {
     this.erpOrders = 0,
     this.erpRevenue = 0,
     this.erpRoas = 0,
+    this.blendedRevenue = 0,
+    this.blendedRoas = 0,
   });
 
   factory MetaAdsMetrics.fromJson(JsonMap j) => MetaAdsMetrics(
@@ -219,6 +245,8 @@ class MetaAdsMetrics {
     erpOrders: ReportJson.integer(j['erp_orders']),
     erpRevenue: ReportJson.dbl(j['erp_revenue']),
     erpRoas: ReportJson.dbl(j['erp_roas']),
+    blendedRevenue: ReportJson.dbl(j['blended_revenue']),
+    blendedRoas: ReportJson.dbl(j['blended_roas']),
   );
 }
 
@@ -302,7 +330,8 @@ enum MetaAdsSort {
   roas,
   ctr,
   costPerPurchase,
-  erpOrders;
+  erpOrders,
+  blendedRoas;
 
   /// Cost per purchase is the one metric where lower is better.
   bool get ascending => this == MetaAdsSort.costPerPurchase;
@@ -314,6 +343,7 @@ enum MetaAdsSort {
     MetaAdsSort.ctr => m.ctr,
     MetaAdsSort.costPerPurchase => m.costPerPurchase,
     MetaAdsSort.erpOrders => m.erpOrders.toDouble(),
+    MetaAdsSort.blendedRoas => m.blendedRoas,
   };
 }
 
