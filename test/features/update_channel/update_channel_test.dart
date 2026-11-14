@@ -115,7 +115,7 @@ void main() {
       expect(adapter.lastBody ?? '', isNot(contains('token')));
     });
 
-    for (final status in [403, 404, 417, 500]) {
+    for (final status in [404, 417, 400]) {
       test(
         'HTTP $status (e.g. server without the endpoint) -> stable',
         () async {
@@ -123,6 +123,18 @@ void main() {
             _FakeAdapter.json(status, {'exc_type': 'Whatever'}),
           ).fetchChannel(fcmToken: 'tok');
           expect(result, UpdateChannel.fallback);
+        },
+      );
+    }
+
+    for (final status in [500, 502, 503, 504, 401, 403, 408, 429]) {
+      test(
+        'HTTP $status (deploy restart / expired session) -> null, keep track',
+        () async {
+          final result = await serviceWith(
+            _FakeAdapter.json(status, {'exc_type': 'Whatever'}),
+          ).fetchChannel(fcmToken: 'tok');
+          expect(result, isNull);
         },
       );
     }

@@ -239,6 +239,17 @@ jobs:
             $shorebirdTrack = $requestedTrack
           }
 
+          # Which tracks the patch is published to, in order. Managers' devices
+          # read only 'beta', so every ordinary patch must land there too or they
+          # would miss it: an ordinary patch (push, or stable dispatch from the
+          # main tip) goes to beta FIRST, then stable. A staff rollout of an older
+          # commit (source_ref) goes to stable only - publishing it to beta would
+          # roll managers back to older code. A beta dispatch is beta only.
+          $patchTracks = if ($shorebirdTrack -eq 'beta') { 'beta' }
+            elseif (-not [string]::IsNullOrWhiteSpace($env:INPUT_SOURCE_REF)) { 'stable' }
+            else { 'beta,stable' }
+          "shorebird_patch_tracks=$patchTracks" >> $env:GITHUB_OUTPUT
+
           "source_sha=$($env:SOURCE_SHA)" >> $env:GITHUB_OUTPUT
           "target_environment=$targetEnvironment" >> $env:GITHUB_OUTPUT
           "requested_release_type=$requestedReleaseType" >> $env:GITHUB_OUTPUT
@@ -469,8 +480,13 @@ jobs:
             # Staging auto-releases on every push and testers track head, so 'latest' is safe there.
             $releaseVersion = 'latest'
           }
-          Write-Host "Patching $targetEnvironment release $releaseVersion"
-          .\scripts\shorebird_android.ps1 -Environment $targetEnvironment -Action patch -ReleaseVersion $releaseVersion -Track '${{ steps.plan.outputs.shorebird_track }}'
+          $tracks = @('${{ steps.plan.outputs.shorebird_patch_tracks }}' -split ',' | Where-Object { $_ })
+          if ($tracks.Count -eq 0) { $tracks = @('stable') }
+          foreach ($track in $tracks) {
+            Write-Host "Patching $targetEnvironment release $releaseVersion on track $track"
+            .\scripts\shorebird_android.ps1 -Environment $targetEnvironment -Action patch -ReleaseVersion $releaseVersion -Track $track
+            if ($LASTEXITCODE -ne 0) { throw "Shorebird patch to track '$track' failed (exit $LASTEXITCODE)" }
+          }
 
       - name: Name APK artifact
         if: steps.plan.outputs.release_type == 'full_apk'
@@ -539,7 +555,7 @@ jobs:
             echo "| Classified release type | ${{ steps.plan.outputs.classified_release_type }} |"
             echo "| Effective release type | ${{ steps.plan.outputs.release_type }} |"
             echo "| Release engine | ${{ steps.plan.outputs.release_engine }} |"
-            echo "| Shorebird track | ${{ steps.plan.outputs.shorebird_track }} (beta = managers, stable = everyone else) |"
+            echo "| Shorebird tracks | ${{ steps.plan.outputs.shorebird_patch_tracks }} (beta = managers, stable = everyone else) |"
             echo "| Classifier reason | ${{ steps.plan.outputs.classified_reason }} |"
             echo "| Support note | ${{ steps.plan.outputs.support_note || 'n/a' }} |"
             echo "| Release ID | ${{ steps.meta.outputs.release_id || 'n/a' }} |"

@@ -22,12 +22,15 @@ class UpdateChannelService {
 
   /// Never throws.
   ///
-  /// * The server answered (any status, any body): returns its parsed answer,
-  ///   or [UpdateChannel.fallback] ("stable") when it is an error (404 on a
-  ///   server without the endpoint, 403, 417, 500) or unreadable.
-  /// * No answer at all (offline, DNS, timeout): returns `null`, meaning
-  ///   "unknown - keep whatever track you already had". This is what stops a
-  ///   flaky connection from bouncing a manager's device between tracks.
+  /// * The server gave a real answer: returns its parsed answer, or
+  ///   [UpdateChannel.fallback] ("stable") when it says the endpoint is not
+  ///   there (404 on a server without it, 417) or the body is unreadable.
+  /// * No usable answer: returns `null`, meaning "unknown - keep whatever
+  ///   track you already had". That covers offline, DNS, timeout, and the
+  ///   transient statuses: 5xx (the 502/503/504 burst while a deploy restarts
+  ///   the backend), 401/403 (an expired session), 408 and 429. Treating those
+  ///   as "stable" would drop a manager off the fast channel for a whole
+  ///   session just because the app opened during a restart.
   Future<UpdateChannel?> fetchChannel({String? fcmToken}) async {
     try {
       final token = fcmToken?.trim() ?? '';
@@ -48,7 +51,11 @@ class UpdateChannelService {
       if (kDebugMode) {
         debugPrint('Update channel check failed (ignored): $error');
       }
-      return error.response == null ? null : UpdateChannel.fallback;
+      final response = error.response;
+      if (response == null) return null;
+      return isTransientStatus(response.statusCode)
+          ? null
+          : UpdateChannel.fallback;
     } on TimeoutException {
       return null;
     } catch (error) {
@@ -57,5 +64,14 @@ class UpdateChannelService {
       }
       return UpdateChannel.fallback;
     }
+  }
+
+  /// Statuses that say nothing about this device's channel, only that the
+  /// server could not answer right now.
+  @visibleForTesting
+  static bool isTransientStatus(int? status) {
+    if (status == null) return true;
+    if (status >= 500) return true;
+    return status == 401 || status == 403 || status == 408 || status == 429;
   }
 }
