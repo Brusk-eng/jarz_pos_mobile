@@ -40,7 +40,10 @@ class _BasketPickListState extends State<BasketPickList> {
       for (final component in rollup.components)
         if (component.isShort) component,
     ];
-    final flavours = groupRollupByFlavour(rollup.components);
+    final flavours = groupRollupByFlavour(
+      rollup.components,
+      rollup.subassemblies,
+    );
 
     return Container(
       width: double.infinity,
@@ -121,7 +124,12 @@ class _BasketPickListState extends State<BasketPickList> {
               child: Column(
                 children: [
                   for (final component in rollup.components)
-                    _PickListRow(component: component),
+                    if (shownInPickList(component))
+                      _PickListRow(component: component),
+                  // Each phantom sub-assembly as its own bowl: its sugar is
+                  // never added to the sugar a jar takes for its coffee.
+                  for (final sub in rollup.subassemblies)
+                    _SubassemblySection(sub: sub, qty: sub.requiredQty),
                 ],
               ),
             ),
@@ -140,6 +148,8 @@ class _BasketPickListState extends State<BasketPickList> {
                         children: [
                           for (final line in flavour.lines)
                             _FlavourLine(line: line),
+                          for (final part in flavour.subassemblies)
+                            _SubassemblySection(sub: part.sub, qty: part.qty),
                         ],
                       ),
                     ),
@@ -205,11 +215,36 @@ class FlavourIngredient {
 
 /// Every material one flavour needs, summed over its sizes.
 class FlavourIngredients {
-  const FlavourIngredients({required this.name, required this.lines});
+  const FlavourIngredients({
+    required this.name,
+    required this.lines,
+    this.subassemblies = const [],
+  });
 
   final String name;
   final List<FlavourIngredient> lines;
+
+  /// This flavour's share of each sub-assembly bowl.
+  final List<({RollupSubassembly sub, double qty})> subassemblies;
 }
+
+/// What the pick list prints for a material.
+///
+/// Its direct share when the server split the sub-assemblies out (the coffee's
+/// powder sugar, not the mix's); the whole need on a shortage, because that is
+/// what the store has to hold; the whole need from an older server.
+double pickListQty(RollupComponent component) {
+  final direct = component.directQty;
+  if (direct == null || component.isShort) return component.requiredQty;
+  return direct;
+}
+
+/// A material used only inside a sub-assembly is listed under that bowl, not
+/// again on its own, unless it is short.
+bool shownInPickList(RollupComponent component) =>
+    component.isShort ||
+    component.directQty == null ||
+    component.directQty! > 1e-9;
 
 final _sizeSuffix = RegExp(
   r'\s+(large|medium|small|mini)$',
@@ -229,8 +264,9 @@ String flavourOfItem(String itemCode) {
 /// lands under its flavour (sizes of one flavour summed). Flavours keep the
 /// order they first appear in; materials keep the roll-up's order.
 List<FlavourIngredients> groupRollupByFlavour(
-  List<RollupComponent> components,
-) {
+  List<RollupComponent> components, [
+  List<RollupSubassembly> subassemblies = const [],
+]) {
   final order = <String>[];
   final byFlavour = <String, Map<String, double>>{};
   final componentByCode = <String, RollupComponent>{};
@@ -242,9 +278,24 @@ List<FlavourIngredients> groupRollupByFlavour(
         order.add(flavour);
         byFlavour[flavour] = <String, double>{};
       }
+      // The share outside any sub-assembly; the mix's part is listed
+      // under the mix below.
+      final qty = line.directQty ?? line.requiredQty;
+      if (qty <= 1e-9) continue;
       final bucket = byFlavour[flavour]!;
-      bucket[component.itemCode] =
-          (bucket[component.itemCode] ?? 0) + line.requiredQty;
+      bucket[component.itemCode] = (bucket[component.itemCode] ?? 0) + qty;
+    }
+  }
+  final subsByFlavour = <String, Map<String, double>>{};
+  for (final sub in subassemblies) {
+    for (final line in sub.contributingLines) {
+      final flavour = flavourOfItem(line.itemCode);
+      if (!byFlavour.containsKey(flavour)) {
+        order.add(flavour);
+        byFlavour[flavour] = <String, double>{};
+      }
+      final bucket = subsByFlavour.putIfAbsent(flavour, () => {});
+      bucket[sub.itemCode] = (bucket[sub.itemCode] ?? 0) + line.requiredQty;
     }
   }
   return [
@@ -258,6 +309,11 @@ List<FlavourIngredients> groupRollupByFlavour(
                 component: componentByCode[component.itemCode]!,
                 qty: byFlavour[flavour]![component.itemCode]!,
               ),
+        ],
+        subassemblies: [
+          for (final sub in subassemblies)
+            if (subsByFlavour[flavour]?[sub.itemCode] case final qty?)
+              (sub: sub, qty: qty),
         ],
       ),
   ];
@@ -277,9 +333,6 @@ class _FlavourLine extends StatelessWidget {
     final name = component.itemName.isNotEmpty
         ? component.itemName
         : component.itemCode;
-    final share = component.requiredQty > 0
-        ? line.qty / component.requiredQty
-        : 0.0;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Column(
@@ -306,73 +359,64 @@ class _FlavourLine extends StatelessWidget {
               ),
             ],
           ),
-          // This flavour's share of what goes into a fresh sub-assembly.
-          if (component.madeFrom.isNotEmpty)
-            MadeFromList(lines: component.madeFrom, scale: share),
         ],
       ),
     );
   }
 }
 
-/// What goes into a sub-assembly made fresh for the run, folded under it.
+/// One sub-assembly bowl (Cheesecake Mix), folded: its amount on the
+/// heading, what goes into it below.
 ///
 /// Kept apart from the pick list's own rows on purpose: the mix's powder
 /// sugar is not the powder sugar a jar takes for its coffee, and summing the
 /// two would hide which bowl each one goes into.
-class MadeFromList extends StatelessWidget {
-  const MadeFromList({super.key, required this.lines, this.scale = 1});
+class _SubassemblySection extends StatelessWidget {
+  const _SubassemblySection({required this.sub, required this.qty});
 
-  final List<MadeFromLine> lines;
+  final RollupSubassembly sub;
 
-  /// 1 for the whole basket; a flavour's share of it on the per-flavour view.
-  final double scale;
+  /// The whole basket's need, or one flavour's share of it.
+  final double qty;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return ExpansionTile(
-      title: Text(
-        l10n.productionIngredientsMadeFrom,
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: scheme.onSurfaceVariant,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    final scale = sub.requiredQty > 0 ? qty / sub.requiredQty : 0.0;
+    final name = sub.itemName.isNotEmpty ? sub.itemName : sub.itemCode;
+    return _Section(
+      key: ValueKey('sub-${sub.itemCode}'),
+      title:
+          '$name · ${l10n.manufacturingComponentRequired(trimQty(qty, decimals: 3), sub.uom)}',
       dense: true,
-      visualDensity: VisualDensity.compact,
-      tilePadding: const EdgeInsetsDirectional.only(start: 12, end: 4),
-      childrenPadding: const EdgeInsetsDirectional.only(start: 24, end: 4),
-      shape: const Border(),
-      collapsedShape: const Border(),
-      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final line in lines)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    line.itemName.isNotEmpty ? line.itemName : line.itemCode,
-                    style: theme.textTheme.bodySmall,
+      child: Column(
+        children: [
+          for (final line in sub.madeFrom)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      line.itemName.isNotEmpty ? line.itemName : line.itemCode,
+                      style: theme.textTheme.bodySmall,
+                    ),
                   ),
-                ),
-                Text(
-                  l10n.manufacturingComponentRequired(
-                    trimQty(line.requiredQty * scale, decimals: 3),
-                    line.uom,
+                  Text(
+                    l10n.manufacturingComponentRequired(
+                      trimQty(line.requiredQty * scale, decimals: 3),
+                      line.uom,
+                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -408,7 +452,7 @@ class _PickListRow extends StatelessWidget {
               ),
               Text(
                 l10n.manufacturingComponentRequired(
-                  trimQty(component.requiredQty, decimals: 3),
+                  trimQty(pickListQty(component), decimals: 3),
                   component.uom,
                 ),
                 style: theme.textTheme.bodySmall,
@@ -462,8 +506,6 @@ class _PickListRow extends StatelessWidget {
                 ),
             ],
           ),
-          if (component.madeFrom.isNotEmpty)
-            MadeFromList(lines: component.madeFrom),
           // Only ever under a line that is already short, and only when the
           // backend looked: the shortage above still blocks Start, this says
           // whether the fix is a transfer or a purchase — and, when it is a

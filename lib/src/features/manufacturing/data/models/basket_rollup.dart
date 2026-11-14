@@ -24,6 +24,11 @@ class BasketRollup with _$BasketRollup {
     /// 1.0 means it fits as-is; 0.6 means every line must shrink to 60%.
     /// Null when nothing constrains it.
     @JsonKey(name: 'max_feasible_scale') double? maxFeasibleScale,
+
+    /// Phantom sub-assemblies (Cheesecake Mix) made in their own bowl, each
+    /// with its own ingredients. ERPNext merges those ingredients into
+    /// [components]; this keeps them apart for the kitchen.
+    @Default(<RollupSubassembly>[]) List<RollupSubassembly> subassemblies,
   }) = _BasketRollup;
 
   factory BasketRollup.fromJson(Map<String, dynamic> json) =>
@@ -57,13 +62,9 @@ class RollupComponent with _$RollupComponent {
     @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
     List<StockAlternative>? alternatives,
 
-    /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
-    /// for the whole basket. Kept under it, never merged with the same
-    /// material a jar takes directly. Empty for a raw material or a stored
-    /// sub-assembly.
-    @JsonKey(name: 'made_from')
-    @Default(<MadeFromLine>[])
-    List<MadeFromLine> madeFrom,
+    /// The part of [requiredQty] NOT inside a sub-assembly (the powder sugar
+    /// for the coffee, not the mix's). Null from a server that predates it.
+    @JsonKey(name: 'direct_qty') double? directQty,
   }) = _RollupComponent;
 
   factory RollupComponent.fromJson(Map<String, dynamic> json) =>
@@ -86,13 +87,36 @@ class ContributingLine with _$ContributingLine {
     @JsonKey(name: 'line_index') @Default(0) int lineIndex,
     @JsonKey(name: 'item_code') @Default('') String itemCode,
     @JsonKey(name: 'required_qty') @Default(0.0) double requiredQty,
+
+    /// This line's share outside any sub-assembly; null from an older server.
+    @JsonKey(name: 'direct_qty') double? directQty,
   }) = _ContributingLine;
 
   factory ContributingLine.fromJson(Map<String, dynamic> json) =>
       _$ContributingLineFromJson(json);
 }
 
-/// One ingredient of a fresh sub-assembly, for the basket's whole need of it.
+/// A phantom sub-assembly (Cheesecake Mix) for the whole basket.
+@freezed
+class RollupSubassembly with _$RollupSubassembly {
+  const factory RollupSubassembly({
+    @JsonKey(name: 'item_code') @Default('') String itemCode,
+    @JsonKey(name: 'item_name') @Default('') String itemName,
+    @Default('') String uom,
+    @JsonKey(name: 'required_qty') @Default(0.0) double requiredQty,
+    @JsonKey(name: 'made_from')
+    @Default(<MadeFromLine>[])
+    List<MadeFromLine> madeFrom,
+    @JsonKey(name: 'contributing_lines')
+    @Default(<ContributingLine>[])
+    List<ContributingLine> contributingLines,
+  }) = _RollupSubassembly;
+
+  factory RollupSubassembly.fromJson(Map<String, dynamic> json) =>
+      _$RollupSubassemblyFromJson(json);
+}
+
+/// One ingredient of a sub-assembly, for the basket's whole need of it.
 @freezed
 class MadeFromLine with _$MadeFromLine {
   const factory MadeFromLine({

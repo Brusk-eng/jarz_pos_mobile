@@ -261,55 +261,105 @@ void main() {
     });
   });
 
-  testWidgets('a fresh mix lists its own sugar apart from the jar sugar', (
-    tester,
-  ) async {
-    await _pump(
-      tester,
-      const BasketRollup(
-        components: [
-          RollupComponent(
-            itemCode: 'MIX',
-            itemName: 'Cheesecake Mix',
-            uom: 'Kg',
-            requiredQty: 2,
-            availableQty: 10,
-            contributingLines: [
-              ContributingLine(itemCode: 'Tiramisu Large', requiredQty: 2),
-            ],
-            madeFrom: [
-              MadeFromLine(
-                itemCode: 'SUGAR',
-                itemName: 'Powder sugar',
-                uom: 'Kg',
-                requiredQty: 0.2,
-              ),
-            ],
+  // The real stack's shape: ERPNext merges the phantom mix's sugar into
+  // one powder sugar row (0.5); the server splits the mix's 0.2 out.
+  const splitRollup = BasketRollup(
+    components: [
+      RollupComponent(
+        itemCode: 'SUGAR',
+        itemName: 'Powder sugar',
+        uom: 'Kg',
+        requiredQty: 0.5,
+        directQty: 0.3,
+        availableQty: 10,
+        contributingLines: [
+          ContributingLine(
+            itemCode: 'Tiramisu Large',
+            requiredQty: 0.45,
+            directQty: 0.3,
           ),
-          RollupComponent(
-            itemCode: 'SUGAR',
-            itemName: 'Powder sugar',
-            uom: 'Kg',
-            requiredQty: 0.3,
-            availableQty: 10,
-            contributingLines: [
-              ContributingLine(itemCode: 'Tiramisu Large', requiredQty: 0.3),
-            ],
+          ContributingLine(
+            lineIndex: 1,
+            itemCode: 'Mango Medium',
+            requiredQty: 0.05,
+            directQty: 0,
           ),
         ],
       ),
+      RollupComponent(
+        itemCode: 'CHEESE',
+        itemName: 'Cream cheese',
+        uom: 'Kg',
+        requiredQty: 1,
+        directQty: 0,
+        availableQty: 10,
+      ),
+    ],
+    subassemblies: [
+      RollupSubassembly(
+        itemCode: 'MIX',
+        itemName: 'Cheesecake Mix',
+        uom: 'Kg',
+        requiredQty: 2,
+        madeFrom: [
+          MadeFromLine(
+            itemCode: 'CHEESE',
+            itemName: 'Cream cheese',
+            uom: 'Kg',
+            requiredQty: 1,
+          ),
+          MadeFromLine(
+            itemCode: 'SUGAR',
+            itemName: 'Powder sugar',
+            uom: 'Kg',
+            requiredQty: 0.2,
+          ),
+        ],
+        contributingLines: [
+          ContributingLine(itemCode: 'Tiramisu Large', requiredQty: 1.5),
+          ContributingLine(
+            lineIndex: 1,
+            itemCode: 'Mango Medium',
+            requiredQty: 0.5,
+          ),
+        ],
+      ),
+    ],
+  );
+
+  testWidgets(
+    'the mix is its own bowl; its sugar never joins the coffee sugar',
+    (tester) async {
+      await _pump(tester, splitRollup);
+
+      await tester.tap(find.text('Ingredients'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Consolidated pick list'));
+      await tester.pumpAndSettle();
+
+      // The jar's own sugar only; cream cheese is not listed twice.
+      expect(find.textContaining('0.3 Kg'), findsOneWidget);
+      expect(find.textContaining('0.5 Kg'), findsNothing);
+      expect(find.textContaining('Cream cheese'), findsNothing);
+
+      await tester.tap(find.textContaining('Cheesecake Mix'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('0.2 Kg'), findsOneWidget);
+      expect(find.textContaining('Cream cheese'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  test('per flavour: direct shares, and each flavour share of the bowl', () {
+    final flavours = groupRollupByFlavour(
+      splitRollup.components,
+      splitRollup.subassemblies,
     );
-
-    await tester.tap(find.text('Ingredients'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Consolidated pick list'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Made from'));
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('0.2 Kg'), findsOneWidget);
-    expect(find.textContaining('0.3 Kg'), findsOneWidget);
-    expect(find.textContaining('0.5 Kg'), findsNothing);
-    expect(tester.takeException(), isNull);
+    expect(flavours.map((f) => f.name), ['Tiramisu', 'Mango']);
+    expect(flavours[0].lines.single.qty, 0.3);
+    expect(flavours[0].subassemblies.single.qty, 1.5);
+    // Mango takes no sugar of its own: only its part of the mix.
+    expect(flavours[1].lines, isEmpty);
+    expect(flavours[1].subassemblies.single.qty, 0.5);
   });
 }

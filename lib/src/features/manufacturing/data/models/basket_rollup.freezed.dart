@@ -34,6 +34,12 @@ mixin _$BasketRollup {
   @JsonKey(name: 'max_feasible_scale')
   double? get maxFeasibleScale => throw _privateConstructorUsedError;
 
+  /// Phantom sub-assemblies (Cheesecake Mix) made in their own bowl, each
+  /// with its own ingredients. ERPNext merges those ingredients into
+  /// [components]; this keeps them apart for the kitchen.
+  List<RollupSubassembly> get subassemblies =>
+      throw _privateConstructorUsedError;
+
   /// Serializes this BasketRollup to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -58,6 +64,7 @@ abstract class $BasketRollupCopyWith<$Res> {
     List<RollupComponent> components,
     List<RollupComponent> shortages,
     @JsonKey(name: 'max_feasible_scale') double? maxFeasibleScale,
+    List<RollupSubassembly> subassemblies,
   });
 }
 
@@ -82,6 +89,7 @@ class _$BasketRollupCopyWithImpl<$Res, $Val extends BasketRollup>
     Object? components = null,
     Object? shortages = null,
     Object? maxFeasibleScale = freezed,
+    Object? subassemblies = null,
   }) {
     return _then(
       _value.copyWith(
@@ -109,6 +117,10 @@ class _$BasketRollupCopyWithImpl<$Res, $Val extends BasketRollup>
                 ? _value.maxFeasibleScale
                 : maxFeasibleScale // ignore: cast_nullable_to_non_nullable
                       as double?,
+            subassemblies: null == subassemblies
+                ? _value.subassemblies
+                : subassemblies // ignore: cast_nullable_to_non_nullable
+                      as List<RollupSubassembly>,
           )
           as $Val,
     );
@@ -131,6 +143,7 @@ abstract class _$$BasketRollupImplCopyWith<$Res>
     List<RollupComponent> components,
     List<RollupComponent> shortages,
     @JsonKey(name: 'max_feasible_scale') double? maxFeasibleScale,
+    List<RollupSubassembly> subassemblies,
   });
 }
 
@@ -154,6 +167,7 @@ class __$$BasketRollupImplCopyWithImpl<$Res>
     Object? components = null,
     Object? shortages = null,
     Object? maxFeasibleScale = freezed,
+    Object? subassemblies = null,
   }) {
     return _then(
       _$BasketRollupImpl(
@@ -181,6 +195,10 @@ class __$$BasketRollupImplCopyWithImpl<$Res>
             ? _value.maxFeasibleScale
             : maxFeasibleScale // ignore: cast_nullable_to_non_nullable
                   as double?,
+        subassemblies: null == subassemblies
+            ? _value._subassemblies
+            : subassemblies // ignore: cast_nullable_to_non_nullable
+                  as List<RollupSubassembly>,
       ),
     );
   }
@@ -196,8 +214,10 @@ class _$BasketRollupImpl extends _BasketRollup {
     final List<RollupComponent> components = const <RollupComponent>[],
     final List<RollupComponent> shortages = const <RollupComponent>[],
     @JsonKey(name: 'max_feasible_scale') this.maxFeasibleScale,
+    final List<RollupSubassembly> subassemblies = const <RollupSubassembly>[],
   }) : _components = components,
        _shortages = shortages,
+       _subassemblies = subassemblies,
        super._();
 
   factory _$BasketRollupImpl.fromJson(Map<String, dynamic> json) =>
@@ -237,9 +257,25 @@ class _$BasketRollupImpl extends _BasketRollup {
   @JsonKey(name: 'max_feasible_scale')
   final double? maxFeasibleScale;
 
+  /// Phantom sub-assemblies (Cheesecake Mix) made in their own bowl, each
+  /// with its own ingredients. ERPNext merges those ingredients into
+  /// [components]; this keeps them apart for the kitchen.
+  final List<RollupSubassembly> _subassemblies;
+
+  /// Phantom sub-assemblies (Cheesecake Mix) made in their own bowl, each
+  /// with its own ingredients. ERPNext merges those ingredients into
+  /// [components]; this keeps them apart for the kitchen.
+  @override
+  @JsonKey()
+  List<RollupSubassembly> get subassemblies {
+    if (_subassemblies is EqualUnmodifiableListView) return _subassemblies;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_subassemblies);
+  }
+
   @override
   String toString() {
-    return 'BasketRollup(ok: $ok, company: $company, lineCount: $lineCount, components: $components, shortages: $shortages, maxFeasibleScale: $maxFeasibleScale)';
+    return 'BasketRollup(ok: $ok, company: $company, lineCount: $lineCount, components: $components, shortages: $shortages, maxFeasibleScale: $maxFeasibleScale, subassemblies: $subassemblies)';
   }
 
   @override
@@ -260,7 +296,11 @@ class _$BasketRollupImpl extends _BasketRollup {
               _shortages,
             ) &&
             (identical(other.maxFeasibleScale, maxFeasibleScale) ||
-                other.maxFeasibleScale == maxFeasibleScale));
+                other.maxFeasibleScale == maxFeasibleScale) &&
+            const DeepCollectionEquality().equals(
+              other._subassemblies,
+              _subassemblies,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -273,6 +313,7 @@ class _$BasketRollupImpl extends _BasketRollup {
     const DeepCollectionEquality().hash(_components),
     const DeepCollectionEquality().hash(_shortages),
     maxFeasibleScale,
+    const DeepCollectionEquality().hash(_subassemblies),
   );
 
   /// Create a copy of BasketRollup
@@ -297,6 +338,7 @@ abstract class _BasketRollup extends BasketRollup {
     final List<RollupComponent> components,
     final List<RollupComponent> shortages,
     @JsonKey(name: 'max_feasible_scale') final double? maxFeasibleScale,
+    final List<RollupSubassembly> subassemblies,
   }) = _$BasketRollupImpl;
   const _BasketRollup._() : super._();
 
@@ -321,6 +363,12 @@ abstract class _BasketRollup extends BasketRollup {
   @override
   @JsonKey(name: 'max_feasible_scale')
   double? get maxFeasibleScale;
+
+  /// Phantom sub-assemblies (Cheesecake Mix) made in their own bowl, each
+  /// with its own ingredients. ERPNext merges those ingredients into
+  /// [components]; this keeps them apart for the kitchen.
+  @override
+  List<RollupSubassembly> get subassemblies;
 
   /// Create a copy of BasketRollup
   /// with the given fields replaced by the non-null parameter values.
@@ -364,12 +412,10 @@ mixin _$RollupComponent {
   List<StockAlternative>? get alternatives =>
       throw _privateConstructorUsedError;
 
-  /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
-  /// for the whole basket. Kept under it, never merged with the same
-  /// material a jar takes directly. Empty for a raw material or a stored
-  /// sub-assembly.
-  @JsonKey(name: 'made_from')
-  List<MadeFromLine> get madeFrom => throw _privateConstructorUsedError;
+  /// The part of [requiredQty] NOT inside a sub-assembly (the powder sugar
+  /// for the coffee, not the mix's). Null from a server that predates it.
+  @JsonKey(name: 'direct_qty')
+  double? get directQty => throw _privateConstructorUsedError;
 
   /// Serializes this RollupComponent to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -401,7 +447,7 @@ abstract class $RollupComponentCopyWith<$Res> {
     List<ContributingLine> contributingLines,
     @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
     List<StockAlternative>? alternatives,
-    @JsonKey(name: 'made_from') List<MadeFromLine> madeFrom,
+    @JsonKey(name: 'direct_qty') double? directQty,
   });
 }
 
@@ -431,7 +477,7 @@ class _$RollupComponentCopyWithImpl<$Res, $Val extends RollupComponent>
     Object? contributingLines = null,
     Object? availableElsewhere = freezed,
     Object? alternatives = freezed,
-    Object? madeFrom = null,
+    Object? directQty = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -479,10 +525,10 @@ class _$RollupComponentCopyWithImpl<$Res, $Val extends RollupComponent>
                 ? _value.alternatives
                 : alternatives // ignore: cast_nullable_to_non_nullable
                       as List<StockAlternative>?,
-            madeFrom: null == madeFrom
-                ? _value.madeFrom
-                : madeFrom // ignore: cast_nullable_to_non_nullable
-                      as List<MadeFromLine>,
+            directQty: freezed == directQty
+                ? _value.directQty
+                : directQty // ignore: cast_nullable_to_non_nullable
+                      as double?,
           )
           as $Val,
     );
@@ -511,7 +557,7 @@ abstract class _$$RollupComponentImplCopyWith<$Res>
     List<ContributingLine> contributingLines,
     @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
     List<StockAlternative>? alternatives,
-    @JsonKey(name: 'made_from') List<MadeFromLine> madeFrom,
+    @JsonKey(name: 'direct_qty') double? directQty,
   });
 }
 
@@ -540,7 +586,7 @@ class __$$RollupComponentImplCopyWithImpl<$Res>
     Object? contributingLines = null,
     Object? availableElsewhere = freezed,
     Object? alternatives = freezed,
-    Object? madeFrom = null,
+    Object? directQty = freezed,
   }) {
     return _then(
       _$RollupComponentImpl(
@@ -588,10 +634,10 @@ class __$$RollupComponentImplCopyWithImpl<$Res>
             ? _value._alternatives
             : alternatives // ignore: cast_nullable_to_non_nullable
                   as List<StockAlternative>?,
-        madeFrom: null == madeFrom
-            ? _value._madeFrom
-            : madeFrom // ignore: cast_nullable_to_non_nullable
-                  as List<MadeFromLine>,
+        directQty: freezed == directQty
+            ? _value.directQty
+            : directQty // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -613,11 +659,9 @@ class _$RollupComponentImpl extends _RollupComponent {
     final List<ContributingLine> contributingLines = const <ContributingLine>[],
     @JsonKey(name: 'available_elsewhere') this.availableElsewhere,
     final List<StockAlternative>? alternatives,
-    @JsonKey(name: 'made_from')
-    final List<MadeFromLine> madeFrom = const <MadeFromLine>[],
+    @JsonKey(name: 'direct_qty') this.directQty,
   }) : _contributingLines = contributingLines,
        _alternatives = alternatives,
-       _madeFrom = madeFrom,
        super._();
 
   factory _$RollupComponentImpl.fromJson(Map<String, dynamic> json) =>
@@ -674,27 +718,15 @@ class _$RollupComponentImpl extends _RollupComponent {
     return EqualUnmodifiableListView(value);
   }
 
-  /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
-  /// for the whole basket. Kept under it, never merged with the same
-  /// material a jar takes directly. Empty for a raw material or a stored
-  /// sub-assembly.
-  final List<MadeFromLine> _madeFrom;
-
-  /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
-  /// for the whole basket. Kept under it, never merged with the same
-  /// material a jar takes directly. Empty for a raw material or a stored
-  /// sub-assembly.
+  /// The part of [requiredQty] NOT inside a sub-assembly (the powder sugar
+  /// for the coffee, not the mix's). Null from a server that predates it.
   @override
-  @JsonKey(name: 'made_from')
-  List<MadeFromLine> get madeFrom {
-    if (_madeFrom is EqualUnmodifiableListView) return _madeFrom;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_madeFrom);
-  }
+  @JsonKey(name: 'direct_qty')
+  final double? directQty;
 
   @override
   String toString() {
-    return 'RollupComponent(itemCode: $itemCode, itemName: $itemName, uom: $uom, sourceWarehouse: $sourceWarehouse, requiredQty: $requiredQty, availableQty: $availableQty, missingQty: $missingQty, reason: $reason, contributingLines: $contributingLines, availableElsewhere: $availableElsewhere, alternatives: $alternatives, madeFrom: $madeFrom)';
+    return 'RollupComponent(itemCode: $itemCode, itemName: $itemName, uom: $uom, sourceWarehouse: $sourceWarehouse, requiredQty: $requiredQty, availableQty: $availableQty, missingQty: $missingQty, reason: $reason, contributingLines: $contributingLines, availableElsewhere: $availableElsewhere, alternatives: $alternatives, directQty: $directQty)';
   }
 
   @override
@@ -726,7 +758,8 @@ class _$RollupComponentImpl extends _RollupComponent {
               other._alternatives,
               _alternatives,
             ) &&
-            const DeepCollectionEquality().equals(other._madeFrom, _madeFrom));
+            (identical(other.directQty, directQty) ||
+                other.directQty == directQty));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -744,7 +777,7 @@ class _$RollupComponentImpl extends _RollupComponent {
     const DeepCollectionEquality().hash(_contributingLines),
     availableElsewhere,
     const DeepCollectionEquality().hash(_alternatives),
-    const DeepCollectionEquality().hash(_madeFrom),
+    directQty,
   );
 
   /// Create a copy of RollupComponent
@@ -778,7 +811,7 @@ abstract class _RollupComponent extends RollupComponent {
     final List<ContributingLine> contributingLines,
     @JsonKey(name: 'available_elsewhere') final double? availableElsewhere,
     final List<StockAlternative>? alternatives,
-    @JsonKey(name: 'made_from') final List<MadeFromLine> madeFrom,
+    @JsonKey(name: 'direct_qty') final double? directQty,
   }) = _$RollupComponentImpl;
   const _RollupComponent._() : super._();
 
@@ -822,13 +855,11 @@ abstract class _RollupComponent extends RollupComponent {
   @override
   List<StockAlternative>? get alternatives;
 
-  /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
-  /// for the whole basket. Kept under it, never merged with the same
-  /// material a jar takes directly. Empty for a raw material or a stored
-  /// sub-assembly.
+  /// The part of [requiredQty] NOT inside a sub-assembly (the powder sugar
+  /// for the coffee, not the mix's). Null from a server that predates it.
   @override
-  @JsonKey(name: 'made_from')
-  List<MadeFromLine> get madeFrom;
+  @JsonKey(name: 'direct_qty')
+  double? get directQty;
 
   /// Create a copy of RollupComponent
   /// with the given fields replaced by the non-null parameter values.
@@ -851,6 +882,10 @@ mixin _$ContributingLine {
   @JsonKey(name: 'required_qty')
   double get requiredQty => throw _privateConstructorUsedError;
 
+  /// This line's share outside any sub-assembly; null from an older server.
+  @JsonKey(name: 'direct_qty')
+  double? get directQty => throw _privateConstructorUsedError;
+
   /// Serializes this ContributingLine to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -872,6 +907,7 @@ abstract class $ContributingLineCopyWith<$Res> {
     @JsonKey(name: 'line_index') int lineIndex,
     @JsonKey(name: 'item_code') String itemCode,
     @JsonKey(name: 'required_qty') double requiredQty,
+    @JsonKey(name: 'direct_qty') double? directQty,
   });
 }
 
@@ -893,6 +929,7 @@ class _$ContributingLineCopyWithImpl<$Res, $Val extends ContributingLine>
     Object? lineIndex = null,
     Object? itemCode = null,
     Object? requiredQty = null,
+    Object? directQty = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -908,6 +945,10 @@ class _$ContributingLineCopyWithImpl<$Res, $Val extends ContributingLine>
                 ? _value.requiredQty
                 : requiredQty // ignore: cast_nullable_to_non_nullable
                       as double,
+            directQty: freezed == directQty
+                ? _value.directQty
+                : directQty // ignore: cast_nullable_to_non_nullable
+                      as double?,
           )
           as $Val,
     );
@@ -927,6 +968,7 @@ abstract class _$$ContributingLineImplCopyWith<$Res>
     @JsonKey(name: 'line_index') int lineIndex,
     @JsonKey(name: 'item_code') String itemCode,
     @JsonKey(name: 'required_qty') double requiredQty,
+    @JsonKey(name: 'direct_qty') double? directQty,
   });
 }
 
@@ -947,6 +989,7 @@ class __$$ContributingLineImplCopyWithImpl<$Res>
     Object? lineIndex = null,
     Object? itemCode = null,
     Object? requiredQty = null,
+    Object? directQty = freezed,
   }) {
     return _then(
       _$ContributingLineImpl(
@@ -962,6 +1005,10 @@ class __$$ContributingLineImplCopyWithImpl<$Res>
             ? _value.requiredQty
             : requiredQty // ignore: cast_nullable_to_non_nullable
                   as double,
+        directQty: freezed == directQty
+            ? _value.directQty
+            : directQty // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -974,6 +1021,7 @@ class _$ContributingLineImpl implements _ContributingLine {
     @JsonKey(name: 'line_index') this.lineIndex = 0,
     @JsonKey(name: 'item_code') this.itemCode = '',
     @JsonKey(name: 'required_qty') this.requiredQty = 0.0,
+    @JsonKey(name: 'direct_qty') this.directQty,
   });
 
   factory _$ContributingLineImpl.fromJson(Map<String, dynamic> json) =>
@@ -989,9 +1037,14 @@ class _$ContributingLineImpl implements _ContributingLine {
   @JsonKey(name: 'required_qty')
   final double requiredQty;
 
+  /// This line's share outside any sub-assembly; null from an older server.
+  @override
+  @JsonKey(name: 'direct_qty')
+  final double? directQty;
+
   @override
   String toString() {
-    return 'ContributingLine(lineIndex: $lineIndex, itemCode: $itemCode, requiredQty: $requiredQty)';
+    return 'ContributingLine(lineIndex: $lineIndex, itemCode: $itemCode, requiredQty: $requiredQty, directQty: $directQty)';
   }
 
   @override
@@ -1004,13 +1057,15 @@ class _$ContributingLineImpl implements _ContributingLine {
             (identical(other.itemCode, itemCode) ||
                 other.itemCode == itemCode) &&
             (identical(other.requiredQty, requiredQty) ||
-                other.requiredQty == requiredQty));
+                other.requiredQty == requiredQty) &&
+            (identical(other.directQty, directQty) ||
+                other.directQty == directQty));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, lineIndex, itemCode, requiredQty);
+      Object.hash(runtimeType, lineIndex, itemCode, requiredQty, directQty);
 
   /// Create a copy of ContributingLine
   /// with the given fields replaced by the non-null parameter values.
@@ -1034,6 +1089,7 @@ abstract class _ContributingLine implements ContributingLine {
     @JsonKey(name: 'line_index') final int lineIndex,
     @JsonKey(name: 'item_code') final String itemCode,
     @JsonKey(name: 'required_qty') final double requiredQty,
+    @JsonKey(name: 'direct_qty') final double? directQty,
   }) = _$ContributingLineImpl;
 
   factory _ContributingLine.fromJson(Map<String, dynamic> json) =
@@ -1049,11 +1105,331 @@ abstract class _ContributingLine implements ContributingLine {
   @JsonKey(name: 'required_qty')
   double get requiredQty;
 
+  /// This line's share outside any sub-assembly; null from an older server.
+  @override
+  @JsonKey(name: 'direct_qty')
+  double? get directQty;
+
   /// Create a copy of ContributingLine
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ContributingLineImplCopyWith<_$ContributingLineImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+RollupSubassembly _$RollupSubassemblyFromJson(Map<String, dynamic> json) {
+  return _RollupSubassembly.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RollupSubassembly {
+  @JsonKey(name: 'item_code')
+  String get itemCode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'item_name')
+  String get itemName => throw _privateConstructorUsedError;
+  String get uom => throw _privateConstructorUsedError;
+  @JsonKey(name: 'required_qty')
+  double get requiredQty => throw _privateConstructorUsedError;
+  @JsonKey(name: 'made_from')
+  List<MadeFromLine> get madeFrom => throw _privateConstructorUsedError;
+  @JsonKey(name: 'contributing_lines')
+  List<ContributingLine> get contributingLines =>
+      throw _privateConstructorUsedError;
+
+  /// Serializes this RollupSubassembly to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RollupSubassembly
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RollupSubassemblyCopyWith<RollupSubassembly> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RollupSubassemblyCopyWith<$Res> {
+  factory $RollupSubassemblyCopyWith(
+    RollupSubassembly value,
+    $Res Function(RollupSubassembly) then,
+  ) = _$RollupSubassemblyCopyWithImpl<$Res, RollupSubassembly>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    String uom,
+    @JsonKey(name: 'required_qty') double requiredQty,
+    @JsonKey(name: 'made_from') List<MadeFromLine> madeFrom,
+    @JsonKey(name: 'contributing_lines')
+    List<ContributingLine> contributingLines,
+  });
+}
+
+/// @nodoc
+class _$RollupSubassemblyCopyWithImpl<$Res, $Val extends RollupSubassembly>
+    implements $RollupSubassemblyCopyWith<$Res> {
+  _$RollupSubassemblyCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RollupSubassembly
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? uom = null,
+    Object? requiredQty = null,
+    Object? madeFrom = null,
+    Object? contributingLines = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            itemCode: null == itemCode
+                ? _value.itemCode
+                : itemCode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            itemName: null == itemName
+                ? _value.itemName
+                : itemName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            uom: null == uom
+                ? _value.uom
+                : uom // ignore: cast_nullable_to_non_nullable
+                      as String,
+            requiredQty: null == requiredQty
+                ? _value.requiredQty
+                : requiredQty // ignore: cast_nullable_to_non_nullable
+                      as double,
+            madeFrom: null == madeFrom
+                ? _value.madeFrom
+                : madeFrom // ignore: cast_nullable_to_non_nullable
+                      as List<MadeFromLine>,
+            contributingLines: null == contributingLines
+                ? _value.contributingLines
+                : contributingLines // ignore: cast_nullable_to_non_nullable
+                      as List<ContributingLine>,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$RollupSubassemblyImplCopyWith<$Res>
+    implements $RollupSubassemblyCopyWith<$Res> {
+  factory _$$RollupSubassemblyImplCopyWith(
+    _$RollupSubassemblyImpl value,
+    $Res Function(_$RollupSubassemblyImpl) then,
+  ) = __$$RollupSubassemblyImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    String uom,
+    @JsonKey(name: 'required_qty') double requiredQty,
+    @JsonKey(name: 'made_from') List<MadeFromLine> madeFrom,
+    @JsonKey(name: 'contributing_lines')
+    List<ContributingLine> contributingLines,
+  });
+}
+
+/// @nodoc
+class __$$RollupSubassemblyImplCopyWithImpl<$Res>
+    extends _$RollupSubassemblyCopyWithImpl<$Res, _$RollupSubassemblyImpl>
+    implements _$$RollupSubassemblyImplCopyWith<$Res> {
+  __$$RollupSubassemblyImplCopyWithImpl(
+    _$RollupSubassemblyImpl _value,
+    $Res Function(_$RollupSubassemblyImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RollupSubassembly
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? uom = null,
+    Object? requiredQty = null,
+    Object? madeFrom = null,
+    Object? contributingLines = null,
+  }) {
+    return _then(
+      _$RollupSubassemblyImpl(
+        itemCode: null == itemCode
+            ? _value.itemCode
+            : itemCode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        itemName: null == itemName
+            ? _value.itemName
+            : itemName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        uom: null == uom
+            ? _value.uom
+            : uom // ignore: cast_nullable_to_non_nullable
+                  as String,
+        requiredQty: null == requiredQty
+            ? _value.requiredQty
+            : requiredQty // ignore: cast_nullable_to_non_nullable
+                  as double,
+        madeFrom: null == madeFrom
+            ? _value._madeFrom
+            : madeFrom // ignore: cast_nullable_to_non_nullable
+                  as List<MadeFromLine>,
+        contributingLines: null == contributingLines
+            ? _value._contributingLines
+            : contributingLines // ignore: cast_nullable_to_non_nullable
+                  as List<ContributingLine>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$RollupSubassemblyImpl implements _RollupSubassembly {
+  const _$RollupSubassemblyImpl({
+    @JsonKey(name: 'item_code') this.itemCode = '',
+    @JsonKey(name: 'item_name') this.itemName = '',
+    this.uom = '',
+    @JsonKey(name: 'required_qty') this.requiredQty = 0.0,
+    @JsonKey(name: 'made_from')
+    final List<MadeFromLine> madeFrom = const <MadeFromLine>[],
+    @JsonKey(name: 'contributing_lines')
+    final List<ContributingLine> contributingLines = const <ContributingLine>[],
+  }) : _madeFrom = madeFrom,
+       _contributingLines = contributingLines;
+
+  factory _$RollupSubassemblyImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RollupSubassemblyImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'item_code')
+  final String itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  final String itemName;
+  @override
+  @JsonKey()
+  final String uom;
+  @override
+  @JsonKey(name: 'required_qty')
+  final double requiredQty;
+  final List<MadeFromLine> _madeFrom;
+  @override
+  @JsonKey(name: 'made_from')
+  List<MadeFromLine> get madeFrom {
+    if (_madeFrom is EqualUnmodifiableListView) return _madeFrom;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_madeFrom);
+  }
+
+  final List<ContributingLine> _contributingLines;
+  @override
+  @JsonKey(name: 'contributing_lines')
+  List<ContributingLine> get contributingLines {
+    if (_contributingLines is EqualUnmodifiableListView)
+      return _contributingLines;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_contributingLines);
+  }
+
+  @override
+  String toString() {
+    return 'RollupSubassembly(itemCode: $itemCode, itemName: $itemName, uom: $uom, requiredQty: $requiredQty, madeFrom: $madeFrom, contributingLines: $contributingLines)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RollupSubassemblyImpl &&
+            (identical(other.itemCode, itemCode) ||
+                other.itemCode == itemCode) &&
+            (identical(other.itemName, itemName) ||
+                other.itemName == itemName) &&
+            (identical(other.uom, uom) || other.uom == uom) &&
+            (identical(other.requiredQty, requiredQty) ||
+                other.requiredQty == requiredQty) &&
+            const DeepCollectionEquality().equals(other._madeFrom, _madeFrom) &&
+            const DeepCollectionEquality().equals(
+              other._contributingLines,
+              _contributingLines,
+            ));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    itemCode,
+    itemName,
+    uom,
+    requiredQty,
+    const DeepCollectionEquality().hash(_madeFrom),
+    const DeepCollectionEquality().hash(_contributingLines),
+  );
+
+  /// Create a copy of RollupSubassembly
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RollupSubassemblyImplCopyWith<_$RollupSubassemblyImpl> get copyWith =>
+      __$$RollupSubassemblyImplCopyWithImpl<_$RollupSubassemblyImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RollupSubassemblyImplToJson(this);
+  }
+}
+
+abstract class _RollupSubassembly implements RollupSubassembly {
+  const factory _RollupSubassembly({
+    @JsonKey(name: 'item_code') final String itemCode,
+    @JsonKey(name: 'item_name') final String itemName,
+    final String uom,
+    @JsonKey(name: 'required_qty') final double requiredQty,
+    @JsonKey(name: 'made_from') final List<MadeFromLine> madeFrom,
+    @JsonKey(name: 'contributing_lines')
+    final List<ContributingLine> contributingLines,
+  }) = _$RollupSubassemblyImpl;
+
+  factory _RollupSubassembly.fromJson(Map<String, dynamic> json) =
+      _$RollupSubassemblyImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'item_code')
+  String get itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  String get itemName;
+  @override
+  String get uom;
+  @override
+  @JsonKey(name: 'required_qty')
+  double get requiredQty;
+  @override
+  @JsonKey(name: 'made_from')
+  List<MadeFromLine> get madeFrom;
+  @override
+  @JsonKey(name: 'contributing_lines')
+  List<ContributingLine> get contributingLines;
+
+  /// Create a copy of RollupSubassembly
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RollupSubassemblyImplCopyWith<_$RollupSubassemblyImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

@@ -22,6 +22,13 @@ _$BasketRollupImpl _$$BasketRollupImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const <RollupComponent>[],
       maxFeasibleScale: (json['max_feasible_scale'] as num?)?.toDouble(),
+      subassemblies:
+          (json['subassemblies'] as List<dynamic>?)
+              ?.map(
+                (e) => RollupSubassembly.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const <RollupSubassembly>[],
     );
 
 Map<String, dynamic> _$$BasketRollupImplToJson(_$BasketRollupImpl instance) =>
@@ -32,6 +39,7 @@ Map<String, dynamic> _$$BasketRollupImplToJson(_$BasketRollupImpl instance) =>
       'components': instance.components,
       'shortages': instance.shortages,
       'max_feasible_scale': instance.maxFeasibleScale,
+      'subassemblies': instance.subassemblies,
     };
 
 _$RollupComponentImpl _$$RollupComponentImplFromJson(
@@ -54,11 +62,7 @@ _$RollupComponentImpl _$$RollupComponentImplFromJson(
   alternatives: (json['alternatives'] as List<dynamic>?)
       ?.map((e) => StockAlternative.fromJson(e as Map<String, dynamic>))
       .toList(),
-  madeFrom:
-      (json['made_from'] as List<dynamic>?)
-          ?.map((e) => MadeFromLine.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const <MadeFromLine>[],
+  directQty: (json['direct_qty'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$$RollupComponentImplToJson(
@@ -75,7 +79,7 @@ Map<String, dynamic> _$$RollupComponentImplToJson(
   'contributing_lines': instance.contributingLines,
   'available_elsewhere': instance.availableElsewhere,
   'alternatives': instance.alternatives,
-  'made_from': instance.madeFrom,
+  'direct_qty': instance.directQty,
 };
 
 _$ContributingLineImpl _$$ContributingLineImplFromJson(
@@ -84,6 +88,7 @@ _$ContributingLineImpl _$$ContributingLineImplFromJson(
   lineIndex: (json['line_index'] as num?)?.toInt() ?? 0,
   itemCode: json['item_code'] as String? ?? '',
   requiredQty: (json['required_qty'] as num?)?.toDouble() ?? 0.0,
+  directQty: (json['direct_qty'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$$ContributingLineImplToJson(
@@ -92,6 +97,37 @@ Map<String, dynamic> _$$ContributingLineImplToJson(
   'line_index': instance.lineIndex,
   'item_code': instance.itemCode,
   'required_qty': instance.requiredQty,
+  'direct_qty': instance.directQty,
+};
+
+_$RollupSubassemblyImpl _$$RollupSubassemblyImplFromJson(
+  Map<String, dynamic> json,
+) => _$RollupSubassemblyImpl(
+  itemCode: json['item_code'] as String? ?? '',
+  itemName: json['item_name'] as String? ?? '',
+  uom: json['uom'] as String? ?? '',
+  requiredQty: (json['required_qty'] as num?)?.toDouble() ?? 0.0,
+  madeFrom:
+      (json['made_from'] as List<dynamic>?)
+          ?.map((e) => MadeFromLine.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <MadeFromLine>[],
+  contributingLines:
+      (json['contributing_lines'] as List<dynamic>?)
+          ?.map((e) => ContributingLine.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <ContributingLine>[],
+);
+
+Map<String, dynamic> _$$RollupSubassemblyImplToJson(
+  _$RollupSubassemblyImpl instance,
+) => <String, dynamic>{
+  'item_code': instance.itemCode,
+  'item_name': instance.itemName,
+  'uom': instance.uom,
+  'required_qty': instance.requiredQty,
+  'made_from': instance.madeFrom,
+  'contributing_lines': instance.contributingLines,
 };
 
 _$MadeFromLineImpl _$$MadeFromLineImplFromJson(Map<String, dynamic> json) =>
