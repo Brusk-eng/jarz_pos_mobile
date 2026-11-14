@@ -130,7 +130,12 @@ if ($Environment -eq 'production' -and ([string]::IsNullOrWhiteSpace($ReleaseVer
     throw "Production patches require an explicit -ReleaseVersion (e.g. 1.4.0+182). Refusing to patch 'latest' for production."
 }
 
-$patchArgs = @('patch', 'android', '--flavor', $config.Flavor)
+# --allow-build-flag-diffs: every build stamps its own SENTRY_RELEASE / SENTRY_DIST
+# (build number + commit), so a patch can never repeat its release's values, and
+# Shorebird now refuses the mismatch (staging run 43603586129, 2026-11-14). Those
+# two only label Sentry events; ENV, SENTRY_ENVIRONMENT and the env file still
+# come from the same config as the release.
+$patchArgs = @('patch', 'android', '--flavor', $config.Flavor, '--allow-build-flag-diffs')
 if ($ReleaseVersion) {
     $patchArgs += @('--release-version', $ReleaseVersion)
 }

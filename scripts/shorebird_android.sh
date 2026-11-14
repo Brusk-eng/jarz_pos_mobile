@@ -106,7 +106,9 @@ case "${action,,}" in
       exit 1
     fi
 
-    patch_args=(patch android --flavor "$flavor")
+    # --allow-build-flag-diffs: each build stamps its own SENTRY_RELEASE/SENTRY_DIST,
+    # which a patch can never repeat; see shorebird_android.ps1.
+    patch_args=(patch android --flavor "$flavor" --allow-build-flag-diffs)
     if [ -n "$release_version" ]; then
       patch_args+=(--release-version "$release_version")
     fi
