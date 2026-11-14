@@ -54,6 +54,11 @@ _$RollupComponentImpl _$$RollupComponentImplFromJson(
   alternatives: (json['alternatives'] as List<dynamic>?)
       ?.map((e) => StockAlternative.fromJson(e as Map<String, dynamic>))
       .toList(),
+  madeFrom:
+      (json['made_from'] as List<dynamic>?)
+          ?.map((e) => MadeFromLine.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <MadeFromLine>[],
 );
 
 Map<String, dynamic> _$$RollupComponentImplToJson(
@@ -70,6 +75,7 @@ Map<String, dynamic> _$$RollupComponentImplToJson(
   'contributing_lines': instance.contributingLines,
   'available_elsewhere': instance.availableElsewhere,
   'alternatives': instance.alternatives,
+  'made_from': instance.madeFrom,
 };
 
 _$ContributingLineImpl _$$ContributingLineImplFromJson(
@@ -87,3 +93,19 @@ Map<String, dynamic> _$$ContributingLineImplToJson(
   'item_code': instance.itemCode,
   'required_qty': instance.requiredQty,
 };
+
+_$MadeFromLineImpl _$$MadeFromLineImplFromJson(Map<String, dynamic> json) =>
+    _$MadeFromLineImpl(
+      itemCode: json['item_code'] as String? ?? '',
+      itemName: json['item_name'] as String? ?? '',
+      uom: json['uom'] as String? ?? '',
+      requiredQty: (json['required_qty'] as num?)?.toDouble() ?? 0.0,
+    );
+
+Map<String, dynamic> _$$MadeFromLineImplToJson(_$MadeFromLineImpl instance) =>
+    <String, dynamic>{
+      'item_code': instance.itemCode,
+      'item_name': instance.itemName,
+      'uom': instance.uom,
+      'required_qty': instance.requiredQty,
+    };

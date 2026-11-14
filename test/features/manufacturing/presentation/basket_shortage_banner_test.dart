@@ -260,4 +260,56 @@ void main() {
       expect(find.text('Short by 8 Nos'), findsOneWidget);
     });
   });
+
+  testWidgets('a fresh mix lists its own sugar apart from the jar sugar', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const BasketRollup(
+        components: [
+          RollupComponent(
+            itemCode: 'MIX',
+            itemName: 'Cheesecake Mix',
+            uom: 'Kg',
+            requiredQty: 2,
+            availableQty: 10,
+            contributingLines: [
+              ContributingLine(itemCode: 'Tiramisu Large', requiredQty: 2),
+            ],
+            madeFrom: [
+              MadeFromLine(
+                itemCode: 'SUGAR',
+                itemName: 'Powder sugar',
+                uom: 'Kg',
+                requiredQty: 0.2,
+              ),
+            ],
+          ),
+          RollupComponent(
+            itemCode: 'SUGAR',
+            itemName: 'Powder sugar',
+            uom: 'Kg',
+            requiredQty: 0.3,
+            availableQty: 10,
+            contributingLines: [
+              ContributingLine(itemCode: 'Tiramisu Large', requiredQty: 0.3),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.tap(find.text('Ingredients'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Consolidated pick list'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Made from'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('0.2 Kg'), findsOneWidget);
+    expect(find.textContaining('0.3 Kg'), findsOneWidget);
+    expect(find.textContaining('0.5 Kg'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

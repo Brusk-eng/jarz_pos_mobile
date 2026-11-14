@@ -56,6 +56,14 @@ class RollupComponent with _$RollupComponent {
     /// of it anywhere in the company.
     @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
     List<StockAlternative>? alternatives,
+
+    /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
+    /// for the whole basket. Kept under it, never merged with the same
+    /// material a jar takes directly. Empty for a raw material or a stored
+    /// sub-assembly.
+    @JsonKey(name: 'made_from')
+    @Default(<MadeFromLine>[])
+    List<MadeFromLine> madeFrom,
   }) = _RollupComponent;
 
   factory RollupComponent.fromJson(Map<String, dynamic> json) =>
@@ -82,4 +90,18 @@ class ContributingLine with _$ContributingLine {
 
   factory ContributingLine.fromJson(Map<String, dynamic> json) =>
       _$ContributingLineFromJson(json);
+}
+
+/// One ingredient of a fresh sub-assembly, for the basket's whole need of it.
+@freezed
+class MadeFromLine with _$MadeFromLine {
+  const factory MadeFromLine({
+    @JsonKey(name: 'item_code') @Default('') String itemCode,
+    @JsonKey(name: 'item_name') @Default('') String itemName,
+    @Default('') String uom,
+    @JsonKey(name: 'required_qty') @Default(0.0) double requiredQty,
+  }) = _MadeFromLine;
+
+  factory MadeFromLine.fromJson(Map<String, dynamic> json) =>
+      _$MadeFromLineFromJson(json);
 }

@@ -6190,6 +6190,12 @@ abstract class AppLocalizations {
   /// **'Per flavour'**
   String get productionIngredientsPerFlavour;
 
+  /// No description provided for @productionIngredientsMadeFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Made from'**
+  String get productionIngredientsMadeFrom;
+
   /// No description provided for @productionPickListShort.
   ///
   /// In en, this message translates to:

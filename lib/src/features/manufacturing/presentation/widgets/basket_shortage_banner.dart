@@ -277,29 +277,102 @@ class _FlavourLine extends StatelessWidget {
     final name = component.itemName.isNotEmpty
         ? component.itemName
         : component.itemCode;
+    final share = component.requiredQty > 0
+        ? line.qty / component.requiredQty
+        : 0.0;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: Text(
-              name,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: component.isShort ? scheme.error : null,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: component.isShort ? scheme.error : null,
+                  ),
+                ),
               ),
-            ),
+              Text(
+                l10n.manufacturingComponentRequired(
+                  trimQty(line.qty, decimals: 3),
+                  component.uom,
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          Text(
-            l10n.manufacturingComponentRequired(
-              trimQty(line.qty, decimals: 3),
-              component.uom,
-            ),
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          // This flavour's share of what goes into a fresh sub-assembly.
+          if (component.madeFrom.isNotEmpty)
+            MadeFromList(lines: component.madeFrom, scale: share),
         ],
       ),
+    );
+  }
+}
+
+/// What goes into a sub-assembly made fresh for the run, folded under it.
+///
+/// Kept apart from the pick list's own rows on purpose: the mix's powder
+/// sugar is not the powder sugar a jar takes for its coffee, and summing the
+/// two would hide which bowl each one goes into.
+class MadeFromList extends StatelessWidget {
+  const MadeFromList({super.key, required this.lines, this.scale = 1});
+
+  final List<MadeFromLine> lines;
+
+  /// 1 for the whole basket; a flavour's share of it on the per-flavour view.
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return ExpansionTile(
+      title: Text(
+        l10n.productionIngredientsMadeFrom,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      tilePadding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+      childrenPadding: const EdgeInsetsDirectional.only(start: 24, end: 4),
+      shape: const Border(),
+      collapsedShape: const Border(),
+      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final line in lines)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    line.itemName.isNotEmpty ? line.itemName : line.itemCode,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+                Text(
+                  l10n.manufacturingComponentRequired(
+                    trimQty(line.requiredQty * scale, decimals: 3),
+                    line.uom,
+                  ),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
@@ -389,6 +462,8 @@ class _PickListRow extends StatelessWidget {
                 ),
             ],
           ),
+          if (component.madeFrom.isNotEmpty)
+            MadeFromList(lines: component.madeFrom),
           // Only ever under a line that is already short, and only when the
           // backend looked: the shortage above still blocks Start, this says
           // whether the fix is a transfer or a purchase — and, when it is a

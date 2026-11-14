@@ -1843,6 +1843,7 @@
   "productionPickListTitle": "قائمة الصرف المجمّعة",
   "productionIngredientsTitle": "المكونات",
   "productionIngredientsPerFlavour": "لكل نكهة",
+  "productionIngredientsMadeFrom": "مكوناته",
   "productionPickListShort": "ناقص {quantity} {uom}",
   "productionPickListOk": "كل الخامات متوفرة",
   "productionSharedAcrossLines": "مشترك بين {count} بند",

@@ -1918,6 +1918,7 @@
   "productionPickListTitle": "Consolidated pick list",
   "productionIngredientsTitle": "Ingredients",
   "productionIngredientsPerFlavour": "Per flavour",
+  "productionIngredientsMadeFrom": "Made from",
   "productionPickListShort": "Short by {quantity} {uom}",
   "productionPickListOk": "All materials available",
   "productionSharedAcrossLines": "shared by {count} lines",

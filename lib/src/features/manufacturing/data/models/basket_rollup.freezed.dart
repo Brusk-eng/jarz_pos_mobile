@@ -364,6 +364,13 @@ mixin _$RollupComponent {
   List<StockAlternative>? get alternatives =>
       throw _privateConstructorUsedError;
 
+  /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
+  /// for the whole basket. Kept under it, never merged with the same
+  /// material a jar takes directly. Empty for a raw material or a stored
+  /// sub-assembly.
+  @JsonKey(name: 'made_from')
+  List<MadeFromLine> get madeFrom => throw _privateConstructorUsedError;
+
   /// Serializes this RollupComponent to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -394,6 +401,7 @@ abstract class $RollupComponentCopyWith<$Res> {
     List<ContributingLine> contributingLines,
     @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
     List<StockAlternative>? alternatives,
+    @JsonKey(name: 'made_from') List<MadeFromLine> madeFrom,
   });
 }
 
@@ -423,6 +431,7 @@ class _$RollupComponentCopyWithImpl<$Res, $Val extends RollupComponent>
     Object? contributingLines = null,
     Object? availableElsewhere = freezed,
     Object? alternatives = freezed,
+    Object? madeFrom = null,
   }) {
     return _then(
       _value.copyWith(
@@ -470,6 +479,10 @@ class _$RollupComponentCopyWithImpl<$Res, $Val extends RollupComponent>
                 ? _value.alternatives
                 : alternatives // ignore: cast_nullable_to_non_nullable
                       as List<StockAlternative>?,
+            madeFrom: null == madeFrom
+                ? _value.madeFrom
+                : madeFrom // ignore: cast_nullable_to_non_nullable
+                      as List<MadeFromLine>,
           )
           as $Val,
     );
@@ -498,6 +511,7 @@ abstract class _$$RollupComponentImplCopyWith<$Res>
     List<ContributingLine> contributingLines,
     @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
     List<StockAlternative>? alternatives,
+    @JsonKey(name: 'made_from') List<MadeFromLine> madeFrom,
   });
 }
 
@@ -526,6 +540,7 @@ class __$$RollupComponentImplCopyWithImpl<$Res>
     Object? contributingLines = null,
     Object? availableElsewhere = freezed,
     Object? alternatives = freezed,
+    Object? madeFrom = null,
   }) {
     return _then(
       _$RollupComponentImpl(
@@ -573,6 +588,10 @@ class __$$RollupComponentImplCopyWithImpl<$Res>
             ? _value._alternatives
             : alternatives // ignore: cast_nullable_to_non_nullable
                   as List<StockAlternative>?,
+        madeFrom: null == madeFrom
+            ? _value._madeFrom
+            : madeFrom // ignore: cast_nullable_to_non_nullable
+                  as List<MadeFromLine>,
       ),
     );
   }
@@ -594,8 +613,11 @@ class _$RollupComponentImpl extends _RollupComponent {
     final List<ContributingLine> contributingLines = const <ContributingLine>[],
     @JsonKey(name: 'available_elsewhere') this.availableElsewhere,
     final List<StockAlternative>? alternatives,
+    @JsonKey(name: 'made_from')
+    final List<MadeFromLine> madeFrom = const <MadeFromLine>[],
   }) : _contributingLines = contributingLines,
        _alternatives = alternatives,
+       _madeFrom = madeFrom,
        super._();
 
   factory _$RollupComponentImpl.fromJson(Map<String, dynamic> json) =>
@@ -652,9 +674,27 @@ class _$RollupComponentImpl extends _RollupComponent {
     return EqualUnmodifiableListView(value);
   }
 
+  /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
+  /// for the whole basket. Kept under it, never merged with the same
+  /// material a jar takes directly. Empty for a raw material or a stored
+  /// sub-assembly.
+  final List<MadeFromLine> _madeFrom;
+
+  /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
+  /// for the whole basket. Kept under it, never merged with the same
+  /// material a jar takes directly. Empty for a raw material or a stored
+  /// sub-assembly.
+  @override
+  @JsonKey(name: 'made_from')
+  List<MadeFromLine> get madeFrom {
+    if (_madeFrom is EqualUnmodifiableListView) return _madeFrom;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_madeFrom);
+  }
+
   @override
   String toString() {
-    return 'RollupComponent(itemCode: $itemCode, itemName: $itemName, uom: $uom, sourceWarehouse: $sourceWarehouse, requiredQty: $requiredQty, availableQty: $availableQty, missingQty: $missingQty, reason: $reason, contributingLines: $contributingLines, availableElsewhere: $availableElsewhere, alternatives: $alternatives)';
+    return 'RollupComponent(itemCode: $itemCode, itemName: $itemName, uom: $uom, sourceWarehouse: $sourceWarehouse, requiredQty: $requiredQty, availableQty: $availableQty, missingQty: $missingQty, reason: $reason, contributingLines: $contributingLines, availableElsewhere: $availableElsewhere, alternatives: $alternatives, madeFrom: $madeFrom)';
   }
 
   @override
@@ -685,7 +725,8 @@ class _$RollupComponentImpl extends _RollupComponent {
             const DeepCollectionEquality().equals(
               other._alternatives,
               _alternatives,
-            ));
+            ) &&
+            const DeepCollectionEquality().equals(other._madeFrom, _madeFrom));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -703,6 +744,7 @@ class _$RollupComponentImpl extends _RollupComponent {
     const DeepCollectionEquality().hash(_contributingLines),
     availableElsewhere,
     const DeepCollectionEquality().hash(_alternatives),
+    const DeepCollectionEquality().hash(_madeFrom),
   );
 
   /// Create a copy of RollupComponent
@@ -736,6 +778,7 @@ abstract class _RollupComponent extends RollupComponent {
     final List<ContributingLine> contributingLines,
     @JsonKey(name: 'available_elsewhere') final double? availableElsewhere,
     final List<StockAlternative>? alternatives,
+    @JsonKey(name: 'made_from') final List<MadeFromLine> madeFrom,
   }) = _$RollupComponentImpl;
   const _RollupComponent._() : super._();
 
@@ -778,6 +821,14 @@ abstract class _RollupComponent extends RollupComponent {
   double? get availableElsewhere;
   @override
   List<StockAlternative>? get alternatives;
+
+  /// What goes into a sub-assembly made fresh for this run (Cheesecake Mix),
+  /// for the whole basket. Kept under it, never merged with the same
+  /// material a jar takes directly. Empty for a raw material or a stored
+  /// sub-assembly.
+  @override
+  @JsonKey(name: 'made_from')
+  List<MadeFromLine> get madeFrom;
 
   /// Create a copy of RollupComponent
   /// with the given fields replaced by the non-null parameter values.
@@ -1003,5 +1054,242 @@ abstract class _ContributingLine implements ContributingLine {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ContributingLineImplCopyWith<_$ContributingLineImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+MadeFromLine _$MadeFromLineFromJson(Map<String, dynamic> json) {
+  return _MadeFromLine.fromJson(json);
+}
+
+/// @nodoc
+mixin _$MadeFromLine {
+  @JsonKey(name: 'item_code')
+  String get itemCode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'item_name')
+  String get itemName => throw _privateConstructorUsedError;
+  String get uom => throw _privateConstructorUsedError;
+  @JsonKey(name: 'required_qty')
+  double get requiredQty => throw _privateConstructorUsedError;
+
+  /// Serializes this MadeFromLine to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of MadeFromLine
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $MadeFromLineCopyWith<MadeFromLine> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $MadeFromLineCopyWith<$Res> {
+  factory $MadeFromLineCopyWith(
+    MadeFromLine value,
+    $Res Function(MadeFromLine) then,
+  ) = _$MadeFromLineCopyWithImpl<$Res, MadeFromLine>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    String uom,
+    @JsonKey(name: 'required_qty') double requiredQty,
+  });
+}
+
+/// @nodoc
+class _$MadeFromLineCopyWithImpl<$Res, $Val extends MadeFromLine>
+    implements $MadeFromLineCopyWith<$Res> {
+  _$MadeFromLineCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of MadeFromLine
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? uom = null,
+    Object? requiredQty = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            itemCode: null == itemCode
+                ? _value.itemCode
+                : itemCode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            itemName: null == itemName
+                ? _value.itemName
+                : itemName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            uom: null == uom
+                ? _value.uom
+                : uom // ignore: cast_nullable_to_non_nullable
+                      as String,
+            requiredQty: null == requiredQty
+                ? _value.requiredQty
+                : requiredQty // ignore: cast_nullable_to_non_nullable
+                      as double,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$MadeFromLineImplCopyWith<$Res>
+    implements $MadeFromLineCopyWith<$Res> {
+  factory _$$MadeFromLineImplCopyWith(
+    _$MadeFromLineImpl value,
+    $Res Function(_$MadeFromLineImpl) then,
+  ) = __$$MadeFromLineImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    String uom,
+    @JsonKey(name: 'required_qty') double requiredQty,
+  });
+}
+
+/// @nodoc
+class __$$MadeFromLineImplCopyWithImpl<$Res>
+    extends _$MadeFromLineCopyWithImpl<$Res, _$MadeFromLineImpl>
+    implements _$$MadeFromLineImplCopyWith<$Res> {
+  __$$MadeFromLineImplCopyWithImpl(
+    _$MadeFromLineImpl _value,
+    $Res Function(_$MadeFromLineImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of MadeFromLine
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? uom = null,
+    Object? requiredQty = null,
+  }) {
+    return _then(
+      _$MadeFromLineImpl(
+        itemCode: null == itemCode
+            ? _value.itemCode
+            : itemCode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        itemName: null == itemName
+            ? _value.itemName
+            : itemName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        uom: null == uom
+            ? _value.uom
+            : uom // ignore: cast_nullable_to_non_nullable
+                  as String,
+        requiredQty: null == requiredQty
+            ? _value.requiredQty
+            : requiredQty // ignore: cast_nullable_to_non_nullable
+                  as double,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$MadeFromLineImpl implements _MadeFromLine {
+  const _$MadeFromLineImpl({
+    @JsonKey(name: 'item_code') this.itemCode = '',
+    @JsonKey(name: 'item_name') this.itemName = '',
+    this.uom = '',
+    @JsonKey(name: 'required_qty') this.requiredQty = 0.0,
+  });
+
+  factory _$MadeFromLineImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MadeFromLineImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'item_code')
+  final String itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  final String itemName;
+  @override
+  @JsonKey()
+  final String uom;
+  @override
+  @JsonKey(name: 'required_qty')
+  final double requiredQty;
+
+  @override
+  String toString() {
+    return 'MadeFromLine(itemCode: $itemCode, itemName: $itemName, uom: $uom, requiredQty: $requiredQty)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MadeFromLineImpl &&
+            (identical(other.itemCode, itemCode) ||
+                other.itemCode == itemCode) &&
+            (identical(other.itemName, itemName) ||
+                other.itemName == itemName) &&
+            (identical(other.uom, uom) || other.uom == uom) &&
+            (identical(other.requiredQty, requiredQty) ||
+                other.requiredQty == requiredQty));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, itemCode, itemName, uom, requiredQty);
+
+  /// Create a copy of MadeFromLine
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MadeFromLineImplCopyWith<_$MadeFromLineImpl> get copyWith =>
+      __$$MadeFromLineImplCopyWithImpl<_$MadeFromLineImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$MadeFromLineImplToJson(this);
+  }
+}
+
+abstract class _MadeFromLine implements MadeFromLine {
+  const factory _MadeFromLine({
+    @JsonKey(name: 'item_code') final String itemCode,
+    @JsonKey(name: 'item_name') final String itemName,
+    final String uom,
+    @JsonKey(name: 'required_qty') final double requiredQty,
+  }) = _$MadeFromLineImpl;
+
+  factory _MadeFromLine.fromJson(Map<String, dynamic> json) =
+      _$MadeFromLineImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'item_code')
+  String get itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  String get itemName;
+  @override
+  String get uom;
+  @override
+  @JsonKey(name: 'required_qty')
+  double get requiredQty;
+
+  /// Create a copy of MadeFromLine
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$MadeFromLineImplCopyWith<_$MadeFromLineImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
