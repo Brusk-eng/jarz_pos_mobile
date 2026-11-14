@@ -113,8 +113,11 @@ class _BasketPickListState extends State<BasketPickList> {
               ),
             ),
           if (_open) ...[
+            // Opened because of a shortage, the operator lands on it: the
+            // consolidated list (with each transfer action) opens with it.
             _Section(
               title: l10n.productionPickListTitle,
+              initiallyExpanded: rollup.hasShortages,
               child: Column(
                 children: [
                   for (final component in rollup.components)
@@ -128,6 +131,9 @@ class _BasketPickListState extends State<BasketPickList> {
                 children: [
                   for (final flavour in flavours)
                     _Section(
+                      // Keyed so an open flavour stays open on its own
+                      // name when the list above it changes.
+                      key: ValueKey(flavour.name),
                       title: flavour.name,
                       dense: true,
                       child: Column(
@@ -151,7 +157,9 @@ class _BasketPickListState extends State<BasketPickList> {
 /// A folded section inside the card, closed until tapped.
 class _Section extends StatelessWidget {
   const _Section({
+    super.key,
     required this.title,
+    this.initiallyExpanded = false,
     required this.child,
     this.dense = false,
   });
@@ -159,11 +167,13 @@ class _Section extends StatelessWidget {
   final String title;
   final Widget child;
   final bool dense;
+  final bool initiallyExpanded;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ExpansionTile(
+      initiallyExpanded: initiallyExpanded,
       title: Text(
         title,
         style: (dense ? theme.textTheme.bodyMedium : theme.textTheme.titleSmall)

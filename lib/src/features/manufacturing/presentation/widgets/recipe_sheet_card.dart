@@ -96,7 +96,11 @@ class RecipeSheetSection extends ConsumerWidget {
           RecipeSheetCard(
             // Keyed so an open card stays open, and on its own recipe, when
             // a count above adds or drops another sheet.
-            key: ValueKey(response.sheets[i].title),
+            // By the items, not the title: two SOP families of one flavour
+            // share a title ("Tiramisu") and would collide.
+            key: ValueKey(
+              response.sheets[i].items.map((item) => item.itemCode).join('|'),
+            ),
             sheet: response.sheets[i],
             uomByItem: uomByItem,
           ),
@@ -302,7 +306,8 @@ class _RecipeSheetCardState extends State<RecipeSheetCard> {
                   arabic: arabic,
                 ),
             ],
-            if (_open && sheet.unresolvedTokens.isNotEmpty) ...[
+            // Shown folded too: a broken figure must not hide behind a fold.
+            if (sheet.unresolvedTokens.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
                 l10n.sopUnresolvedTokens(sheet.unresolvedTokens.length),

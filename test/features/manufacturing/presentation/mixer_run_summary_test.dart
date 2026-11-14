@@ -65,4 +65,68 @@ void main() {
     expect(find.textContaining('of mix'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('many fractional runs fold onto one 360 dp Arabic line', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 780);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('ar'),
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: MixerRunSummary(
+              preview: DailyPlanPreview(
+                runs: [
+                  for (var i = 0; i < 7; i++)
+                    const MixerRun(size: 1.333, quality: RunQuality.acceptable),
+                ],
+              ),
+              calculating: true,
+              mixUom: 'Kg',
+              totalJars: 1234,
+              showActions: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a plan with no runs warns while folded', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(
+          body: MixerRunSummary(
+            preview: DailyPlanPreview(totalMixQty: 1),
+            calculating: false,
+            mixUom: 'Kg',
+            totalJars: 3,
+            showActions: false,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+  });
 }

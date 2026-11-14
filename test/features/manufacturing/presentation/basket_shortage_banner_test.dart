@@ -253,6 +253,11 @@ void main() {
         BasketRollup(ok: false, components: [_short()], shortages: [_short()]),
       );
       expect(find.text('Short by 8 Nos'), findsOneWidget);
+
+      // Opening the card to look at the shortage must not hide it.
+      await tester.tap(find.text('Insufficient inventory').first);
+      await tester.pumpAndSettle();
+      expect(find.text('Short by 8 Nos'), findsOneWidget);
     });
   });
 }

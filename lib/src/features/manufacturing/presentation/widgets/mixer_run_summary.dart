@@ -99,6 +99,11 @@ class _MixerRunSummaryState extends State<MixerRunSummary> {
     final data = widget.preview;
     final hasShortages =
         data?.materials != null && data!.materials!.shortages.isNotEmpty;
+    // Anything that makes the split unusable shows on the folded line too.
+    final needsAttention =
+        hasShortages ||
+        data?.materials?.unavailable == true ||
+        (data != null && data.runs.isEmpty);
     final runsInShort = data == null || data.runs.isEmpty
         ? null
         : data.runs.map((run) => MixerRunSummary._fmt(run.size)).join(' + ');
@@ -165,7 +170,7 @@ class _MixerRunSummaryState extends State<MixerRunSummary> {
                                   ),
                                 ),
                               ),
-                            if (!_open && hasShortages)
+                            if (!_open && needsAttention)
                               Padding(
                                 padding: const EdgeInsetsDirectional.only(
                                   end: 6,
@@ -177,11 +182,17 @@ class _MixerRunSummaryState extends State<MixerRunSummary> {
                                 ),
                               ),
                             if (!_open && runsInShort != null)
-                              Text(
-                                runsInShort,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: scheme.primary,
+                              // Flexible: five fractional runs, or a long
+                              // Arabic label, overflow a 360 dp row.
+                              Flexible(
+                                child: Text(
+                                  runsInShort,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: scheme.primary,
+                                  ),
                                 ),
                               ),
                             Icon(
