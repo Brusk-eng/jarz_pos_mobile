@@ -340,6 +340,39 @@ void main() {
     expect(sent, 'We are so sorry, a fresh jar is on its way.');
   });
 
+  testWidgets('fact conflicts show a confirm alert but Send stays enabled',
+      (tester) async {
+    String? sent;
+    final draft = ChatDraft.fromJson({
+      'name': 'D-2',
+      'status': 'Pending',
+      'draft_text': 'Delivered within one hour.',
+      'fact_conflicts': ['Delivery within 1 hour → Same day, no fixed hour'],
+    });
+    await tester.pumpWidget(
+      _app(
+        const [],
+        Scaffold(
+          body: ChatDraftPanel(
+            draft: draft,
+            busy: false,
+            onSend: (text) => sent = text,
+            onReject: () {},
+            onRegenerate: () {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('chat-draft-fact-conflicts')), findsOneWidget);
+    expect(
+      find.text('Delivery within 1 hour → Same day, no fixed hour'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('chat-draft-send')));
+    expect(sent, 'Delivered within one hour.');
+  });
+
   testWidgets('sending a planted draft as-is shows the training-check dialog',
       (tester) async {
     tester.view.physicalSize = const Size(800, 1600);

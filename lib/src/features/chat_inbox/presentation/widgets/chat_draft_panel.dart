@@ -185,6 +185,8 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
                     ),
                   ),
                 ],
+                if (draft.factConflicts.isNotEmpty)
+                  _FactConflictAlert(conflicts: draft.factConflicts),
                 for (final warning in draft.warnings)
                   _NoteRow(
                     icon: Icons.warning_amber_rounded,
@@ -311,6 +313,77 @@ class ChatAskAiBar extends StatelessWidget {
                   ),
                 ),
               ),
+      ),
+    );
+  }
+}
+
+/// The draft did what the moderator asked even where it goes against our
+/// approved facts, menu or prices. This box lists each such point so the
+/// moderator confirms it is right before sending. It never blocks Send.
+class _FactConflictAlert extends StatelessWidget {
+  const _FactConflictAlert({required this.conflicts});
+
+  final List<String> conflicts;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final color = Colors.deepOrange.shade800;
+    return Container(
+      key: const ValueKey('chat-draft-fact-conflicts'),
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.10),
+        border: Border.all(color: color.withValues(alpha: 0.55)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.fact_check_outlined, size: 18, color: color),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  ar
+                      ? 'أكّد المعلومات دي قبل الإرسال'
+                      : 'Confirm these facts before sending',
+                  style: theme.textTheme.titleSmall?.copyWith(color: color),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            ar
+                ? 'الرد اتكتب زي ما طلبت، بس ده مختلف عن المعلومات المعتمدة عندنا:'
+                : 'The draft follows your instruction, but it differs from our '
+                    'approved facts:',
+            style: theme.textTheme.bodySmall,
+          ),
+          for (final conflict in conflicts)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('•  ', style: TextStyle(color: color)),
+                  Expanded(
+                    child: Text(
+                      conflict,
+                      textDirection: TextDirection.ltr,
+                      style: theme.textTheme.bodySmall?.copyWith(color: color),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

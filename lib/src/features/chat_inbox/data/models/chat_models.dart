@@ -364,6 +364,10 @@ class ChatDraft {
   final bool isComplaint;
   final String? needsHumanReason;
   final List<String> warnings;
+
+  /// Points where the moderator's instruction went against our facts. The
+  /// draft follows the moderator anyway; the panel asks them to confirm these.
+  final List<String> factConflicts;
   final String? createdAt;
   final String? forMessage;
 
@@ -388,6 +392,7 @@ class ChatDraft {
     this.isComplaint = false,
     this.needsHumanReason,
     this.warnings = const <String>[],
+    this.factConflicts = const <String>[],
     this.createdAt,
     this.forMessage,
     this.plantedError,
@@ -409,6 +414,7 @@ class ChatDraft {
       isComplaint: chatBool(json['is_complaint']),
       needsHumanReason: chatNullableString(json['needs_human_reason']),
       warnings: chatStringList(json['warnings']),
+      factConflicts: chatStringList(json['fact_conflicts']),
       createdAt: chatNullableString(json['created_at'] ?? json['creation']),
       forMessage: chatNullableString(json['for_message']),
       plantedError: chatNullableString(json['planted_error']),
@@ -433,6 +439,7 @@ class ChatDraft {
       isComplaint: isComplaint,
       needsHumanReason: needsHumanReason,
       warnings: warnings,
+      factConflicts: factConflicts,
       createdAt: createdAt,
       forMessage: forMessage,
       plantedError: value,
