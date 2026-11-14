@@ -3671,6 +3671,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionPickListTitle => 'قائمة الصرف المجمّعة';
 
   @override
+  String get productionIngredientsTitle => 'المكونات';
+
+  @override
+  String get productionIngredientsPerFlavour => 'لكل نكهة';
+
+  @override
   String productionPickListShort(Object quantity, Object uom) {
     return 'ناقص $quantity $uom';
   }

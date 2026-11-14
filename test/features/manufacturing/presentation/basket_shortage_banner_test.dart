@@ -55,8 +55,9 @@ RollupComponent _short({
 }
 
 void main() {
-  testWidgets('a shortage sitting in other stores names the fullest one',
-      (tester) async {
+  testWidgets('a shortage sitting in other stores names the fullest one', (
+    tester,
+  ) async {
     await _pump(
       tester,
       BasketRollup(
@@ -100,7 +101,9 @@ void main() {
     );
 
     expect(
-      find.text('None of it in any other store \u2014 this one has to be bought'),
+      find.text(
+        'None of it in any other store \u2014 this one has to be bought',
+      ),
       findsOneWidget,
     );
   });
@@ -117,8 +120,9 @@ void main() {
     expect(find.textContaining('any other store'), findsNothing);
   });
 
-  testWidgets('a covered component is never asked where else it is',
-      (tester) async {
+  testWidgets('a covered component is never asked where else it is', (
+    tester,
+  ) async {
     await _pump(
       tester,
       const BasketRollup(
@@ -138,8 +142,9 @@ void main() {
     expect(find.byType(StockElsewhereNote), findsNothing);
   });
 
-  testWidgets('the Arabic hint lays out at 360 dp without overflowing',
-      (tester) async {
+  testWidgets('the Arabic hint lays out at 360 dp without overflowing', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(360, 780);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -163,5 +168,91 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+  });
+
+  group('folding and per flavour', () {
+    RollupComponent covered(
+      String code,
+      String name,
+      List<ContributingLine> lines,
+    ) => RollupComponent(
+      itemCode: code,
+      itemName: name,
+      uom: 'Kg',
+      requiredQty: lines.fold(0.0, (sum, l) => sum + l.requiredQty),
+      availableQty: 100,
+      contributingLines: lines,
+    );
+
+    final rollup = BasketRollup(
+      components: [
+        covered('MIX', 'Cheesecake Mix', const [
+          ContributingLine(itemCode: 'Tiramisu Large', requiredQty: 1),
+          ContributingLine(
+            lineIndex: 1,
+            itemCode: 'Tiramisu Medium',
+            requiredQty: 0.5,
+          ),
+          ContributingLine(
+            lineIndex: 2,
+            itemCode: 'Mango Medium',
+            requiredQty: 0.25,
+          ),
+        ]),
+        covered('MANGO', 'Mango mix', const [
+          ContributingLine(
+            lineIndex: 2,
+            itemCode: 'Mango Medium',
+            requiredQty: 0.75,
+          ),
+        ]),
+      ],
+    );
+
+    test('each line lands under its flavour, sizes summed', () {
+      final flavours = groupRollupByFlavour(rollup.components);
+      expect(flavours.map((f) => f.name), ['Tiramisu', 'Mango']);
+      expect(flavours[0].lines.single.qty, 1.5);
+      expect(flavours[1].lines.map((l) => (l.component.itemCode, l.qty)), [
+        ('MIX', 0.25),
+        ('MANGO', 0.75),
+      ]);
+    });
+
+    testWidgets('a covered basket starts folded, and both sections fold', (
+      tester,
+    ) async {
+      await _pump(tester, rollup);
+
+      expect(find.text('Ingredients'), findsOneWidget);
+      expect(find.textContaining('Mango mix'), findsNothing);
+
+      await tester.tap(find.text('Ingredients'));
+      await tester.pumpAndSettle();
+      expect(find.text('Consolidated pick list'), findsOneWidget);
+      expect(find.text('Per flavour'), findsOneWidget);
+      // The sections themselves are still closed.
+      expect(find.textContaining('Mango mix'), findsNothing);
+
+      await tester.tap(find.text('Per flavour'));
+      await tester.pumpAndSettle();
+      expect(find.text('Tiramisu'), findsOneWidget);
+      expect(find.text('Mango'), findsOneWidget);
+
+      await tester.tap(find.text('Mango'));
+      await tester.pumpAndSettle();
+      expect(find.text('Mango mix'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a shortage stays in sight while the card is folded', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        BasketRollup(ok: false, components: [_short()], shortages: [_short()]),
+      );
+      expect(find.text('Short by 8 Nos'), findsOneWidget);
+    });
   });
 }

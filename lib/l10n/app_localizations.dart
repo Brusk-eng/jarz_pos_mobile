@@ -6178,6 +6178,18 @@ abstract class AppLocalizations {
   /// **'Consolidated pick list'**
   String get productionPickListTitle;
 
+  /// No description provided for @productionIngredientsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get productionIngredientsTitle;
+
+  /// No description provided for @productionIngredientsPerFlavour.
+  ///
+  /// In en, this message translates to:
+  /// **'Per flavour'**
+  String get productionIngredientsPerFlavour;
+
   /// No description provided for @productionPickListShort.
   ///
   /// In en, this message translates to:

@@ -1916,6 +1916,8 @@
   "productionClearBasket": "Clear",
   "productionBatchesLabel": "Batches",
   "productionPickListTitle": "Consolidated pick list",
+  "productionIngredientsTitle": "Ingredients",
+  "productionIngredientsPerFlavour": "Per flavour",
   "productionPickListShort": "Short by {quantity} {uom}",
   "productionPickListOk": "All materials available",
   "productionSharedAcrossLines": "shared by {count} lines",

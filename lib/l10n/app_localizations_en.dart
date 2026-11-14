@@ -3686,6 +3686,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionPickListTitle => 'Consolidated pick list';
 
   @override
+  String get productionIngredientsTitle => 'Ingredients';
+
+  @override
+  String get productionIngredientsPerFlavour => 'Per flavour';
+
+  @override
   String productionPickListShort(Object quantity, Object uom) {
     return 'Short by $quantity $uom';
   }

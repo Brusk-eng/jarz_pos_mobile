@@ -93,7 +93,13 @@ class RecipeSheetSection extends ConsumerWidget {
       children: [
         for (var i = 0; i < response.sheets.length; i++) ...[
           if (i > 0) const SizedBox(height: 8),
-          RecipeSheetCard(sheet: response.sheets[i], uomByItem: uomByItem),
+          RecipeSheetCard(
+            // Keyed so an open card stays open, and on its own recipe, when
+            // a count above adds or drops another sheet.
+            key: ValueKey(response.sheets[i].title),
+            sheet: response.sheets[i],
+            uomByItem: uomByItem,
+          ),
         ],
       ],
     );
@@ -135,10 +141,21 @@ class _RecipeSheetError extends StatelessWidget {
 /// Read off a kitchen tablet at arm's length, so the numbers are the loudest
 /// thing on it: run totals per ingredient, then the method, with each size's
 /// per-jar portion on its own line.
-class RecipeSheetCard extends StatelessWidget {
-  const RecipeSheetCard({super.key, required this.sheet, this.uomByItem});
+///
+/// Folded by default to its title and run line, so a screen with several
+/// recipes stays a list of headings; a tap opens the ingredients and method.
+class RecipeSheetCard extends StatefulWidget {
+  const RecipeSheetCard({
+    super.key,
+    required this.sheet,
+    this.uomByItem,
+    this.initiallyExpanded = false,
+  });
 
   final RecipeSheet sheet;
+
+  /// Opens the card on first build; the operator folds it from there.
+  final bool initiallyExpanded;
 
   /// Null for a jar sheet: "For 22 jars · 10 × Large".
   ///
@@ -146,6 +163,16 @@ class RecipeSheetCard extends StatelessWidget {
   /// each one reads as a quantity in its item's stock UOM ("12.5 Kg"), looked
   /// up here by item code. An item missing from the map shows its number alone.
   final Map<String, String>? uomByItem;
+
+  @override
+  State<RecipeSheetCard> createState() => _RecipeSheetCardState();
+}
+
+class _RecipeSheetCardState extends State<RecipeSheetCard> {
+  late bool _open = widget.initiallyExpanded;
+
+  RecipeSheet get sheet => widget.sheet;
+  Map<String, String>? get uomByItem => widget.uomByItem;
 
   /// "12.5 Kg": the same `{quantity} {uom}` string the Bases rows use, so no
   /// new translation is needed.
@@ -212,29 +239,45 @@ class RecipeSheetCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.menu_book_outlined, color: scheme.primary, size: 22),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+            InkWell(
+              onTap: () => setState(() => _open = !_open),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.menu_book_outlined,
+                        color: scheme.primary,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        _open ? Icons.expand_less : Icons.expand_more,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text.rich(
+                    TextSpan(children: _amountSpans(context, bold)),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text.rich(
-              TextSpan(children: _amountSpans(context, bold)),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
+                ],
               ),
             ),
-            if (sheet.ingredients.isNotEmpty) ...[
+            if (_open && sheet.ingredients.isNotEmpty) ...[
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
@@ -245,7 +288,7 @@ class RecipeSheetCard extends StatelessWidget {
                 ],
               ),
             ],
-            if (sheet.steps.isNotEmpty) ...[
+            if (_open && sheet.steps.isNotEmpty) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 4),
@@ -259,7 +302,7 @@ class RecipeSheetCard extends StatelessWidget {
                   arabic: arabic,
                 ),
             ],
-            if (sheet.unresolvedTokens.isNotEmpty) ...[
+            if (_open && sheet.unresolvedTokens.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
                 l10n.sopUnresolvedTokens(sheet.unresolvedTokens.length),

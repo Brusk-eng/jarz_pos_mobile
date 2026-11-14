@@ -117,7 +117,10 @@ Future<void> _pumpCard(WidgetTester tester, {Locale? locale}) async {
       locale: locale,
       home: Scaffold(
         body: SingleChildScrollView(
-          child: RecipeSheetCard(sheet: RecipeSheet.fromJson(_sheetJson())),
+          child: RecipeSheetCard(
+            sheet: RecipeSheet.fromJson(_sheetJson()),
+            initiallyExpanded: true,
+          ),
         ),
       ),
     ),
@@ -501,6 +504,7 @@ void main() {
               child: RecipeSheetCard(
                 sheet: RecipeSheet.fromJson(_baseSheetJson(qty: 12.5)),
                 uomByItem: const {'Fudge Cake': 'Kg'},
+                initiallyExpanded: true,
               ),
             ),
           ),
@@ -534,6 +538,12 @@ void main() {
       await _tickBase(tester, 'Fudge Cake');
 
       expect(find.byType(RecipeSheetCard), findsOneWidget);
+      // Folded by default: the heading and the amount, not the method.
+      expect(_allText(tester), contains('Fudge Cake · Work instructions'));
+      expect(_allText(tester), isNot(contains('Whisk 30 eggs')));
+      await tester.tap(find.text('Fudge Cake · Work instructions'));
+      await tester.pumpAndSettle();
+
       final text = _allText(tester);
       expect(text, contains('Fudge Cake · Work instructions'));
       expect(text, contains('9.258 Kg'));

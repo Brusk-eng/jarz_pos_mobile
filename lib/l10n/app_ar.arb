@@ -1841,6 +1841,8 @@
   "productionClearBasket": "مسح",
   "productionBatchesLabel": "تشغيلات",
   "productionPickListTitle": "قائمة الصرف المجمّعة",
+  "productionIngredientsTitle": "المكونات",
+  "productionIngredientsPerFlavour": "لكل نكهة",
   "productionPickListShort": "ناقص {quantity} {uom}",
   "productionPickListOk": "كل الخامات متوفرة",
   "productionSharedAcrossLines": "مشترك بين {count} بند",

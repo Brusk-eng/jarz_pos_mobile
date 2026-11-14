@@ -10,7 +10,11 @@ import '../../data/models/daily_plan.dart';
 /// is the only reason this screen exists. Each run carries its quality — a plan
 /// that quietly schedules the sizes the mixer handles badly would look
 /// identical to a good one otherwise.
-class MixerRunSummary extends StatelessWidget {
+///
+/// Folded by default to one line (jars, and the run split in short) under a
+/// grab handle: swipe up, or tap, to open the full split; swipe down to fold it
+/// again. The jar list above gets the screen back while the floor types.
+class MixerRunSummary extends StatefulWidget {
   const MixerRunSummary({
     super.key,
     required this.preview,
@@ -23,6 +27,7 @@ class MixerRunSummary extends StatelessWidget {
     this.showActions = true,
     this.totalLabel,
     this.emptyHint,
+    this.initiallyExpanded = false,
   });
 
   final DailyPlanPreview? preview;
@@ -54,11 +59,49 @@ class MixerRunSummary extends StatelessWidget {
   final String? totalLabel;
   final String? emptyHint;
 
+  /// Opens the panel on first build; the operator folds it from there.
+  final bool initiallyExpanded;
+
+  @override
+  State<MixerRunSummary> createState() => _MixerRunSummaryState();
+
+  /// Trims the trailing zeros a Float carries so "2" does not read as "2.000".
+  static String _fmt(double value) {
+    if (value == value.roundToDouble()) return value.toStringAsFixed(0);
+    final text = value.toStringAsFixed(3);
+    return text
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
+  }
+}
+
+class _MixerRunSummaryState extends State<MixerRunSummary> {
+  late bool _open = widget.initiallyExpanded;
+
+  void _set(bool open) {
+    if (open != _open) setState(() => _open = open);
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -80) {
+      _set(true);
+    } else if (velocity > 80) {
+      _set(false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final data = preview;
+    final scheme = theme.colorScheme;
+    final data = widget.preview;
+    final hasShortages =
+        data?.materials != null && data!.materials!.shortages.isNotEmpty;
+    final runsInShort = data == null || data.runs.isEmpty
+        ? null
+        : data.runs.map((run) => MixerRunSummary._fmt(run.size)).join(' + ');
 
     // A hairline, not an elevation. This bar is pinned at the bottom of a
     // column rather than floating over the list, so `elevation: 8` had nothing
@@ -67,136 +110,192 @@ class MixerRunSummary extends StatelessWidget {
     // goldens and on a device. A top border says "different surface" without
     // pretending the bar is lifted off anything.
     return Material(
-      color: theme.colorScheme.surfaceContainerHigh,
-      shape: Border(
-        top: BorderSide(color: theme.colorScheme.outlineVariant),
-      ),
+      color: scheme.surfaceContainerHigh,
+      shape: Border(top: BorderSide(color: scheme.outlineVariant)),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      totalLabel ?? l10n.dailyPlanTotalJars(totalJars),
-                      style: theme.textTheme.labelLarge,
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            alignment: Alignment.bottomCenter,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // The grab area: swipe up to open, down to fold, tap to toggle.
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _set(!_open),
+                  onVerticalDragEnd: _onDragEnd,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: scheme.outline.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                widget.totalLabel ??
+                                    l10n.dailyPlanTotalJars(widget.totalJars),
+                                style: theme.textTheme.labelLarge,
+                              ),
+                            ),
+                            if (widget.calculating)
+                              const Padding(
+                                padding: EdgeInsetsDirectional.only(end: 8),
+                                child: SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                            if (!_open && hasShortages)
+                              Padding(
+                                padding: const EdgeInsetsDirectional.only(
+                                  end: 6,
+                                ),
+                                child: Icon(
+                                  Icons.warning_amber_rounded,
+                                  size: 18,
+                                  color: scheme.error,
+                                ),
+                              ),
+                            if (!_open && runsInShort != null)
+                              Text(
+                                runsInShort,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: scheme.primary,
+                                ),
+                              ),
+                            Icon(
+                              _open ? Icons.expand_more : Icons.expand_less,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  if (calculating)
-                    const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (data == null)
-                Text(
-                  emptyHint ?? l10n.dailyPlanEnterQuantities,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                )
-              else ...[
-                Text(
-                  l10n.dailyPlanMixTotal(
-                    _fmt(data.totalMixQty),
-                    mixUom,
-                    _fmt(data.requiredBatches),
-                  ),
-                  style: theme.textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 10),
-                if (data.runs.isEmpty)
-                  Text(
-                    l10n.dailyPlanNoRuns,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.error,
+                if (_open) ...[
+                  const SizedBox(height: 8),
+                  if (data == null)
+                    Text(
+                      widget.emptyHint ?? l10n.dailyPlanEnterQuantities,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    )
+                  else ...[
+                    Text(
+                      l10n.dailyPlanMixTotal(
+                        MixerRunSummary._fmt(data.totalMixQty),
+                        widget.mixUom,
+                        MixerRunSummary._fmt(data.requiredBatches),
+                      ),
+                      style: theme.textTheme.bodyMedium,
                     ),
-                  )
-                else
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    const SizedBox(height: 10),
+                    if (data.runs.isEmpty)
+                      Text(
+                        l10n.dailyPlanNoRuns,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.error,
+                        ),
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final run in data.runs) _RunChip(run: run),
+                        ],
+                      ),
+                    if (data.overproductionBatches > 0.001) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.dailyPlanSpareMix(
+                          MixerRunSummary._fmt(data.overproductionBatches),
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.tertiary,
+                        ),
+                      ),
+                    ],
+                    if (data.materials?.unavailable == true) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.dailyPlanMaterialsUnavailable,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ] else if (hasShortages) ...[
+                      const SizedBox(height: 8),
+                      _ShortageList(shortages: data.materials!.shortages),
+                    ],
+                  ],
+                ],
+                if (widget.showActions) ...[
+                  const SizedBox(height: 12),
+                  Row(
                     children: [
-                      for (final run in data.runs) _RunChip(run: run),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: widget.onCheckMaterials,
+                          icon: const Icon(
+                            Icons.inventory_2_outlined,
+                            size: 18,
+                          ),
+                          label: Text(l10n.dailyPlanCheckMaterials),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: widget.onSave,
+                          icon: const Icon(Icons.save_outlined, size: 18),
+                          label: Text(l10n.dailyPlanSave),
+                        ),
+                      ),
                     ],
                   ),
-                if (data.overproductionBatches > 0.001) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.dailyPlanSpareMix(_fmt(data.overproductionBatches)),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.tertiary,
-                    ),
-                  ),
                 ],
-                if (data.materials?.unavailable == true) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.dailyPlanMaterialsUnavailable,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ] else if (data.materials != null &&
-                    data.materials!.shortages.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _ShortageList(shortages: data.materials!.shortages),
-                ],
-              ],
-              if (showActions) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onCheckMaterials,
-                        icon: const Icon(Icons.inventory_2_outlined, size: 18),
-                        label: Text(l10n.dailyPlanCheckMaterials),
+                if (widget.showActions && widget.onCancelPlan != null)
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TextButton.icon(
+                      onPressed: widget.onCancelPlan,
+                      icon: const Icon(Icons.event_busy_outlined, size: 18),
+                      label: Text(l10n.productionPlanCancel),
+                      style: TextButton.styleFrom(
+                        foregroundColor: scheme.error,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: onSave,
-                        icon: const Icon(Icons.save_outlined, size: 18),
-                        label: Text(l10n.dailyPlanSave),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              if (showActions && onCancelPlan != null)
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: TextButton.icon(
-                    onPressed: onCancelPlan,
-                    icon: const Icon(Icons.event_busy_outlined, size: 18),
-                    label: Text(l10n.productionPlanCancel),
-                    style: TextButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
-  }
-
-  /// Trims the trailing zeros a Float carries so "2" does not read as "2.000".
-  static String _fmt(double value) {
-    if (value == value.roundToDouble()) return value.toStringAsFixed(0);
-    final text = value.toStringAsFixed(3);
-    return text.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
   }
 }
 
@@ -229,14 +328,16 @@ class _RunChip extends StatelessWidget {
         children: [
           Text(
             MixerRunSummary._fmt(run.size),
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w700, color: colour),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colour,
+            ),
           ),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(color: colour),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: colour),
           ),
         ],
       ),
@@ -259,10 +360,10 @@ class _ShortageList extends StatelessWidget {
       children: [
         Text(
           l10n.dailyPlanShortages(shortages.length),
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: scheme.error, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: scheme.error,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         // Only the worst few: the roll-up can list dozens of components and this
         // bar has to stay a summary.
@@ -280,9 +381,9 @@ class _ShortageList extends StatelessWidget {
         if (shortages.length > 3)
           Text(
             l10n.dailyPlanShortagesMore(shortages.length - 3),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
       ],
     );
