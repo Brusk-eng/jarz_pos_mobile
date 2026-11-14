@@ -6858,6 +6858,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'A new version is ready — fully close and reopen the app to apply it.';
 
   @override
+  String get shorebirdForcedRestartTitle => 'Update ready';
+
+  @override
+  String get shorebirdForcedRestartBody =>
+      'An update is ready. Close the app and open it again to continue.';
+
+  @override
+  String get shorebirdForcedRestartButton => 'Close app';
+
+  @override
   String get aboutRestartInstruction =>
       'Force-close and reopen the app to apply the downloaded patch.';
 

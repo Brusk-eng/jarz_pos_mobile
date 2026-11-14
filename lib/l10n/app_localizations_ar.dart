@@ -6825,6 +6825,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'يتوفر إصدار جديد — أغلق التطبيق تمامًا ثم أعد فتحه لتطبيقه.';
 
   @override
+  String get shorebirdForcedRestartTitle => 'التحديث جاهز';
+
+  @override
+  String get shorebirdForcedRestartBody =>
+      'يوجد تحديث جاهز. أغلق التطبيق ثم افتحه مرة أخرى للمتابعة.';
+
+  @override
+  String get shorebirdForcedRestartButton => 'إغلاق التطبيق';
+
+  @override
   String get aboutRestartInstruction =>
       'أغلق التطبيق تماماً وأعد فتحه لتطبيق التحديث المُنزَّل.';
 

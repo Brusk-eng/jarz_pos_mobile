@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:jarz_pos/src/core/monitoring/sentry_service.dart';
+import 'package:jarz_pos/src/features/update_channel/data/update_channel.dart';
 import 'package:jarz_pos/src/features/about/data/about_release_info_repository.dart';
 
 void main() {
@@ -37,7 +38,7 @@ void main() {
         );
 
         // Act
-        final result = await repository.fetchReleaseInfo();
+        final result = await repository.fetchReleaseInfo(track: PatchTrack.stable);
 
         // Assert
         expect(result.appName, 'Jarz POS');
@@ -76,7 +77,7 @@ void main() {
         );
 
         // Act
-        final result = await repository.fetchReleaseInfo();
+        final result = await repository.fetchReleaseInfo(track: PatchTrack.stable);
 
         // Assert
         expect(result.platformLabel, 'Web');
@@ -107,7 +108,7 @@ void main() {
         );
 
         // Act
-        final result = await repository.fetchReleaseInfo();
+        final result = await repository.fetchReleaseInfo(track: PatchTrack.stable);
 
         // Assert
         expect(result.shorebird.status, ShorebirdPatchStatus.upToDate);
@@ -139,7 +140,7 @@ void main() {
         );
 
         // Act
-        final result = await repository.fetchReleaseInfo();
+        final result = await repository.fetchReleaseInfo(track: PatchTrack.stable);
 
         // Assert
         expect(result.shorebird.status, ShorebirdPatchStatus.unknown);
@@ -155,5 +156,6 @@ class _FakeShorebirdStatusReader implements ShorebirdStatusReader {
   final ShorebirdDiagnostics result;
 
   @override
-  Future<ShorebirdDiagnostics> readStatus() async => result;
+  Future<ShorebirdDiagnostics> readStatus({required PatchTrack track}) async =>
+      result;
 }

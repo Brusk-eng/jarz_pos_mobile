@@ -5,9 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/core/monitoring/sentry_service.dart';
+import 'package:jarz_pos/src/features/update_channel/data/update_channel.dart';
 import 'package:jarz_pos/src/features/about/data/about_release_info_repository.dart';
 import 'package:jarz_pos/src/features/about/presentation/providers/about_release_info_provider.dart';
 import 'package:jarz_pos/src/features/about/presentation/screens/about_screen.dart';
+import 'package:jarz_pos/src/features/update_channel/state/update_channel_provider.dart';
+
+import '../update_channel/update_channel_fakes.dart';
 
 void main() {
   group('AboutScreen', () {
@@ -45,6 +49,9 @@ void main() {
           ProviderScope(
             overrides: [
               aboutReleaseInfoRepositoryProvider.overrideWithValue(repository),
+              updateChannelStoreProvider.overrideWithValue(
+                MemoryUpdateChannelStore(),
+              ),
             ],
             child: MaterialApp(
               locale: const Locale('en'),
@@ -141,6 +148,7 @@ Widget _wrap(AboutReleaseInfoRepository repository) {
   return ProviderScope(
     overrides: [
       aboutReleaseInfoRepositoryProvider.overrideWithValue(repository),
+      updateChannelStoreProvider.overrideWithValue(MemoryUpdateChannelStore()),
     ],
     child: MaterialApp(
       locale: const Locale('en'),
@@ -162,5 +170,6 @@ class _FakeShorebirdStatusReader implements ShorebirdStatusReader {
   final ShorebirdDiagnostics result;
 
   @override
-  Future<ShorebirdDiagnostics> readStatus() async => result;
+  Future<ShorebirdDiagnostics> readStatus({required PatchTrack track}) async =>
+      result;
 }

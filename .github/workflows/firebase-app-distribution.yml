@@ -1,7 +1,7 @@
 name: Android Release
 
 run-name: >-
-  Android Release / ${{ inputs.environment || 'staging' }} / ${{ inputs.release_type || 'auto' }} / ${{ github.ref_name }}
+  Android Release / ${{ inputs.environment || 'staging' }} / ${{ inputs.release_type || 'auto' }} / ${{ inputs.shorebird_track || 'stable' }} / ${{ inputs.source_ref || github.ref_name }}
 
 on:
   push:
@@ -47,6 +47,22 @@ on:
         description: Optional Shorebird release version for patching; defaults to latest
         required: false
         type: string
+      shorebird_track:
+        description: >-
+          Shorebird track for a patch. beta = fast channel (managers, every patch at once);
+          stable = everyone else (staff rollout). Only shorebird_patch may target beta.
+        required: false
+        default: stable
+        type: choice
+        options:
+          - stable
+          - beta
+      source_ref:
+        description: >-
+          Optional commit SHA to build the patch from (staff rollout of a commit already
+          patched to beta). Empty = the main tip. Only valid with shorebird_patch.
+        required: false
+        type: string
 
 permissions:
   actions: read
@@ -56,7 +72,9 @@ env:
   FLUTTER_VERSION: "3.44.6"
 
 concurrency:
-  group: android-release-${{ github.ref_name }}-${{ inputs.environment || 'staging' }}
+  # The track is part of the group so an urgent fix dispatched to beta and then
+  # to stable back-to-back does not cancel the first run.
+  group: android-release-${{ github.ref_name }}-${{ inputs.environment || 'staging' }}-${{ inputs.shorebird_track || 'stable' }}
   cancel-in-progress: true
 
 jobs:
@@ -70,17 +88,22 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          # source_ref builds a staff (stable) rollout from the exact commit that
+          # was patched to beta days earlier, not from whatever main holds now.
+          ref: ${{ inputs.source_ref || github.sha }}
 
       - name: Plan Android release
         id: plan
         shell: pwsh
         env:
           SOURCE_EVENT: ${{ github.event_name }}
-          SOURCE_SHA: ${{ github.sha }}
           INPUT_ENVIRONMENT: ${{ inputs.environment }}
           INPUT_RELEASE_TYPE: ${{ inputs.release_type }}
+          INPUT_SHOREBIRD_TRACK: ${{ inputs.shorebird_track }}
+          INPUT_SOURCE_REF: ${{ inputs.source_ref }}
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: |
+          $env:SOURCE_SHA = (& git rev-parse HEAD).Trim()
           $targetEnvironment = if ($env:SOURCE_EVENT -eq 'push') { 'staging' } else { $env:INPUT_ENVIRONMENT }
           $requestedReleaseType = if ($env:SOURCE_EVENT -eq 'push') { 'auto' } else { $env:INPUT_RELEASE_TYPE }
           $changedPaths = @(
@@ -193,6 +216,30 @@ jobs:
             }
           }
 
+          # Update channels: managers' devices read 'beta' (every patch at once),
+          # everyone else reads 'stable' (staff rollout). A push always patches
+          # stable, so staging testers and pre-channel APKs behave as before.
+          # A patch is never moved between tracks: a staff rollout is a fresh
+          # stable patch built from the same commit (source_ref), so each track's
+          # patch numbers only go up and no device can be rolled back.
+          $requestedTrack = if ($env:SOURCE_EVENT -eq 'push' -or [string]::IsNullOrWhiteSpace($env:INPUT_SHOREBIRD_TRACK)) { 'stable' } else { $env:INPUT_SHOREBIRD_TRACK.Trim() }
+          if ($requestedTrack -notin @('stable', 'beta')) {
+            $patchBlocked = $true
+            $supportNote = "Unknown shorebird_track '$requestedTrack'; use stable or beta."
+          }
+          elseif ($requestedTrack -ne 'stable' -and $effectiveReleaseType -ne 'shorebird_patch') {
+            $patchBlocked = $true
+            $supportNote = "shorebird_track=$requestedTrack is only valid with release_type=shorebird_patch. A full APK always goes to every device."
+          }
+          elseif (-not [string]::IsNullOrWhiteSpace($env:INPUT_SOURCE_REF) -and $effectiveReleaseType -ne 'shorebird_patch') {
+            $patchBlocked = $true
+            $supportNote = "source_ref is only valid with release_type=shorebird_patch."
+          }
+          else {
+            $shorebirdTrack = $requestedTrack
+          }
+
+          "source_sha=$($env:SOURCE_SHA)" >> $env:GITHUB_OUTPUT
           "target_environment=$targetEnvironment" >> $env:GITHUB_OUTPUT
           "requested_release_type=$requestedReleaseType" >> $env:GITHUB_OUTPUT
           "classified_release_type=$classifiedType" >> $env:GITHUB_OUTPUT
@@ -312,7 +359,7 @@ jobs:
         env:
           SOURCE_EVENT: ${{ github.event_name }}
           SOURCE_BRANCH: ${{ github.ref_name }}
-          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_SHA: ${{ steps.plan.outputs.source_sha || github.sha }}
           SOURCE_ACTOR: ${{ github.actor }}
           RUN_ID: ${{ github.run_id }}
           RUN_NUMBER: ${{ github.run_number }}
@@ -492,6 +539,7 @@ jobs:
             echo "| Classified release type | ${{ steps.plan.outputs.classified_release_type }} |"
             echo "| Effective release type | ${{ steps.plan.outputs.release_type }} |"
             echo "| Release engine | ${{ steps.plan.outputs.release_engine }} |"
+            echo "| Shorebird track | ${{ steps.plan.outputs.shorebird_track }} (beta = managers, stable = everyone else) |"
             echo "| Classifier reason | ${{ steps.plan.outputs.classified_reason }} |"
             echo "| Support note | ${{ steps.plan.outputs.support_note || 'n/a' }} |"
             echo "| Release ID | ${{ steps.meta.outputs.release_id || 'n/a' }} |"

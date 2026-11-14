@@ -4,6 +4,7 @@ import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 import '../../../core/env/env.dart';
 import '../../../core/monitoring/sentry_service.dart';
+import '../../update_channel/data/update_channel.dart';
 
 typedef PackageInfoLoader = Future<PackageInfo> Function();
 typedef CurrentHostReader = String Function();
@@ -39,11 +40,15 @@ class AboutReleaseInfoRepository {
   final PlatformLabelReader _platformLabelReader;
   final SentryConfigLoader _sentryConfigLoader;
 
-  Future<AboutReleaseInfo> fetchReleaseInfo() async {
+  /// [track] is the device's resolved Shorebird track. It is required so the
+  /// About screen can never check a different track than the auto-updater.
+  Future<AboutReleaseInfo> fetchReleaseInfo({required PatchTrack track}) async {
     final packageInfo = await _loadPackageInfo();
     final appEnvironment = resolveEnvName(currentHost: _currentHostReader());
     final sentryConfig = _sentryConfigLoader(appEnvironment);
-    final shorebirdDiagnostics = await _shorebirdStatusReader.readStatus();
+    final shorebirdDiagnostics = await _shorebirdStatusReader.readStatus(
+      track: track,
+    );
 
     return AboutReleaseInfo(
       appName: packageInfo.appName,
@@ -111,14 +116,23 @@ class ShorebirdDiagnostics {
 }
 
 abstract class ShorebirdStatusReader {
-  Future<ShorebirdDiagnostics> readStatus();
+  /// [track] is required on purpose: with `auto_update: false` the app is the
+  /// only thing that talks to Shorebird, and a call without a track would
+  /// silently check (and on a fast device, pull) the "stable" patch.
+  Future<ShorebirdDiagnostics> readStatus({required PatchTrack track});
 }
+
+/// Maps the app's track to Shorebird's. Only "stable" and "beta" exist.
+UpdateTrack shorebirdTrackFor(PatchTrack track) => switch (track) {
+  PatchTrack.beta => UpdateTrack.beta,
+  PatchTrack.stable => UpdateTrack.stable,
+};
 
 class DefaultShorebirdStatusReader implements ShorebirdStatusReader {
   const DefaultShorebirdStatusReader();
 
   @override
-  Future<ShorebirdDiagnostics> readStatus() async {
+  Future<ShorebirdDiagnostics> readStatus({required PatchTrack track}) async {
     if (!_supportsShorebird()) {
       return const ShorebirdDiagnostics(
         status: ShorebirdPatchStatus.unavailable,
@@ -136,7 +150,9 @@ class DefaultShorebirdStatusReader implements ShorebirdStatusReader {
     }
 
     try {
-      final updateStatus = await updater.checkForUpdate();
+      final updateStatus = await updater.checkForUpdate(
+        track: shorebirdTrackFor(track),
+      );
       final currentPatch = await updater.readCurrentPatch();
       final nextPatch = await updater.readNextPatch();
 
@@ -176,24 +192,26 @@ class DefaultShorebirdStatusReader implements ShorebirdStatusReader {
 /// screen) so that adding a download capability here never forces the
 /// read-only fakes to implement it.
 abstract class ShorebirdUpdateGateway {
-  Future<ShorebirdDiagnostics> readStatus();
+  Future<ShorebirdDiagnostics> readStatus({required PatchTrack track});
 
   /// Downloads the newest available patch immediately (instead of waiting for
   /// the next app launch). Returns `true` when a patch was downloaded, so the
   /// caller can re-read status — which will then report
   /// [ShorebirdPatchStatus.restartRequired]. Never throws.
-  Future<bool> downloadUpdate();
+  ///
+  /// [track] must be the same track [readStatus] was asked about.
+  Future<bool> downloadUpdate({required PatchTrack track});
 }
 
 class DefaultShorebirdUpdateGateway implements ShorebirdUpdateGateway {
   const DefaultShorebirdUpdateGateway();
 
   @override
-  Future<ShorebirdDiagnostics> readStatus() =>
-      const DefaultShorebirdStatusReader().readStatus();
+  Future<ShorebirdDiagnostics> readStatus({required PatchTrack track}) =>
+      const DefaultShorebirdStatusReader().readStatus(track: track);
 
   @override
-  Future<bool> downloadUpdate() async {
+  Future<bool> downloadUpdate({required PatchTrack track}) async {
     if (kIsWeb) {
       return false;
     }
@@ -211,7 +229,7 @@ class DefaultShorebirdUpdateGateway implements ShorebirdUpdateGateway {
     }
 
     try {
-      await updater.update();
+      await updater.update(track: shorebirdTrackFor(track));
       return true;
     } catch (_) {
       // Network hiccup, no-longer-available race, or engine error: stay on the

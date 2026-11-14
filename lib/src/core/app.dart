@@ -27,6 +27,7 @@ import '../features/auth/presentation/session_expired_gate.dart';
 import '../features/app_update/state/app_update_provider.dart';
 import '../features/approvals/presentation/pending_approvals_widgets.dart';
 import '../features/kanban/providers/collect_cash_prompt.dart';
+import '../features/update_channel/presentation/shorebird_restart_gate.dart';
 
 class JarzPosApp extends ConsumerWidget {
   const JarzPosApp({super.key});
@@ -103,26 +104,33 @@ class JarzPosApp extends ConsumerWidget {
             // Below the update gate (a refused build must not even get to
             // sign in) and above everything else: a session the server has
             // dropped ends here rather than in each feature.
-            child: SessionExpiredGate(
-              child: AppErrorConsole(
-                child: OrderAlertOverlay(
-                  child: GestureDetector(
-                    onTap: () {
-                      final currentScope = FocusScope.of(context);
-                      if (!currentScope.hasPrimaryFocus &&
-                          currentScope.hasFocus) {
-                        FocusManager.instance.primaryFocus?.unfocus();
-                      }
-                    },
-                    behavior: HitTestBehavior.opaque,
-                    child: LoadingOverlay(
-                      child: Column(
-                        children: [
-                          if (isAuthenticated) const _ShorebirdUpdateBanner(),
-                          if (isAuthenticated)
-                            const _AppUpdateAvailableBanner(),
-                          Expanded(child: routed),
-                        ],
+            //
+            // Directly below it: the Shorebird lifecycle (cold-start patch
+            // check before login, per-channel track, and the forced "close
+            // and reopen" screen). A refused APK must still win over a patch.
+            child: ShorebirdRestartGate(
+              isAuthenticated: isAuthenticated,
+              child: SessionExpiredGate(
+                child: AppErrorConsole(
+                  child: OrderAlertOverlay(
+                    child: GestureDetector(
+                      onTap: () {
+                        final currentScope = FocusScope.of(context);
+                        if (!currentScope.hasPrimaryFocus &&
+                            currentScope.hasFocus) {
+                          FocusManager.instance.primaryFocus?.unfocus();
+                        }
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: LoadingOverlay(
+                        child: Column(
+                          children: [
+                            if (isAuthenticated) const _ShorebirdUpdateBanner(),
+                            if (isAuthenticated)
+                              const _AppUpdateAvailableBanner(),
+                            Expanded(child: routed),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -164,7 +172,8 @@ class _AuthenticatedServiceBootstrapState
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.read(shorebirdUpdateProvider.notifier).recheckStatus();
+      // The Shorebird recheck on resume lives in ShorebirdRestartGate (it
+      // re-resolves the update channel first, and also runs signed out).
       // A branch granted or removed while the app was in the background (the
       // realtime event is missed when the socket is down) shows up now.
       ref.read(posNotifierProvider.notifier).refreshProfileList();

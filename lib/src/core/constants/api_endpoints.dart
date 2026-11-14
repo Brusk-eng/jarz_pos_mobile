@@ -219,6 +219,12 @@ abstract final class ApiEndpoints {
   static const getAppRequirement =
       '/api/method/jarz_pos.api.app_release.get_app_requirement';
 
+  /// Which Shorebird patch track this signed-in device follows ("beta" for
+  /// managers' devices, "stable" for everyone else). Optional on the server:
+  /// any failure keeps the device on "stable".
+  static const getUpdateChannel =
+      '/api/method/jarz_pos.api.app_release.get_update_channel';
+
   // ── Notifications ─────────────────────────────────────────────────────
   static const registerMobileDevice =
       '/api/method/jarz_pos.api.notifications.register_mobile_device';

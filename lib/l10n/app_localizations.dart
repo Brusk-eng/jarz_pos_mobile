@@ -11507,6 +11507,24 @@ abstract class AppLocalizations {
   /// **'A new version is ready — fully close and reopen the app to apply it.'**
   String get shorebirdUpdateBannerMessage;
 
+  /// No description provided for @shorebirdForcedRestartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update ready'**
+  String get shorebirdForcedRestartTitle;
+
+  /// No description provided for @shorebirdForcedRestartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An update is ready. Close the app and open it again to continue.'**
+  String get shorebirdForcedRestartBody;
+
+  /// No description provided for @shorebirdForcedRestartButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Close app'**
+  String get shorebirdForcedRestartButton;
+
   /// No description provided for @aboutRestartInstruction.
   ///
   /// In en, this message translates to:

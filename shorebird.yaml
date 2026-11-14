@@ -13,5 +13,12 @@ flavors:
 # auto_update controls if Shorebird should automatically update in the background on launch.
 # If auto_update: false, you will need to use package:shorebird_code_push to trigger updates.
 # https://pub.dev/packages/shorebird_code_push
-# Uncomment the following line to disable automatic updates.
-# auto_update: false
+#
+# Jarz: OFF on purpose. The app drives every patch download itself, per update
+# channel: managers' devices follow the Shorebird "beta" track, everyone else
+# "stable" (the server decides; any failure means "stable"). The engine's own
+# launch-time updater only knows "stable", so it must not run alongside.
+# See lib/src/features/about/state/shorebird_update_provider.dart and
+# lib/src/features/update_channel/. Takes effect only on APKs built with this
+# file; older APKs keep auto-updating from "stable".
+auto_update: false
