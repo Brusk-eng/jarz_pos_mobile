@@ -1180,6 +1180,96 @@ void main() {
     expect(container.read(dailyPlanDraftProvider).quantities['CAKE-OK'], 15);
     expect(container.read(productionBasketProvider).lines, hasLength(1));
   });
+
+  group('groups', () {
+    DailyPlanItem planItem(String code, String group) => DailyPlanItem(
+      itemCode: code,
+      itemName: '$code name',
+      itemGroup: group,
+      defaultBom: 'BOM-$code',
+      mixQtyPerUnit: 0.1,
+      jarsPerBatch: 120,
+      usesMix: true,
+    );
+
+    const emptyPage = ProductionSuggestionsPage(
+      items: [],
+      summary: ProductionSummary(),
+      velocityUpdatedOn: '2026-08-01 00:00:00',
+    );
+
+    DailyPlanTemplate template(List<DailyPlanItem> items) => DailyPlanTemplate(
+      planDate: '2026-08-02',
+      mix: const DailyPlanMix(itemCode: 'BASE-MIX', batchQty: 12, uom: 'Kg'),
+      items: items,
+    );
+
+    testWidgets('Small starts closed; a typed Small row stays in sight', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        page: emptyPage,
+        template: template([
+          planItem('MANGO-M', 'Medium'),
+          planItem('MANGO-S', 'Small'),
+          planItem('TIRA-S', 'Small'),
+        ]),
+        draft: const {'TIRA-S': 6},
+      );
+
+      expect(find.text('MANGO-M name'), findsOneWidget);
+      // Closed: the untyped Small row is hidden, the typed one is not.
+      expect(find.text('MANGO-S name'), findsNothing);
+      expect(find.text('TIRA-S name'), findsOneWidget);
+
+      await tester.tap(find.textContaining('Small'));
+      await tester.pumpAndSettle();
+      expect(find.text('MANGO-S name'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a typed row moves to the top of its group, keyboard kept', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        page: emptyPage,
+        template: template([
+          planItem('A-JAR', 'Medium'),
+          planItem('B-JAR', 'Medium'),
+          planItem('C-JAR', 'Medium'),
+        ]),
+      );
+
+      double top(String code) => tester.getTopLeft(find.text('$code name')).dy;
+      expect(top('A-JAR'), lessThan(top('C-JAR')));
+
+      final cField = find.descendant(
+        of: find.ancestor(
+          of: find.text('C-JAR name'),
+          matching: find.byType(PlanJarRow),
+        ),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(cField, '4');
+      await tester.pumpAndSettle();
+
+      expect(top('C-JAR'), lessThan(top('A-JAR')));
+      // Same field, still focused: the row moved, not rebuilt.
+      final field = tester.widget<TextField>(
+        find.descendant(
+          of: find.ancestor(
+            of: find.text('C-JAR name'),
+            matching: find.byType(PlanJarRow),
+          ),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(field.controller!.text, '4');
+      expect(tester.testTextInput.isVisible, isTrue);
+    });
+  });
 }
 
 /// Opens a row's detail panel.

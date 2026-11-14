@@ -176,8 +176,9 @@ class _PlanJarRowState extends State<PlanJarRow> {
     final row = widget.row;
     final suggestion = row.suggestion;
 
+    // Tight vertical padding (owner, 2026-11-14: "the whole card smaller").
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+      padding: const EdgeInsets.fromLTRB(14, 6, 2, 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -253,9 +254,12 @@ class _PlanJarRowState extends State<PlanJarRow> {
                       status: suggestion.status,
                       compact: true,
                     ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
+                  // 72 dp holds four digits at a phone's text size; the old
+                  // 104 dp mostly held empty border. Height stays a 40 dp
+                  // touch target.
                   SizedBox(
-                    width: 104,
+                    width: 72,
                     child: TextField(
                       controller: _controller,
                       keyboardType: TextInputType.number,
@@ -272,13 +276,14 @@ class _PlanJarRowState extends State<PlanJarRow> {
                         // out of the way the moment a digit is typed.
                         hintText: l10n.productionPlanQty,
                         // The border only: the sentence is too long for a
-                        // 104 dp field and sits under the name instead.
+                        // 72 dp field and sits under the name instead.
                         errorText: _invalid ? '' : null,
                         errorStyle: const TextStyle(height: 0, fontSize: 0),
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
+                          horizontal: 8,
+                          vertical: 9,
                         ),
+                        constraints: const BoxConstraints(minHeight: 40),
                       ),
                       onChanged: _onChanged,
                     ),

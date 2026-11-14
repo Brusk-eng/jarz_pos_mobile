@@ -60,6 +60,15 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   /// [PlanEntryController.reconcile].
   DailyPlan? _savedPlan;
 
+  /// Groups the operator opened or closed by hand; the rest follow
+  /// [_openByDefault].
+  final Map<String, bool> _groupOpen = <String, bool>{};
+
+  /// Small is a one-off line (owner, 2026-11-13), so its group starts closed,
+  /// as on Send to Branches; every other group starts open.
+  static bool _openByDefault(String groupName) =>
+      !groupName.toLowerCase().contains('small');
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -149,6 +158,46 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     final policy = ref.watch(productionPolicyOrFallbackProvider);
     final notifier = ref.read(productionBasketProvider.notifier);
 
+    Widget jarRow(PlanRow row) {
+      return Column(
+        key: ValueKey(row.itemCode),
+        children: [
+          PlanJarRow(
+            row: row,
+            quantity: draft.quantities[row.itemCode] ?? 0,
+            isShort: shortages.contains(row.itemCode),
+            plannedToday: planned[row.itemCode],
+            onQuantityChanged: (qty) => entry.setQuantity(row, qty),
+            onUseSuggestion: () => entry.fillSuggestion(row),
+            invalidText: invalidEntries[row.itemCode],
+            onInvalidTextChanged: (text) =>
+                entry.setInvalidEntry(row.itemCode, text),
+            onUsePlanned: planned.containsKey(row.itemCode)
+                ? () => entry.setQuantity(row, planned[row.itemCode]!)
+                : null,
+          ),
+          // Only for a row that is actually queued, and only at
+          // the settled quantity: keyed on a live one this would
+          // fetch a fresh set of options per digit typed.
+          if (settledUnits[row.itemCode] case final qty?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 4),
+              child: MaterialOptionsPanel(
+                bomName: row.bomName,
+                qty: qty,
+                selections: _selectionsFor(basket, row.itemCode),
+                onSelectionChanged: (original, selected) {
+                  final index = basket.indexOfItem(row.itemCode);
+                  if (index < 0) return;
+                  notifier.setMaterialSelection(index, original, selected);
+                },
+              ),
+            ),
+          const Divider(height: 1),
+        ],
+      );
+    }
+
     return Column(
       // Stretched, not centred: the action bar sizes itself to its widest row,
       // and on a tablet that is barely a third of the screen — so it was being
@@ -213,65 +262,39 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
                     padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Center(child: Text(l10n.productionNoSuggestions)),
                   ),
-                for (final group in groups) ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(4, 12, 4, 2),
-                    child: Text(
-                      group.name.isEmpty
-                          ? l10n.productionOtherItems
-                          : group.name,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                for (final group in groups)
+                  ...() {
+                    final open =
+                        _groupOpen[group.name] ?? _openByDefault(group.name);
+                    // Typed rows first (owner, 2026-11-14: "added to the top
+                    // of its group"), the board's order kept within each part.
+                    // Rows are keyed, so a row keeps its field and keyboard
+                    // when it moves.
+                    final typed = [
+                      for (final row in group.rows)
+                        if ((draft.quantities[row.itemCode] ?? 0) > 0) row,
+                    ];
+                    final rest = [
+                      for (final row in group.rows)
+                        if ((draft.quantities[row.itemCode] ?? 0) <= 0) row,
+                    ];
+                    // A closed group still shows what is typed in it: a
+                    // hidden row that gets made is worse than a longer list.
+                    final shown = open ? [...typed, ...rest] : typed;
+                    return [
+                      _GroupHeader(
+                        title: group.name.isEmpty
+                            ? l10n.productionOtherItems
+                            : group.name,
+                        count: group.rows.length,
+                        typedCount: typed.length,
+                        open: open,
+                        onTap: () =>
+                            setState(() => _groupOpen[group.name] = !open),
                       ),
-                    ),
-                  ),
-                  for (final row in group.rows)
-                    Column(
-                      key: ValueKey(row.itemCode),
-                      children: [
-                        PlanJarRow(
-                          row: row,
-                          quantity: draft.quantities[row.itemCode] ?? 0,
-                          isShort: shortages.contains(row.itemCode),
-                          plannedToday: planned[row.itemCode],
-                          onQuantityChanged: (qty) =>
-                              entry.setQuantity(row, qty),
-                          onUseSuggestion: () => entry.fillSuggestion(row),
-                          invalidText: invalidEntries[row.itemCode],
-                          onInvalidTextChanged: (text) =>
-                              entry.setInvalidEntry(row.itemCode, text),
-                          onUsePlanned: planned.containsKey(row.itemCode)
-                              ? () => entry.setQuantity(
-                                  row,
-                                  planned[row.itemCode]!,
-                                )
-                              : null,
-                        ),
-                        // Only for a row that is actually queued, and only at
-                        // the settled quantity: keyed on a live one this would
-                        // fetch a fresh set of options per digit typed.
-                        if (settledUnits[row.itemCode] case final qty?)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 4),
-                            child: MaterialOptionsPanel(
-                              bomName: row.bomName,
-                              qty: qty,
-                              selections: _selectionsFor(basket, row.itemCode),
-                              onSelectionChanged: (original, selected) {
-                                final index = basket.indexOfItem(row.itemCode);
-                                if (index < 0) return;
-                                notifier.setMaterialSelection(
-                                  index,
-                                  original,
-                                  selected,
-                                );
-                              },
-                            ),
-                          ),
-                        const Divider(height: 1),
-                      ],
-                    ),
-                ],
+                      for (final row in shown) jarRow(row),
+                    ];
+                  }(),
                 if (draft.error != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 16),
@@ -1255,6 +1278,67 @@ class _ErrorRetry extends StatelessWidget {
             OutlinedButton(
               onPressed: onRetry,
               child: Text(context.l10n.commonRetry),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A jar-size group's heading, tapped to open or close the group.
+///
+/// Closed, it says how many of its rows are typed (those stay listed under
+/// it); the count of rows and the chevron say there is more to open.
+class _GroupHeader extends StatelessWidget {
+  const _GroupHeader({
+    required this.title,
+    required this.count,
+    required this.typedCount,
+    required this.open,
+    required this.onTap,
+  });
+
+  final String title;
+  final int count;
+  final int typedCount;
+  final bool open;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: title),
+                    TextSpan(
+                      text:
+                          '  ${open || typedCount == 0 ? count : '$typedCount/$count'}',
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            Icon(
+              open ? Icons.expand_less : Icons.expand_more,
+              color: scheme.onSurfaceVariant,
             ),
           ],
         ),
