@@ -184,6 +184,7 @@ abstract final class AppRoutes {
   // `/chats/metrics` is matched before `/chats/:name` (it is declared first).
   static const chats = '/chats';
   static const chatsMetrics = '/chats/metrics';
+  static const chatsFactOverrides = '/chats/fact-overrides';
 
   /// One conversation thread (`CHAT-00001`).
   static String chatThreadFor(String name) =>

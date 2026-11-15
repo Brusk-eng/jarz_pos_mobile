@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/chat_models.dart';
+import '../chat_bidi.dart';
 import '../chat_labels.dart';
 
 /// One inbox row: channel icon, name, preview, live "waiting N min" (red at
@@ -102,6 +103,16 @@ class ChatConversationTile extends StatelessWidget {
               ),
             ),
           ),
+          if (_showsCategory(summary.contactCategory)) ...[
+            const SizedBox(width: 6),
+            KeyedSubtree(
+              key: ValueKey('chat-category-chip-${summary.name}'),
+              child: _Pill(
+                label: chatCategoryLabel(context, summary.contactCategory),
+                color: chatCategoryColor(summary.contactCategory),
+              ),
+            ),
+          ],
           if (summary.isComplaint) ...[
             const SizedBox(width: 6),
             _Pill(
@@ -112,14 +123,20 @@ class ChatConversationTile extends StatelessWidget {
         ],
       ),
       subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           if (previewText.isNotEmpty)
             Text(
               previewText,
+              key: ValueKey('chat-preview-${summary.name}'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.start,
+              textDirection: chatTextDirection(
+                previewText,
+                Directionality.of(context),
+              ),
             ),
           if (waiting != null || summary.assignedToName != null)
             Padding(
@@ -181,6 +198,12 @@ class ChatConversationTile extends StatelessWidget {
     );
   }
 }
+
+/// Supplier, Content Creator and Other get a chip; Customer / blank do not.
+bool _showsCategory(String? category) =>
+    category == ChatContactCategories.supplier ||
+    category == ChatContactCategories.contentCreator ||
+    category == ChatContactCategories.other;
 
 class _Pill extends StatelessWidget {
   const _Pill({required this.label, required this.color});

@@ -184,7 +184,7 @@ void main() {
       expect(find.byKey(const ValueKey('chat-voice-transcript')),
           findsOneWidget);
       expect(find.text('Transcript'), findsOneWidget);
-      expect(find.widgetWithText(SelectableText, _voice), findsOneWidget);
+      expect(find.text(_voice), findsOneWidget);
       // Short: no expand toggle.
       expect(find.byKey(const ValueKey('chat-voice-transcript-toggle')),
           findsNothing);
@@ -199,9 +199,7 @@ void main() {
       );
       await tester.pump();
       expect(find.text('نص الرسالة الصوتية'), findsOneWidget);
-      final text = tester.widget<SelectableText>(
-        find.widgetWithText(SelectableText, 'عايزة برطمانين'),
-      );
+      final text = tester.widget<Text>(find.text('عايزة برطمانين'));
       expect(text.textDirection, TextDirection.rtl);
     });
 
@@ -239,8 +237,7 @@ void main() {
         _bubbleApp(ChatMessage.fromJson(_audioJson(transcript: long))),
       );
       await tester.pump();
-      SelectableText text() =>
-          tester.widget<SelectableText>(find.widgetWithText(SelectableText, long));
+      Text text() => tester.widget<Text>(find.text(long));
       expect(text().maxLines, 6);
       expect(find.text('Show more'), findsOneWidget);
 

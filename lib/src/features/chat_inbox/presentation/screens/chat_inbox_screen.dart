@@ -121,6 +121,17 @@ class _ChatInboxScreenState extends ConsumerState<ChatInboxScreen> {
             ),
           if (canAccess)
             IconButton(
+              key: const ValueKey('chat-fact-overrides-action'),
+              tooltip: chatBi(
+                context,
+                'Moderator overrides',
+                'تعديلات المشرف على المعلومات',
+              ),
+              icon: const Icon(Icons.fact_check_outlined),
+              onPressed: () => context.push(AppRoutes.chatsFactOverrides),
+            ),
+          if (canAccess)
+            IconButton(
               tooltip: l10n.commonRetry,
               icon: const Icon(Icons.refresh),
               onPressed: () => unawaited(_notifier.refresh()),
@@ -249,6 +260,43 @@ class _InboxBody extends ConsumerWidget {
             ],
           ),
         ),
+        SizedBox(
+          height: 48,
+          child: ListView(
+            key: const ValueKey('chat-category-filters'),
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            children: [
+              for (final category in <String?>[
+                null,
+                ChatContactCategories.customer,
+                ChatContactCategories.supplier,
+                ChatContactCategories.contentCreator,
+                ChatContactCategories.other,
+              ])
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 6),
+                  child: ChoiceChip(
+                    key: ValueKey('chat-filter-category-${category ?? 'all'}'),
+                    label: Text(
+                      _categoryChipLabel(
+                        context,
+                        category,
+                        inbox.valueOrNull?.categoryCounts ??
+                            const <String, int>{},
+                      ),
+                    ),
+                    selected: filter.category == category,
+                    onSelected: (_) => onFilter(
+                      category == null
+                          ? filter.copyWith(clearCategory: true)
+                          : filter.copyWith(category: category),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
         if (inbox.isLoading && inbox.hasValue)
           const LinearProgressIndicator(minHeight: 2),
         Expanded(
@@ -312,6 +360,22 @@ class _InboxBody extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// "Suppliers (3)": the count comes from `category_counts` and is shown for
+/// Supplier and Content Creator only.
+String _categoryChipLabel(
+  BuildContext context,
+  String? category,
+  Map<String, int> counts,
+) {
+  final label = chatCategoryFilterLabel(context, category);
+  final count = category == null ? null : counts[category];
+  final counted =
+      category == ChatContactCategories.supplier ||
+      category == ChatContactCategories.contentCreator;
+  if (!counted || count == null || count <= 0) return label;
+  return '$label (${formatCount(context, count)})';
 }
 
 class _Message extends StatelessWidget {

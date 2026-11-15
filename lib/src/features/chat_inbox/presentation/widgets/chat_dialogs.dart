@@ -1,15 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:jarz_pos/l10n/app_localizations.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
-import '../../../../core/localization/user_error_message.dart';
-import '../../data/chat_repository.dart';
 import '../../data/models/chat_models.dart';
+import '../chat_bidi.dart';
 import '../chat_labels.dart';
 
 /// The planted-draft (training check) outcome of a `send_draft`, or null
@@ -316,176 +312,15 @@ class _RegenerateDialogState extends State<_RegenerateDialog> {
   }
 }
 
-/// Searches customers (name or phone) and returns the one picked, or null.
-/// [initialQuery] is usually the chat's phone number.
-Future<ChatCustomerOption?> showChatLinkCustomerSheet(
-  BuildContext context, {
-  String? initialQuery,
-}) {
-  return showModalBottomSheet<ChatCustomerOption>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    builder: (context) => _LinkCustomerSheet(initialQuery: initialQuery),
-  );
-}
-
-class _LinkCustomerSheet extends ConsumerStatefulWidget {
-  const _LinkCustomerSheet({this.initialQuery});
-
-  final String? initialQuery;
-
-  @override
-  ConsumerState<_LinkCustomerSheet> createState() => _LinkCustomerSheetState();
-}
-
-class _LinkCustomerSheetState extends ConsumerState<_LinkCustomerSheet> {
-  late final TextEditingController _query;
-  Timer? _debounce;
-  List<ChatCustomerOption> _results = const [];
-  bool _loading = false;
-  Object? _error;
-  int _seq = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _query = TextEditingController(text: widget.initialQuery ?? '');
-    if (_query.text.trim().isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _search());
-    }
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _query.dispose();
-    super.dispose();
-  }
-
-  void _onChanged(String _) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), _search);
-  }
-
-  Future<void> _search() async {
-    final text = _query.text.trim();
-    final seq = ++_seq;
-    if (text.length < 2) {
-      setState(() {
-        _results = const [];
-        _loading = false;
-        _error = null;
-      });
-      return;
-    }
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final results =
-          await ref.read(chatRepositoryProvider).searchCustomers(text);
-      if (!mounted || seq != _seq) return;
-      setState(() {
-        _results = results;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted || seq != _seq) return;
-      setState(() {
-        _error = e;
-        _loading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(l10n.chatActionLinkCustomer, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            TextField(
-              key: const ValueKey('chat-link-search'),
-              controller: _query,
-              autofocus: true,
-              onChanged: _onChanged,
-              onSubmitted: (_) => _search(),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                labelText: l10n.chatLinkSearchHint,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (_loading) const LinearProgressIndicator(),
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  context.userErrorMessage(
-                    _error,
-                    fallback: l10n.chatLinkSearchFailed,
-                  ),
-                  style: TextStyle(color: theme.colorScheme.error),
-                ),
-              ),
-            if (!_loading &&
-                _error == null &&
-                _results.isEmpty &&
-                _query.text.trim().length >= 2)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(l10n.chatLinkNoResults),
-              ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _results.length,
-                itemBuilder: (context, index) {
-                  final option = _results[index];
-                  return ListTile(
-                    key: ValueKey('chat-link-option-${option.name}'),
-                    leading: const Icon(Icons.person_outline),
-                    title: Text(option.customerName),
-                    subtitle: Text(
-                      [
-                        if (option.mobileNo != null) option.mobileNo!,
-                        if (option.customerName != option.name) option.name,
-                      ].join(' · '),
-                    ),
-                    onTap: () => Navigator.of(context).pop(option),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 /// The linked customer at a glance, or a prompt to link one.
+///
+/// A linked customer also gets an Unlink action ([onUnlink]), confirmed here
+/// before it is called.
 Future<void> showChatCustomerCardSheet(
   BuildContext context, {
   required ChatCustomerCard? customer,
   required VoidCallback onLink,
+  VoidCallback? onUnlink,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -537,7 +372,13 @@ Future<void> showChatCustomerCardSheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(customer.customerName, style: theme.textTheme.titleMedium),
+              SizedBox(
+                width: double.infinity,
+                child: ChatBidiText(
+                  customer.customerName,
+                  style: theme.textTheme.titleMedium,
+                ),
+              ),
               if (customer.customerName != customer.name)
                 Text(customer.name, style: theme.textTheme.bodySmall),
               const Divider(height: 20),
@@ -591,11 +432,58 @@ Future<void> showChatCustomerCardSheet(
                 icon: const Icon(Icons.link),
                 label: Text(l10n.chatActionLinkCustomer),
               ),
+              if (onUnlink != null)
+                TextButton.icon(
+                  key: const ValueKey('chat-customer-unlink'),
+                  onPressed: () async {
+                    final confirmed = await showChatUnlinkConfirm(
+                      sheetContext,
+                      customer.customerName,
+                    );
+                    if (confirmed != true || !sheetContext.mounted) return;
+                    Navigator.of(sheetContext).pop();
+                    onUnlink();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: theme.colorScheme.error,
+                  ),
+                  icon: const Icon(Icons.link_off),
+                  label: Text(chatBi(sheetContext, 'Unlink', 'فك الربط')),
+                ),
             ],
           ),
         ),
       );
     },
+  );
+}
+
+/// "Unlink {name} from this chat?" Returns true when confirmed.
+Future<bool?> showChatUnlinkConfirm(BuildContext context, String name) {
+  return showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      key: const ValueKey('chat-unlink-dialog'),
+      title: Text(chatBi(dialogContext, 'Unlink customer?', 'فك ربط العميل؟')),
+      content: Text(
+        chatBi(
+          dialogContext,
+          'This chat will no longer be linked to $name.',
+          'المحادثة دي مش هتبقى مربوطة بـ $name.',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(dialogContext.l10n.commonCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('chat-unlink-confirm'),
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(chatBi(dialogContext, 'Unlink', 'فك الربط')),
+        ),
+      ],
+    ),
   );
 }
 
@@ -614,4 +502,23 @@ String chatThreadSubtitle(
       l10n.chatAssignedTo(summary.assignedToName!),
   ];
   return parts.join(' · ');
+}
+
+/// The thread header subtitle: the linked customer first, then the channel /
+/// status line, then the contact category (marked "AI" when the AI chose it).
+String chatThreadSubtitleFull(
+  BuildContext context,
+  ChatConversationSummary summary,
+) {
+  final l10n = context.l10n;
+  final category = summary.contactCategory;
+  final showCategory = category != null && category.isNotEmpty;
+  return [
+    if (summary.customerName != null) summary.customerName!,
+    chatThreadSubtitle(l10n, summary),
+    if (showCategory)
+      summary.categoryIsAi
+          ? '${chatCategoryLabel(context, category)} (AI)'
+          : chatCategoryLabel(context, category),
+  ].join(' · ');
 }

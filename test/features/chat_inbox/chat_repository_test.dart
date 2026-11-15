@@ -210,12 +210,163 @@ void main() {
     expect(dio.requestLog, isEmpty);
   });
 
+  test(
+    'get_conversations sends category only when set and reads the counts',
+    () async {
+      dio.setResponse(ApiEndpoints.chatGetConversations, {
+        'message': {
+          'conversations': <dynamic>[],
+          'category_counts': {'Supplier': 2},
+        },
+      });
+      final page = await repo.fetchConversations(category: 'Supplier');
+      expect(lastRequest()['queryParameters'], {
+        'status': 'Open',
+        'category': 'Supplier',
+        'limit': 30,
+      });
+      expect(page.categoryCounts, {'Supplier': 2});
+      await repo.fetchConversations();
+      expect(lastRequest()['queryParameters'], isNot(contains('category')));
+    },
+  );
+
+  test(
+    'suggest_customers, prefill, create, unlink and category are POSTs',
+    () async {
+      dio
+        ..setResponse(ApiEndpoints.chatSuggestCustomers, {
+          'message': {
+            'candidates': [
+              {
+                'name': 'CUST-1',
+                'customer_name': 'Ahmed',
+                'reasons': ['phone'],
+              },
+            ],
+            'prefill': {'customer_name': 'Ahmed', 'mobile_no': '010'},
+          },
+        })
+        ..setResponse(ApiEndpoints.chatGetNewCustomerPrefill, {
+          'message': {
+            'customer_name': 'Ahmed Ali',
+            'ai': 1,
+            'territory': 'Maadi',
+          },
+        })
+        ..setResponse(ApiEndpoints.chatCreateCustomerFromChat, {
+          'message': {
+            'existing': {'name': 'CUST-1', 'customer_name': 'Ahmed'},
+          },
+        })
+        ..setResponse(ApiEndpoints.chatUnlinkCustomer, {
+          'message': {
+            'conversation': {'name': 'CHAT-1'},
+          },
+        })
+        ..setResponse(ApiEndpoints.chatSetContactCategory, {
+          'message': {
+            'conversation': {'name': 'CHAT-1', 'contact_category': 'Supplier'},
+          },
+        });
+
+      final suggested = await repo.suggestCustomers('CHAT-1');
+      expect(lastRequest()['method'], 'POST');
+      expect(lastRequest()['data'], {'conversation': 'CHAT-1'});
+      expect(suggested.candidates.single.reasons, ['phone']);
+
+      final prefill = await repo.fetchNewCustomerPrefill('CHAT-1');
+      expect(lastRequest()['method'], 'POST');
+      expect(prefill.ai, isTrue);
+      expect(prefill.territory, 'Maadi');
+
+      final created = await repo.createCustomerFromChat(
+        conversation: 'CHAT-1',
+        customerName: 'Ahmed',
+        mobileNo: '010',
+        address: '9 Road',
+        territory: 'Maadi',
+        latitude: 30.1,
+        longitude: 31.2,
+      );
+      expect(lastRequest()['data'], {
+        'conversation': 'CHAT-1',
+        'customer_name': 'Ahmed',
+        'mobile_no': '010',
+        'address': '9 Road',
+        'territory': 'Maadi',
+        'latitude': 30.1,
+        'longitude': 31.2,
+      });
+      expect(created.existing?.name, 'CUST-1');
+
+      await repo.createCustomerFromChat(
+        conversation: 'CHAT-1',
+        customerName: 'A',
+        mobileNo: '010',
+        address: 'x',
+        territory: 'Maadi',
+        locationLink: 'https://maps.app.goo.gl/x',
+      );
+      expect(
+        lastRequest()['data'],
+        containsPair('location_link', 'https://maps.app.goo.gl/x'),
+      );
+      expect(lastRequest()['data'], isNot(contains('latitude')));
+
+      final unlinked = await repo.unlinkCustomer('CHAT-1');
+      expect(lastRequest()['data'], {'conversation': 'CHAT-1'});
+      expect(unlinked.name, 'CHAT-1');
+
+      final summary = await repo.setContactCategory(
+        conversation: 'CHAT-1',
+        category: 'Supplier',
+      );
+      expect(lastRequest()['data'], {
+        'conversation': 'CHAT-1',
+        'category': 'Supplier',
+      });
+      expect(summary.contactCategory, 'Supplier');
+    },
+  );
+
+  test('get_fact_overrides is a GET with range, limit and start', () async {
+    dio.setResponse(ApiEndpoints.chatGetFactOverrides, {
+      'message': {
+        'rows': [
+          {'draft': 'D-1', 'conversation': 'CHAT-1'},
+        ],
+        'has_more': 1,
+        'total': 9,
+      },
+    });
+    final page = await repo.fetchFactOverrides(
+      fromDate: '2026-10-17',
+      toDate: '2026-11-16',
+      limit: 50,
+      start: 50,
+    );
+    expect(lastRequest()['method'], 'GET');
+    expect(lastRequest()['queryParameters'], {
+      'from_date': '2026-10-17',
+      'to_date': '2026-11-16',
+      'limit': 50,
+      'start': 50,
+    });
+    expect(page.hasMore, isTrue);
+    expect(page.total, 9);
+    expect(page.rows.single.draft, 'D-1');
+  });
+
   test('chat calls are never replayed from the offline queue', () {
     for (final path in [
       ApiEndpoints.chatSendMessage,
       ApiEndpoints.chatSendDraft,
       ApiEndpoints.chatRejectDraft,
       ApiEndpoints.chatAssignConversation,
+      ApiEndpoints.chatCreateCustomerFromChat,
+      ApiEndpoints.chatUnlinkCustomer,
+      ApiEndpoints.chatSetContactCategory,
     ]) {
       expect(
         kOfflineReplayExcludedPrefixes.any(path.startsWith),

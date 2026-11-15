@@ -52,10 +52,15 @@ class ChatInboxFilter {
   final String? channel;
   final String search;
 
+  /// A [ChatContactCategories] value (`Customer` also matches unclassified
+  /// chats), or null for every category.
+  final String? category;
+
   const ChatInboxFilter({
     this.segment = ChatInboxSegment.open,
     this.channel,
     this.search = '',
+    this.category,
   });
 
   /// `status` for `get_conversations`. "Open" means "not Closed" (Open and
@@ -82,11 +87,14 @@ class ChatInboxFilter {
     String? channel,
     bool clearChannel = false,
     String? search,
+    String? category,
+    bool clearCategory = false,
   }) {
     return ChatInboxFilter(
       segment: segment ?? this.segment,
       channel: clearChannel ? null : (channel ?? this.channel),
       search: search ?? this.search,
+      category: clearCategory ? null : (category ?? this.category),
     );
   }
 
@@ -95,10 +103,11 @@ class ChatInboxFilter {
       other is ChatInboxFilter &&
       other.segment == segment &&
       other.channel == channel &&
-      other.search == search;
+      other.search == search &&
+      other.category == category;
 
   @override
-  int get hashCode => Object.hash(segment, channel, search);
+  int get hashCode => Object.hash(segment, channel, search, category);
 }
 
 /// Whether [summary] belongs in a list loaded with [filter], judged locally
@@ -112,6 +121,14 @@ bool chatSummaryMatchesFilter(
 ) {
   if (filter.channel != null && summary.channel != filter.channel) {
     return false;
+  }
+  final category = filter.category;
+  if (category != null) {
+    final own = summary.contactCategory;
+    final matchesCategory = category == ChatContactCategories.customer
+        ? (own == null || own.isEmpty || own == category)
+        : own == category;
+    if (!matchesCategory) return false;
   }
   return switch (filter.segment) {
     ChatInboxSegment.open => summary.status != ChatStatuses.closed,
@@ -136,6 +153,9 @@ class ChatInboxState {
   final int openCount;
   final bool loadingMore;
 
+  /// Server counts for the Supplier / Content Creator filter chips.
+  final Map<String, int> categoryCounts;
+
   /// The `before` cursor for the next page: the `last_message_at` of the last
   /// row the SERVER returned, before any client-side filtering. Keyed on the
   /// raw page so dropping Closed rows locally never skips or repeats a page.
@@ -148,6 +168,7 @@ class ChatInboxState {
     this.openCount = 0,
     this.loadingMore = false,
     this.nextBefore,
+    this.categoryCounts = const <String, int>{},
   });
 
   ChatInboxState copyWith({
@@ -157,6 +178,7 @@ class ChatInboxState {
     int? openCount,
     bool? loadingMore,
     String? nextBefore,
+    Map<String, int>? categoryCounts,
   }) {
     return ChatInboxState(
       filter: filter ?? this.filter,
@@ -165,6 +187,7 @@ class ChatInboxState {
       openCount: openCount ?? this.openCount,
       loadingMore: loadingMore ?? this.loadingMore,
       nextBefore: nextBefore ?? this.nextBefore,
+      categoryCounts: categoryCounts ?? this.categoryCounts,
     );
   }
 }
@@ -178,12 +201,14 @@ class ChatInboxFetch {
   final String? cursor;
   final bool hasMore;
   final int openCount;
+  final Map<String, int> categoryCounts;
 
   const ChatInboxFetch({
     required this.rows,
     required this.cursor,
     required this.hasMore,
     required this.openCount,
+    this.categoryCounts = const <String, int>{},
   });
 }
 
@@ -212,11 +237,16 @@ ChatInboxState mergeChatInboxFirstPage(
   final freshRows = [...fresh.rows]..sort(compareChatSummaries);
   if (!fresh.hasMore) {
     // The fresh page is the whole list.
-    return latest.copyWith(
-      conversations: freshRows,
-      hasMore: false,
-      openCount: fresh.openCount,
-    ).withCursor(fresh.cursor);
+    return latest
+        .copyWith(
+          conversations: freshRows,
+          hasMore: false,
+          openCount: fresh.openCount,
+          categoryCounts: fresh.categoryCounts.isEmpty
+              ? null
+              : fresh.categoryCounts,
+        )
+        .withCursor(fresh.cursor);
   }
   final windowEnd = fresh.cursor!;
   final freshNames = {for (final c in freshRows) c.name};
@@ -237,19 +267,23 @@ ChatInboxState mergeChatInboxFirstPage(
     openCount: fresh.openCount,
     loadingMore: latest.loadingMore,
     nextBefore: keepLoaded ? loadedCursor : windowEnd,
+    categoryCounts: fresh.categoryCounts.isEmpty
+        ? latest.categoryCounts
+        : fresh.categoryCounts,
   );
 }
 
 extension on ChatInboxState {
   /// [copyWith] cannot clear [nextBefore]; this sets it, null included.
   ChatInboxState withCursor(String? cursor) => ChatInboxState(
-        filter: filter,
-        conversations: conversations,
-        hasMore: hasMore,
-        openCount: openCount,
-        loadingMore: loadingMore,
-        nextBefore: cursor,
-      );
+    filter: filter,
+    conversations: conversations,
+    hasMore: hasMore,
+    openCount: openCount,
+    loadingMore: loadingMore,
+    nextBefore: cursor,
+    categoryCounts: categoryCounts,
+  );
 }
 
 class ChatInboxNotifier extends AutoDisposeAsyncNotifier<ChatInboxState> {
@@ -298,6 +332,7 @@ class ChatInboxNotifier extends AutoDisposeAsyncNotifier<ChatInboxState> {
     var cursor = before;
     var hasMore = false;
     var openCount = 0;
+    var categoryCounts = const <String, int>{};
     for (var i = 0; i < maxPagesPerFetch; i++) {
       final page = await repo.fetchConversations(
         status: filter.wireStatus,
@@ -307,8 +342,12 @@ class ChatInboxNotifier extends AutoDisposeAsyncNotifier<ChatInboxState> {
         limit: pageSize,
         before: cursor,
         excludeClosed: filter.excludeClosed,
+        category: filter.category,
       );
-      if (i == 0) openCount = page.openCount;
+      if (i == 0) {
+        openCount = page.openCount;
+        categoryCounts = page.categoryCounts;
+      }
       final raw = page.conversations;
       final rawLast = raw.isEmpty ? null : raw.last.lastMessageAt;
       final advanced =
@@ -328,6 +367,7 @@ class ChatInboxNotifier extends AutoDisposeAsyncNotifier<ChatInboxState> {
       cursor: cursor,
       hasMore: hasMore,
       openCount: openCount,
+      categoryCounts: categoryCounts,
     );
   }
 
@@ -339,6 +379,7 @@ class ChatInboxNotifier extends AutoDisposeAsyncNotifier<ChatInboxState> {
       hasMore: fetched.hasMore,
       openCount: fetched.openCount,
       nextBefore: fetched.cursor,
+      categoryCounts: fetched.categoryCounts,
     );
   }
 
@@ -517,6 +558,9 @@ class ChatThreadState {
   /// The draft in the panel: Pending, or Failed ("draft unavailable").
   final ChatDraft? draft;
   final ChatCustomerCard? customer;
+
+  /// The server's strong "looks like customer X" hint for an unlinked chat.
+  final ChatCustomerCandidate? customerSuggestion;
   final bool hasMoreOlder;
   final bool loadingOlder;
 
@@ -525,6 +569,7 @@ class ChatThreadState {
     this.messages = const <ChatMessage>[],
     this.draft,
     this.customer,
+    this.customerSuggestion,
     this.hasMoreOlder = false,
     this.loadingOlder = false,
   });
@@ -535,6 +580,9 @@ class ChatThreadState {
     ChatDraft? draft,
     bool clearDraft = false,
     ChatCustomerCard? customer,
+    bool clearCustomer = false,
+    ChatCustomerCandidate? customerSuggestion,
+    bool clearSuggestion = false,
     bool? hasMoreOlder,
     bool? loadingOlder,
   }) {
@@ -542,7 +590,10 @@ class ChatThreadState {
       conversation: conversation ?? this.conversation,
       messages: messages ?? this.messages,
       draft: clearDraft ? null : (draft ?? this.draft),
-      customer: customer ?? this.customer,
+      customer: clearCustomer ? null : (customer ?? this.customer),
+      customerSuggestion: clearSuggestion
+          ? null
+          : (customerSuggestion ?? this.customerSuggestion),
       hasMoreOlder: hasMoreOlder ?? this.hasMoreOlder,
       loadingOlder: loadingOlder ?? this.loadingOlder,
     );
@@ -669,6 +720,7 @@ class ChatThreadNotifier
       messages: thread.messages,
       draft: thread.draft,
       customer: thread.customer,
+      customerSuggestion: thread.customerSuggestion,
       hasMoreOlder: thread.messages.length >= pageSize,
     );
   }
@@ -745,13 +797,16 @@ class ChatThreadNotifier
       final thread = await _repo.fetchConversation(arg, limit: pageSize);
       final current = state.valueOrNull;
       if (current == null) {
-        state = AsyncData(ChatThreadState(
-          conversation: thread.conversation,
-          messages: thread.messages,
-          draft: thread.draft,
-          customer: thread.customer,
-          hasMoreOlder: thread.messages.length >= pageSize,
-        ));
+        state = AsyncData(
+          ChatThreadState(
+            conversation: thread.conversation,
+            messages: thread.messages,
+            draft: thread.draft,
+            customer: thread.customer,
+            customerSuggestion: thread.customerSuggestion,
+            hasMoreOlder: thread.messages.length >= pageSize,
+          ),
+        );
         _afterServerRead(thread.conversation);
       } else {
         final messages = mergeChatMessages(current.messages, thread.messages);
@@ -764,15 +819,20 @@ class ChatThreadNotifier
         } else {
           // `get_conversation` only returns a Pending draft; keep a Failed
           // one the socket delivered, so "draft unavailable" does not vanish.
-          final keepFailed = thread.draft == null &&
-              (current.draft?.isFailed ?? false);
-          state = AsyncData(current.copyWith(
-            conversation: thread.conversation,
-            messages: messages,
-            draft: thread.draft,
-            clearDraft: thread.draft == null && !keepFailed,
-            customer: thread.customer,
-          ));
+          final keepFailed =
+              thread.draft == null && (current.draft?.isFailed ?? false);
+          state = AsyncData(
+            current.copyWith(
+              conversation: thread.conversation,
+              messages: messages,
+              draft: thread.draft,
+              clearDraft: thread.draft == null && !keepFailed,
+              customer: thread.customer,
+              clearCustomer: thread.customer == null,
+              customerSuggestion: thread.customerSuggestion,
+              clearSuggestion: thread.customerSuggestion == null,
+            ),
+          );
           _afterServerRead(
             thread.conversation,
             badge: grew ||
@@ -907,14 +967,83 @@ class ChatThreadNotifier
 
   Future<ChatLinkResult> linkCustomer(String customer) {
     return _mutate(() async {
-      final result =
-          await _repo.linkCustomer(conversation: arg, customer: customer);
-      _update((s) => s.copyWith(
-            conversation: result.conversation,
-            customer: result.customer,
-          ));
+      final result = await _repo.linkCustomer(
+        conversation: arg,
+        customer: customer,
+      );
+      _update(
+        (s) => s.copyWith(
+          conversation: result.conversation,
+          customer: result.customer,
+          clearSuggestion: true,
+        ),
+      );
       _publishSummary(result.conversation);
       return result;
+    });
+  }
+
+  /// `unlink_customer`: the chat goes back to "not linked".
+  Future<void> unlinkCustomer() {
+    return _mutate(() async {
+      final summary = await _repo.unlinkCustomer(arg);
+      _update(
+        (s) => s.copyWith(
+          conversation: summary,
+          clearCustomer: true,
+          clearSuggestion: true,
+        ),
+      );
+      _publishSummary(summary);
+    });
+  }
+
+  /// `create_customer_from_chat`. A created customer is linked here; an
+  /// `existing` answer changes nothing (the form offers "Link to them").
+  Future<ChatCreateCustomerResult> createCustomerFromChat({
+    required String customerName,
+    required String mobileNo,
+    required String address,
+    required String territory,
+    String? locationLink,
+    double? latitude,
+    double? longitude,
+  }) {
+    return _mutate(() async {
+      final result = await _repo.createCustomerFromChat(
+        conversation: arg,
+        customerName: customerName,
+        mobileNo: mobileNo,
+        address: address,
+        territory: territory,
+        locationLink: locationLink,
+        latitude: latitude,
+        longitude: longitude,
+      );
+      final summary = result.conversation;
+      if (result.existing == null && summary != null) {
+        _update(
+          (s) => s.copyWith(
+            conversation: summary,
+            customer: result.customer,
+            clearSuggestion: true,
+          ),
+        );
+        _publishSummary(summary);
+      }
+      return result;
+    });
+  }
+
+  /// `set_contact_category`; an empty [category] hands the chat back to the AI.
+  Future<void> setContactCategory(String category) {
+    return _mutate(() async {
+      final summary = await _repo.setContactCategory(
+        conversation: arg,
+        category: category,
+      );
+      _update((s) => s.copyWith(conversation: summary));
+      _publishSummary(summary);
     });
   }
 
@@ -1032,3 +1161,145 @@ void refreshChatsAfterPush(Ref ref, {String? conversation}) {
     unawaited(ref.read(chatThreadProvider(name).notifier).refresh());
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Customer link banner, moderator overrides
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Conversations whose "Looks like X" suggestion the moderator dismissed with
+/// "Not them". Lives for the app session (not persisted).
+final chatDismissedSuggestionsProvider = StateProvider<Set<String>>(
+  (ref) => const <String>{},
+);
+
+/// The moderator-overrides screen: a date range, newest-first rows, and
+/// pagination by `start` / `limit`.
+class ChatFactOverridesState {
+  final DateTime from;
+  final DateTime to;
+  final List<ChatFactOverrideRow> rows;
+  final bool hasMore;
+  final int total;
+  final bool loadingMore;
+
+  const ChatFactOverridesState({
+    required this.from,
+    required this.to,
+    this.rows = const <ChatFactOverrideRow>[],
+    this.hasMore = false,
+    this.total = 0,
+    this.loadingMore = false,
+  });
+
+  ChatFactOverridesState copyWith({
+    DateTime? from,
+    DateTime? to,
+    List<ChatFactOverrideRow>? rows,
+    bool? hasMore,
+    int? total,
+    bool? loadingMore,
+  }) {
+    return ChatFactOverridesState(
+      from: from ?? this.from,
+      to: to ?? this.to,
+      rows: rows ?? this.rows,
+      hasMore: hasMore ?? this.hasMore,
+      total: total ?? this.total,
+      loadingMore: loadingMore ?? this.loadingMore,
+    );
+  }
+}
+
+String chatIsoDate(DateTime date) =>
+    '${date.year.toString().padLeft(4, '0')}-'
+    '${date.month.toString().padLeft(2, '0')}-'
+    '${date.day.toString().padLeft(2, '0')}';
+
+class ChatFactOverridesNotifier
+    extends AutoDisposeAsyncNotifier<ChatFactOverridesState> {
+  static const pageSize = 50;
+  static const defaultDays = 30;
+
+  late DateTime _from;
+  late DateTime _to;
+  int _seq = 0;
+
+  @override
+  Future<ChatFactOverridesState> build() async {
+    final now = ref.read(chatClockProvider)();
+    _to = DateTime(now.year, now.month, now.day);
+    _from = _to.subtract(const Duration(days: defaultDays));
+    return _load();
+  }
+
+  Future<ChatFactOverridesState> _load() async {
+    final page = await ref
+        .read(chatRepositoryProvider)
+        .fetchFactOverrides(
+          fromDate: chatIsoDate(_from),
+          toDate: chatIsoDate(_to),
+          limit: pageSize,
+        );
+    return ChatFactOverridesState(
+      from: _from,
+      to: _to,
+      rows: page.rows,
+      hasMore: page.hasMore,
+      total: page.total,
+    );
+  }
+
+  Future<void> refresh() async {
+    final seq = ++_seq;
+    state = const AsyncLoading<ChatFactOverridesState>().copyWithPrevious(
+      state,
+    );
+    final next = await AsyncValue.guard(_load);
+    if (seq != _seq) return;
+    state = next;
+  }
+
+  Future<void> setRange(DateTime from, DateTime to) {
+    _from = DateTime(from.year, from.month, from.day);
+    _to = DateTime(to.year, to.month, to.day);
+    return refresh();
+  }
+
+  Future<void> loadMore() async {
+    final current = state.valueOrNull;
+    if (current == null || !current.hasMore || current.loadingMore) return;
+    final seq = _seq;
+    state = AsyncData(current.copyWith(loadingMore: true));
+    try {
+      final page = await ref
+          .read(chatRepositoryProvider)
+          .fetchFactOverrides(
+            fromDate: chatIsoDate(current.from),
+            toDate: chatIsoDate(current.to),
+            limit: pageSize,
+            start: current.rows.length,
+          );
+      if (seq != _seq) return;
+      final latest = state.valueOrNull ?? current;
+      state = AsyncData(
+        latest.copyWith(
+          rows: [...latest.rows, ...page.rows],
+          hasMore: page.hasMore,
+          total: page.total,
+          loadingMore: false,
+        ),
+      );
+    } catch (_) {
+      if (seq != _seq) return;
+      final latest = state.valueOrNull ?? current;
+      state = AsyncData(latest.copyWith(loadingMore: false));
+      rethrow;
+    }
+  }
+}
+
+final chatFactOverridesProvider =
+    AsyncNotifierProvider.autoDispose<
+      ChatFactOverridesNotifier,
+      ChatFactOverridesState
+    >(ChatFactOverridesNotifier.new);

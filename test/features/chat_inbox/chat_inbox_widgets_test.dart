@@ -326,8 +326,6 @@ void main() {
     expect(find.byKey(const ValueKey('chat-draft-complaint-lock')), findsOneWidget);
     expect(sendButton().onPressed, isNull);
 
-    await tester.tap(find.byKey(const ValueKey('chat-draft-edit')));
-    await tester.pump();
     await tester.enterText(
       find.byKey(const ValueKey('chat-draft-field')),
       'We are so sorry, a fresh jar is on its way.',

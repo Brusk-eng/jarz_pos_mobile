@@ -121,3 +121,83 @@ String chatRejectReasonText(ChatRejectReason reason, String note) {
   if (trimmed.isEmpty) return reason.wire;
   return '${reason.wire}: $trimmed';
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Inline bilingual strings (no .arb keys: an .arb edit forces a full APK, and
+// these screens ship as a Dart-only Shorebird patch).
+// ─────────────────────────────────────────────────────────────────────────
+
+/// [en] or [ar] by the app locale.
+String chatBi(BuildContext context, String en, String ar) =>
+    Localizations.localeOf(context).languageCode == 'ar' ? ar : en;
+
+/// A contact category as the moderator reads it ("" for Customer / blank is
+/// handled by the callers that hide it).
+String chatCategoryLabel(BuildContext context, String? category) =>
+    switch (category) {
+      ChatContactCategories.supplier => chatBi(context, 'Supplier', 'مورّد'),
+      ChatContactCategories.contentCreator => chatBi(
+        context,
+        'Content creator',
+        'صانع محتوى',
+      ),
+      ChatContactCategories.other => chatBi(context, 'Other', 'أخرى'),
+      ChatContactCategories.customer ||
+      null ||
+      '' => chatBi(context, 'Customer', 'عميل'),
+      _ => category,
+    };
+
+/// The plural filter-chip wording of a category.
+String chatCategoryFilterLabel(BuildContext context, String? category) =>
+    switch (category) {
+      null => chatBi(context, 'All', 'الكل'),
+      ChatContactCategories.customer => chatBi(context, 'Customers', 'عملاء'),
+      ChatContactCategories.supplier => chatBi(context, 'Suppliers', 'موردين'),
+      ChatContactCategories.contentCreator => chatBi(
+        context,
+        'Content creators',
+        'صنّاع محتوى',
+      ),
+      ChatContactCategories.other => chatBi(context, 'Other', 'أخرى'),
+      _ => category,
+    };
+
+Color chatCategoryColor(String? category) => switch (category) {
+  ChatContactCategories.supplier => const Color(0xFFB45309),
+  ChatContactCategories.contentCreator => const Color(0xFF7C3AED),
+  ChatContactCategories.other => Colors.blueGrey,
+  _ => Colors.blueGrey,
+};
+
+/// Why a customer was suggested, as a short chip label.
+String chatSuggestionReasonLabel(BuildContext context, String reason) =>
+    switch (reason) {
+      ChatSuggestionReasons.phone => chatBi(context, 'Same phone', 'نفس الرقم'),
+      ChatSuggestionReasons.typedPhone => chatBi(
+        context,
+        'Typed this number',
+        'كتب الرقم ده',
+      ),
+      ChatSuggestionReasons.name => chatBi(context, 'Name match', 'الاسم شبه'),
+      ChatSuggestionReasons.sameContact => chatBi(
+        context,
+        'Linked in another chat',
+        'مربوط في محادثة تانية',
+      ),
+      _ => reason,
+    };
+
+/// A draft status in the moderator-overrides list.
+String chatDraftStatusLabel(BuildContext context, String status) {
+  if (status.startsWith('Sent')) return chatBi(context, 'Sent', 'اتبعت');
+  return switch (status) {
+    ChatDraftStatuses.rejected => chatBi(context, 'Rejected', 'اتّرفض'),
+    ChatDraftStatuses.superseded => chatBi(context, 'Replaced', 'اتحلّ مكانه'),
+    ChatDraftStatuses.pending => chatBi(context, 'Pending', 'مستني'),
+    ChatDraftStatuses.held => chatBi(context, 'Held', 'متوقف'),
+    ChatDraftStatuses.blocked => chatBi(context, 'Blocked', 'محظور'),
+    ChatDraftStatuses.failed => chatBi(context, 'Failed', 'فشل'),
+    _ => status,
+  };
+}

@@ -26,6 +26,9 @@ class ChatRepository {
   /// `get_order_prefill(with_order=1)` reads the chat with a model call.
   static const orderPrefillTimeout = Duration(seconds: 45);
 
+  /// `get_new_customer_prefill` is one model call capped at 20 s server side.
+  static const newCustomerPrefillTimeout = Duration(seconds: 30);
+
   String get baseUrl => _dio.options.baseUrl;
 
   /// The `message` payload, or the bare body when it is not enveloped.
@@ -55,6 +58,7 @@ class ChatRepository {
     int limit = 30,
     String? before,
     bool excludeClosed = false,
+    String? category,
   }) async {
     final trimmedSearch = search?.trim() ?? '';
     final response = await _dio.get(
@@ -65,6 +69,7 @@ class ChatRepository {
         if (trimmedSearch.isNotEmpty) 'search': trimmedSearch,
         if (mine) 'mine': 1,
         if (excludeClosed) 'exclude_closed': 1,
+        if (category != null && category.isNotEmpty) 'category': category,
         'limit': limit,
         if (before != null && before.isNotEmpty) 'before': before,
       },
@@ -178,6 +183,102 @@ class ChatRepository {
       data: {'conversation': conversation, 'customer': customer},
     );
     return ChatLinkResult.fromJson(_payload(response));
+  }
+
+  /// `unlink_customer` — clears the customer (and last order) from the chat.
+  Future<ChatConversationSummary> unlinkCustomer(String conversation) async {
+    final response = await _dio.post(
+      ApiEndpoints.chatUnlinkCustomer,
+      data: {'conversation': conversation},
+    );
+    return ChatConversationSummary.fromJson(_map(response)['conversation']);
+  }
+
+  /// `suggest_customers` — ranked candidates plus the non-AI new-customer
+  /// prefill. Cheap (no model call).
+  Future<ChatSuggestCustomersResult> suggestCustomers(
+    String conversation,
+  ) async {
+    final response = await _dio.post(
+      ApiEndpoints.chatSuggestCustomers,
+      data: {'conversation': conversation},
+    );
+    return ChatSuggestCustomersResult.fromJson(_payload(response));
+  }
+
+  /// `get_new_customer_prefill` — one model call (20 s cap server side).
+  Future<ChatNewCustomerPrefill> fetchNewCustomerPrefill(
+    String conversation,
+  ) async {
+    final response = await _dio.post(
+      ApiEndpoints.chatGetNewCustomerPrefill,
+      data: {'conversation': conversation},
+      options: Options(receiveTimeout: newCustomerPrefillTimeout),
+    );
+    return ChatNewCustomerPrefill.fromJson(_payload(response));
+  }
+
+  /// `create_customer_from_chat` — creates and links, or answers `existing`
+  /// when the mobile already belongs to a customer.
+  Future<ChatCreateCustomerResult> createCustomerFromChat({
+    required String conversation,
+    required String customerName,
+    required String mobileNo,
+    required String address,
+    required String territory,
+    String? locationLink,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.chatCreateCustomerFromChat,
+      data: {
+        'conversation': conversation,
+        'customer_name': customerName,
+        'mobile_no': mobileNo,
+        'address': address,
+        'territory': territory,
+        if (locationLink != null && locationLink.isNotEmpty)
+          'location_link': locationLink,
+        if (latitude != null && longitude != null) ...{
+          'latitude': latitude,
+          'longitude': longitude,
+        },
+      },
+    );
+    return ChatCreateCustomerResult.fromJson(_payload(response));
+  }
+
+  /// `set_contact_category`; an empty [category] returns the chat to the AI.
+  Future<ChatConversationSummary> setContactCategory({
+    required String conversation,
+    required String category,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.chatSetContactCategory,
+      data: {'conversation': conversation, 'category': category},
+    );
+    return ChatConversationSummary.fromJson(_map(response)['conversation']);
+  }
+
+  /// `get_fact_overrides` for `from_date`..`to_date` (`YYYY-MM-DD`),
+  /// newest first, [start] rows skipped.
+  Future<ChatFactOverridesPage> fetchFactOverrides({
+    String? fromDate,
+    String? toDate,
+    int limit = 50,
+    int start = 0,
+  }) async {
+    final response = await _dio.get(
+      ApiEndpoints.chatGetFactOverrides,
+      queryParameters: {
+        if (fromDate != null && fromDate.isNotEmpty) 'from_date': fromDate,
+        if (toDate != null && toDate.isNotEmpty) 'to_date': toDate,
+        'limit': limit,
+        'start': start,
+      },
+    );
+    return ChatFactOverridesPage.fromJson(_payload(response));
   }
 
   /// `get_order_prefill` — what "Start order" hands to the POS. With

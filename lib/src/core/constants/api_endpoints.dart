@@ -1170,4 +1170,10 @@ abstract final class ApiEndpoints {
   static const chatGetOrderPrefill = '$_chat.get_order_prefill';
   static const chatGetMetrics = '$_chat.get_chat_metrics';
   static const chatGetUnreadTotal = '$_chat.get_unread_total';
+  static const chatSuggestCustomers = '$_chat.suggest_customers';
+  static const chatGetNewCustomerPrefill = '$_chat.get_new_customer_prefill';
+  static const chatCreateCustomerFromChat = '$_chat.create_customer_from_chat';
+  static const chatUnlinkCustomer = '$_chat.unlink_customer';
+  static const chatSetContactCategory = '$_chat.set_contact_category';
+  static const chatGetFactOverrides = '$_chat.get_fact_overrides';
 }

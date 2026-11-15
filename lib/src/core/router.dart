@@ -40,6 +40,7 @@ import '../features/partner_settlements/presentation/partner_settlements_screen.
 import '../features/followups/presentation/screens/followup_results_screen.dart';
 import '../features/followups/presentation/screens/followups_screen.dart';
 import '../features/promo_lookup/presentation/screens/promo_lookup_screen.dart';
+import '../features/chat_inbox/presentation/screens/chat_fact_overrides_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_inbox_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_metrics_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_thread_screen.dart';
@@ -749,6 +750,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'metrics',
             name: 'chats-metrics',
             builder: (context, state) => const ChatMetricsScreen(),
+          ),
+          GoRoute(
+            path: 'fact-overrides',
+            name: 'chats-fact-overrides',
+            builder: (context, state) => const ChatFactOverridesScreen(),
           ),
           GoRoute(
             path: ':name',

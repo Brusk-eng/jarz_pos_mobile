@@ -93,6 +93,15 @@ List<String> chatStringList(dynamic value) {
   return <String>[text];
 }
 
+/// `{"key": n}` with lenient ints; empty for anything else.
+Map<String, int> chatIntMap(dynamic value) {
+  if (value is! Map) return const <String, int>{};
+  return {
+    for (final entry in value.entries)
+      entry.key.toString(): chatInt(entry.value),
+  };
+}
+
 /// The channels a conversation can come from (`Jarz Chat Conversation.channel`).
 abstract final class ChatChannels {
   static const whatsApp = 'WhatsApp';
@@ -115,6 +124,18 @@ abstract final class ChatStatuses {
   static const open = 'Open';
   static const answered = 'Answered';
   static const closed = 'Closed';
+}
+
+/// AI / manual contact categories (`Jarz Chat Conversation.contact_category`).
+/// A blank category means "not classified yet" and reads as Customer.
+abstract final class ChatContactCategories {
+  static const customer = 'Customer';
+  static const supplier = 'Supplier';
+  static const contentCreator = 'Content Creator';
+  static const other = 'Other';
+
+  /// The values a moderator can set by hand.
+  static const settable = <String>[customer, supplier, contentCreator, other];
 }
 
 /// Draft statuses (`Jarz Chat Draft.status`).
@@ -154,6 +175,16 @@ class ChatConversationSummary {
   final bool hasPendingDraft;
   final String? lastOrder;
 
+  /// `Customer` / `Supplier` / `Content Creator` / `Other`, or null when the
+  /// chat is not classified yet (or the server predates categories).
+  final String? contactCategory;
+
+  /// `AI` or `Manual`; null when not classified.
+  final String? contactCategorySource;
+
+  /// The AI's one-line reason (English).
+  final String? contactCategoryReason;
+
   const ChatConversationSummary({
     required this.name,
     this.channel = '',
@@ -175,6 +206,9 @@ class ChatConversationSummary {
     this.windowOpen = true,
     this.hasPendingDraft = false,
     this.lastOrder,
+    this.contactCategory,
+    this.contactCategorySource,
+    this.contactCategoryReason,
   });
 
   factory ChatConversationSummary.fromJson(dynamic raw) {
@@ -204,8 +238,18 @@ class ChatConversationSummary {
           : true,
       hasPendingDraft: chatBool(json['has_pending_draft']),
       lastOrder: chatNullableString(json['last_order']),
+      contactCategory: chatNullableString(json['contact_category']),
+      contactCategorySource: chatNullableString(
+        json['contact_category_source'],
+      ),
+      contactCategoryReason: chatNullableString(
+        json['contact_category_reason'],
+      ),
     );
   }
+
+  /// Whether the category was set by the AI (shown with an "AI" marker).
+  bool get categoryIsAi => contactCategorySource == 'AI';
 
   bool get isOpen => status == ChatStatuses.open;
   bool get isClosed => status == ChatStatuses.closed;
@@ -254,6 +298,9 @@ class ChatConversationSummary {
       windowOpen: windowOpen,
       hasPendingDraft: hasPendingDraft ?? this.hasPendingDraft,
       lastOrder: lastOrder,
+      contactCategory: contactCategory,
+      contactCategorySource: contactCategorySource,
+      contactCategoryReason: contactCategoryReason,
     );
   }
 }
@@ -520,10 +567,15 @@ class ChatConversationPage {
   final bool hasMore;
   final int openCount;
 
+  /// `{"Supplier": n, "Content Creator": n}` over non-Closed chats; empty
+  /// when the server predates categories.
+  final Map<String, int> categoryCounts;
+
   const ChatConversationPage({
     this.conversations = const <ChatConversationSummary>[],
     this.hasMore = false,
     this.openCount = 0,
+    this.categoryCounts = const <String, int>{},
   });
 
   factory ChatConversationPage.fromJson(dynamic raw) {
@@ -539,6 +591,7 @@ class ChatConversationPage {
           : const <ChatConversationSummary>[],
       hasMore: chatBool(json['has_more']),
       openCount: chatInt(json['open_count']),
+      categoryCounts: chatIntMap(json['category_counts']),
     );
   }
 }
@@ -554,11 +607,16 @@ class ChatThread {
   final ChatDraft? draft;
   final ChatCustomerCard? customer;
 
+  /// The strong "this looks like customer X" hint for an unlinked chat
+  /// (phone match only); null when linked, weak, or an older server.
+  final ChatCustomerCandidate? customerSuggestion;
+
   const ChatThread({
     required this.conversation,
     this.messages = const <ChatMessage>[],
     this.draft,
     this.customer,
+    this.customerSuggestion,
   });
 
   factory ChatThread.fromJson(dynamic raw) {
@@ -574,6 +632,9 @@ class ChatThread {
           : const <ChatMessage>[],
       draft: ChatDraft.maybeFromJson(json['draft']),
       customer: ChatCustomerCard.maybeFromJson(json['customer']),
+      customerSuggestion: ChatCustomerCandidate.maybeFromJson(
+        json['customer_suggestion'],
+      ),
     );
   }
 }
@@ -1220,6 +1281,282 @@ class ChatCustomerOption {
       name: name,
       customerName: chatNullableString(json['customer_name']) ?? name,
       mobileNo: chatNullableString(json['mobile_no'] ?? json['phone']),
+    );
+  }
+}
+
+/// Why a customer was suggested for a chat (`candidates[].reasons`).
+abstract final class ChatSuggestionReasons {
+  static const phone = 'phone';
+  static const typedPhone = 'typed_phone';
+  static const name = 'name';
+  static const sameContact = 'same_contact';
+}
+
+/// One `suggest_customers` candidate (also `customer_suggestion`).
+class ChatCustomerCandidate {
+  final String name;
+  final String customerName;
+  final String? mobileNo;
+  final String? territory;
+  final int totalOrders;
+  final String? lastOrderDate;
+  final List<String> reasons;
+  final double score;
+
+  const ChatCustomerCandidate({
+    required this.name,
+    this.customerName = '',
+    this.mobileNo,
+    this.territory,
+    this.totalOrders = 0,
+    this.lastOrderDate,
+    this.reasons = const <String>[],
+    this.score = 0,
+  });
+
+  factory ChatCustomerCandidate.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    final name = chatString(json['name']);
+    return ChatCustomerCandidate(
+      name: name,
+      customerName: chatNullableString(json['customer_name']) ?? name,
+      mobileNo: chatNullableString(json['mobile_no']),
+      territory: chatNullableString(json['territory']),
+      totalOrders: chatInt(json['total_orders']),
+      lastOrderDate: chatNullableString(json['last_order_date']),
+      reasons: chatStringList(json['reasons']),
+      score: chatDouble(json['score']),
+    );
+  }
+
+  /// Null for a missing / empty payload.
+  static ChatCustomerCandidate? maybeFromJson(dynamic raw) {
+    if (raw is! Map || raw.isEmpty) return null;
+    final candidate = ChatCustomerCandidate.fromJson(raw);
+    return candidate.name.isEmpty ? null : candidate;
+  }
+
+  /// The same customer as a link-sheet option.
+  ChatCustomerOption toOption() => ChatCustomerOption(
+    name: name,
+    customerName: customerName,
+    mobileNo: mobileNo,
+  );
+}
+
+/// A new-customer starting point read from the chat: `prefill` of
+/// `suggest_customers` (no AI) and of `get_new_customer_prefill` (`ai`).
+class ChatNewCustomerPrefill {
+  final String customerName;
+  final String? mobileNo;
+  final List<String> phones;
+  final String? address;
+
+  /// The Territory record name (what `create_customer` takes).
+  final String? territory;
+  final String? territoryName;
+
+  /// `"lat,lng"` or a Maps link.
+  final String? location;
+  final bool ai;
+  final String? aiError;
+
+  const ChatNewCustomerPrefill({
+    this.customerName = '',
+    this.mobileNo,
+    this.phones = const <String>[],
+    this.address,
+    this.territory,
+    this.territoryName,
+    this.location,
+    this.ai = false,
+    this.aiError,
+  });
+
+  static const empty = ChatNewCustomerPrefill();
+
+  factory ChatNewCustomerPrefill.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    final mobile = chatNullableString(json['mobile_no']);
+    final phones = chatStringList(json['phones']);
+    return ChatNewCustomerPrefill(
+      customerName: chatNullableString(json['customer_name']) ?? '',
+      mobileNo: mobile,
+      // The chosen mobile is always offered as a chip.
+      phones: mobile != null && !phones.contains(mobile)
+          ? <String>[mobile, ...phones]
+          : phones,
+      address: chatNullableString(json['address']),
+      territory: chatNullableString(json['territory']),
+      territoryName: chatNullableString(json['territory_name']),
+      location: chatNullableString(json['location']),
+      ai: chatBool(json['ai']),
+      aiError: chatNullableString(json['ai_error']),
+    );
+  }
+
+  /// `(lat, lng)` when [location] is a coordinate pair.
+  ({double lat, double lng})? get coordinates {
+    final value = location;
+    if (value == null) return null;
+    final parts = value.split(',');
+    if (parts.length != 2) return null;
+    final lat = double.tryParse(parts[0].trim());
+    final lng = double.tryParse(parts[1].trim());
+    if (lat == null || lng == null) return null;
+    return (lat: lat, lng: lng);
+  }
+
+  /// [location] when it is a link rather than coordinates.
+  String? get locationLink =>
+      location != null && coordinates == null ? location : null;
+}
+
+/// `suggest_customers` answer.
+class ChatSuggestCustomersResult {
+  final List<ChatCustomerCandidate> candidates;
+  final ChatNewCustomerPrefill prefill;
+
+  const ChatSuggestCustomersResult({
+    this.candidates = const <ChatCustomerCandidate>[],
+    this.prefill = ChatNewCustomerPrefill.empty,
+  });
+
+  factory ChatSuggestCustomersResult.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    final rows = json['candidates'];
+    return ChatSuggestCustomersResult(
+      candidates: rows is List
+          ? rows
+                .whereType<Map>()
+                .map(ChatCustomerCandidate.fromJson)
+                .where((c) => c.name.isNotEmpty)
+                .toList(growable: false)
+          : const <ChatCustomerCandidate>[],
+      prefill: ChatNewCustomerPrefill.fromJson(json['prefill']),
+    );
+  }
+
+  /// The best phone to search with: the chat's own, else the first typed.
+  String? get bestPhone {
+    final mobile = prefill.mobileNo;
+    if (mobile != null) return mobile;
+    return prefill.phones.isEmpty ? null : prefill.phones.first;
+  }
+}
+
+/// `create_customer_from_chat` answer: a created-and-linked customer, or the
+/// customer that already owns the mobile (`existing`).
+class ChatCreateCustomerResult {
+  final ChatConversationSummary? conversation;
+  final ChatCustomerCard? customer;
+  final ChatCustomerCandidate? existing;
+  final bool created;
+
+  const ChatCreateCustomerResult({
+    this.conversation,
+    this.customer,
+    this.existing,
+    this.created = false,
+  });
+
+  factory ChatCreateCustomerResult.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    final conversation = json['conversation'];
+    return ChatCreateCustomerResult(
+      conversation: conversation is Map && conversation.isNotEmpty
+          ? ChatConversationSummary.fromJson(conversation)
+          : null,
+      customer: ChatCustomerCard.maybeFromJson(json['customer']),
+      existing: ChatCustomerCandidate.maybeFromJson(json['existing']),
+      created: chatBool(json['created']),
+    );
+  }
+}
+
+/// One moderator override from `get_fact_overrides`.
+class ChatFactOverrideRow {
+  final String draft;
+  final String conversation;
+  final String? contactName;
+  final String channel;
+  final String? createdAt;
+  final String? requestedBy;
+  final String? requestedByName;
+  final String? moderatorHint;
+  final List<String> conflicts;
+  final String status;
+  final String? finalText;
+  final String? draftText;
+
+  const ChatFactOverrideRow({
+    required this.draft,
+    this.conversation = '',
+    this.contactName,
+    this.channel = '',
+    this.createdAt,
+    this.requestedBy,
+    this.requestedByName,
+    this.moderatorHint,
+    this.conflicts = const <String>[],
+    this.status = '',
+    this.finalText,
+    this.draftText,
+  });
+
+  factory ChatFactOverrideRow.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    return ChatFactOverrideRow(
+      draft: chatString(json['draft']),
+      conversation: chatString(json['conversation']),
+      contactName: chatNullableString(json['contact_name']),
+      channel: chatString(json['channel']),
+      createdAt: chatNullableString(json['created_at']),
+      requestedBy: chatNullableString(json['requested_by']),
+      requestedByName: chatNullableString(json['requested_by_name']),
+      moderatorHint: chatNullableString(json['moderator_hint']),
+      conflicts: chatStringList(json['conflicts']),
+      status: chatString(json['status']),
+      finalText: chatNullableString(json['final_text']),
+      draftText: chatNullableString(json['draft_text']),
+    );
+  }
+
+  DateTime? get time => chatParseDateTime(createdAt);
+  String get requester => requestedByName ?? requestedBy ?? '';
+
+  /// What went out when sent, else the draft text.
+  String? get shownText => finalText ?? draftText;
+  bool get wasSent => status.startsWith('Sent');
+}
+
+/// `get_fact_overrides` answer.
+class ChatFactOverridesPage {
+  final List<ChatFactOverrideRow> rows;
+  final bool hasMore;
+  final int total;
+
+  const ChatFactOverridesPage({
+    this.rows = const <ChatFactOverrideRow>[],
+    this.hasMore = false,
+    this.total = 0,
+  });
+
+  factory ChatFactOverridesPage.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    final rows = json['rows'];
+    final parsed = rows is List
+        ? rows
+              .whereType<Map>()
+              .map(ChatFactOverrideRow.fromJson)
+              .where((r) => r.draft.isNotEmpty || r.conversation.isNotEmpty)
+              .toList(growable: false)
+        : const <ChatFactOverrideRow>[];
+    return ChatFactOverridesPage(
+      rows: parsed,
+      hasMore: chatBool(json['has_more']),
+      total: chatInt(json['total'], fallback: parsed.length),
     );
   }
 }

@@ -8,14 +8,38 @@ import '../../data/chat_repository.dart';
 import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
 import '../chat_labels.dart';
+import '../chat_bidi.dart';
 import 'chat_media_open.dart';
+import 'chat_message_actions.dart';
 import 'chat_voice_note_player.dart';
 
+/// The text a long press can copy / select: the caption or body, plus a voice
+/// note's transcript. Null for a message with no text (an image alone, a
+/// location pin).
+String? chatMessageCopyText(ChatMessage message) {
+  if (message.messageType == 'location') return null;
+  final parts = <String>[
+    if (message.body.trim().isNotEmpty) message.body.trim(),
+    if (message.messageType == 'audio' && message.transcript != null)
+      message.transcript!.trim(),
+  ];
+  return parts.isEmpty ? null : parts.join('\n\n');
+}
+
 /// One message: inbound on the start side, outbound on the end side.
+///
+/// A long press opens Copy / Select text / Use in reply ([onUseInReply] is
+/// the composer hook; without it that action is left out). The text itself is
+/// plain, not selectable, so the long press is not taken by a text selection.
 class ChatMessageBubble extends StatelessWidget {
-  const ChatMessageBubble({super.key, required this.message});
+  const ChatMessageBubble({
+    super.key,
+    required this.message,
+    this.onUseInReply,
+  });
 
   final ChatMessage message;
+  final ValueChanged<String>? onUseInReply;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +53,7 @@ class ChatMessageBubble extends StatelessWidget {
         ? theme.colorScheme.onPrimaryContainer
         : theme.colorScheme.onSurface;
     final time = message.time;
+    final copyText = chatMessageCopyText(message);
 
     final footer = <String>[
       if (time != null) formatDateTime(context, time, pattern: 'h:mm a'),
@@ -47,61 +72,71 @@ class ChatMessageBubble extends StatelessWidget {
         constraints: BoxConstraints(
           maxWidth: MediaQuery.sizeOf(context).width * 0.78,
         ),
-        child: Container(
-          key: ValueKey('chat-message-${message.name}'),
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-          decoration: BoxDecoration(
-            color: background,
-            borderRadius: BorderRadiusDirectional.only(
-              topStart: const Radius.circular(14),
-              topEnd: const Radius.circular(14),
-              bottomStart: Radius.circular(outbound ? 14 : 4),
-              bottomEnd: Radius.circular(outbound ? 4 : 14),
+        child: GestureDetector(
+          behavior: HitTestBehavior.deferToChild,
+          onLongPress: copyText == null
+              ? null
+              : () => showChatMessageActionsSheet(
+                  context,
+                  text: copyText,
+                  onUseInReply: onUseInReply,
+                ),
+          child: Container(
+            key: ValueKey('chat-message-${message.name}'),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadiusDirectional.only(
+                topStart: const Radius.circular(14),
+                topEnd: const Radius.circular(14),
+                bottomStart: Radius.circular(outbound ? 14 : 4),
+                bottomEnd: Radius.circular(outbound ? 4 : 14),
+              ),
             ),
-          ),
-          child: DefaultTextStyle.merge(
-            style: TextStyle(color: foreground),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ChatMessageContent(message: message),
-                if (footer.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    footer.join(' · '),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: foreground.withValues(alpha: 0.7),
+            child: DefaultTextStyle.merge(
+              style: TextStyle(color: foreground),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ChatMessageContent(message: message),
+                  if (footer.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      footer.join(' · '),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: foreground.withValues(alpha: 0.7),
+                      ),
                     ),
-                  ),
-                ],
-                if (message.isFailed)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 14,
-                          color: theme.colorScheme.error,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            message.error == null
-                                ? l10n.chatMessageFailed
-                                : '${l10n.chatMessageFailed}: ${message.error}',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.error,
+                  ],
+                  if (message.isFailed)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 14,
+                            color: theme.colorScheme.error,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              message.error == null
+                                  ? l10n.chatMessageFailed
+                                  : '${l10n.chatMessageFailed}: ${message.error}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.error,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -123,7 +158,7 @@ class ChatMessageContent extends StatelessWidget {
     final type = message.messageType;
     final body = message.body.trim();
 
-    Widget? caption() => body.isEmpty ? null : SelectableText(body);
+    Widget? caption() => body.isEmpty ? null : ChatBidiText(body);
 
     switch (type) {
       case 'image':
@@ -190,7 +225,7 @@ class ChatMessageContent extends StatelessWidget {
       case 'reaction':
         return Text(body.isEmpty ? l10n.chatMessageReaction : body);
       default:
-        if (body.isNotEmpty) return SelectableText(body);
+        if (body.isNotEmpty) return ChatBidiText(body);
         final label = chatMessageTypeLabel(l10n, type);
         return Text(
           label.isEmpty ? l10n.chatMessageUnsupported : label,
@@ -347,8 +382,10 @@ class _ChatVoiceTranscriptState extends State<ChatVoiceTranscript> {
       color: muted,
       fontWeight: FontWeight.w600,
     );
-    final direction = chatTextDirectionOf(widget.text) ??
-        Directionality.of(context);
+    final direction = chatTextDirection(
+      widget.text,
+      Directionality.of(context),
+    );
 
     return Column(
       key: const ValueKey('chat-voice-transcript'),
@@ -384,13 +421,14 @@ class _ChatVoiceTranscriptState extends State<ChatVoiceTranscript> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                SelectableText(
-                  widget.text,
-                  style: textStyle,
-                  textDirection: direction,
-                  textAlign: TextAlign.start,
-                  maxLines: collapsed ? widget.collapsedLines : null,
+                GestureDetector(
                   onTap: long ? _toggle : null,
+                  child: ChatBidiText(
+                    widget.text,
+                    style: textStyle,
+                    maxLines: collapsed ? widget.collapsedLines : null,
+                    overflow: collapsed ? TextOverflow.ellipsis : null,
+                  ),
                 ),
                 if (long)
                   InkWell(

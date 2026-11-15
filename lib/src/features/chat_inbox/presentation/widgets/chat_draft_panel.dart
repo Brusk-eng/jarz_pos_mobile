@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../data/models/chat_models.dart';
+import '../chat_bidi.dart';
+import '../chat_labels.dart';
+import 'chat_message_actions.dart';
 
-/// The AI draft docked above the composer: text (editable), upsell chip,
-/// warnings, the "needs you" reason, and Send / Edit / Reject / Regenerate.
+/// The AI draft docked above the composer: text (always editable in place),
+/// upsell chip, warnings, the "needs you" reason, and Send / Copy / Reject /
+/// Regenerate.
 ///
 /// A complaint draft is locked: Send stays disabled until the text differs
 /// from the draft (the server refuses an unchanged complaint reply anyway).
@@ -21,9 +25,14 @@ class ChatDraftPanel extends StatefulWidget {
     required this.onSend,
     required this.onReject,
     required this.onRegenerate,
+    this.maxHeight,
   });
 
   final ChatDraft draft;
+
+  /// The most height the panel may take (the thread passes a share of what is
+  /// left above the keyboard); its content scrolls beyond that.
+  final double? maxHeight;
 
   /// A draft action is in flight; every button is disabled meanwhile.
   final bool busy;
@@ -37,7 +46,6 @@ class ChatDraftPanel extends StatefulWidget {
 
 class _ChatDraftPanelState extends State<ChatDraftPanel> {
   late final TextEditingController _controller;
-  bool _editing = false;
 
   @override
   void initState() {
@@ -51,9 +59,8 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.draft.name != widget.draft.name) {
       // A new draft (regenerated, or the real one after a training check):
-      // start from its text, out of edit mode.
+      // start from its text.
       _controller.text = widget.draft.draftText;
-      _editing = false;
     }
   }
 
@@ -73,7 +80,6 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
     if (line.isEmpty || _controller.text.contains(line)) return;
     final current = _controller.text.trimRight();
     _controller.text = current.isEmpty ? line : '$current\n$line';
-    setState(() => _editing = true);
   }
 
   @override
@@ -92,159 +98,173 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
       child: SafeArea(
         top: false,
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: widget.maxHeight ?? double.infinity,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.auto_awesome, size: 18, color: theme.colorScheme.primary),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      l10n.chatDraftTitle,
-                      style: theme.textTheme.titleSmall,
-                    ),
-                  ),
-                  if (!draft.isFailed && !unchanged)
-                    Text(
-                      l10n.chatDraftEditedLabel,
-                      style: theme.textTheme.labelSmall?.copyWith(
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        size: 18,
                         color: theme.colorScheme.primary,
                       ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          l10n.chatDraftTitle,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ),
+                      if (!draft.isFailed && !unchanged)
+                        Text(
+                          l10n.chatDraftEditedLabel,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      if (widget.busy) ...[
+                        const SizedBox(width: 8),
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  if (draft.isFailed) ...[
+                    Text(
+                      l10n.chatDraftUnavailable,
+                      key: const ValueKey('chat-draft-unavailable'),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  if (widget.busy) ...[
-                    const SizedBox(width: 8),
-                    const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: TextButton.icon(
+                        key: const ValueKey('chat-draft-regenerate'),
+                        onPressed: widget.busy ? null : widget.onRegenerate,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(l10n.chatDraftRegenerate),
+                      ),
+                    ),
+                  ] else ...[
+                    // Always editable in place: no Edit / Done toggle. System
+                    // cut / copy / paste / select-all come with the TextField.
+                    TextField(
+                      key: const ValueKey('chat-draft-field'),
+                      controller: _controller,
+                      minLines: 3,
+                      maxLines: 10,
+                      maxLength: 4096,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      textAlign: TextAlign.start,
+                      textDirection: chatTextDirection(
+                        text,
+                        Directionality.of(context),
+                      ),
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                        counterText: '',
+                      ),
+                    ),
+                    if (draft.upsellLabel != null) ...[
+                      const SizedBox(height: 6),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Tooltip(
+                          message: draft.upsellText ?? draft.upsellLabel!,
+                          child: ActionChip(
+                            key: const ValueKey('chat-draft-upsell'),
+                            avatar: const Icon(
+                              Icons.add_shopping_cart,
+                              size: 18,
+                            ),
+                            label: Text(
+                              l10n.chatDraftUpsell(draft.upsellLabel!),
+                            ),
+                            onPressed:
+                                (draft.upsellText?.trim().isNotEmpty ?? false)
+                                ? _addUpsell
+                                : null,
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (draft.factConflicts.isNotEmpty)
+                      _FactConflictAlert(conflicts: draft.factConflicts),
+                    for (final warning in draft.warnings)
+                      _NoteRow(
+                        icon: Icons.warning_amber_rounded,
+                        color: Colors.orange.shade800,
+                        text: warning,
+                      ),
+                    if (draft.needsHumanReason != null)
+                      _NoteRow(
+                        icon: Icons.support_agent,
+                        color: theme.colorScheme.tertiary,
+                        text: l10n.chatDraftNeedsHuman(draft.needsHumanReason!),
+                      ),
+                    if (complaintLocked)
+                      _NoteRow(
+                        key: const ValueKey('chat-draft-complaint-lock'),
+                        icon: Icons.lock_outline,
+                        color: theme.colorScheme.error,
+                        text: l10n.chatDraftComplaintLock,
+                      ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      alignment: WrapAlignment.end,
+                      children: [
+                        TextButton.icon(
+                          key: const ValueKey('chat-draft-regenerate'),
+                          onPressed: widget.busy ? null : widget.onRegenerate,
+                          icon: const Icon(Icons.refresh),
+                          label: Text(l10n.chatDraftRegenerate),
+                        ),
+                        TextButton.icon(
+                          key: const ValueKey('chat-draft-reject'),
+                          onPressed: widget.busy ? null : widget.onReject,
+                          icon: const Icon(Icons.thumb_down_alt_outlined),
+                          label: Text(l10n.chatDraftReject),
+                        ),
+                        OutlinedButton.icon(
+                          key: const ValueKey('chat-draft-copy'),
+                          onPressed: text.trim().isEmpty
+                              ? null
+                              : () => copyChatText(context, text.trim()),
+                          icon: const Icon(Icons.copy_outlined),
+                          label: Text(chatBi(context, 'Copy', 'نسخ')),
+                        ),
+                        FilledButton.icon(
+                          key: const ValueKey('chat-draft-send'),
+                          onPressed: canSend
+                              ? () => widget.onSend(text.trim())
+                              : null,
+                          icon: const Icon(Icons.send),
+                          label: Text(l10n.chatDraftSend),
+                        ),
+                      ],
                     ),
                   ],
                 ],
               ),
-              const SizedBox(height: 6),
-              if (draft.isFailed) ...[
-                Text(
-                  l10n.chatDraftUnavailable,
-                  key: const ValueKey('chat-draft-unavailable'),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: TextButton.icon(
-                    key: const ValueKey('chat-draft-regenerate'),
-                    onPressed: widget.busy ? null : widget.onRegenerate,
-                    icon: const Icon(Icons.refresh),
-                    label: Text(l10n.chatDraftRegenerate),
-                  ),
-                ),
-              ] else ...[
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 180),
-                  child: _editing
-                      ? TextField(
-                          key: const ValueKey('chat-draft-field'),
-                          controller: _controller,
-                          minLines: 2,
-                          maxLines: 6,
-                          maxLength: 4096,
-                          textInputAction: TextInputAction.newline,
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                            counterText: '',
-                          ),
-                        )
-                      : SingleChildScrollView(
-                          child: SelectableText(
-                            text,
-                            key: const ValueKey('chat-draft-text'),
-                          ),
-                        ),
-                ),
-                if (draft.upsellLabel != null) ...[
-                  const SizedBox(height: 6),
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Tooltip(
-                      message: draft.upsellText ?? draft.upsellLabel!,
-                      child: ActionChip(
-                        key: const ValueKey('chat-draft-upsell'),
-                        avatar: const Icon(Icons.add_shopping_cart, size: 18),
-                        label: Text(l10n.chatDraftUpsell(draft.upsellLabel!)),
-                        onPressed: (draft.upsellText?.trim().isNotEmpty ?? false)
-                            ? _addUpsell
-                            : null,
-                      ),
-                    ),
-                  ),
-                ],
-                if (draft.factConflicts.isNotEmpty)
-                  _FactConflictAlert(conflicts: draft.factConflicts),
-                for (final warning in draft.warnings)
-                  _NoteRow(
-                    icon: Icons.warning_amber_rounded,
-                    color: Colors.orange.shade800,
-                    text: warning,
-                  ),
-                if (draft.needsHumanReason != null)
-                  _NoteRow(
-                    icon: Icons.support_agent,
-                    color: theme.colorScheme.tertiary,
-                    text: l10n.chatDraftNeedsHuman(draft.needsHumanReason!),
-                  ),
-                if (complaintLocked)
-                  _NoteRow(
-                    key: const ValueKey('chat-draft-complaint-lock'),
-                    icon: Icons.lock_outline,
-                    color: theme.colorScheme.error,
-                    text: l10n.chatDraftComplaintLock,
-                  ),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  alignment: WrapAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      key: const ValueKey('chat-draft-regenerate'),
-                      onPressed: widget.busy ? null : widget.onRegenerate,
-                      icon: const Icon(Icons.refresh),
-                      label: Text(l10n.chatDraftRegenerate),
-                    ),
-                    TextButton.icon(
-                      key: const ValueKey('chat-draft-reject'),
-                      onPressed: widget.busy ? null : widget.onReject,
-                      icon: const Icon(Icons.thumb_down_alt_outlined),
-                      label: Text(l10n.chatDraftReject),
-                    ),
-                    OutlinedButton.icon(
-                      key: const ValueKey('chat-draft-edit'),
-                      onPressed: widget.busy
-                          ? null
-                          : () => setState(() => _editing = !_editing),
-                      icon: Icon(_editing ? Icons.check : Icons.edit_outlined),
-                      label: Text(
-                        _editing ? l10n.commonDone : l10n.chatDraftEdit,
-                      ),
-                    ),
-                    FilledButton.icon(
-                      key: const ValueKey('chat-draft-send'),
-                      onPressed:
-                          canSend ? () => widget.onSend(text.trim()) : null,
-                      icon: const Icon(Icons.send),
-                      label: Text(l10n.chatDraftSend),
-                    ),
-                  ],
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),
@@ -374,10 +394,14 @@ class _FactConflictAlert extends StatelessWidget {
                 children: [
                   Text('•  ', style: TextStyle(color: color)),
                   Expanded(
-                    child: Text(
-                      conflict,
-                      textDirection: TextDirection.ltr,
-                      style: theme.textTheme.bodySmall?.copyWith(color: color),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ChatBidiText(
+                        conflict,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: color,
+                        ),
+                      ),
                     ),
                   ),
                 ],

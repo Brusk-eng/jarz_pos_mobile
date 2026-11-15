@@ -11,11 +11,27 @@ import '../../../../core/network/user_service.dart';
 import '../../data/chat_repository.dart';
 import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
+import '../chat_bidi.dart';
+import '../chat_labels.dart';
 import '../widgets/chat_dialogs.dart';
 import '../widgets/chat_draft_panel.dart';
+import '../widgets/chat_link_banner.dart';
+import '../widgets/chat_link_sheet.dart';
 import '../widgets/chat_message_bubble.dart';
 
-enum _ThreadAction { assignToMe, close, reopen, customerCard, linkCustomer, startOrder }
+enum _ThreadAction {
+  assignToMe,
+  close,
+  reopen,
+  customerCard,
+  linkCustomer,
+  startOrder,
+  contactType,
+}
+
+/// Value of the "Let AI decide" row of the contact-type picker (an empty
+/// category goes to the server).
+const _kLetAiDecide = '__ai__';
 
 /// `/chats/:name` — one conversation: bubbles, the AI draft panel docked
 /// above a free composer, and header actions (assign to me, close / reopen,
@@ -31,6 +47,7 @@ class ChatThreadScreen extends ConsumerStatefulWidget {
 
 class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
   final _composer = TextEditingController();
+  final _composerFocus = FocusNode();
   bool _draftBusy = false;
   bool _sending = false;
   bool _actionBusy = false;
@@ -49,7 +66,19 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
   void dispose() {
     _composer.removeListener(_onComposerChanged);
     _composer.dispose();
+    _composerFocus.dispose();
     super.dispose();
+  }
+
+  /// "Use in reply" from a bubble: append to the composer and focus it.
+  void _useInReply(String text) {
+    final current = _composer.text.trimRight();
+    final next = current.isEmpty ? text : '$current\n$text';
+    _composer.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+    _composerFocus.requestFocus();
   }
 
   void _onComposerChanged() {
@@ -171,17 +200,112 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
   }
 
   Future<void> _linkCustomer(ChatConversationSummary conversation) async {
-    final picked = await showChatLinkCustomerSheet(
+    final choice = await showChatLinkCustomerSheet(
       context,
-      initialQuery: conversation.phone ?? conversation.contactName,
+      conversation: _name,
+      fallbackQuery: conversation.phone ?? conversation.contactName,
+      fallbackName: conversation.contactName,
     );
-    if (picked == null || !mounted) return;
+    if (choice == null || !mounted) return;
     final l10n = context.l10n;
+    final created = choice.created;
+    if (created != null) {
+      // Already created and linked by the form.
+      _snack(l10n.chatLinkDone(created.customer?.customerName ?? ''));
+      return;
+    }
+    final picked = choice.option!;
     await _runAction(() async {
       final result = await _notifier.linkCustomer(picked.name);
       _snack(l10n.chatLinkDone(
         result.customer?.customerName ?? picked.customerName,
       ));
+    });
+  }
+
+  /// The banner's one-tap Link on the suggested customer.
+  Future<void> _linkSuggestion(ChatCustomerCandidate suggestion) async {
+    final l10n = context.l10n;
+    await _runAction(() async {
+      final result = await _notifier.linkCustomer(suggestion.name);
+      _snack(
+        l10n.chatLinkDone(
+          result.customer?.customerName ?? suggestion.customerName,
+        ),
+      );
+    });
+  }
+
+  void _dismissSuggestion() {
+    final notifier = ref.read(chatDismissedSuggestionsProvider.notifier);
+    notifier.state = {...notifier.state, _name};
+  }
+
+  Future<void> _unlink() async {
+    final done = chatBi(context, 'Unlinked', 'اتفك الربط');
+    await _runAction(() async {
+      await _notifier.unlinkCustomer();
+      _snack(done);
+    });
+  }
+
+  Future<void> _pickContactType(ChatConversationSummary conversation) async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final current = conversation.contactCategory ?? '';
+        final manual = conversation.contactCategorySource == 'Manual';
+        Widget option(String value, String label, {bool selected = false}) =>
+            ListTile(
+              key: ValueKey('chat-category-option-$value'),
+              title: Text(label),
+              trailing: selected ? const Icon(Icons.check) : null,
+              onTap: () => Navigator.of(sheetContext).pop(value),
+            );
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    chatBi(sheetContext, 'Contact type', 'نوع جهة الاتصال'),
+                    style: Theme.of(sheetContext).textTheme.titleMedium,
+                  ),
+                ),
+              ),
+              for (final category in ChatContactCategories.settable)
+                option(
+                  category,
+                  chatCategoryLabel(sheetContext, category),
+                  selected: manual && current == category,
+                ),
+              option(
+                _kLetAiDecide,
+                chatBi(
+                  sheetContext,
+                  'Let AI decide',
+                  'سيب الذكاء الاصطناعي يقرر',
+                ),
+                selected: !manual,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (picked == null || !mounted) return;
+    final done = chatBi(
+      context,
+      'Contact type updated',
+      'اتحدّث نوع جهة الاتصال',
+    );
+    await _runAction(() async {
+      await _notifier.setContactCategory(picked == _kLetAiDecide ? '' : picked);
+      _snack(done);
     });
   }
 
@@ -311,11 +435,14 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
           context,
           customer: state.customer,
           onLink: () => _linkCustomer(state.conversation),
+          onUnlink: state.customer == null ? null : _unlink,
         );
       case _ThreadAction.linkCustomer:
         _linkCustomer(state.conversation);
       case _ThreadAction.startOrder:
         _startOrder(state.conversation);
+      case _ThreadAction.contactType:
+        _pickContactType(state.conversation);
     }
   }
 
@@ -325,6 +452,7 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     final thread = ref.watch(chatThreadProvider(_name));
     final state = thread.valueOrNull;
     final currentUser = ref.watch(userRolesFutureProvider).valueOrNull?.user;
+    final dismissed = ref.watch(chatDismissedSuggestionsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -338,11 +466,16 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
-                    chatThreadSubtitle(l10n, state.conversation),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Tooltip(
+                    message: state.conversation.contactCategoryReason ?? '',
+                    triggerMode: TooltipTriggerMode.tap,
+                    child: Text(
+                      chatThreadSubtitleFull(context, state.conversation),
+                      key: const ValueKey('chat-thread-subtitle'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                 ],
               ),
@@ -401,6 +534,13 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
                       value: _ThreadAction.startOrder,
                       child: Text(l10n.chatActionStartOrder),
                     ),
+                    PopupMenuItem(
+                      key: const ValueKey('chat-menu-contact-type'),
+                      value: _ThreadAction.contactType,
+                      child: Text(
+                        chatBi(context, 'Contact type', 'نوع جهة الاتصال'),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -433,6 +573,19 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
         data: (data) => _ThreadBody(
           state: data,
           composer: _composer,
+          composerFocus: _composerFocus,
+          onUseInReply: _useInReply,
+          linkBanner: data.conversation.customer != null
+              ? null
+              : ChatLinkBanner(
+                  suggestion: dismissed.contains(_name)
+                      ? null
+                      : data.customerSuggestion,
+                  busy: _actionBusy,
+                  onLink: () => _linkSuggestion(data.customerSuggestion!),
+                  onDismiss: _dismissSuggestion,
+                  onFind: () => _linkCustomer(data.conversation),
+                ),
           sending: _sending,
           draftBusy: _draftBusy,
           onSendTyped: _sendTyped,
@@ -456,6 +609,9 @@ class _ThreadBody extends StatelessWidget {
   const _ThreadBody({
     required this.state,
     required this.composer,
+    required this.composerFocus,
+    required this.onUseInReply,
+    required this.linkBanner,
     required this.sending,
     required this.draftBusy,
     required this.onSendTyped,
@@ -467,6 +623,9 @@ class _ThreadBody extends StatelessWidget {
 
   final ChatThreadState state;
   final TextEditingController composer;
+  final FocusNode composerFocus;
+  final ValueChanged<String> onUseInReply;
+  final Widget? linkBanner;
   final bool sending;
   final bool draftBusy;
   final VoidCallback onSendTyped;
@@ -484,123 +643,155 @@ class _ThreadBody extends StatelessWidget {
     final showOlder = state.hasMoreOlder;
     final count = messages.length + (showOlder ? 1 : 0);
 
-    return Column(
-      children: [
-        if (!state.conversation.windowOpen)
-          Container(
-            key: const ValueKey('chat-window-closed'),
-            width: double.infinity,
-            color: theme.colorScheme.errorContainer,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                Icon(Icons.schedule, color: theme.colorScheme.onErrorContainer),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l10n.chatWindowClosedBanner,
-                    style: TextStyle(color: theme.colorScheme.onErrorContainer),
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The draft panel scrolls inside this share of the body, so a long
+        // draft never pushes the list and the composer off a short screen.
+        final draftMaxHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight * 0.55
+            : null;
+        return Column(
+          children: [
+            if (linkBanner != null) linkBanner!,
+            if (!state.conversation.windowOpen)
+              Container(
+                key: const ValueKey('chat-window-closed'),
+                width: double.infinity,
+                color: theme.colorScheme.errorContainer,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
                 ),
-              ],
-            ),
-          ),
-        Expanded(
-          // Reversed so the newest message sits at the bottom and new
-          // arrivals stay in view.
-          child: ListView.builder(
-            key: const ValueKey('chat-thread-list'),
-            reverse: true,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: count,
-            itemBuilder: (context, index) {
-              if (showOlder && index == count - 1) {
-                return Center(
-                  child: state.loadingOlder
-                      ? const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : TextButton(
-                          onPressed: onLoadOlder,
-                          child: Text(l10n.chatLoadOlder),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.schedule,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.chatWindowClosedBanner,
+                        style: TextStyle(
+                          color: theme.colorScheme.onErrorContainer,
                         ),
-                );
-              }
-              final message = messages[messages.length - 1 - index];
-              return ChatMessageBubble(message: message);
-            },
-          ),
-        ),
-        switch (chatAiSlot(state)) {
-          ChatAiSlot.draft => ChatDraftPanel(
-              key: ValueKey('chat-draft-${draft!.name}'),
-              draft: draft,
-              busy: draftBusy,
-              onSend: onSendDraft,
-              onReject: onRejectDraft,
-              onRegenerate: onRegenerate,
-            ),
-          ChatAiSlot.askForMessage => ChatAskAiBar(
-              windowClosed: false,
-              busy: draftBusy,
-              onAsk: onRegenerate,
-            ),
-          ChatAiSlot.windowClosed => ChatAskAiBar(
-              windowClosed: true,
-              busy: draftBusy,
-              onAsk: onRegenerate,
-            ),
-          ChatAiSlot.none => const SizedBox.shrink(),
-        },
-        Material(
-          elevation: 4,
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const ValueKey('chat-composer'),
-                      controller: composer,
-                      minLines: 1,
-                      maxLines: 5,
-                      maxLength: 4096,
-                      textInputAction: TextInputAction.newline,
-                      decoration: InputDecoration(
-                        hintText: l10n.chatComposerHint,
-                        isDense: true,
-                        counterText: '',
-                        border: const OutlineInputBorder(),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  sending
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        )
-                      : IconButton(
-                          key: const ValueKey('chat-composer-send'),
-                          tooltip: l10n.chatComposerSendTooltip,
-                          icon: const Icon(Icons.send),
-                          onPressed:
-                              composer.text.trim().isEmpty ? null : onSendTyped,
-                        ),
-                ],
+                  ],
+                ),
+              ),
+            Expanded(
+              // Reversed so the newest message sits at the bottom and new
+              // arrivals stay in view.
+              child: ListView.builder(
+                key: const ValueKey('chat-thread-list'),
+                reverse: true,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: count,
+                itemBuilder: (context, index) {
+                  if (showOlder && index == count - 1) {
+                    return Center(
+                      child: state.loadingOlder
+                          ? const Padding(
+                              padding: EdgeInsets.all(8),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : TextButton(
+                              onPressed: onLoadOlder,
+                              child: Text(l10n.chatLoadOlder),
+                            ),
+                    );
+                  }
+                  final message = messages[messages.length - 1 - index];
+                  return ChatMessageBubble(
+                    message: message,
+                    onUseInReply: onUseInReply,
+                  );
+                },
               ),
             ),
-          ),
-        ),
-      ],
+            switch (chatAiSlot(state)) {
+              ChatAiSlot.draft => ChatDraftPanel(
+                key: ValueKey('chat-draft-${draft!.name}'),
+                draft: draft,
+                maxHeight: draftMaxHeight,
+                busy: draftBusy,
+                onSend: onSendDraft,
+                onReject: onRejectDraft,
+                onRegenerate: onRegenerate,
+              ),
+              ChatAiSlot.askForMessage => ChatAskAiBar(
+                windowClosed: false,
+                busy: draftBusy,
+                onAsk: onRegenerate,
+              ),
+              ChatAiSlot.windowClosed => ChatAskAiBar(
+                windowClosed: true,
+                busy: draftBusy,
+                onAsk: onRegenerate,
+              ),
+              ChatAiSlot.none => const SizedBox.shrink(),
+            },
+            Material(
+              elevation: 4,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          key: const ValueKey('chat-composer'),
+                          controller: composer,
+                          focusNode: composerFocus,
+                          minLines: 1,
+                          maxLines: 6,
+                          maxLength: 4096,
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          textAlign: TextAlign.start,
+                          textDirection: chatTextDirection(
+                            composer.text,
+                            Directionality.of(context),
+                          ),
+                          decoration: InputDecoration(
+                            hintText: l10n.chatComposerHint,
+                            isDense: true,
+                            counterText: '',
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      sending
+                          ? const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            )
+                          : IconButton(
+                              key: const ValueKey('chat-composer-send'),
+                              tooltip: l10n.chatComposerSendTooltip,
+                              icon: const Icon(Icons.send),
+                              onPressed: composer.text.trim().isEmpty
+                                  ? null
+                                  : onSendTyped,
+                            ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
