@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../data/models/chat_models.dart';
 import '../chat_bidi.dart';
 import '../chat_labels.dart';
 import '../chat_linkify.dart';
@@ -26,18 +27,34 @@ Future<void> copyChatText(
     );
 }
 
-/// The long-press sheet of a bubble: Copy, Select text, Use in reply, and
+/// Whether staff can react to [message]: it is an inbound message the server
+/// knows (has a name) and the channel offers reaction emojis.
+bool chatCanReact(ChatMessage message, List<String> reactionChoices) =>
+    message.isInbound && message.name.isNotEmpty && reactionChoices.isNotEmpty;
+
+/// The long-press sheet of a bubble: the reaction row (inbound messages, when
+/// the channel has [reactionChoices]), Copy, Select text, Use in reply, and
 /// Open link when the message contains a URL (one row per link, max 5).
+/// [text] is null for a message with nothing to copy (a photo alone); the
+/// text rows are then left out. [onReact] gets the chosen emoji, or an empty
+/// string when the current [currentReaction] was tapped again.
 Future<void> showChatMessageActionsSheet(
   BuildContext context, {
-  required String text,
+  required String? text,
   ValueChanged<String>? onUseInReply,
+  List<String> reactionChoices = const <String>[],
+  String? currentReaction,
+  ValueChanged<String>? onReact,
 }) {
   final messenger = ScaffoldMessenger.maybeOf(context);
-  final urls = findChatLinks(text)
-      .where((l) => l.kind == ChatLinkKind.url)
-      .take(5)
-      .toList();
+  final copyText = text;
+  final urls = copyText == null
+      ? const <ChatLinkMatch>[]
+      : findChatLinks(copyText)
+          .where((l) => l.kind == ChatLinkKind.url)
+          .take(5)
+          .toList();
+  final showReactions = onReact != null && reactionChoices.isNotEmpty;
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
@@ -46,6 +63,28 @@ Future<void> showChatMessageActionsSheet(
         key: const ValueKey('chat-message-actions'),
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (showReactions)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  key: const ValueKey('chat-reaction-row'),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (final emoji in reactionChoices)
+                      _ReactionChip(
+                        emoji: emoji,
+                        selected: emoji == currentReaction,
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          onReact(emoji == currentReaction ? '' : emoji);
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ),
           for (var i = 0; i < urls.length; i++)
             ListTile(
               key: ValueKey('chat-action-open-link-$i'),
@@ -68,13 +107,14 @@ Future<void> showChatMessageActionsSheet(
                 openChatLink(context, urls[i]);
               },
             ),
+          if (copyText != null) ...[
           ListTile(
             key: const ValueKey('chat-action-copy'),
             leading: const Icon(Icons.copy_outlined),
             title: Text(chatBi(sheetContext, 'Copy', 'نسخ')),
             onTap: () {
               Navigator.of(sheetContext).pop();
-              copyChatText(context, text, messenger: messenger);
+              copyChatText(context, copyText, messenger: messenger);
             },
           ),
           ListTile(
@@ -83,7 +123,7 @@ Future<void> showChatMessageActionsSheet(
             title: Text(chatBi(sheetContext, 'Select text', 'تحديد النص')),
             onTap: () {
               Navigator.of(sheetContext).pop();
-              showChatSelectTextSheet(context, text);
+              showChatSelectTextSheet(context, copyText);
             },
           ),
           if (onUseInReply != null)
@@ -95,9 +135,10 @@ Future<void> showChatMessageActionsSheet(
               ),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                onUseInReply(text);
+                onUseInReply(copyText);
               },
             ),
+          ],
         ],
       ),
     ),
@@ -160,4 +201,45 @@ Future<void> showChatSelectTextSheet(BuildContext context, String text) {
       );
     },
   );
+}
+
+class _ReactionChip extends StatelessWidget {
+  const _ReactionChip({
+    required this.emoji,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 3),
+      child: Material(
+        color: selected ? scheme.primaryContainer : Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          key: ValueKey('chat-reaction-$emoji'),
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: selected
+                ? BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: scheme.primary, width: 2),
+                  )
+                : null,
+            child: Text(emoji, style: const TextStyle(fontSize: 26)),
+          ),
+        ),
+      ),
+    );
+  }
 }

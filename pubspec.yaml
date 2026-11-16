@@ -95,6 +95,7 @@ dependencies:
   # The voice-note player writes the fetched (session-authenticated) bytes to
   # a temp file on Android/iOS. Already in the tree via just_audio.
   path_provider: ^2.1.5
+  video_player: ^2.14.1
 
 dev_dependencies:
   flutter_test:

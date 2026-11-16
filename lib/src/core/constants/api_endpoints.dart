@@ -1176,4 +1176,6 @@ abstract final class ApiEndpoints {
   static const chatUnlinkCustomer = '$_chat.unlink_customer';
   static const chatSetContactCategory = '$_chat.set_contact_category';
   static const chatGetFactOverrides = '$_chat.get_fact_overrides';
+  static const chatSendMedia = '$_chat.send_media';
+  static const chatReactToMessage = '$_chat.react_to_message';
 }

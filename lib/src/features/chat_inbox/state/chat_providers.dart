@@ -587,7 +587,10 @@ class ChatThreadState {
     bool? loadingOlder,
   }) {
     return ChatThreadState(
-      conversation: conversation ?? this.conversation,
+      // A summary without the media / reaction info (a socket event) keeps
+      // what the thread already knew.
+      conversation:
+          conversation?.inheritMediaInfo(this.conversation) ?? this.conversation,
       messages: messages ?? this.messages,
       draft: clearDraft ? null : (draft ?? this.draft),
       customer: clearCustomer ? null : (customer ?? this.customer),
@@ -887,6 +890,55 @@ class ChatThreadNotifier
   void _appendMessage(ChatMessage? message) {
     if (message == null || message.name.isEmpty) return;
     _update((s) => s.copyWith(messages: mergeChatMessages(s.messages, [message])));
+  }
+
+  /// `send_media`: uploads one file as a reply and adds the returned message
+  /// to the thread like a typed reply.
+  Future<ChatMessage> sendMedia({
+    required String filename,
+    required String mime,
+    Uint8List? bytes,
+    String? path,
+    String caption = '',
+    void Function(int sent, int total)? onProgress,
+  }) async {
+    final message = await _mutate(() async {
+      final message = await _repo.sendMedia(
+        conversation: arg,
+        filename: filename,
+        mime: mime,
+        bytes: bytes,
+        path: path,
+        caption: caption,
+        onProgress: onProgress,
+      );
+      _appendMessage(message);
+      return message;
+    });
+    unawaited(refresh());
+    return message;
+  }
+
+  /// `react_to_message`: shows [emoji] on the message at once (empty removes
+  /// it) and puts the old value back when the server refuses.
+  Future<void> reactToMessage(ChatMessage message, String emoji) async {
+    final previous = message.staffReaction;
+    void apply(String? value) => _update((s) => s.copyWith(
+          messages: [
+            for (final m in s.messages)
+              m.name == message.name ? m.withStaffReaction(value) : m,
+          ],
+        ));
+    apply(emoji);
+    try {
+      final updated = await _mutate(
+        () => _repo.reactToMessage(message: message.name, emoji: emoji),
+      );
+      if (updated != null) _appendMessage(updated);
+    } catch (_) {
+      apply(previous);
+      rethrow;
+    }
   }
 
   /// `send_draft`. Returns the full result so the screen can show the

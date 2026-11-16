@@ -13,10 +13,13 @@ import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
 import '../chat_bidi.dart';
 import '../chat_labels.dart';
+import '../widgets/chat_attach_sheet.dart';
 import '../widgets/chat_dialogs.dart';
 import '../widgets/chat_draft_panel.dart';
 import '../widgets/chat_link_banner.dart';
 import '../widgets/chat_link_sheet.dart';
+import '../../data/chat_media_limits.dart';
+import '../widgets/chat_image_gallery.dart' show chatIsGalleryImage;
 import '../widgets/chat_message_bubble.dart';
 
 enum _ThreadAction {
@@ -90,6 +93,16 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(text), action: action));
+  }
+
+  /// A reaction tap: optimistic in the thread; a refusal rolls back and shows
+  /// the server's reason.
+  Future<void> _react(ChatMessage message, String emoji) async {
+    try {
+      await _notifier.reactToMessage(message, emoji);
+    } catch (e) {
+      _snackError(e);
+    }
   }
 
   void _snackError(Object error) {
@@ -183,6 +196,29 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  /// The paperclip: pick a file, preview it with a caption, upload it as a
+  /// reply. The preview sheet stays open on a failure so the moderator can
+  /// retry; a success lands in the thread like a typed reply.
+  Future<void> _attach() async {
+    if (_sending) return;
+    final picked = await showChatAttachSheet(context);
+    if (picked == null || !mounted) return;
+    await showChatMediaPreviewSheet(
+      context,
+      media: picked,
+      onSend: (media, caption, onProgress) async {
+        await _notifier.sendMedia(
+          filename: media.filename,
+          mime: media.mime,
+          bytes: media.bytes,
+          path: media.path,
+          caption: media.kind == ChatMediaKind.audio ? '' : caption,
+          onProgress: onProgress,
+        );
+      },
+    );
   }
 
   // ── Header actions ────────────────────────────────────────────────────
@@ -575,6 +611,8 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
           composer: _composer,
           composerFocus: _composerFocus,
           onUseInReply: _useInReply,
+          onReact: _react,
+          onAttach: _attach,
           linkBanner: data.conversation.customer != null
               ? null
               : ChatLinkBanner(
@@ -611,6 +649,8 @@ class _ThreadBody extends StatelessWidget {
     required this.composer,
     required this.composerFocus,
     required this.onUseInReply,
+    required this.onReact,
+    required this.onAttach,
     required this.linkBanner,
     required this.sending,
     required this.draftBusy,
@@ -625,6 +665,8 @@ class _ThreadBody extends StatelessWidget {
   final TextEditingController composer;
   final FocusNode composerFocus;
   final ValueChanged<String> onUseInReply;
+  final Future<void> Function(ChatMessage message, String emoji) onReact;
+  final VoidCallback onAttach;
   final Widget? linkBanner;
   final bool sending;
   final bool draftBusy;
@@ -642,6 +684,7 @@ class _ThreadBody extends StatelessWidget {
     final draft = state.draft;
     final showOlder = state.hasMoreOlder;
     final count = messages.length + (showOlder ? 1 : 0);
+    final galleryImages = messages.where(chatIsGalleryImage).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -706,6 +749,9 @@ class _ThreadBody extends StatelessWidget {
                   return ChatMessageBubble(
                     message: message,
                     onUseInReply: onUseInReply,
+                    reactionChoices: state.conversation.reactionChoices,
+                    onReact: (emoji) => onReact(message, emoji),
+                    galleryMessages: galleryImages,
                   );
                 },
               ),
@@ -737,10 +783,19 @@ class _ThreadBody extends StatelessWidget {
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
+                  padding: const EdgeInsets.fromLTRB(4, 6, 6, 6),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
+                      if (state.conversation.canSendMedia)
+                        IconButton(
+                          key: const ValueKey('chat-composer-attach'),
+                          tooltip: chatBi(context, 'Attach', 'إرفاق'),
+                          icon: const Icon(Icons.attach_file),
+                          onPressed: sending ? null : onAttach,
+                        )
+                      else
+                        const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
                           key: const ValueKey('chat-composer'),

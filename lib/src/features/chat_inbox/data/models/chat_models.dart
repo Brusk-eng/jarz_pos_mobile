@@ -185,6 +185,19 @@ class ChatConversationSummary {
   /// The AI's one-line reason (English).
   final String? contactCategoryReason;
 
+  /// Whether staff may send a photo / video / file here. The server sends
+  /// `can_send_media`; when the key is missing it is true for WhatsApp,
+  /// Messenger and Instagram and false for comment channels.
+  final bool canSendMedia;
+
+  /// The emojis staff may react with on this channel, in display order. Empty
+  /// = reactions are not supported (or an older server).
+  final List<String> reactionChoices;
+
+  /// Whether this summary carried `can_send_media` / `reaction_choices`. A
+  /// socket summary may not; the thread then keeps what it already knew.
+  final bool mediaInfoKnown;
+
   const ChatConversationSummary({
     required this.name,
     this.channel = '',
@@ -209,6 +222,9 @@ class ChatConversationSummary {
     this.contactCategory,
     this.contactCategorySource,
     this.contactCategoryReason,
+    this.canSendMedia = true,
+    this.reactionChoices = const <String>[],
+    this.mediaInfoKnown = false,
   });
 
   factory ChatConversationSummary.fromJson(dynamic raw) {
@@ -245,6 +261,12 @@ class ChatConversationSummary {
       contactCategoryReason: chatNullableString(
         json['contact_category_reason'],
       ),
+      canSendMedia: json.containsKey('can_send_media')
+          ? chatBool(json['can_send_media'])
+          : chatChannelCanSendMedia(chatString(json['channel'])),
+      reactionChoices: chatStringList(json['reaction_choices']),
+      mediaInfoKnown: json.containsKey('can_send_media') ||
+          json.containsKey('reaction_choices'),
     );
   }
 
@@ -301,8 +323,52 @@ class ChatConversationSummary {
       contactCategory: contactCategory,
       contactCategorySource: contactCategorySource,
       contactCategoryReason: contactCategoryReason,
+      canSendMedia: canSendMedia,
+      reactionChoices: reactionChoices,
+      mediaInfoKnown: mediaInfoKnown,
     );
   }
+
+  /// This summary with the media / reaction info of [previous] when this one
+  /// did not carry it.
+  ChatConversationSummary inheritMediaInfo(ChatConversationSummary previous) {
+    if (mediaInfoKnown || !previous.mediaInfoKnown) return this;
+    return ChatConversationSummary(
+      name: name,
+      channel: channel,
+      contactName: contactName,
+      phone: phone,
+      customer: customer,
+      customerName: customerName,
+      status: status,
+      assignedTo: assignedTo,
+      assignedToName: assignedToName,
+      intent: intent,
+      isComplaint: isComplaint,
+      lastMessageAt: lastMessageAt,
+      lastMessagePreview: lastMessagePreview,
+      lastDirection: lastDirection,
+      unreadCount: unreadCount,
+      waitingSince: waitingSince,
+      windowExpiresAt: windowExpiresAt,
+      windowOpen: windowOpen,
+      hasPendingDraft: hasPendingDraft,
+      lastOrder: lastOrder,
+      contactCategory: contactCategory,
+      contactCategorySource: contactCategorySource,
+      contactCategoryReason: contactCategoryReason,
+      canSendMedia: previous.canSendMedia,
+      reactionChoices: previous.reactionChoices,
+      mediaInfoKnown: true,
+    );
+  }
+}
+
+/// Whether a channel can carry media when the server did not say: the direct
+/// channels yes, comment channels (and unknown ones) no.
+bool chatChannelCanSendMedia(String channel) {
+  final c = channel.trim().toLowerCase();
+  return c == 'whatsapp' || c == 'messenger' || c == 'instagram';
 }
 
 /// `Message` — one bubble in a thread.
@@ -327,6 +393,11 @@ class ChatMessage {
   /// Null when absent (older servers), not yet transcribed, or blank.
   final String? transcript;
 
+  /// The emoji our team put on this (inbound) message, and the one the
+  /// customer put on this (outbound) message. Null when none.
+  final String? staffReaction;
+  final String? customerReaction;
+
   const ChatMessage({
     required this.name,
     this.direction = 'Inbound',
@@ -341,6 +412,8 @@ class ChatMessage {
     this.timestamp,
     this.error,
     this.transcript,
+    this.staffReaction,
+    this.customerReaction,
   });
 
   factory ChatMessage.fromJson(dynamic raw) {
@@ -359,12 +432,30 @@ class ChatMessage {
       timestamp: chatNullableString(json['timestamp']),
       error: chatNullableString(json['error']),
       transcript: chatNullableString(json['transcript']),
+      staffReaction: chatNullableString(json['staff_reaction']),
+      customerReaction: chatNullableString(json['customer_reaction']),
     );
   }
 
   /// A copy carrying [value] as its transcript.
   ChatMessage withTranscript(String? value) {
     if (value == transcript) return this;
+    return _copy(transcript: value, setTranscript: true);
+  }
+
+  /// A copy with our reaction set to [emoji] (null or empty clears it).
+  ChatMessage withStaffReaction(String? emoji) {
+    final value = (emoji == null || emoji.isEmpty) ? null : emoji;
+    if (value == staffReaction) return this;
+    return _copy(staffReaction: value, setStaffReaction: true);
+  }
+
+  ChatMessage _copy({
+    String? transcript,
+    bool setTranscript = false,
+    String? staffReaction,
+    bool setStaffReaction = false,
+  }) {
     return ChatMessage(
       name: name,
       direction: direction,
@@ -378,7 +469,9 @@ class ChatMessage {
       sentByName: sentByName,
       timestamp: timestamp,
       error: error,
-      transcript: value,
+      transcript: setTranscript ? transcript : this.transcript,
+      staffReaction: setStaffReaction ? staffReaction : this.staffReaction,
+      customerReaction: customerReaction,
     );
   }
 

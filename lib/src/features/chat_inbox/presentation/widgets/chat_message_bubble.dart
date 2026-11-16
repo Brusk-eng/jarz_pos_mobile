@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -11,8 +10,10 @@ import '../../state/chat_providers.dart';
 import '../../state/chat_voice_note_playback.dart';
 import '../chat_labels.dart';
 import '../chat_bidi.dart';
+import 'chat_image_gallery.dart';
 import 'chat_media_open.dart';
 import 'chat_message_actions.dart';
+import 'chat_video_player.dart';
 import 'chat_voice_note_player.dart';
 
 /// The text a long press can copy / select: the caption or body, plus a voice
@@ -38,10 +39,21 @@ class ChatMessageBubble extends StatelessWidget {
     super.key,
     required this.message,
     this.onUseInReply,
+    this.reactionChoices = const <String>[],
+    this.onReact,
+    this.galleryMessages = const <ChatMessage>[],
   });
 
   final ChatMessage message;
   final ValueChanged<String>? onUseInReply;
+
+  /// The emojis staff may react with (empty = none) and the callback with the
+  /// chosen emoji (empty string = remove). Only inbound messages offer them.
+  final List<String> reactionChoices;
+  final ValueChanged<String>? onReact;
+
+  /// Every photo of the thread, oldest first, for the full-screen viewer.
+  final List<ChatMessage> galleryMessages;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +68,10 @@ class ChatMessageBubble extends StatelessWidget {
         : theme.colorScheme.onSurface;
     final time = message.time;
     final copyText = chatMessageCopyText(message);
+    final canReact = onReact != null && chatCanReact(message, reactionChoices);
+    // Staff reactions sit on inbound bubbles, the customer's on outbound ones.
+    final reaction = outbound ? message.customerReaction : message.staffReaction;
+    final hasReaction = reaction != null && reaction.isNotEmpty;
 
     final footer = <String>[
       if (time != null) formatDateTime(context, time, pattern: 'h:mm a'),
@@ -76,16 +92,22 @@ class ChatMessageBubble extends StatelessWidget {
         ),
         child: GestureDetector(
           behavior: HitTestBehavior.deferToChild,
-          onLongPress: copyText == null
+          onLongPress: copyText == null && !canReact
               ? null
               : () => showChatMessageActionsSheet(
                   context,
                   text: copyText,
                   onUseInReply: onUseInReply,
+                  reactionChoices: canReact ? reactionChoices : const <String>[],
+                  currentReaction: message.staffReaction,
+                  onReact: canReact ? onReact : null,
                 ),
-          child: Container(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+          Container(
             key: ValueKey('chat-message-${message.name}'),
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+            margin: EdgeInsets.fromLTRB(12, 3, 12, hasReaction ? 15 : 3),
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
             decoration: BoxDecoration(
               color: background,
@@ -102,7 +124,10 @@ class ChatMessageBubble extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ChatMessageContent(message: message),
+                  ChatMessageContent(
+                    message: message,
+                    galleryMessages: galleryMessages,
+                  ),
                   if (footer.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
@@ -141,6 +166,24 @@ class ChatMessageBubble extends StatelessWidget {
               ),
             ),
           ),
+          if (hasReaction)
+            PositionedDirectional(
+              bottom: 0,
+              end: outbound ? null : 20,
+              start: outbound ? 20 : null,
+              child: Container(
+                key: const ValueKey('chat-reaction-badge'),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+                child: Text(reaction, style: const TextStyle(fontSize: 15)),
+              ),
+            ),
+            ],
+          ),
         ),
       ),
     );
@@ -150,9 +193,16 @@ class ChatMessageBubble extends StatelessWidget {
 /// The body of a message by type: text, image, location link, an inline
 /// player for voice notes, or an "open" tile for video / documents.
 class ChatMessageContent extends StatelessWidget {
-  const ChatMessageContent({super.key, required this.message});
+  const ChatMessageContent({
+    super.key,
+    required this.message,
+    this.galleryMessages = const <ChatMessage>[],
+  });
 
   final ChatMessage message;
+
+  /// The thread's photos for the viewer; empty opens just this one.
+  final List<ChatMessage> galleryMessages;
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +227,7 @@ class ChatMessageContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            ChatMessageImage(message: message),
+            ChatMessageImage(message: message, gallery: galleryMessages),
             if (caption() != null) ...[
               const SizedBox(height: 6),
               caption()!,
@@ -194,6 +244,9 @@ class ChatMessageContent extends StatelessWidget {
           children: [
             if (type == 'audio')
               ChatVoiceNotePlayer(message: message)
+            else if (type == 'video' &&
+                ChatRepository.isSessionMediaUrl(message.mediaUrl))
+              ChatVideoTile(message: message)
             else
               ChatMediaOpenTile(
                 message: message,
@@ -251,9 +304,16 @@ class ChatMessageContent extends StatelessWidget {
 /// A message image, fetched with the session (private files) and shown with
 /// `Image.memory`. Only same-site `/files` paths are fetched.
 class ChatMessageImage extends ConsumerWidget {
-  const ChatMessageImage({super.key, required this.message});
+  const ChatMessageImage({
+    super.key,
+    required this.message,
+    this.gallery = const <ChatMessage>[],
+  });
 
   final ChatMessage message;
+
+  /// Every photo of the thread; the viewer swipes across them.
+  final List<ChatMessage> gallery;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -280,12 +340,10 @@ class ChatMessageImage extends ConsumerWidget {
         detail: message.error,
       ),
       data: (data) => GestureDetector(
-        onTap: () => showDialog<void>(
-          context: context,
-          builder: (dialogContext) => _ChatImageViewerDialog(
-            data: data,
-            message: message,
-          ),
+        onTap: () => showChatImageGallery(
+          context,
+          images: gallery,
+          initial: message,
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -620,57 +678,4 @@ IconData chatDocumentIcon(String? mime, String? fileName) {
     return Icons.folder_zip_outlined;
   }
   return Icons.insert_drive_file_outlined;
-}
-
-/// Full-size image with Close and Share. Share hands the loaded bytes to the
-/// share sheet; on web it opens the file in a new tab instead.
-class _ChatImageViewerDialog extends ConsumerWidget {
-  const _ChatImageViewerDialog({required this.data, required this.message});
-
-  final Uint8List data;
-  final ChatMessage message;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Dialog(
-      key: const ValueKey('chat-image-viewer'),
-      insetPadding: const EdgeInsets.all(12),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: InteractiveViewer(child: Image.memory(data)),
-          ),
-          PositionedDirectional(
-            top: 4,
-            end: 4,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton.filledTonal(
-                  key: const ValueKey('chat-image-share'),
-                  tooltip: kIsWeb
-                      ? chatBi(context, 'Open in new tab', 'فتح في تبويب جديد')
-                      : chatBi(context, 'Share', 'مشاركة'),
-                  icon: Icon(kIsWeb ? Icons.open_in_new : Icons.share_outlined),
-                  onPressed: () => openChatMediaAttachment(
-                    context,
-                    ref.read(chatRepositoryProvider),
-                    message,
-                    bytes: data,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                IconButton.filledTonal(
-                  key: const ValueKey('chat-image-close'),
-                  tooltip: chatBi(context, 'Close', 'إغلاق'),
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

@@ -29,6 +29,9 @@ class ChatRepository {
   /// `get_new_customer_prefill` is one model call capped at 20 s server side.
   static const newCustomerPrefillTimeout = Duration(seconds: 30);
 
+  /// `send_media` uploads up to 25 MB, then Meta takes its turn.
+  static const mediaSendTimeout = Duration(minutes: 3);
+
   String get baseUrl => _dio.options.baseUrl;
 
   /// The `message` payload, or the bare body when it is not enveloped.
@@ -106,6 +109,64 @@ class ChatRepository {
       data: {'conversation': conversation, 'text': text},
     );
     return ChatMessage.fromJson(_map(response)['message']);
+  }
+
+  /// `send_media` — one file as a reply (multipart: `conversation`,
+  /// `caption`, `file`). Give [bytes] (web, or a file already in memory) or
+  /// [path] (mobile; streamed from disk). [onProgress] reports bytes sent.
+  Future<ChatMessage> sendMedia({
+    required String conversation,
+    required String filename,
+    required String mime,
+    Uint8List? bytes,
+    String? path,
+    String caption = '',
+    void Function(int sent, int total)? onProgress,
+  }) async {
+    if (bytes == null && (path == null || path.isEmpty)) {
+      throw ArgumentError('sendMedia needs bytes or a path');
+    }
+    final type = DioMediaType.parse(mime.isEmpty ? 'application/octet-stream' : mime);
+    final file = bytes != null
+        ? MultipartFile.fromBytes(bytes, filename: filename, contentType: type)
+        : await MultipartFile.fromFile(
+            path!,
+            filename: filename,
+            contentType: type,
+          );
+    final trimmed = caption.trim();
+    final response = await _dio.post(
+      ApiEndpoints.chatSendMedia,
+      data: FormData.fromMap({
+        'conversation': conversation,
+        if (trimmed.isNotEmpty) 'caption': trimmed,
+        'file': file,
+      }),
+      onSendProgress: onProgress,
+      options: Options(
+        sendTimeout: mediaSendTimeout,
+        receiveTimeout: mediaSendTimeout,
+      ),
+    );
+    final payload = _payload(response);
+    final json = payload is Map && payload['message'] is Map
+        ? payload['message']
+        : payload;
+    return ChatMessage.fromJson(json);
+  }
+
+  /// `react_to_message`; an empty [emoji] removes our reaction. Returns the
+  /// updated message when the server sent one.
+  Future<ChatMessage?> reactToMessage({
+    required String message,
+    required String emoji,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.chatReactToMessage,
+      data: {'message': message, 'emoji': emoji},
+    );
+    final payload = _map(response)['message'];
+    return payload is Map ? ChatMessage.fromJson(payload) : null;
   }
 
   /// `send_draft` — the draft as-is or edited ([finalText] decides which).

@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+	<key>NSCameraUsageDescription</key>
+	<string>The camera is used to take a photo or video to send in a customer chat.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photos and videos are chosen from your library to send in a customer chat.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your location is used to show where you are on the leads map and how far away each prospect is. It is never shared or stored.</string>
 		<key>CFBundleDevelopmentRegion</key>
