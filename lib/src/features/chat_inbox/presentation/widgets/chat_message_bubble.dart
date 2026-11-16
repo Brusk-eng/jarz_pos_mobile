@@ -29,6 +29,50 @@ String? chatMessageCopyText(ChatMessage message) {
   return parts.isEmpty ? null : parts.join('\n\n');
 }
 
+/// WhatsApp-style delivery tick for one of OUR messages, or null when there
+/// is nothing to show (failed has its own UI; unknown / empty status).
+Widget? chatReceiptTick(
+  BuildContext context,
+  ChatMessage message,
+  Color foreground,
+) {
+  if (!message.isOutbound) return null;
+  final IconData icon;
+  final String label;
+  Color color = foreground.withValues(alpha: 0.7);
+  switch (message.status) {
+    case 'queued':
+      icon = Icons.schedule;
+      label = chatBi(context, 'Sending', 'بتتبعت');
+    case 'sent':
+      icon = Icons.done;
+      label = chatBi(context, 'Sent', 'اتبعتت');
+    case 'delivered':
+      icon = Icons.done_all;
+      label = chatBi(context, 'Delivered', 'وصلت');
+    case 'read':
+      icon = Icons.done_all;
+      label = chatBi(context, 'Read', 'اتقرت');
+      color = Theme.of(context).brightness == Brightness.dark
+          ? Colors.lightBlueAccent
+          : const Color(0xFF1976D2);
+    default:
+      return null;
+  }
+  return Tooltip(
+    message: label,
+    child: Semantics(
+      label: label,
+      child: Icon(
+        icon,
+        key: ValueKey('chat-receipt-${message.status}'),
+        size: 15,
+        color: color,
+      ),
+    ),
+  );
+}
+
 /// One message: inbound on the start side, outbound on the end side.
 ///
 /// A long press opens Copy / Select text / Use in reply ([onUseInReply] is
@@ -42,9 +86,13 @@ class ChatMessageBubble extends StatelessWidget {
     this.reactionChoices = const <String>[],
     this.onReact,
     this.galleryMessages = const <ChatMessage>[],
+    this.showReceipts = true,
   });
 
   final ChatMessage message;
+
+  /// Delivery ticks on our messages. Off for comment channels (no receipts).
+  final bool showReceipts;
   final ValueChanged<String>? onUseInReply;
 
   /// The emojis staff may react with (empty = none) and the callback with the
@@ -82,6 +130,10 @@ class ChatMessageBubble extends StatelessWidget {
           (message.sentByName ?? message.sentBy) != null)
         l10n.chatSentBy((message.sentByName ?? message.sentBy)!),
     ];
+
+    final tick = outbound && showReceipts
+        ? chatReceiptTick(context, message, foreground)
+        : null;
 
     return Align(
       alignment:
@@ -128,13 +180,25 @@ class ChatMessageBubble extends StatelessWidget {
                     message: message,
                     galleryMessages: galleryMessages,
                   ),
-                  if (footer.isNotEmpty) ...[
+                  if (footer.isNotEmpty || tick != null) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      footer.join(' · '),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: foreground.withValues(alpha: 0.7),
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (footer.isNotEmpty)
+                          Flexible(
+                            child: Text(
+                              footer.join(' · '),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: foreground.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ),
+                        if (tick != null) ...[
+                          if (footer.isNotEmpty) const SizedBox(width: 4),
+                          tick,
+                        ],
+                      ],
                     ),
                   ],
                   if (message.isFailed)

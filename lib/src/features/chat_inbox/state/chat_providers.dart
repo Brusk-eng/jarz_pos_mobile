@@ -1112,7 +1112,13 @@ class ChatThreadNotifier
     final summary = event.summary;
     if (summary != null) next = next.copyWith(conversation: summary);
     final message = event.message;
+    // An update of a message we already show (delivery tick, reaction) is
+    // not a new arrival: no unread re-read.
+    final alreadyHeld =
+        message != null && current.messages.any((m) => m.name == message.name);
     if (message != null && message.name.isNotEmpty) {
+      // Upsert by name: a status / reaction update of a message already in
+      // the thread replaces it in place (no duplicate row).
       next = next.copyWith(
         messages: mergeChatMessages(next.messages, [message]),
       );
@@ -1134,7 +1140,7 @@ class ChatThreadNotifier
     }
     state = AsyncData(next);
 
-    if (message != null && message.isInbound) {
+    if (message != null && message.isInbound && !alreadyHeld) {
       // The server counts this as unread until the thread is read again;
       // re-read it shortly (debounced across a burst) while it is on screen.
       _silentRefresh?.cancel();

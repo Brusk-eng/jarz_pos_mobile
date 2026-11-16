@@ -748,6 +748,10 @@ class _ThreadBody extends StatelessWidget {
                   final message = messages[messages.length - 1 - index];
                   return ChatMessageBubble(
                     message: message,
+                    showReceipts: state.conversation.channel !=
+                            ChatChannels.facebookComment &&
+                        state.conversation.channel !=
+                            ChatChannels.instagramComment,
                     onUseInReply: onUseInReply,
                     reactionChoices: state.conversation.reactionChoices,
                     onReact: (emoji) => onReact(message, emoji),
