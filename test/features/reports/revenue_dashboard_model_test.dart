@@ -13,6 +13,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/core/network/user_service.dart';
+import 'package:jarz_pos/src/features/chat_inbox/data/models/chat_models.dart';
+import 'package:jarz_pos/src/features/chat_inbox/state/chat_providers.dart';
 import 'package:jarz_pos/src/features/reports/data/models/revenue_dashboard.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/revenue_dashboard_screen.dart';
 import 'package:jarz_pos/src/features/reports/state/reports_providers.dart';
@@ -293,6 +296,8 @@ void main() {
       RevenueDashboard data,
       Locale locale, {
       ReportRange? range,
+      bool chats = false,
+      int unread = 0,
     }) async {
       final view = tester.view;
       view.physicalSize = const Size(360 * 2, 7000 * 2);
@@ -306,6 +311,10 @@ void main() {
             revenueDashboardProvider.overrideWith((ref, q) => data),
             reportBranchesProvider.overrideWith((ref) => const []),
             reportBranchProvider.overrideWith((ref) => null),
+            canAccessChatsProvider.overrideWith((ref) => chats),
+            chatUnreadTotalProvider.overrideWith(
+              (ref) async => ChatUnreadTotal(unreadTotal: unread),
+            ),
             revenueRangeProvider.overrideWith(
               (ref) =>
                   range ??
@@ -328,6 +337,32 @@ void main() {
 
     Finder inKey(String key, Finder matching) =>
         find.descendant(of: find.byKey(ValueKey(key)), matching: matching);
+
+    testWidgets('chat button: shown with the unread badge for chat users', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        RevenueDashboard.fromJson(_json()),
+        const Locale('en'),
+        chats: true,
+        unread: 7,
+      );
+      expect(tester.takeException(), isNull);
+      final button = find.byKey(const ValueKey('revenue-open-chats'));
+      expect(button, findsOneWidget);
+      expect(
+        find.descendant(of: button, matching: find.text('7')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('chat button: hidden for users without the chat inbox', (
+      tester,
+    ) async {
+      await pump(tester, RevenueDashboard.fromJson(_json()), const Locale('en'));
+      expect(find.byKey(const ValueKey('revenue-open-chats')), findsNothing);
+    });
 
     testWidgets('English, 360dp, today: every section, no removed card', (
       tester,

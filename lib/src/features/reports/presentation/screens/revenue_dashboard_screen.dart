@@ -10,6 +10,7 @@ import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/widgets/app_drawer.dart';
+import '../../../chat_inbox/state/chat_providers.dart';
 import '../../../manager/state/manager_providers.dart';
 import '../../data/models/report_json.dart';
 import '../../data/models/revenue_dashboard.dart';
@@ -83,6 +84,7 @@ class _RevenueDashboardScreenState
       appBar: AppBar(
         title: Text(l10n.rptRevenueDashboardTitle),
         actions: [
+          if (ref.watch(canAccessChatsProvider)) const _ChatShortcut(),
           ReportExportButton(
             title: l10n.rptRevenueDashboardTitle,
             rows: () => _exportRows(context, async.valueOrNull),
@@ -1271,6 +1273,31 @@ class _ByHourCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────
 // 6. Footer links
 // ─────────────────────────────────────────────────────────────────────────
+
+/// One tap from the revenue dashboard to the chat inbox, badged with the
+/// unread inbound messages (same count as the side menu). Pushed, so Back
+/// returns to the dashboard. Shown only to users the chat API lets in.
+class _ChatShortcut extends ConsumerWidget {
+  const _ChatShortcut();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(chatUnreadTotalProvider).maybeWhen(
+          data: (total) => total.unreadTotal,
+          orElse: () => 0,
+        );
+    return IconButton(
+      key: const ValueKey('revenue-open-chats'),
+      tooltip: context.l10n.chatNavLabel,
+      onPressed: () => context.push(AppRoutes.chats),
+      icon: Badge(
+        isLabelVisible: count > 0,
+        label: Text(count > 99 ? '99+' : '$count'),
+        child: const Icon(Icons.forum_outlined),
+      ),
+    );
+  }
+}
 
 class _FooterLinks extends ConsumerWidget {
   const _FooterLinks();
