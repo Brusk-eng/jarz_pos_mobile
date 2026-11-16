@@ -8,7 +8,10 @@
 // Hebrew / Persian script, or when Arabic-script words are at least as many as
 // Latin words; left-to-right otherwise.
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import 'chat_linkify.dart';
 
 bool _isRtlScript(int rune) =>
     // Arabic-Indic digits are numbers, not letters: not strong.
@@ -74,43 +77,115 @@ TextDirection chatTextDirection(String text, TextDirection fallback) {
   return TextDirection.ltr;
 }
 
-/// Text of several paragraphs ('\n'), each laid out in its own direction and
+/// Text of several paragraphs (newline), each laid out in its own direction and
 /// aligned to its own start, while the whole stays shrink-wrapped (a chat
 /// bubble keeps hugging its text).
 ///
 /// Plain [Text] on purpose: a long press must reach the bubble, and a
 /// surrounding `SelectionArea` (the "Select text" sheet) can still select it.
-class ChatBidiText extends StatelessWidget {
+/// Links, emails and phone numbers ([findChatLinks]) are underlined spans with
+/// a tap recognizer only (no long-press recognizer, so the bubble's long press
+/// still opens the actions sheet). Pass `linkify: false` to turn that off.
+class ChatBidiText extends StatefulWidget {
   const ChatBidiText(
     this.text, {
     super.key,
     this.style,
     this.maxLines,
     this.overflow,
+    this.linkify = true,
+    this.linkColor,
   });
 
   final String text;
   final TextStyle? style;
   final int? maxLines;
   final TextOverflow? overflow;
+  final bool linkify;
+  final Color? linkColor;
+
+  @override
+  State<ChatBidiText> createState() => _ChatBidiTextState();
+}
+
+class _ChatBidiTextState extends State<ChatBidiText> {
+  final List<TapGestureRecognizer> _recognizers = [];
+
+  void _disposeRecognizers() {
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    _recognizers.clear();
+  }
+
+  @override
+  void dispose() {
+    _disposeRecognizers();
+    super.dispose();
+  }
+
+  Widget _paragraph(
+    String paragraph,
+    TextDirection fallback,
+    Color linkColor,
+  ) {
+    final direction = chatTextDirection(paragraph, fallback);
+    final links = widget.linkify ? findChatLinks(paragraph) : const [];
+    if (links.isEmpty) {
+      return Text(
+        paragraph,
+        style: widget.style,
+        maxLines: widget.maxLines,
+        overflow: widget.overflow,
+        textAlign: TextAlign.start,
+        textDirection: direction,
+      );
+    }
+    final spans = <InlineSpan>[];
+    var cursor = 0;
+    for (final link in links) {
+      if (link.start > cursor) {
+        spans.add(TextSpan(text: paragraph.substring(cursor, link.start)));
+      }
+      final recognizer = TapGestureRecognizer()
+        ..onTap = () => openChatLink(context, link);
+      _recognizers.add(recognizer);
+      spans.add(TextSpan(
+        text: link.text,
+        style: TextStyle(
+          color: linkColor,
+          decoration: TextDecoration.underline,
+          decorationColor: linkColor,
+        ),
+        recognizer: recognizer,
+      ));
+      cursor = link.end;
+    }
+    if (cursor < paragraph.length) {
+      spans.add(TextSpan(text: paragraph.substring(cursor)));
+    }
+    return Text.rich(
+      TextSpan(children: spans),
+      style: widget.style,
+      maxLines: widget.maxLines,
+      overflow: widget.overflow,
+      textAlign: TextAlign.start,
+      textDirection: direction,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    _disposeRecognizers();
     final fallback = Directionality.of(context);
-    final paragraphs = text.split('\n');
+    final linkColor =
+        widget.linkColor ?? Theme.of(context).colorScheme.primary;
     final children = <Widget>[
-      for (final paragraph in paragraphs)
+      for (final paragraph in widget.text.split('\n'))
         paragraph.isEmpty
             // A blank line keeps its height without a direction.
-            ? Text(' ', style: style)
-            : Text(
-                paragraph,
-                style: style,
-                maxLines: maxLines,
-                overflow: overflow,
-                textAlign: TextAlign.start,
-                textDirection: chatTextDirection(paragraph, fallback),
-              ),
+            ? Text(' ', style: widget.style)
+            : _paragraph(paragraph, fallback, linkColor),
     ];
     if (children.length == 1) return children.single;
     return IntrinsicWidth(

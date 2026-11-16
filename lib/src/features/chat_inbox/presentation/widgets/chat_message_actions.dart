@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../chat_bidi.dart';
 import '../chat_labels.dart';
+import '../chat_linkify.dart';
 
 /// Copies [text] and says so. The snackbar is raised on [messenger] so it
 /// survives the sheet that triggered it closing.
@@ -25,13 +26,18 @@ Future<void> copyChatText(
     );
 }
 
-/// The long-press sheet of a bubble: Copy, Select text, Use in reply.
+/// The long-press sheet of a bubble: Copy, Select text, Use in reply, and
+/// Open link when the message contains a URL (one row per link, max 5).
 Future<void> showChatMessageActionsSheet(
   BuildContext context, {
   required String text,
   ValueChanged<String>? onUseInReply,
 }) {
   final messenger = ScaffoldMessenger.maybeOf(context);
+  final urls = findChatLinks(text)
+      .where((l) => l.kind == ChatLinkKind.url)
+      .take(5)
+      .toList();
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
@@ -40,6 +46,28 @@ Future<void> showChatMessageActionsSheet(
         key: const ValueKey('chat-message-actions'),
         mainAxisSize: MainAxisSize.min,
         children: [
+          for (var i = 0; i < urls.length; i++)
+            ListTile(
+              key: ValueKey('chat-action-open-link-$i'),
+              leading: const Icon(Icons.open_in_new),
+              title: Text(
+                chatBi(sheetContext, 'Open link', 'فتح اللينك'),
+              ),
+              subtitle: urls.length == 1
+                  ? null
+                  : Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        urls[i].text,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                openChatLink(context, urls[i]);
+              },
+            ),
           ListTile(
             key: const ValueKey('chat-action-copy'),
             leading: const Icon(Icons.copy_outlined),

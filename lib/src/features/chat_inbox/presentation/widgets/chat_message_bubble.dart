@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -7,6 +8,7 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../data/chat_repository.dart';
 import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
+import '../../state/chat_voice_note_playback.dart';
 import '../chat_labels.dart';
 import '../chat_bidi.dart';
 import 'chat_media_open.dart';
@@ -157,8 +159,16 @@ class ChatMessageContent extends StatelessWidget {
     final l10n = context.l10n;
     final type = message.messageType;
     final body = message.body.trim();
+    final linkColor = message.isOutbound
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : null;
+    final isDocument = type == 'document';
+    final docParts = isDocument ? chatSplitDocumentBody(body) : null;
+    final captionText = isDocument ? docParts!.caption : body;
 
-    Widget? caption() => body.isEmpty ? null : ChatBidiText(body);
+    Widget? caption() => captionText.isEmpty
+        ? null
+        : ChatBidiText(captionText, linkColor: linkColor);
 
     switch (type) {
       case 'image':
@@ -185,7 +195,10 @@ class ChatMessageContent extends StatelessWidget {
             if (type == 'audio')
               ChatVoiceNotePlayer(message: message)
             else
-              ChatMediaOpenTile(message: message),
+              ChatMediaOpenTile(
+                message: message,
+                fileName: docParts?.fileName,
+              ),
             if (transcript != null) ...[
               const SizedBox(height: 6),
               ChatVoiceTranscript(text: transcript),
@@ -225,7 +238,7 @@ class ChatMessageContent extends StatelessWidget {
       case 'reaction':
         return Text(body.isEmpty ? l10n.chatMessageReaction : body);
       default:
-        if (body.isNotEmpty) return ChatBidiText(body);
+        if (body.isNotEmpty) return ChatBidiText(body, linkColor: linkColor);
         final label = chatMessageTypeLabel(l10n, type);
         return Text(
           label.isEmpty ? l10n.chatMessageUnsupported : label,
@@ -250,8 +263,10 @@ class ChatMessageImage extends ConsumerWidget {
       return _MediaPlaceholder(
         icon: Icons.image_outlined,
         label: l10n.chatMediaUnavailable,
+        detail: message.error,
       );
     }
+    final sticker = message.messageType == 'sticker';
     final bytes = ref.watch(chatMediaBytesProvider(url!));
     return bytes.when(
       loading: () => const SizedBox(
@@ -262,25 +277,30 @@ class ChatMessageImage extends ConsumerWidget {
       error: (e, _) => _MediaPlaceholder(
         icon: Icons.broken_image_outlined,
         label: l10n.chatMediaLoadFailed,
+        detail: message.error,
       ),
       data: (data) => GestureDetector(
         onTap: () => showDialog<void>(
           context: context,
-          builder: (context) => Dialog(
-            insetPadding: const EdgeInsets.all(12),
-            child: InteractiveViewer(child: Image.memory(data)),
+          builder: (dialogContext) => _ChatImageViewerDialog(
+            data: data,
+            message: message,
           ),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 260, maxWidth: 260),
+            constraints: sticker
+                ? const BoxConstraints(maxHeight: 140, maxWidth: 140)
+                : const BoxConstraints(maxHeight: 260, maxWidth: 260),
             child: Image.memory(
               data,
-              fit: BoxFit.cover,
+              // A sticker is shown whole; a photo fills its frame.
+              fit: sticker ? BoxFit.contain : BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => _MediaPlaceholder(
                 icon: Icons.broken_image_outlined,
                 label: l10n.chatMediaLoadFailed,
+                detail: message.error,
               ),
             ),
           ),
@@ -293,9 +313,12 @@ class ChatMessageImage extends ConsumerWidget {
 /// Video / document as a tile that opens the file (see
 /// [openChatMediaAttachment]: the browser on web, the share sheet elsewhere).
 class ChatMediaOpenTile extends ConsumerStatefulWidget {
-  const ChatMediaOpenTile({super.key, required this.message});
+  const ChatMediaOpenTile({super.key, required this.message, this.fileName});
 
   final ChatMessage message;
+
+  /// The document's file name (first line of its body); null shows the type.
+  final String? fileName;
 
   @override
   ConsumerState<ChatMediaOpenTile> createState() => _ChatMediaOpenTileState();
@@ -325,20 +348,36 @@ class _ChatMediaOpenTileState extends ConsumerState<ChatMediaOpenTile> {
     final l10n = context.l10n;
     final type = widget.message.messageType;
     final available = ChatRepository.isSessionMediaUrl(widget.message.mediaUrl);
+    if (!available) {
+      return _MediaPlaceholder(
+        icon: chatMessageTypeIcon(type),
+        label: l10n.chatMediaUnavailable,
+        detail: widget.message.error,
+      );
+    }
+    final isDocument = type == 'document';
+    final name = widget.fileName ??
+        (isDocument ? chatMediaFileName(widget.message.mediaUrl!) : null);
+    final icon = isDocument
+        ? chatDocumentIcon(widget.message.mediaMime, name)
+        : chatMessageTypeIcon(type);
     return OutlinedButton.icon(
-      onPressed: available && !_busy ? _open : null,
+      onPressed: !_busy ? _open : null,
       icon: _busy
           ? const SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : Icon(chatMessageTypeIcon(type)),
-      label: Text(
-        available
-            ? '${chatMessageTypeLabel(l10n, type)} · ${l10n.chatOpenMedia}'
-            : l10n.chatMediaUnavailable,
-      ),
+          : Icon(icon),
+      label: isDocument && name != null
+          ? Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            )
+          : Text(
+              '${chatMessageTypeLabel(l10n, type)} · ${l10n.chatOpenMedia}',
+            ),
     );
   }
 }
@@ -475,25 +514,163 @@ TextDirection? chatTextDirectionOf(String text) {
 }
 
 class _MediaPlaceholder extends StatelessWidget {
-  const _MediaPlaceholder({required this.icon, required this.label});
+  const _MediaPlaceholder({
+    required this.icon,
+    required this.label,
+    this.detail,
+  });
 
   final IconData icon;
   final String label;
 
+  /// The message's `error` text, shown small under the label.
+  final String? detail;
+
   @override
   Widget build(BuildContext context) {
+    final error = detail?.trim();
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 18),
         const SizedBox(width: 6),
         Flexible(
-          child: Text(
-            label,
-            style: const TextStyle(fontStyle: FontStyle.italic),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontStyle: FontStyle.italic),
+              ),
+              if (error != null && error.isNotEmpty)
+                Text(
+                  error,
+                  key: const ValueKey('chat-media-error-detail'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+/// A document body is `filename\ncaption`. Older messages hold only a caption:
+/// a single line counts as the file name only when it looks like one
+/// (`report.pdf`), otherwise it is the caption.
+({String? fileName, String caption}) chatSplitDocumentBody(String body) {
+  final text = body.trim();
+  if (text.isEmpty) return (fileName: null, caption: '');
+  final newline = text.indexOf('\n');
+  if (newline < 0) {
+    final looksLikeFile = RegExp(
+      r'^[^\s/\\][^/\\]*\.[A-Za-z0-9]{1,5}$',
+    ).hasMatch(text);
+    return looksLikeFile
+        ? (fileName: text, caption: '')
+        : (fileName: null, caption: text);
+  }
+  final first = text.substring(0, newline).trim();
+  return (
+    fileName: first.isEmpty ? null : first,
+    caption: text.substring(newline + 1).trim(),
+  );
+}
+
+/// A file-type icon from the mime type, falling back to the file extension.
+IconData chatDocumentIcon(String? mime, String? fileName) {
+  final m = (mime ?? '').split(';').first.trim().toLowerCase();
+  final dot = (fileName ?? '').lastIndexOf('.');
+  final ext = dot < 0 ? '' : fileName!.substring(dot + 1).toLowerCase();
+  if (m == 'application/pdf' || ext == 'pdf') {
+    return Icons.picture_as_pdf_outlined;
+  }
+  if (m.startsWith('image/') ||
+      const {'jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'}.contains(ext)) {
+    return Icons.image_outlined;
+  }
+  if (m.startsWith('audio/') ||
+      const {'mp3', 'ogg', 'opus', 'wav', 'm4a', 'aac'}.contains(ext)) {
+    return Icons.audiotrack_outlined;
+  }
+  if (m.startsWith('video/') ||
+      const {'mp4', 'mov', 'avi', 'mkv', '3gp'}.contains(ext)) {
+    return Icons.videocam_outlined;
+  }
+  if (m.contains('spreadsheet') ||
+      m.contains('excel') ||
+      m == 'text/csv' ||
+      const {'xls', 'xlsx', 'csv', 'ods'}.contains(ext)) {
+    return Icons.table_chart_outlined;
+  }
+  if (m.contains('word') ||
+      m.contains('opendocument.text') ||
+      const {'doc', 'docx', 'odt', 'rtf', 'txt'}.contains(ext)) {
+    return Icons.article_outlined;
+  }
+  if (m.contains('zip') ||
+      m.contains('compressed') ||
+      m.contains('rar') ||
+      const {'zip', 'rar', '7z', 'tar', 'gz'}.contains(ext)) {
+    return Icons.folder_zip_outlined;
+  }
+  return Icons.insert_drive_file_outlined;
+}
+
+/// Full-size image with Close and Share. Share hands the loaded bytes to the
+/// share sheet; on web it opens the file in a new tab instead.
+class _ChatImageViewerDialog extends ConsumerWidget {
+  const _ChatImageViewerDialog({required this.data, required this.message});
+
+  final Uint8List data;
+  final ChatMessage message;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Dialog(
+      key: const ValueKey('chat-image-viewer'),
+      insetPadding: const EdgeInsets.all(12),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: InteractiveViewer(child: Image.memory(data)),
+          ),
+          PositionedDirectional(
+            top: 4,
+            end: 4,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton.filledTonal(
+                  key: const ValueKey('chat-image-share'),
+                  tooltip: kIsWeb
+                      ? chatBi(context, 'Open in new tab', 'فتح في تبويب جديد')
+                      : chatBi(context, 'Share', 'مشاركة'),
+                  icon: Icon(kIsWeb ? Icons.open_in_new : Icons.share_outlined),
+                  onPressed: () => openChatMediaAttachment(
+                    context,
+                    ref.read(chatRepositoryProvider),
+                    message,
+                    bytes: data,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton.filledTonal(
+                  key: const ValueKey('chat-image-close'),
+                  tooltip: chatBi(context, 'Close', 'إغلاق'),
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
