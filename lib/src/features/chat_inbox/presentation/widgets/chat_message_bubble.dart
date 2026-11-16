@@ -87,9 +87,21 @@ class ChatMessageBubble extends StatelessWidget {
     this.onReact,
     this.galleryMessages = const <ChatMessage>[],
     this.showReceipts = true,
+    this.onEditMessage,
+    this.onDeleteMessage,
+    this.onCorrection,
   });
 
   final ChatMessage message;
+
+  /// Our message edited / deleted for everyone (shown when the server's
+  /// `can_edit` / `can_delete` allow it).
+  final ValueChanged<String>? onEditMessage;
+  final VoidCallback? onDeleteMessage;
+
+  /// "Send correction": gets the prefixed old text for the composer. Only
+  /// given on WhatsApp / Messenger / Instagram DMs.
+  final ValueChanged<String>? onCorrection;
 
   /// Delivery ticks on our messages. Off for comment channels (no receipts).
   final bool showReceipts;
@@ -102,6 +114,15 @@ class ChatMessageBubble extends StatelessWidget {
 
   /// Every photo of the thread, oldest first, for the full-screen viewer.
   final List<ChatMessage> galleryMessages;
+
+  Future<void> _edit(BuildContext context) async {
+    final text = await showChatEditDialog(context, message.body);
+    if (text != null) onEditMessage?.call(text);
+  }
+
+  Future<void> _delete(BuildContext context) async {
+    if (await showChatDeleteConfirm(context)) onDeleteMessage?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +138,17 @@ class ChatMessageBubble extends StatelessWidget {
     final time = message.time;
     final copyText = chatMessageCopyText(message);
     final canReact = onReact != null && chatCanReact(message, reactionChoices);
+    final deleted = message.isDeleted;
+    final canEdit =
+        outbound && !deleted && message.canEdit && onEditMessage != null;
+    final canDelete =
+        outbound && !deleted && message.canDelete && onDeleteMessage != null;
+    final canCorrect = outbound &&
+        !deleted &&
+        !canEdit &&
+        !canDelete &&
+        onCorrection != null &&
+        copyText != null;
     // Staff reactions sit on inbound bubbles, the customer's on outbound ones.
     final reaction = outbound ? message.customerReaction : message.staffReaction;
     final hasReaction = reaction != null && reaction.isNotEmpty;
@@ -144,7 +176,8 @@ class ChatMessageBubble extends StatelessWidget {
         ),
         child: GestureDetector(
           behavior: HitTestBehavior.deferToChild,
-          onLongPress: copyText == null && !canReact
+          onLongPress: deleted ||
+                  (copyText == null && !canReact && !canEdit && !canDelete)
               ? null
               : () => showChatMessageActionsSheet(
                   context,
@@ -153,6 +186,11 @@ class ChatMessageBubble extends StatelessWidget {
                   reactionChoices: canReact ? reactionChoices : const <String>[],
                   currentReaction: message.staffReaction,
                   onReact: canReact ? onReact : null,
+                  canEdit: canEdit,
+                  canDelete: canDelete,
+                  onEdit: canEdit ? () => _edit(context) : null,
+                  onDelete: canDelete ? () => _delete(context) : null,
+                  onCorrection: canCorrect ? onCorrection : null,
                 ),
           child: Stack(
             clipBehavior: Clip.none,
@@ -176,11 +214,16 @@ class ChatMessageBubble extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ChatMessageContent(
-                    message: message,
-                    galleryMessages: galleryMessages,
-                  ),
-                  if (footer.isNotEmpty || tick != null) ...[
+                  if (deleted)
+                    ChatDeletedBody(message: message)
+                  else
+                    ChatMessageContent(
+                      message: message,
+                      galleryMessages: galleryMessages,
+                    ),
+                  if (footer.isNotEmpty ||
+                      tick != null ||
+                      (message.isEdited && !deleted)) ...[
                     const SizedBox(height: 4),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -194,8 +237,16 @@ class ChatMessageBubble extends StatelessWidget {
                               ),
                             ),
                           ),
+                        if (message.isEdited && !deleted) ...[
+                          if (footer.isNotEmpty) const SizedBox(width: 6),
+                          ChatEditedLabel(
+                            message: message,
+                            color: foreground.withValues(alpha: 0.7),
+                          ),
+                        ],
                         if (tick != null) ...[
-                          if (footer.isNotEmpty) const SizedBox(width: 4),
+                          if (footer.isNotEmpty || message.isEdited)
+                            const SizedBox(width: 4),
                           tick,
                         ],
                       ],
@@ -249,6 +300,102 @@ class ChatMessageBubble extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// edited label: tap shows the text before the edit.
+class ChatEditedLabel extends StatelessWidget {
+  const ChatEditedLabel({super.key, required this.message, required this.color});
+
+  final ChatMessage message;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final original = message.originalBody;
+    return InkWell(
+      key: const ValueKey('chat-edited-label'),
+      onTap: original == null || original.trim().isEmpty
+          ? null
+          : () => showDialog<void>(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(chatBi(
+                    dialogContext,
+                    'Original text',
+                    'النص الأصلي',
+                  )),
+                  content: SelectableText(original),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: Text(chatBi(dialogContext, 'Close', 'إغلاق')),
+                    ),
+                  ],
+                ),
+              ),
+      child: Text(
+        chatBi(context, 'edited', 'اتعدلت'),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontStyle: FontStyle.italic,
+            ),
+      ),
+    );
+  }
+}
+
+/// A deleted message: greyed italic notice; tap toggles the original text
+/// (staff only) dimmed underneath.
+class ChatDeletedBody extends StatefulWidget {
+  const ChatDeletedBody({super.key, required this.message});
+
+  final ChatMessage message;
+
+  @override
+  State<ChatDeletedBody> createState() => _ChatDeletedBodyState();
+}
+
+class _ChatDeletedBodyState extends State<ChatDeletedBody> {
+  bool _show = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = widget.message;
+    final original = (message.originalBody ?? message.body).trim();
+    final notice = message.isInbound
+        ? chatBi(
+            context,
+            '🚫 Customer deleted this message',
+            '🚫 العميل مسح الرسالة',
+          )
+        : chatBi(context, '🚫 Message deleted', '🚫 الرسالة اتمسحت');
+    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontStyle: FontStyle.italic,
+          color:
+              DefaultTextStyle.of(context).style.color?.withValues(alpha: 0.55),
+        );
+    return InkWell(
+      key: const ValueKey('chat-deleted-body'),
+      onTap: original.isEmpty ? null : () => setState(() => _show = !_show),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(notice, style: style),
+          if (_show && original.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Opacity(
+              opacity: 0.55,
+              child: ChatBidiText(
+                original,
+                key: const ValueKey('chat-deleted-original'),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

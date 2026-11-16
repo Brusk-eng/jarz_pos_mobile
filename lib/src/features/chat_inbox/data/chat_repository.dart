@@ -169,6 +169,34 @@ class ChatRepository {
     return payload is Map ? ChatMessage.fromJson(payload) : null;
   }
 
+  /// Feature-local paths (kept out of `ApiEndpoints`, so a Dart-only patch).
+  static const deleteMessagePath =
+      '/api/method/jarz_pos.api.chat.delete_message';
+  static const editMessagePath = '/api/method/jarz_pos.api.chat.edit_message';
+
+  /// `delete_message`: deletes our comment reply for everyone.
+  Future<ChatMessage?> deleteMessage({required String message}) async {
+    final response = await _dio.post(
+      deleteMessagePath,
+      data: {'message': message},
+    );
+    final payload = _map(response)['message'];
+    return payload is Map ? ChatMessage.fromJson(payload) : null;
+  }
+
+  /// `edit_message`: replaces the text of our comment reply.
+  Future<ChatMessage?> editMessage({
+    required String message,
+    required String text,
+  }) async {
+    final response = await _dio.post(
+      editMessagePath,
+      data: {'message': message, 'text': text},
+    );
+    final payload = _map(response)['message'];
+    return payload is Map ? ChatMessage.fromJson(payload) : null;
+  }
+
   /// `send_draft` — the draft as-is or edited ([finalText] decides which).
   Future<ChatSendDraftResult> sendDraft({
     required String draft,

@@ -371,6 +371,9 @@ bool chatChannelCanSendMedia(String channel) {
   return c == 'whatsapp' || c == 'messenger' || c == 'instagram';
 }
 
+bool _chatFlag(dynamic v) =>
+    v == true || v == 1 || v == '1' || (v is String && v.toLowerCase() == 'true');
+
 /// `Message` — one bubble in a thread.
 class ChatMessage {
   final String name;
@@ -398,6 +401,22 @@ class ChatMessage {
   final String? staffReaction;
   final String? customerReaction;
 
+  /// Set when the message was deleted for everyone (our comment reply removed
+  /// by staff, or the customer deleted / unsent theirs). The server keeps the
+  /// text in [originalBody].
+  final String? deletedAt;
+
+  /// Set when the text was edited (by staff on a Facebook comment reply, or by
+  /// the customer). [body] is the current text.
+  final String? editedAt;
+
+  /// The text before the first edit, or the deleted text.
+  final String? originalBody;
+
+  /// Server verdicts: staff may delete / edit this message for everyone now.
+  final bool canDelete;
+  final bool canEdit;
+
   const ChatMessage({
     required this.name,
     this.direction = 'Inbound',
@@ -414,6 +433,11 @@ class ChatMessage {
     this.transcript,
     this.staffReaction,
     this.customerReaction,
+    this.deletedAt,
+    this.editedAt,
+    this.originalBody,
+    this.canDelete = false,
+    this.canEdit = false,
   });
 
   factory ChatMessage.fromJson(dynamic raw) {
@@ -434,6 +458,11 @@ class ChatMessage {
       transcript: chatNullableString(json['transcript']),
       staffReaction: chatNullableString(json['staff_reaction']),
       customerReaction: chatNullableString(json['customer_reaction']),
+      deletedAt: chatNullableString(json['deleted_at']),
+      editedAt: chatNullableString(json['edited_at']),
+      originalBody: chatNullableString(json['original_body']),
+      canDelete: _chatFlag(json['can_delete']),
+      canEdit: _chatFlag(json['can_edit']),
     );
   }
 
@@ -472,8 +501,16 @@ class ChatMessage {
       transcript: setTranscript ? transcript : this.transcript,
       staffReaction: setStaffReaction ? staffReaction : this.staffReaction,
       customerReaction: customerReaction,
+      deletedAt: deletedAt,
+      editedAt: editedAt,
+      originalBody: originalBody,
+      canDelete: canDelete,
+      canEdit: canEdit,
     );
   }
+
+  bool get isDeleted => deletedAt != null;
+  bool get isEdited => editedAt != null;
 
   bool get isInbound => direction == 'Inbound';
   bool get isOutbound => !isInbound;

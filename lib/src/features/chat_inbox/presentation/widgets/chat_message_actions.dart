@@ -32,6 +32,91 @@ Future<void> copyChatText(
 bool chatCanReact(ChatMessage message, List<String> reactionChoices) =>
     message.isInbound && message.name.isNotEmpty && reactionChoices.isNotEmpty;
 
+/// «تصحيح: » / "Correction: " (by the script of [oldText]) followed by the
+/// old text: what "Send correction" puts in the composer.
+String chatCorrectionText(String oldText) {
+  final rtl = chatTextDirection(oldText, TextDirection.ltr) == TextDirection.rtl;
+  return '${rtl ? 'تصحيح: ' : 'Correction: '}${oldText.trim()}';
+}
+
+/// The one-line hint shown with "Send correction".
+String chatCorrectionHint(BuildContext context) => chatBi(
+      context,
+      "Meta doesn't allow deleting or editing a sent private message "
+          '— send a correction',
+      'ميتا مش بتسمح بمسح أو تعديل رسالة اتبعتت في الخاص — ابعت تصحيح',
+    );
+
+/// Edit dialog: returns the new text, or null when cancelled / unchanged.
+Future<String?> showChatEditDialog(BuildContext context, String current) {
+  final controller = TextEditingController(text: current);
+  return showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(chatBi(dialogContext, 'Edit message', 'تعديل الرسالة')),
+      content: TextField(
+        key: const ValueKey('chat-edit-field'),
+        controller: controller,
+        autofocus: true,
+        minLines: 2,
+        maxLines: 8,
+        keyboardType: TextInputType.multiline,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: Text(chatBi(dialogContext, 'Cancel', 'إلغاء')),
+        ),
+        FilledButton(
+          key: const ValueKey('chat-edit-save'),
+          onPressed: () {
+            final text = controller.text.trim();
+            Navigator.of(dialogContext)
+                .pop(text.isEmpty || text == current.trim() ? null : text);
+          },
+          child: Text(chatBi(dialogContext, 'Save', 'حفظ')),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Destructive confirm for "Delete for everyone".
+Future<bool> showChatDeleteConfirm(BuildContext context) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      final scheme = Theme.of(dialogContext).colorScheme;
+      return AlertDialog(
+        title: Text(
+          chatBi(dialogContext, 'Delete for everyone?', 'مسح عند الكل؟'),
+        ),
+        content: Text(chatBi(
+          dialogContext,
+          'The customer will no longer see this message.',
+          'العميل مش هيشوف الرسالة دي تاني.',
+        )),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(chatBi(dialogContext, 'Cancel', 'إلغاء')),
+          ),
+          FilledButton(
+            key: const ValueKey('chat-delete-confirm'),
+            style: FilledButton.styleFrom(
+              backgroundColor: scheme.error,
+              foregroundColor: scheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(chatBi(dialogContext, 'Delete', 'مسح')),
+          ),
+        ],
+      );
+    },
+  );
+  return ok ?? false;
+}
+
 /// The long-press sheet of a bubble: the reaction row (inbound messages, when
 /// the channel has [reactionChoices]), Copy, Select text, Use in reply, and
 /// Open link when the message contains a URL (one row per link, max 5).
@@ -45,6 +130,11 @@ Future<void> showChatMessageActionsSheet(
   List<String> reactionChoices = const <String>[],
   String? currentReaction,
   ValueChanged<String>? onReact,
+  bool canEdit = false,
+  bool canDelete = false,
+  VoidCallback? onEdit,
+  VoidCallback? onDelete,
+  ValueChanged<String>? onCorrection,
 }) {
   final messenger = ScaffoldMessenger.maybeOf(context);
   final copyText = text;
@@ -84,6 +174,54 @@ Future<void> showChatMessageActionsSheet(
                   ],
                 ),
               ),
+            ),
+          if (canEdit && onEdit != null)
+            ListTile(
+              key: const ValueKey('chat-action-edit'),
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(chatBi(sheetContext, 'Edit', 'تعديل')),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                onEdit();
+              },
+            ),
+          if (canDelete && onDelete != null)
+            ListTile(
+              key: const ValueKey('chat-action-delete'),
+              leading: Icon(
+                Icons.delete_outline,
+                color: Theme.of(sheetContext).colorScheme.error,
+              ),
+              title: Text(
+                chatBi(sheetContext, 'Delete for everyone', 'امسح عند الكل'),
+                style: TextStyle(
+                  color: Theme.of(sheetContext).colorScheme.error,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                onDelete();
+              },
+            ),
+          if (!canEdit &&
+              !canDelete &&
+              onCorrection != null &&
+              copyText != null)
+            ListTile(
+              key: const ValueKey('chat-action-correction'),
+              leading: const Icon(Icons.edit_note),
+              title: Text(chatBi(sheetContext, 'Send correction', 'ابعت تصحيح')),
+              subtitle: Text(chatCorrectionHint(sheetContext)),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                onCorrection(chatCorrectionText(copyText));
+                messenger
+                  ?..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(
+                    key: const ValueKey('chat-correction-snack'),
+                    content: Text(chatCorrectionHint(context)),
+                  ));
+              },
             ),
           for (var i = 0; i < urls.length; i++)
             ListTile(

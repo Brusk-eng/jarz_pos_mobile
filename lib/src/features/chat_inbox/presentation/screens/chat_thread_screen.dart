@@ -84,6 +84,32 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     _composerFocus.requestFocus();
   }
 
+  /// "Send correction": replace the composer with [text], focused, cursor at
+  /// the end, so staff fix it and send.
+  void _setComposerText(String text) {
+    _composer.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    _composerFocus.requestFocus();
+  }
+
+  Future<void> _editMessage(ChatMessage message, String text) async {
+    try {
+      await _notifier.editMessage(message, text);
+    } catch (e) {
+      _snackError(e);
+    }
+  }
+
+  Future<void> _deleteMessage(ChatMessage message) async {
+    try {
+      await _notifier.deleteMessage(message);
+    } catch (e) {
+      _snackError(e);
+    }
+  }
+
   void _onComposerChanged() {
     if (mounted) setState(() {});
   }
@@ -612,6 +638,9 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
           composerFocus: _composerFocus,
           onUseInReply: _useInReply,
           onReact: _react,
+          onCorrection: _setComposerText,
+          onEdit: _editMessage,
+          onDelete: _deleteMessage,
           onAttach: _attach,
           linkBanner: data.conversation.customer != null
               ? null
@@ -643,6 +672,11 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
   }
 }
 
+bool _isDmChannel(String channel) =>
+    channel == ChatChannels.whatsApp ||
+    channel == ChatChannels.messenger ||
+    channel == ChatChannels.instagram;
+
 class _ThreadBody extends StatelessWidget {
   const _ThreadBody({
     required this.state,
@@ -650,6 +684,9 @@ class _ThreadBody extends StatelessWidget {
     required this.composerFocus,
     required this.onUseInReply,
     required this.onReact,
+    required this.onCorrection,
+    required this.onEdit,
+    required this.onDelete,
     required this.onAttach,
     required this.linkBanner,
     required this.sending,
@@ -666,6 +703,9 @@ class _ThreadBody extends StatelessWidget {
   final FocusNode composerFocus;
   final ValueChanged<String> onUseInReply;
   final Future<void> Function(ChatMessage message, String emoji) onReact;
+  final ValueChanged<String> onCorrection;
+  final Future<void> Function(ChatMessage message, String text) onEdit;
+  final Future<void> Function(ChatMessage message) onDelete;
   final VoidCallback onAttach;
   final Widget? linkBanner;
   final bool sending;
@@ -753,6 +793,11 @@ class _ThreadBody extends StatelessWidget {
                         state.conversation.channel !=
                             ChatChannels.instagramComment,
                     onUseInReply: onUseInReply,
+                    onEditMessage: (text) => onEdit(message, text),
+                    onDeleteMessage: () => onDelete(message),
+                    onCorrection: _isDmChannel(state.conversation.channel)
+                        ? onCorrection
+                        : null,
                     reactionChoices: state.conversation.reactionChoices,
                     onReact: (emoji) => onReact(message, emoji),
                     galleryMessages: galleryImages,

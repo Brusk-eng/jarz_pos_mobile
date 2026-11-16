@@ -941,6 +941,23 @@ class ChatThreadNotifier
     }
   }
 
+  /// `delete_message`: the server's copy (deleted_at set) replaces the
+  /// message. A refusal rethrows with nothing changed.
+  Future<void> deleteMessage(ChatMessage message) async {
+    final updated = await _mutate(
+      () => _repo.deleteMessage(message: message.name),
+    );
+    _appendMessage(updated);
+  }
+
+  /// `edit_message`: the server's copy (edited_at set) replaces the message.
+  Future<void> editMessage(ChatMessage message, String text) async {
+    final updated = await _mutate(
+      () => _repo.editMessage(message: message.name, text: text),
+    );
+    _appendMessage(updated);
+  }
+
   /// `send_draft`. Returns the full result so the screen can show the
   /// planted-draft dialog.
   Future<ChatSendDraftResult> sendDraft({
