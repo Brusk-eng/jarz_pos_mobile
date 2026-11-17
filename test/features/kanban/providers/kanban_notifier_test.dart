@@ -185,6 +185,23 @@ class _FakeKanbanService extends KanbanService {
   Future<dynamic> rawPost(String path, Map<String, dynamic> data) async {
     return {'message': 'ok'};
   }
+
+  final List<String?> returnRequestIds = [];
+
+  @override
+  Future<Map<String, dynamic>> submitInvoiceReturn({
+    required String invoiceName,
+    required List<Map<String, dynamic>> lines,
+    required String reason,
+    required String returnType,
+    required String refundMode,
+    required bool payCourierForTrip,
+    String? notes,
+    String? requestId,
+  }) async {
+    returnRequestIds.add(requestId);
+    return {'success': true, 'credit_note': 'ACC-SINV-CN-1'};
+  }
 }
 
 class _FakeWebSocketService extends WebSocketService {
@@ -727,6 +744,50 @@ void main() {
 
       final state = container.read(kanbanProvider);
       expect(state.error, contains('Failed to refresh invoice'));
+    });
+
+    Future<Map<String, dynamic>?> submitReturn(KanbanNotifier notifier) {
+      return notifier.submitInvoiceReturn(
+        invoiceId: 'INV-OLD',
+        lines: const [
+          {'si_detail': 'row-1', 'qty': 1},
+        ],
+        reason: 'Customer refused',
+        returnType: 'Customer Return',
+        refundMode: 'customer_credit',
+        payCourierForTrip: true,
+      );
+    }
+
+    test('a posted return is reported as posted even if the card refresh fails',
+        () async {
+      // Showing "Return failed" here invited the operator to submit again.
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+      service.fetchInvoicesError = Exception('network failed');
+
+      final result = await submitReturn(notifier);
+
+      expect(result, isNotNull);
+      expect(result!['credit_note'], 'ACC-SINV-CN-1');
+      expect(container.read(kanbanProvider).transitioningInvoices, isEmpty);
+    });
+
+    test('every return submission carries its own request id', () async {
+      // Without one the server hashes (invoice, lines, options), so a second
+      // identical partial return was taken for a replay and never posted.
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      await submitReturn(notifier);
+      await submitReturn(notifier);
+
+      expect(service.returnRequestIds, hasLength(2));
+      expect(service.returnRequestIds.every((id) => id != null && id.startsWith('ret-app-')),
+          isTrue);
+      expect(service.returnRequestIds[0], isNot(service.returnRequestIds[1]));
     });
 
     test('clearError sets error to null', () async {

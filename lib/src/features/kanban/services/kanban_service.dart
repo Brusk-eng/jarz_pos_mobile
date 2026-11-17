@@ -279,6 +279,7 @@ class KanbanService {
     required String refundMode,
     required bool payCourierForTrip,
     String? notes,
+    String? requestId,
   }) async {
     try {
       _logger.info("Submitting return for $invoiceName");
@@ -290,6 +291,9 @@ class KanbanService {
         "refund_mode": refundMode,
         "pay_courier_for_trip": payCourierForTrip ? 1 : 0,
       };
+      if (requestId != null && requestId.isNotEmpty) {
+        payload["request_id"] = requestId;
+      }
       if (notes != null && notes.trim().isNotEmpty) {
         payload["notes"] = notes.trim();
       }

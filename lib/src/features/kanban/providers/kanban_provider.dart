@@ -1033,6 +1033,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     state = state.copyWith(transitioningInvoices: transitioning, error: null);
 
     try {
+      // One id per submission. Without it the server derives the id from
+      // (invoice, lines, options), so a second, genuinely separate partial
+      // return of the same quantity is mistaken for a replay and not posted.
       final result = await _kanbanService.submitInvoiceReturn(
         invoiceName: invoiceId,
         lines: lines,
@@ -1041,8 +1044,16 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         refundMode: refundMode,
         payCourierForTrip: payCourierForTrip,
         notes: notes,
+        requestId: 'ret-app-${const Uuid().v4()}',
       );
-      await refreshSingle(invoiceId);
+      // The return is posted by now. A failed card refresh must not turn it
+      // into "Return failed" — the operator would try again. The realtime
+      // KANBAN_UPDATE event re-places the card anyway.
+      try {
+        await refreshSingle(invoiceId);
+      } catch (e) {
+        debugPrint('Return posted but card refresh failed for $invoiceId: $e');
+      }
       return result;
     } catch (e) {
       state = state.copyWith(
