@@ -544,9 +544,36 @@ void main() {
         ),
         findsOneWidget,
       );
-      // The grey leakage line no longer carries the total.
+      // The total incl. shipping sits once, under the net-sales headline.
       expect(inKey('revenue-hero', find.textContaining('Total incl.')),
-          findsNothing);
+          findsOneWidget);
+    });
+
+    testWidgets('net sales headline shows the total incl. shipping under it', (
+      tester,
+    ) async {
+      await pump(tester, RevenueDashboard.fromJson(_json()), const Locale('en'));
+      expect(tester.takeException(), isNull);
+      final line = find.byKey(
+        const ValueKey('revenue-hero-total-incl-shipping'),
+      );
+      expect(line, findsOneWidget);
+      expect(
+        (tester.widget<Text>(line).data ?? ''),
+        allOf(startsWith('Total incl. shipping'), contains('5,087')),
+      );
+    });
+
+    testWidgets('total incl. shipping hides when the server sends none', (
+      tester,
+    ) async {
+      final json = _json();
+      (json['summary'] as Map<String, dynamic>).remove('total_revenue');
+      await pump(tester, RevenueDashboard.fromJson(json), const Locale('en'));
+      expect(
+        find.byKey(const ValueKey('revenue-hero-total-incl-shipping')),
+        findsNothing,
+      );
     });
 
     testWidgets('B2C tile hides "incl. shipping" on an old server', (

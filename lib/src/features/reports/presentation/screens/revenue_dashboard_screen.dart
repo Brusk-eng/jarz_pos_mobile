@@ -576,6 +576,21 @@ class _HeroCard extends StatelessWidget {
                 _ChangePill(pct: p.changePct),
               ],
             ),
+            // Gross: net sales plus the delivery fees charged, like the B2C
+            // tile's "incl. shipping" note but for every channel.
+            if (s.totalRevenue != 0)
+              Text(
+                l10n.rptRevTotalInclShipping(
+                  formatCurrency(context, s.totalRevenue),
+                ),
+                key: const ValueKey('revenue-hero-total-incl-shipping'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             const SizedBox(height: 10),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
