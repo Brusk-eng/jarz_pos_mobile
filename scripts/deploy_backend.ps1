@@ -76,6 +76,23 @@ if (-not (Test-Path $SshKeyPath)) {
 # before adding an app here.
 $deployedApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms', 'jarz_courier')
 
+# Upstream apps held at a known-good commit instead of following their branch tip.
+#
+# hrms follows frappe/hrms `version-16`, but Frappe itself is baked into the Docker
+# image and only moves when the image is rebuilt. On 2026-11-18 hrms 16.60.0
+# (1b2d7e0) shipped a patch adding an Employee field of type "Vue Component", which
+# the image's Frappe does not know: `bench migrate` died halfway on staging, and the
+# same unpinned pull would have hit production on the next backend deploy from any
+# chat. a01032 is what production ran then. Move a pin only together with a Frappe
+# image that the new commit's patches have been migrated against on staging.
+#
+# A pinned app whose volume is AHEAD of its pin (staging after that failed run) is
+# moved back to the pin with `git reset --keep`, which keeps the branch name and
+# refuses if a tracked file was edited on the volume.
+$pinnedAppHeads = @{
+    'hrms' = 'a01032350ba1b799345b862cb122fa408bf6780e'
+}
+
 # Clone URLs for first-time bootstrap. Only consulted when an app in $deployedApps
 # is genuinely absent from the server, so an app already on disk (hrms) needs no
 # entry. An app that IS missing and has no entry here fails with a clear message
@@ -916,6 +933,14 @@ $gitTargets = foreach ($appName in $config.CustomApps) {
     $remoteUrl = Convert-GitHubRemoteToSsh $gitTarget
     $gitTarget.RemoteUrl = $remoteUrl
     $gitTarget.RemoteHead = Get-RemoteBranchHead $gitTarget
+    if ($pinnedAppHeads.ContainsKey($appName)) {
+        $pin = $pinnedAppHeads[$appName]
+        if ($gitTarget.RemoteHead -ne $pin) {
+            Write-Info "$appName pinned at $pin (branch tip $($gitTarget.RemoteHead) not taken)"
+        }
+        $gitTarget.RemoteHead = $pin
+        $gitTarget.Pinned = $true
+    }
     $gitTarget.PendingUpdate = $gitTarget.HeadBefore -ne $gitTarget.RemoteHead
     $gitTarget
 }
@@ -1040,8 +1065,24 @@ foreach ($gitTarget in $gitTargets) {
     # the volume — which is exactly the CI-clobber class of bug that has
     # false-greened deploys before. Failing is correct, and it fails BEFORE
     # anything lands, so the abort leaves no half-deployed state.
-    Write-Info "Fast-forwarding $($gitTarget.AppName) to $($gitTarget.RemoteHead)"
-    $pullOutput = Invoke-Remote "sudo GIT_SSH_COMMAND='$(Get-GitSshCommand $gitTarget.AppName)' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) merge --ff-only --quiet $($gitTarget.RemoteHead)"
+    $gitBase = "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath)"
+    $movesBack = $false
+    if ($gitTarget.Pinned) {
+        # Behind or at the pin: fast-forward as usual. Ahead of it: move back (see $pinnedAppHeads).
+        $direction = (Invoke-Remote "if $gitBase merge-base --is-ancestor HEAD $($gitTarget.RemoteHead); then echo FORWARD; elif $gitBase merge-base --is-ancestor $($gitTarget.RemoteHead) HEAD; then echo BACK; else echo DIVERGED; fi").Trim()
+        if ($direction -eq 'DIVERGED') {
+            throw "$($gitTarget.AppName) HEAD $($gitTarget.HeadBefore) and its pin $($gitTarget.RemoteHead) have diverged; refusing to move it."
+        }
+        $movesBack = $direction -eq 'BACK'
+    }
+    if ($movesBack) {
+        Write-Info "Moving pinned $($gitTarget.AppName) back from $($gitTarget.HeadBefore) to $($gitTarget.RemoteHead)"
+        $pullOutput = Invoke-Remote "$gitBase reset --keep --quiet $($gitTarget.RemoteHead)"
+    }
+    else {
+        Write-Info "Fast-forwarding $($gitTarget.AppName) to $($gitTarget.RemoteHead)"
+        $pullOutput = Invoke-Remote "sudo GIT_SSH_COMMAND='$(Get-GitSshCommand $gitTarget.AppName)' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) merge --ff-only --quiet $($gitTarget.RemoteHead)"
+    }
     if ($pullOutput) {
         Write-Host $pullOutput
     }
