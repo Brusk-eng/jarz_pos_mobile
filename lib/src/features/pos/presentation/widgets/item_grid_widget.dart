@@ -21,6 +21,19 @@ class ItemGridWidget extends ConsumerStatefulWidget {
 class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
   String? selectedCategory;
 
+  /// Whether the grid may add to the cart before a customer is chosen.
+  ///
+  /// A retail order can be built while the customer is still on the phone and
+  /// has not given a name yet: prices come from the POS profile, the delivery
+  /// fee is worked out at checkout from the customer's address, and checkout
+  /// refuses until a customer is picked. A B2B order cannot: its catalogue and
+  /// prices belong to the customer's branch, so it stays gated on the customer.
+  /// Set from the watched state at the top of [build].
+  bool _customerRequiredToAdd = false;
+
+  bool _canAddToCart(Map<String, dynamic>? selectedCustomer) =>
+      selectedCustomer != null || !_customerRequiredToAdd;
+
   @override
   Widget build(BuildContext context) {
     final items = ref.watch(posNotifierProvider.select((state) => state.items));
@@ -29,6 +42,9 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     );
     final selectedCustomer = ref.watch(
       posNotifierProvider.select((state) => state.selectedCustomer),
+    );
+    _customerRequiredToAdd = ref.watch(
+      posNotifierProvider.select((state) => state.isB2bOrder),
     );
     // Watching the list itself (not a derived map) keeps the rebuild scoped to
     // actual cart mutations — copyWith reuses the same list otherwise.
@@ -110,30 +126,40 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
         SizedBox(height: spacingAfterFilters),
 
         // Customer selection warning
+        // Customer selection reminder. Blocking (error colours) only where the
+        // customer gates adding; otherwise a reminder that checkout needs one.
         if (selectedCustomer == null)
           Container(
             margin: EdgeInsets.symmetric(horizontal: isPhone ? 10 : 16, vertical: isPhone ? 6 : 8),
             padding: EdgeInsets.all(isPhone ? 10 : 12),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.errorContainer,
+              color: _customerRequiredToAdd
+                  ? Theme.of(context).colorScheme.errorContainer
+                  : Theme.of(context).colorScheme.secondaryContainer,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: Theme.of(context).colorScheme.error,
+                color: _customerRequiredToAdd
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.secondary,
                 width: 1,
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  Icons.warning,
-                  color: Theme.of(context).colorScheme.onErrorContainer,
+                  _customerRequiredToAdd ? Icons.warning : Icons.person_search,
+                  color: _customerRequiredToAdd
+                      ? Theme.of(context).colorScheme.onErrorContainer
+                      : Theme.of(context).colorScheme.onSecondaryContainer,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     context.l10n.itemGridSelectCustomerWarning,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      color: _customerRequiredToAdd
+                          ? Theme.of(context).colorScheme.onErrorContainer
+                          : Theme.of(context).colorScheme.onSecondaryContainer,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -366,7 +392,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     Map<String, int> cartQuantities,
   ) {
     final isPhone = ResponsiveUtils.isPhone(context);
-    final canAddToCart = selectedCustomer != null;
+    final canAddToCart = _canAddToCart(selectedCustomer);
     final hasFreeShipping = (bundle['free_shipping'] == true);
     final cartQty = cartQuantities[bundle['id']?.toString().trim() ?? ''] ?? 0;
 
@@ -481,7 +507,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
         'Main item ${item['item_name']} - actual_qty: ${item['actual_qty']}, final stock: $stockQty',
       );
     }
-    final canAddToCart = selectedCustomer != null;
+    final canAddToCart = _canAddToCart(selectedCustomer);
 
     // Determine stock color based on quantity
     Color stockColor;
@@ -719,7 +745,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     bool isOutOfStock,
   ) {
     String message;
-    if (selectedCustomer == null) {
+    if (!_canAddToCart(selectedCustomer)) {
       message = context.l10n.itemGridSelectCustomerFirst;
     } else if (isOutOfStock) {
       message = context.l10n.itemGridOutOfStock;

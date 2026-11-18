@@ -724,6 +724,38 @@ void main() {
     });
   });
 
+  group('CartWidget checkout without a customer', () {
+    // The item grid now lets a retail cart be filled before the customer is
+    // known (the caller has not given a name yet); checkout is where the
+    // customer becomes mandatory.
+    testWidgets('refuses with the select-a-customer message and sends nothing', (
+      tester,
+    ) async {
+      final state = _buildState(isAmendmentDraft: false);
+      expect(state.selectedCustomer, isNull);
+      final stub = _CheckoutOutcomeStub(
+        state,
+        outcome: EmployeeCashOutcome.none,
+      );
+      await _pumpCartWidget(tester, state, stub: stub);
+
+      tester.view.physicalSize = const Size(1200, 4000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpAndSettle();
+      final checkout = find.text('Checkout');
+      await tester.ensureVisible(checkout);
+      await tester.tap(checkout);
+      await tester.pump();
+      await tester.pump();
+
+      expect(stub.checkoutCalls, 0);
+      expect(find.text('Please select a customer first'), findsWidgets);
+      expect(stub.state.cartItems, hasLength(1), reason: 'cart is kept');
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+  });
+
   group('CartWidget amendment checkout', () {
     Future<void> tapSubmitAmendment(WidgetTester tester) async {
       tester.view.physicalSize = const Size(1200, 4000);

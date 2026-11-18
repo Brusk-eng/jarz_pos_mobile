@@ -1893,6 +1893,20 @@ class CartWidget extends ConsumerWidget {
       return;
     }
 
+    // A retail cart can be filled before the customer is chosen (an operator on
+    // the phone with someone who has not given a name yet), so the customer is
+    // enforced here instead of at the item grid. An amendment edits an order
+    // that already has its customer and keeps its own handling.
+    if (!state.isAmendmentDraft && state.selectedCustomer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.itemGridSelectCustomerWarning),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
     // Validate delivery slot is selected. A counter-collected policy order
     // (staff purchase) is exempt like a pickup: the staff customer the backend
     // creates has no address, and nothing is delivered.
