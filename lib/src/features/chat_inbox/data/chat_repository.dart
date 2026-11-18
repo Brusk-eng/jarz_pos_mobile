@@ -370,6 +370,35 @@ class ChatRepository {
     return ChatFactOverridesPage.fromJson(_payload(response));
   }
 
+  /// Feature-local path (kept out of `ApiEndpoints`, so a Dart-only patch).
+  static const approveFactConflictPath =
+      '/api/method/jarz_pos.api.chat.approve_fact_conflict';
+
+  /// `approve_fact_conflict` (managers): adds the moderator's statement on
+  /// line [index] of [draft]'s fact conflicts to the approved facts. Calling
+  /// it again for the same line returns the same fact.
+  Future<ChatFactApprovalResult> approveFactConflict({
+    required String draft,
+    required int index,
+    required String topic,
+    String factEn = '',
+    String factAr = '',
+    String category = ChatFactCategories.other,
+  }) async {
+    final response = await _dio.post(
+      approveFactConflictPath,
+      data: {
+        'draft': draft,
+        'index': index,
+        'topic': topic.trim(),
+        'fact_en': factEn.trim(),
+        'fact_ar': factAr.trim(),
+        'category': category,
+      },
+    );
+    return ChatFactApprovalResult.fromJson(_payload(response));
+  }
+
   /// `get_order_prefill` — what "Start order" hands to the POS. With
   /// [withOrder] the server also reads the order out of the chat with a model
   /// call (~5-15 s), so the receive timeout is raised for that request only.

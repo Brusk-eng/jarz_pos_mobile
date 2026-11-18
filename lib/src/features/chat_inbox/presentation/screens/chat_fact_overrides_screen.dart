@@ -12,13 +12,42 @@ import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
 import '../chat_bidi.dart';
 import '../chat_labels.dart';
+import '../widgets/chat_add_fact_dialog.dart';
 
 /// `/chats/fact-overrides` — the moments a moderator told the AI something
 /// that is not in our approved facts: who asked, when, in which chat, what
 /// they said, which facts it contradicted, and whether the reply went out.
 /// Newest first; last 30 days by default; tap a row to open the chat.
+/// A manager can add a contradicted line to the approved facts.
 class ChatFactOverridesScreen extends ConsumerWidget {
   const ChatFactOverridesScreen({super.key});
+
+  Future<void> _addFact(
+    BuildContext context,
+    WidgetRef ref,
+    ChatFactOverrideRow row,
+    int index,
+    String line,
+  ) async {
+    final added = await showChatAddFactDialog(
+      context,
+      line: line,
+      onSubmit: (input) => ref
+          .read(chatFactOverridesProvider.notifier)
+          .approveConflict(
+            draft: row.draft,
+            index: index,
+            topic: input.topic,
+            factEn: input.factEn,
+            factAr: input.factAr,
+            category: input.category,
+          ),
+    );
+    if (!added || !context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(chatFactAddedMessage(context))));
+  }
 
   Future<void> _pickRange(
     BuildContext context,
@@ -163,6 +192,10 @@ class ChatFactOverridesScreen extends ConsumerWidget {
                           final row = state.rows[index];
                           return ChatFactOverrideCard(
                             row: row,
+                            canApproveFacts:
+                                state.canApproveFacts && row.draft.isNotEmpty,
+                            onAddFact: (i, line) =>
+                                _addFact(context, ref, row, i, line),
                             onOpen: row.conversation.isEmpty
                                 ? null
                                 : () => context.push(
@@ -183,10 +216,22 @@ class ChatFactOverridesScreen extends ConsumerWidget {
 /// One override: requester and time, the chat, the moderator's instruction,
 /// each fact it contradicted, the draft's fate, and the text (collapsed).
 class ChatFactOverrideCard extends StatelessWidget {
-  const ChatFactOverrideCard({super.key, required this.row, this.onOpen});
+  const ChatFactOverrideCard({
+    super.key,
+    required this.row,
+    this.onOpen,
+    this.canApproveFacts = false,
+    this.onAddFact,
+  });
 
   final ChatFactOverrideRow row;
   final VoidCallback? onOpen;
+
+  /// The caller may add a conflict line to the approved facts.
+  final bool canApproveFacts;
+
+  /// "Add to facts" on conflict line [index] (text [line]) was tapped.
+  final void Function(int index, String line)? onAddFact;
 
   @override
   Widget build(BuildContext context) {
@@ -288,7 +333,7 @@ class ChatFactOverrideCard extends StatelessWidget {
                       ),
                       style: theme.textTheme.labelSmall,
                     ),
-                    for (final conflict in row.conflicts)
+                    for (final (index, conflict) in row.conflicts.indexed)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Row(
@@ -301,14 +346,29 @@ class ChatFactOverrideCard extends StatelessWidget {
                               ),
                             ),
                             Expanded(
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: ChatBidiText(
-                                  conflict,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.deepOrange.shade800,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ChatBidiText(
+                                      conflict,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: Colors.deepOrange.shade800,
+                                          ),
+                                    ),
                                   ),
-                                ),
+                                  ChatFactConflictAction(
+                                    keyId: '${row.draft}-$index',
+                                    approved: row.isConflictApproved(index),
+                                    canApprove:
+                                        canApproveFacts && onAddFact != null,
+                                    onAdd: onAddFact == null
+                                        ? null
+                                        : () => onAddFact!(index, conflict),
+                                  ),
+                                ],
                               ),
                             ),
                           ],

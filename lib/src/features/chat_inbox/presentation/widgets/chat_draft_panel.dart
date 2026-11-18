@@ -4,6 +4,7 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../data/models/chat_models.dart';
 import '../chat_bidi.dart';
 import '../chat_labels.dart';
+import 'chat_add_fact_dialog.dart';
 import 'chat_message_actions.dart';
 
 /// The AI draft docked above the composer: text (always editable in place),
@@ -26,9 +27,18 @@ class ChatDraftPanel extends StatefulWidget {
     required this.onReject,
     required this.onRegenerate,
     this.maxHeight,
+    this.canApproveFacts = false,
+    this.onAddFact,
   });
 
   final ChatDraft draft;
+
+  /// The caller may add a fact-conflict line to the approved facts; each
+  /// line of the confirm-facts alert then offers "Add to facts".
+  final bool canApproveFacts;
+
+  /// "Add to facts" on conflict line [index] (text [line]) was tapped.
+  final void Function(int index, String line)? onAddFact;
 
   /// The most height the panel may take (the thread passes a share of what is
   /// left above the keyboard); its content scrolls beyond that.
@@ -205,7 +215,13 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
                       ),
                     ],
                     if (draft.factConflicts.isNotEmpty)
-                      _FactConflictAlert(conflicts: draft.factConflicts),
+                      _FactConflictAlert(
+                        conflicts: draft.factConflicts,
+                        approved: draft.approvedConflicts,
+                        canApprove:
+                            widget.canApproveFacts && widget.onAddFact != null,
+                        onAdd: widget.onAddFact,
+                      ),
                     for (final warning in draft.warnings)
                       _NoteRow(
                         icon: Icons.warning_amber_rounded,
@@ -341,10 +357,21 @@ class ChatAskAiBar extends StatelessWidget {
 /// The draft did what the moderator asked even where it goes against our
 /// approved facts, menu or prices. This box lists each such point so the
 /// moderator confirms it is right before sending. It never blocks Send.
+///
+/// A manager ([canApprove]) can add a line to the approved facts from here;
+/// a line already added shows "Added to facts ✓".
 class _FactConflictAlert extends StatelessWidget {
-  const _FactConflictAlert({required this.conflicts});
+  const _FactConflictAlert({
+    required this.conflicts,
+    this.approved = const <int>[],
+    this.canApprove = false,
+    this.onAdd,
+  });
 
   final List<String> conflicts;
+  final List<int> approved;
+  final bool canApprove;
+  final void Function(int index, String line)? onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +413,7 @@ class _FactConflictAlert extends StatelessWidget {
                     'approved facts:',
             style: theme.textTheme.bodySmall,
           ),
-          for (final conflict in conflicts)
+          for (final (index, conflict) in conflicts.indexed)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Row(
@@ -394,14 +421,27 @@ class _FactConflictAlert extends StatelessWidget {
                 children: [
                   Text('•  ', style: TextStyle(color: color)),
                   Expanded(
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ChatBidiText(
-                        conflict,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: color,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: ChatBidiText(
+                            conflict,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: color,
+                            ),
+                          ),
                         ),
-                      ),
+                        ChatFactConflictAction(
+                          keyId: '$index',
+                          approved: approved.contains(index),
+                          canApprove: canApprove,
+                          onAdd: onAdd == null
+                              ? null
+                              : () => onAdd!(index, conflict),
+                        ),
+                      ],
                     ),
                   ),
                 ],

@@ -1116,6 +1116,46 @@ class ChatThreadNotifier
     });
   }
 
+  /// `approve_fact_conflict` for line [index] of the draft [draft]: marks the
+  /// line approved on the draft held here, patches the overrides list when it
+  /// is open, then re-reads the thread.
+  Future<ChatFactApprovalResult> approveFactConflict({
+    required String draft,
+    required int index,
+    required String topic,
+    String factEn = '',
+    String factAr = '',
+    String category = ChatFactCategories.other,
+  }) async {
+    final result = await _mutate(() async {
+      final result = await _repo.approveFactConflict(
+        draft: draft,
+        index: index,
+        topic: topic,
+        factEn: factEn,
+        factAr: factAr,
+        category: category,
+      );
+      _update((s) {
+        final held = s.draft;
+        if (held == null || held.name != draft) return s;
+        return s.copyWith(
+          draft: held.withApprovedConflicts(
+            chatApprovedAfter(held.approvedConflicts, result, index),
+          ),
+        );
+      });
+      if (ref.exists(chatFactOverridesProvider)) {
+        ref
+            .read(chatFactOverridesProvider.notifier)
+            .markApproved(draft, index, result);
+      }
+      return result;
+    });
+    unawaited(refresh());
+    return result;
+  }
+
   /// What "Start order" hands to the POS; [withOrder] also has the server
   /// read the order out of the chat (slow: a model call).
   Future<ChatOrderPrefill> orderPrefill({bool withOrder = false}) =>
@@ -1257,6 +1297,9 @@ class ChatFactOverridesState {
   final int total;
   final bool loadingMore;
 
+  /// Whether the caller may add a conflict line to the approved facts.
+  final bool canApproveFacts;
+
   const ChatFactOverridesState({
     required this.from,
     required this.to,
@@ -1264,6 +1307,7 @@ class ChatFactOverridesState {
     this.hasMore = false,
     this.total = 0,
     this.loadingMore = false,
+    this.canApproveFacts = false,
   });
 
   ChatFactOverridesState copyWith({
@@ -1273,6 +1317,7 @@ class ChatFactOverridesState {
     bool? hasMore,
     int? total,
     bool? loadingMore,
+    bool? canApproveFacts,
   }) {
     return ChatFactOverridesState(
       from: from ?? this.from,
@@ -1281,8 +1326,21 @@ class ChatFactOverridesState {
       hasMore: hasMore ?? this.hasMore,
       total: total ?? this.total,
       loadingMore: loadingMore ?? this.loadingMore,
+      canApproveFacts: canApproveFacts ?? this.canApproveFacts,
     );
   }
+}
+
+/// The approved conflict indexes after an `approve_fact_conflict` call for
+/// line [index]: the server's list, or, should it leave the line out (an
+/// older answer), what was held plus [index].
+List<int> chatApprovedAfter(
+  List<int> before,
+  ChatFactApprovalResult result,
+  int index,
+) {
+  if (result.approvedConflicts.contains(index)) return result.approvedConflicts;
+  return ({...before, ...result.approvedConflicts, index}.toList()..sort());
 }
 
 String chatIsoDate(DateTime date) =>
@@ -1321,6 +1379,7 @@ class ChatFactOverridesNotifier
       rows: page.rows,
       hasMore: page.hasMore,
       total: page.total,
+      canApproveFacts: page.canApproveFacts,
     );
   }
 
@@ -1362,6 +1421,7 @@ class ChatFactOverridesNotifier
           hasMore: page.hasMore,
           total: page.total,
           loadingMore: false,
+          canApproveFacts: page.canApproveFacts || latest.canApproveFacts,
         ),
       );
     } catch (_) {
@@ -1370,6 +1430,55 @@ class ChatFactOverridesNotifier
       state = AsyncData(latest.copyWith(loadingMore: false));
       rethrow;
     }
+  }
+
+  /// `approve_fact_conflict` for line [index] of the row for [draft]; the row
+  /// shows the line as approved at once. Errors rethrow with nothing changed.
+  Future<ChatFactApprovalResult> approveConflict({
+    required String draft,
+    required int index,
+    required String topic,
+    String factEn = '',
+    String factAr = '',
+    String category = ChatFactCategories.other,
+  }) async {
+    final result = await ref.read(chatRepositoryProvider).approveFactConflict(
+      draft: draft,
+      index: index,
+      topic: topic,
+      factEn: factEn,
+      factAr: factAr,
+      category: category,
+    );
+    markApproved(draft, index, result);
+    // An open thread on the same draft re-reads, so its alert shows the tick.
+    for (final row in state.valueOrNull?.rows ?? const <ChatFactOverrideRow>[]) {
+      if (row.draft != draft || row.conversation.isEmpty) continue;
+      if (ref.exists(chatThreadProvider(row.conversation))) {
+        unawaited(
+          ref.read(chatThreadProvider(row.conversation).notifier).refresh(),
+        );
+      }
+      break;
+    }
+    return result;
+  }
+
+  /// Marks line [index] of the row for [draft] as approved (also used by the
+  /// thread after an approval made there).
+  void markApproved(String draft, int index, ChatFactApprovalResult result) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    if (!current.rows.any((row) => row.draft == draft)) return;
+    final rows = [
+      for (final row in current.rows)
+        row.draft == draft
+            ? row.withApprovedConflicts(
+                chatApprovedAfter(row.approvedConflicts, result, index),
+              )
+            : row,
+    ];
+    state = AsyncData(current.copyWith(rows: rows));
   }
 }
 

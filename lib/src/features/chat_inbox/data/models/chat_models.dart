@@ -102,6 +102,60 @@ Map<String, int> chatIntMap(dynamic value) {
   };
 }
 
+/// A list of lenient ints (`[0, "2", 3.0]`), or a JSON string of one; empty
+/// for anything else. Unreadable entries are dropped.
+List<int> chatIntList(dynamic value) {
+  if (value == null) return const <int>[];
+  if (value is List) {
+    final out = <int>[];
+    for (final entry in value) {
+      if (entry == null || entry is bool) continue;
+      final parsed = entry is num
+          ? entry.toInt()
+          : int.tryParse(entry.toString().trim());
+      if (parsed != null) out.add(parsed);
+    }
+    return List<int>.unmodifiable(out);
+  }
+  final text = value.toString().trim();
+  if (text.startsWith('[')) {
+    try {
+      return chatIntList(jsonDecode(text));
+    } catch (_) {
+      return const <int>[];
+    }
+  }
+  return const <int>[];
+}
+
+/// The categories an approved fact can be filed under
+/// (`approve_fact_conflict.category`). Wire values; [other] is the default.
+abstract final class ChatFactCategories {
+  static const product = 'Product';
+  static const sizes = 'Sizes';
+  static const storage = 'Storage';
+  static const ingredientsAndClaims = 'Ingredients and claims';
+  static const delivery = 'Delivery';
+  static const payment = 'Payment';
+  static const ordering = 'Ordering';
+  static const allergensAndNutrition = 'Allergens and nutrition';
+  static const brandVoice = 'Brand voice';
+  static const other = 'Other';
+
+  static const all = <String>[
+    product,
+    sizes,
+    storage,
+    ingredientsAndClaims,
+    delivery,
+    payment,
+    ordering,
+    allergensAndNutrition,
+    brandVoice,
+    other,
+  ];
+}
+
 /// The channels a conversation can come from (`Jarz Chat Conversation.channel`).
 abstract final class ChatChannels {
   static const whatsApp = 'WhatsApp';
@@ -198,6 +252,14 @@ class ChatConversationSummary {
   /// socket summary may not; the thread then keeps what it already knew.
   final bool mediaInfoKnown;
 
+  /// Whether the caller may approve a moderator's statement into the AI's
+  /// facts (`can_approve_facts`; managers). False when the server omits it.
+  final bool canApproveFacts;
+
+  /// Whether this summary carried `can_approve_facts`. Summaries from other
+  /// endpoints and socket events may not; the thread then keeps what it knew.
+  final bool approveInfoKnown;
+
   const ChatConversationSummary({
     required this.name,
     this.channel = '',
@@ -225,6 +287,8 @@ class ChatConversationSummary {
     this.canSendMedia = true,
     this.reactionChoices = const <String>[],
     this.mediaInfoKnown = false,
+    this.canApproveFacts = false,
+    this.approveInfoKnown = false,
   });
 
   factory ChatConversationSummary.fromJson(dynamic raw) {
@@ -267,6 +331,8 @@ class ChatConversationSummary {
       reactionChoices: chatStringList(json['reaction_choices']),
       mediaInfoKnown: json.containsKey('can_send_media') ||
           json.containsKey('reaction_choices'),
+      canApproveFacts: chatBool(json['can_approve_facts']),
+      approveInfoKnown: json.containsKey('can_approve_facts'),
     );
   }
 
@@ -326,13 +392,17 @@ class ChatConversationSummary {
       canSendMedia: canSendMedia,
       reactionChoices: reactionChoices,
       mediaInfoKnown: mediaInfoKnown,
+      canApproveFacts: canApproveFacts,
+      approveInfoKnown: approveInfoKnown,
     );
   }
 
-  /// This summary with the media / reaction info of [previous] when this one
-  /// did not carry it.
+  /// This summary with the media / reaction info and the approve-facts flag
+  /// of [previous], each only when this one did not carry it.
   ChatConversationSummary inheritMediaInfo(ChatConversationSummary previous) {
-    if (mediaInfoKnown || !previous.mediaInfoKnown) return this;
+    final takeMedia = !mediaInfoKnown && previous.mediaInfoKnown;
+    final takeApprove = !approveInfoKnown && previous.approveInfoKnown;
+    if (!takeMedia && !takeApprove) return this;
     return ChatConversationSummary(
       name: name,
       channel: channel,
@@ -357,9 +427,12 @@ class ChatConversationSummary {
       contactCategory: contactCategory,
       contactCategorySource: contactCategorySource,
       contactCategoryReason: contactCategoryReason,
-      canSendMedia: previous.canSendMedia,
-      reactionChoices: previous.reactionChoices,
-      mediaInfoKnown: true,
+      canSendMedia: takeMedia ? previous.canSendMedia : canSendMedia,
+      reactionChoices: takeMedia ? previous.reactionChoices : reactionChoices,
+      mediaInfoKnown: mediaInfoKnown || takeMedia,
+      canApproveFacts:
+          takeApprove ? previous.canApproveFacts : canApproveFacts,
+      approveInfoKnown: approveInfoKnown || takeApprove,
     );
   }
 }
@@ -545,6 +618,10 @@ class ChatDraft {
   /// Points where the moderator's instruction went against our facts. The
   /// draft follows the moderator anyway; the panel asks them to confirm these.
   final List<String> factConflicts;
+
+  /// Indexes into [factConflicts] a manager already added to the approved
+  /// facts (`approved_conflicts`). Empty when the server omits it.
+  final List<int> approvedConflicts;
   final String? createdAt;
   final String? forMessage;
 
@@ -570,6 +647,7 @@ class ChatDraft {
     this.needsHumanReason,
     this.warnings = const <String>[],
     this.factConflicts = const <String>[],
+    this.approvedConflicts = const <int>[],
     this.createdAt,
     this.forMessage,
     this.plantedError,
@@ -592,6 +670,7 @@ class ChatDraft {
       needsHumanReason: chatNullableString(json['needs_human_reason']),
       warnings: chatStringList(json['warnings']),
       factConflicts: chatStringList(json['fact_conflicts']),
+      approvedConflicts: chatIntList(json['approved_conflicts']),
       createdAt: chatNullableString(json['created_at'] ?? json['creation']),
       forMessage: chatNullableString(json['for_message']),
       plantedError: chatNullableString(json['planted_error']),
@@ -605,6 +684,17 @@ class ChatDraft {
   /// draft rather than on it).
   ChatDraft withPlantedError(String? value) {
     if (value == null || plantedError != null) return this;
+    return _copy(plantedError: value);
+  }
+
+  /// A copy whose approved conflict lines are [value].
+  ChatDraft withApprovedConflicts(List<int> value) =>
+      _copy(approvedConflicts: List<int>.unmodifiable(value));
+
+  /// Whether the conflict line at [index] is already an approved fact.
+  bool isConflictApproved(int index) => approvedConflicts.contains(index);
+
+  ChatDraft _copy({String? plantedError, List<int>? approvedConflicts}) {
     return ChatDraft(
       name: name,
       status: status,
@@ -617,9 +707,10 @@ class ChatDraft {
       needsHumanReason: needsHumanReason,
       warnings: warnings,
       factConflicts: factConflicts,
+      approvedConflicts: approvedConflicts ?? this.approvedConflicts,
       createdAt: createdAt,
       forMessage: forMessage,
-      plantedError: value,
+      plantedError: plantedError ?? this.plantedError,
       isPlanted: isPlanted,
       plantedCaught: plantedCaught,
       error: error,
@@ -1616,6 +1707,9 @@ class ChatFactOverrideRow {
   final String? requestedByName;
   final String? moderatorHint;
   final List<String> conflicts;
+
+  /// Indexes into [conflicts] already added to the approved facts.
+  final List<int> approvedConflicts;
   final String status;
   final String? finalText;
   final String? draftText;
@@ -1630,6 +1724,7 @@ class ChatFactOverrideRow {
     this.requestedByName,
     this.moderatorHint,
     this.conflicts = const <String>[],
+    this.approvedConflicts = const <int>[],
     this.status = '',
     this.finalText,
     this.draftText,
@@ -1647,6 +1742,7 @@ class ChatFactOverrideRow {
       requestedByName: chatNullableString(json['requested_by_name']),
       moderatorHint: chatNullableString(json['moderator_hint']),
       conflicts: chatStringList(json['conflicts']),
+      approvedConflicts: chatIntList(json['approved_conflicts']),
       status: chatString(json['status']),
       finalText: chatNullableString(json['final_text']),
       draftText: chatNullableString(json['draft_text']),
@@ -1659,6 +1755,28 @@ class ChatFactOverrideRow {
   /// What went out when sent, else the draft text.
   String? get shownText => finalText ?? draftText;
   bool get wasSent => status.startsWith('Sent');
+
+  /// Whether the conflict line at [index] is already an approved fact.
+  bool isConflictApproved(int index) => approvedConflicts.contains(index);
+
+  /// A copy whose approved conflict lines are [value].
+  ChatFactOverrideRow withApprovedConflicts(List<int> value) {
+    return ChatFactOverrideRow(
+      draft: draft,
+      conversation: conversation,
+      contactName: contactName,
+      channel: channel,
+      createdAt: createdAt,
+      requestedBy: requestedBy,
+      requestedByName: requestedByName,
+      moderatorHint: moderatorHint,
+      conflicts: conflicts,
+      approvedConflicts: List<int>.unmodifiable(value),
+      status: status,
+      finalText: finalText,
+      draftText: draftText,
+    );
+  }
 }
 
 /// `get_fact_overrides` answer.
@@ -1667,10 +1785,14 @@ class ChatFactOverridesPage {
   final bool hasMore;
   final int total;
 
+  /// Whether the caller may add a conflict line to the approved facts.
+  final bool canApproveFacts;
+
   const ChatFactOverridesPage({
     this.rows = const <ChatFactOverrideRow>[],
     this.hasMore = false,
     this.total = 0,
+    this.canApproveFacts = false,
   });
 
   factory ChatFactOverridesPage.fromJson(dynamic raw) {
@@ -1687,6 +1809,30 @@ class ChatFactOverridesPage {
       rows: parsed,
       hasMore: chatBool(json['has_more']),
       total: chatInt(json['total'], fallback: parsed.length),
+      canApproveFacts: chatBool(json['can_approve_facts']),
+    );
+  }
+}
+
+/// `approve_fact_conflict` answer: the fact created (or found again), and
+/// the draft's approved conflict indexes after the call.
+class ChatFactApprovalResult {
+  final String fact;
+  final String draft;
+  final List<int> approvedConflicts;
+
+  const ChatFactApprovalResult({
+    this.fact = '',
+    this.draft = '',
+    this.approvedConflicts = const <int>[],
+  });
+
+  factory ChatFactApprovalResult.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    return ChatFactApprovalResult(
+      fact: chatString(json['fact']),
+      draft: chatString(json['draft']),
+      approvedConflicts: chatIntList(json['approved_conflicts']),
     );
   }
 }

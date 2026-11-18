@@ -13,6 +13,7 @@ import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
 import '../chat_bidi.dart';
 import '../chat_labels.dart';
+import '../widgets/chat_add_fact_dialog.dart';
 import '../widgets/chat_attach_sheet.dart';
 import '../widgets/chat_dialogs.dart';
 import '../widgets/chat_draft_panel.dart';
@@ -206,6 +207,24 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     } finally {
       if (mounted) setState(() => _draftBusy = false);
     }
+  }
+
+  /// "Add to facts" on a confirm-facts line (managers): the dialog runs
+  /// `approve_fact_conflict`; the line then shows "Added to facts ✓".
+  Future<void> _addFact(ChatDraft draft, int index, String line) async {
+    final added = await showChatAddFactDialog(
+      context,
+      line: line,
+      onSubmit: (input) => _notifier.approveFactConflict(
+        draft: draft.name,
+        index: index,
+        topic: input.topic,
+        factEn: input.factEn,
+        factAr: input.factAr,
+        category: input.category,
+      ),
+    );
+    if (added && mounted) _snack(chatFactAddedMessage(context));
   }
 
   // ── Composer ──────────────────────────────────────────────────────────
@@ -659,6 +678,8 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
           onSendDraft: (text) => _sendDraft(data.draft!, text),
           onRejectDraft: () => _rejectDraft(data.draft!),
           onRegenerate: _regenerate,
+          canApproveFacts: data.conversation.canApproveFacts,
+          onAddFact: (index, line) => _addFact(data.draft!, index, line),
           onLoadOlder: () async {
             try {
               await _notifier.loadOlder();
@@ -696,6 +717,8 @@ class _ThreadBody extends StatelessWidget {
     required this.onRejectDraft,
     required this.onRegenerate,
     required this.onLoadOlder,
+    this.canApproveFacts = false,
+    this.onAddFact,
   });
 
   final ChatThreadState state;
@@ -715,6 +738,8 @@ class _ThreadBody extends StatelessWidget {
   final VoidCallback onRejectDraft;
   final VoidCallback onRegenerate;
   final VoidCallback onLoadOlder;
+  final bool canApproveFacts;
+  final void Function(int index, String line)? onAddFact;
 
   @override
   Widget build(BuildContext context) {
@@ -814,6 +839,8 @@ class _ThreadBody extends StatelessWidget {
                 onSend: onSendDraft,
                 onReject: onRejectDraft,
                 onRegenerate: onRegenerate,
+                canApproveFacts: canApproveFacts,
+                onAddFact: onAddFact,
               ),
               ChatAiSlot.askForMessage => ChatAskAiBar(
                 windowClosed: false,
