@@ -1077,6 +1077,9 @@ foreach ($gitTarget in $gitTargets) {
     }
     if ($movesBack) {
         Write-Info "Moving pinned $($gitTarget.AppName) back from $($gitTarget.HeadBefore) to $($gitTarget.RemoteHead)"
+        # pip's editable reinstall and chown touch every file, leaving the index's stat
+        # cache stale; reset --keep then calls clean files "not uptodate". Refresh it first.
+        Invoke-Remote "$gitBase update-index -q --refresh" -IgnoreExitCode | Out-Null
         $pullOutput = Invoke-Remote "$gitBase reset --keep --quiet $($gitTarget.RemoteHead)"
     }
     else {
