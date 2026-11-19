@@ -111,110 +111,115 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
     final allSelected = _selected.length == widget.invoices.length;
     final canSend = _selected.isNotEmpty && _busy == null;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(l10n.creditSendToCustomer, style: theme.textTheme.titleLarge),
-          if (widget.customerName.isNotEmpty)
-            Text(widget.customerName, style: theme.textTheme.bodyMedium?.copyWith(color: muted)),
-          const SizedBox(height: 12),
-          SegmentedButton<CreditSendMode>(
-            segments: [
-              ButtonSegment(
-                value: CreditSendMode.individual,
-                label: Text(l10n.creditSendModeIndividual),
-              ),
-              ButtonSegment(
-                value: CreditSendMode.consolidated,
-                label: Text(l10n.creditSendModeConsolidated),
-              ),
-            ],
-            selected: {_mode},
-            showSelectedIcon: false,
-            onSelectionChanged: _busy != null ? null : (s) => setState(() => _mode = s.first),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            _mode == CreditSendMode.individual
-                ? l10n.creditSendModeIndividualHint
-                : l10n.creditSendModeConsolidatedHint,
-            style: theme.textTheme.bodySmall?.copyWith(color: muted),
-          ),
-          const SizedBox(height: 8),
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-            value: allSelected,
-            title: Text(l10n.creditSendSelectAll),
-            subtitle: Text(l10n.creditSendSelectedCount(_selected.length, widget.invoices.length)),
-            onChanged: _busy != null
-                ? null
-                : (v) => setState(() {
-                      _selected
-                        ..clear()
-                        ..addAll(v == true ? widget.invoices.map((i) => i.invoice) : const <String>[]);
-                    }),
-          ),
-          const Divider(height: 1),
-          Flexible(
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                for (final invoice in widget.invoices)
-                  CheckboxListTile(
-                    key: ValueKey('credit-send-${invoice.invoice}'),
-                    contentPadding: EdgeInsets.zero,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: _selected.contains(invoice.invoice),
-                    title: Text(invoice.displayId),
-                    subtitle: Text(formatDateString(context, invoice.postingDate)),
-                    secondary: Text(
-                      formatCurrency(context, invoice.outstandingAmount, currencyCode: _currencyOf(invoice)),
-                      style: theme.textTheme.titleSmall,
+    // The sheet is drawn edge to edge, so without this the WhatsApp / Share
+    // row sits under the phone's navigation bar and cannot be seen or tapped.
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l10n.creditSendToCustomer, style: theme.textTheme.titleLarge),
+            if (widget.customerName.isNotEmpty)
+              Text(widget.customerName, style: theme.textTheme.bodyMedium?.copyWith(color: muted)),
+            const SizedBox(height: 12),
+            SegmentedButton<CreditSendMode>(
+              segments: [
+                ButtonSegment(
+                  value: CreditSendMode.individual,
+                  label: Text(l10n.creditSendModeIndividual),
+                ),
+                ButtonSegment(
+                  value: CreditSendMode.consolidated,
+                  label: Text(l10n.creditSendModeConsolidated),
+                ),
+              ],
+              selected: {_mode},
+              showSelectedIcon: false,
+              onSelectionChanged: _busy != null ? null : (s) => setState(() => _mode = s.first),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _mode == CreditSendMode.individual
+                  ? l10n.creditSendModeIndividualHint
+                  : l10n.creditSendModeConsolidatedHint,
+              style: theme.textTheme.bodySmall?.copyWith(color: muted),
+            ),
+            const SizedBox(height: 8),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              value: allSelected,
+              title: Text(l10n.creditSendSelectAll),
+              subtitle: Text(l10n.creditSendSelectedCount(_selected.length, widget.invoices.length)),
+              onChanged: _busy != null
+                  ? null
+                  : (v) => setState(() {
+                        _selected
+                          ..clear()
+                          ..addAll(v == true ? widget.invoices.map((i) => i.invoice) : const <String>[]);
+                      }),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final invoice in widget.invoices)
+                    CheckboxListTile(
+                      key: ValueKey('credit-send-${invoice.invoice}'),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: _selected.contains(invoice.invoice),
+                      title: Text(invoice.displayId),
+                      subtitle: Text(formatDateString(context, invoice.postingDate)),
+                      secondary: Text(
+                        formatCurrency(context, invoice.outstandingAmount, currencyCode: _currencyOf(invoice)),
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      onChanged: _busy != null
+                          ? null
+                          : (v) => setState(() {
+                                v == true ? _selected.add(invoice.invoice) : _selected.remove(invoice.invoice);
+                              }),
                     ),
-                    onChanged: _busy != null
-                        ? null
-                        : (v) => setState(() {
-                              v == true ? _selected.add(invoice.invoice) : _selected.remove(invoice.invoice);
-                            }),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+            Text(
+              l10n.creditSendTotalDue(formatCurrency(context, _chosenDue, currencyCode: widget.currency)),
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 6),
+              Text(_error!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error)),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    icon: _busy == _Channel.whatsapp ? const _Spinner() : const Icon(Icons.chat_outlined),
+                    label: Text(l10n.creditSendWhatsApp),
+                    onPressed: canSend ? () => _send(_Channel.whatsapp) : null,
                   ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: _busy == _Channel.share ? const _Spinner() : const Icon(Icons.share),
+                    label: Text(l10n.creditSendShare),
+                    onPressed: canSend ? () => _send(_Channel.share) : null,
+                  ),
+                ),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          const SizedBox(height: 8),
-          Text(
-            l10n.creditSendTotalDue(formatCurrency(context, _chosenDue, currencyCode: widget.currency)),
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 6),
-            Text(_error!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error)),
           ],
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  icon: _busy == _Channel.whatsapp ? const _Spinner() : const Icon(Icons.chat_outlined),
-                  label: Text(l10n.creditSendWhatsApp),
-                  onPressed: canSend ? () => _send(_Channel.whatsapp) : null,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: _busy == _Channel.share ? const _Spinner() : const Icon(Icons.share),
-                  label: Text(l10n.creditSendShare),
-                  onPressed: canSend ? () => _send(_Channel.share) : null,
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

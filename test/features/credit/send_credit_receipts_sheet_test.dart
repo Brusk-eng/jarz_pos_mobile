@@ -53,6 +53,40 @@ void main() {
     expect(find.text('All the orders you choose in one statement, with the total due.'), findsOneWidget);
   });
 
+  testWidgets('the send buttons stay above the phone navigation bar', (tester) async {
+    // Android draws apps edge to edge: the bottom 48 px belong to the
+    // navigation bar, and the sheet must not put WhatsApp / Share under it.
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 2.625;
+    tester.view.padding = const FakeViewPadding(top: 63, bottom: 126);
+    tester.view.viewPadding = const FakeViewPadding(top: 63, bottom: 126);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      _wrap(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => SendCreditReceiptsSheet.show(context, customerName: 'Cafe Nour', invoices: _invoices),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    final screenHeight = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    final navBarTop = screenHeight - 126 / tester.view.devicePixelRatio;
+    for (final label in ['WhatsApp', 'Share']) {
+      final button = find.ancestor(
+        of: find.text(label),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+      );
+      expect(button, findsOneWidget, reason: label);
+      expect(tester.getRect(button).bottom, lessThanOrEqualTo(navBarTop), reason: '$label is under the navigation bar');
+    }
+  });
+
   testWidgets('a single open order defaults to its own receipt', (tester) async {
     await tester.pumpWidget(
       _wrap(SendCreditReceiptsSheet(customerName: 'Cafe Nour', invoices: [_invoices.first])),
