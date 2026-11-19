@@ -56,6 +56,8 @@ class ChatDraftPanel extends StatefulWidget {
 
 class _ChatDraftPanelState extends State<ChatDraftPanel> {
   late final TextEditingController _controller;
+  final FocusNode _fieldFocus = FocusNode();
+  final GlobalKey _fieldKey = GlobalKey();
 
   @override
   void initState() {
@@ -78,7 +80,27 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
   void dispose() {
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
+    _fieldFocus.dispose();
     super.dispose();
+  }
+
+  /// The complaint-lock note was tapped. The draft text box sits at the top
+  /// of this scrolling panel and is often out of sight below the facts alert,
+  /// so bring it back into view and put the cursor at the end, ready to edit.
+  Future<void> _editDraft() async {
+    final fieldContext = _fieldKey.currentContext;
+    if (fieldContext != null) {
+      await Scrollable.ensureVisible(
+        fieldContext,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
+    if (!mounted) return;
+    _fieldFocus.requestFocus();
+    _controller.selection = TextSelection.collapsed(
+      offset: _controller.text.length,
+    );
   }
 
   void _onTextChanged() {
@@ -172,23 +194,27 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
                   ] else ...[
                     // Always editable in place: no Edit / Done toggle. System
                     // cut / copy / paste / select-all come with the TextField.
-                    TextField(
-                      key: const ValueKey('chat-draft-field'),
-                      controller: _controller,
-                      minLines: 3,
-                      maxLines: 10,
-                      maxLength: 4096,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      textAlign: TextAlign.start,
-                      textDirection: chatTextDirection(
-                        text,
-                        Directionality.of(context),
-                      ),
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                        counterText: '',
+                    KeyedSubtree(
+                      key: _fieldKey,
+                      child: TextField(
+                        key: const ValueKey('chat-draft-field'),
+                        controller: _controller,
+                        focusNode: _fieldFocus,
+                        minLines: 3,
+                        maxLines: 10,
+                        maxLength: 4096,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        textAlign: TextAlign.start,
+                        textDirection: chatTextDirection(
+                          text,
+                          Directionality.of(context),
+                        ),
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                          counterText: '',
+                        ),
                       ),
                     ),
                     if (draft.upsellLabel != null) ...[
@@ -240,6 +266,8 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
                         icon: Icons.lock_outline,
                         color: theme.colorScheme.error,
                         text: l10n.chatDraftComplaintLock,
+                        // Tapping it jumps to the draft box to edit it.
+                        onTap: widget.busy ? null : _editDraft,
                       ),
                     const SizedBox(height: 6),
                     Wrap(
@@ -459,28 +487,47 @@ class _NoteRow extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.text,
+    this.onTap,
   });
 
   final IconData icon;
   final Color color;
   final String text;
 
+  /// When set, the whole row is tappable and ends with an edit icon.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
-            ),
+    final row = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
           ),
+        ),
+        if (onTap != null) ...[
+          const SizedBox(width: 6),
+          Icon(Icons.edit_outlined, size: 16, color: color),
         ],
+      ],
+    );
+    if (onTap == null) {
+      return Padding(padding: const EdgeInsets.only(top: 4), child: row);
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: row,
+        ),
       ),
     );
   }

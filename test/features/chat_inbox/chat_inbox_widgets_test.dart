@@ -338,6 +338,60 @@ void main() {
     expect(sent, 'We are so sorry, a fresh jar is on its way.');
   });
 
+  testWidgets(
+      'complaint draft: tapping the lock note scrolls back to the draft box '
+      'and focuses it', (tester) async {
+    final draft = ChatDraft.fromJson({
+      'name': 'D-2',
+      'status': 'Pending',
+      'draft_text': 'Sorry about that.',
+      'is_complaint': 1,
+      'warnings': [for (var i = 1; i <= 6; i++) 'Check point $i before sending.'],
+    });
+    await tester.pumpWidget(
+      _app(
+        const [],
+        Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: ChatDraftPanel(
+              draft: draft,
+              busy: false,
+              maxHeight: 220,
+              onSend: (_) {},
+              onReject: () {},
+              onRegenerate: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final field = find.byKey(const ValueKey('chat-draft-field'));
+    final lock = find.byKey(const ValueKey('chat-draft-complaint-lock'));
+    final panel = find.byKey(const ValueKey('chat-draft-panel'));
+
+    // Scroll the panel down to the lock note, as in the field report: the
+    // draft box is then above the panel's visible top.
+    await tester.dragUntilVisible(lock, panel, const Offset(0, -60));
+    await tester.pumpAndSettle();
+    final panelTop = tester.getTopLeft(panel).dy;
+    expect(tester.getTopLeft(field).dy, lessThan(panelTop));
+
+    await tester.tap(lock);
+    await tester.pumpAndSettle();
+
+    expect(tester.getTopLeft(field).dy, greaterThanOrEqualTo(panelTop));
+    final editable = tester.widget<EditableText>(
+      find.descendant(of: field, matching: find.byType(EditableText)),
+    );
+    expect(editable.focusNode.hasFocus, isTrue);
+    expect(
+      editable.controller.selection,
+      const TextSelection.collapsed(offset: 'Sorry about that.'.length),
+    );
+  });
+
   testWidgets('fact conflicts show a confirm alert but Send stays enabled',
       (tester) async {
     String? sent;
