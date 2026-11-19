@@ -161,6 +161,29 @@ void main() {
         expect(request['data']['pickup'], equals(1));
       });
 
+      // Order 22088: the server reads a missing key as "keep the source's mode",
+      // so an edit back to delivery must say pickup = 0 out loud.
+      test('submitInvoiceAmendment - a delivery edit sends pickup 0', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: {
+            'replacement_invoice_id': 'INV-AMD-002',
+          }),
+        );
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-ORIG-002',
+          posProfile: 'Main POS',
+          items: [
+            {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0},
+          ],
+          isPickup: false,
+        );
+
+        final request = mockDio.requestLog.last;
+        expect(request['data'], containsPair('pickup', 0));
+      });
+
       test('submitInvoiceAmendment - sends zero-shipping suppression flags', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manager.submit_invoice_amendment',

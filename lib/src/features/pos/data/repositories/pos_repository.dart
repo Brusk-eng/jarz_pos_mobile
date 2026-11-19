@@ -1239,6 +1239,11 @@ class PosRepository {
         employeePayment: amendmentEmployeePayment,
       );
       requestData['invoice_id'] = sourceInvoiceId;
+      // Always state pickup on an edit, 0 included. The shared builder omits the
+      // key when off, and the server reads a missing key as "keep the source's
+      // mode", so a pickup order could never be edited back to delivery
+      // (order 22088). Older servers read 0 the same as a missing key.
+      requestData['pickup'] = isPickup ? 1 : 0;
       if (promoCodes != null) {
         requestData['promo_codes'] = jsonEncode(promoCodes);
         if (keepSourcePromoCodes) requestData['keep_source_promo_codes'] = 1;
