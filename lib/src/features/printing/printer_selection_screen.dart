@@ -67,7 +67,12 @@ class _PrinterSelectionScreenState
       builder: (ctx) {
         final idController = TextEditingController();
         return Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.paddingOf(ctx).bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,7 +209,9 @@ class _PrinterSelectionScreenState
                   16,
                   16,
                   16,
-                  MediaQuery.of(ctx).viewInsets.bottom + 16,
+                  MediaQuery.of(ctx).viewInsets.bottom +
+                      MediaQuery.paddingOf(ctx).bottom +
+                      16,
                 ),
                 child: SingleChildScrollView(
                   child: Column(

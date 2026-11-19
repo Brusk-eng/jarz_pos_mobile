@@ -281,7 +281,9 @@ class _MediaPreviewSheetState extends State<_MediaPreviewSheet> {
     final canCaption = media.kind != ChatMediaKind.audio;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SingleChildScrollView(
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Column(
@@ -366,6 +368,7 @@ class _MediaPreviewSheetState extends State<_MediaPreviewSheet> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

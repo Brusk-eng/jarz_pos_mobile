@@ -148,43 +148,46 @@ class _MergeSearchSheetState extends ConsumerState<_MergeSearchSheet> {
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.8,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                l10n.b2bMergeSearchTitle,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                controller: _controller,
-                autofocus: true,
-                onChanged: _onChanged,
-                decoration: InputDecoration(
-                  hintText: l10n.b2bMergeSearchHint,
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _loading
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        )
-                      : null,
-                  border: const OutlineInputBorder(),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.8,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  l10n.b2bMergeSearchTitle,
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(child: _results(context)),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _controller,
+                  autofocus: true,
+                  onChanged: _onChanged,
+                  decoration: InputDecoration(
+                    hintText: l10n.b2bMergeSearchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _loading
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : null,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(child: _results(context)),
+            ],
+          ),
         ),
       ),
     );

@@ -147,7 +147,9 @@ class _RejectSheetState extends State<_RejectSheet> {
         right: 16,
         bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
       ),
-      child: SingleChildScrollView(
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -207,6 +209,7 @@ class _RejectSheetState extends State<_RejectSheet> {
               ],
             ),
           ],
+        ),
         ),
       ),
     );
@@ -330,23 +333,26 @@ Future<void> showChatCustomerCardSheet(
       final l10n = sheetContext.l10n;
       final theme = Theme.of(sheetContext);
       if (customer == null) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(l10n.chatCustomerNotLinked),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () {
-                  Navigator.of(sheetContext).pop();
-                  onLink();
-                },
-                icon: const Icon(Icons.link),
-                label: Text(l10n.chatActionLinkCustomer),
-              ),
-            ],
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(l10n.chatCustomerNotLinked),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    onLink();
+                  },
+                  icon: const Icon(Icons.link),
+                  label: Text(l10n.chatActionLinkCustomer),
+                ),
+              ],
+            ),
           ),
         );
       }

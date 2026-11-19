@@ -187,7 +187,9 @@ class _CustodyMovementSheetState extends ConsumerState<CustodyMovementSheet> {
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
-      child: SingleChildScrollView(
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         child: Form(
           key: _formKey,
@@ -319,6 +321,7 @@ class _CustodyMovementSheetState extends ConsumerState<CustodyMovementSheet> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

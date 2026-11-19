@@ -685,74 +685,78 @@ class _InputsSheetState extends State<_InputsSheet> {
       padding: EdgeInsetsDirectional.only(
         start: 16,
         end: 16,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
+        bottom: MediaQuery.viewInsetsOf(context).bottom,
       ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.rptUnitEconInputsTitle,
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                l10n.rptUnitEconInputsSubtitle,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 16),
-              field(
-                _ad,
-                l10n.rptUnitEconAdSpend,
-                l10n.rptUnitEconAdSpendHelp,
-                amountValidator,
-                prefix: symbol,
-              ),
-              field(
-                _extra,
-                l10n.rptUnitEconExtraFixed,
-                l10n.rptUnitEconExtraFixedHelp,
-                amountValidator,
-                prefix: symbol,
-              ),
-              field(
-                _kashier,
-                l10n.rptUnitEconKashierPct,
-                l10n.rptUnitEconKashierPctHelp,
-                pctValidator,
-                suffix: '%',
-              ),
-              field(
-                _talabat,
-                l10n.rptUnitEconTalabatPct,
-                l10n.rptUnitEconTalabatPctHelp,
-                pctValidator,
-                suffix: '%',
-              ),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: _resetDefaults,
-                    child: Text(l10n.rptUnitEconResetDefaults),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(l10n.commonCancel),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _save,
-                    child: Text(l10n.commonSave),
-                  ),
-                ],
-              ),
-            ],
+      child: SafeArea(
+        top: false,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.rptUnitEconInputsTitle,
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.rptUnitEconInputsSubtitle,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 16),
+                field(
+                  _ad,
+                  l10n.rptUnitEconAdSpend,
+                  l10n.rptUnitEconAdSpendHelp,
+                  amountValidator,
+                  prefix: symbol,
+                ),
+                field(
+                  _extra,
+                  l10n.rptUnitEconExtraFixed,
+                  l10n.rptUnitEconExtraFixedHelp,
+                  amountValidator,
+                  prefix: symbol,
+                ),
+                field(
+                  _kashier,
+                  l10n.rptUnitEconKashierPct,
+                  l10n.rptUnitEconKashierPctHelp,
+                  pctValidator,
+                  suffix: '%',
+                ),
+                field(
+                  _talabat,
+                  l10n.rptUnitEconTalabatPct,
+                  l10n.rptUnitEconTalabatPctHelp,
+                  pctValidator,
+                  suffix: '%',
+                ),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: _resetDefaults,
+                      child: Text(l10n.rptUnitEconResetDefaults),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(l10n.commonCancel),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: _save,
+                      child: Text(l10n.commonSave),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -238,7 +238,9 @@ class _SettlementTermsSheetState extends ConsumerState<SettlementTermsSheet> {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
 
-    return Padding(
+    return SafeArea(
+      top: false,
+      child: Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       child: SingleChildScrollView(
         child: Column(
@@ -361,6 +363,7 @@ class _SettlementTermsSheetState extends ConsumerState<SettlementTermsSheet> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

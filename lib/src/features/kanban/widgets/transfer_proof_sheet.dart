@@ -571,158 +571,161 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.receipt_long, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.transferProofTitle,
-                      style: theme.textTheme.titleMedium,
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.receipt_long, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.transferProofTitle,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      tooltip: l10n.commonClose,
+                      onPressed: _busy ? null : _close,
+                    ),
+                  ],
+                ),
+                Text(
+                  l10n.transferProofIntro,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _InfoLine(
+                  label: l10n.transferProofMethodLabel,
+                  value: methodLabel,
+                ),
+                const SizedBox(height: 6),
+                _InfoLine(
+                  label: l10n.transferProofAmountLabel,
+                  value: formatCurrency(context, _amount),
+                  emphasize: true,
+                ),
+                const SizedBox(height: 12),
+                if (_receiptState == TransferReceiptState.rejected)
+                  _Banner(
+                    color: Colors.red,
+                    icon: Icons.block,
+                    text: (_rejectionReason ?? '').isEmpty
+                        ? l10n.transferProofRejected
+                        : l10n.transferProofRejectedReason(_rejectionReason!),
+                  )
+                else if (_canUseExistingProof && !_hasPickedImage)
+                  _Banner(
+                    color: Colors.green,
+                    icon: Icons.verified_outlined,
+                    text: l10n.transferProofAlreadyUploaded,
+                  ),
+                if (_needsPosProfile) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.invoiceSelectPosFirst,
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    tooltip: l10n.commonClose,
-                    onPressed: _busy ? null : _close,
+                ],
+                if (_hasPickedImage) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    l10n.transferProofImageSelected,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.memory(
+                      _pickedBytes!,
+                      height: 180,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ],
-              ),
-              Text(
-                l10n.transferProofIntro,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _InfoLine(
-                label: l10n.transferProofMethodLabel,
-                value: methodLabel,
-              ),
-              const SizedBox(height: 6),
-              _InfoLine(
-                label: l10n.transferProofAmountLabel,
-                value: formatCurrency(context, _amount),
-                emphasize: true,
-              ),
-              const SizedBox(height: 12),
-              if (_receiptState == TransferReceiptState.rejected)
-                _Banner(
-                  color: Colors.red,
-                  icon: Icons.block,
-                  text: (_rejectionReason ?? '').isEmpty
-                      ? l10n.transferProofRejected
-                      : l10n.transferProofRejectedReason(_rejectionReason!),
-                )
-              else if (_canUseExistingProof && !_hasPickedImage)
-                _Banner(
-                  color: Colors.green,
-                  icon: Icons.verified_outlined,
-                  text: l10n.transferProofAlreadyUploaded,
-                ),
-              if (_needsPosProfile) ...[
-                const SizedBox(height: 8),
-                Text(
-                  l10n.invoiceSelectPosFirst,
-                  style: TextStyle(
-                    color: theme.colorScheme.error,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-              if (_hasPickedImage) ...[
                 const SizedBox(height: 10),
-                Text(
-                  l10n.transferProofImageSelected,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: _busy ? null : _pickImage,
+                      icon: Icon(
+                        _hasPickedImage || hasExistingImage
+                            ? Icons.refresh
+                            : Icons.add_a_photo_outlined,
+                      ),
+                      label: Text(
+                        _hasPickedImage || _canUseExistingProof
+                            ? l10n.receiptReplaceImageButton
+                            : l10n.transferProofAttach,
+                      ),
+                    ),
+                    if (hasExistingImage && !_hasPickedImage)
+                      TextButton.icon(
+                        onPressed: _busy ? null : _previewExisting,
+                        icon: const Icon(Icons.open_in_new),
+                        label: Text(l10n.commonPreview),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.memory(
-                    _pickedBytes!,
-                    height: 180,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: _busy ? null : _pickImage,
-                    icon: Icon(
-                      _hasPickedImage || hasExistingImage
-                          ? Icons.refresh
-                          : Icons.add_a_photo_outlined,
-                    ),
-                    label: Text(
-                      _hasPickedImage || _canUseExistingProof
-                          ? l10n.receiptReplaceImageButton
-                          : l10n.transferProofAttach,
-                    ),
-                  ),
-                  if (hasExistingImage && !_hasPickedImage)
-                    TextButton.icon(
-                      onPressed: _busy ? null : _previewExisting,
-                      icon: const Icon(Icons.open_in_new),
-                      label: Text(l10n.commonPreview),
-                    ),
+                // Only a request shows progress; the busy hold while the confirm
+                // question is open has no label and draws nothing here.
+                if (_busy && _busyLabel != null) ...[
+                  const SizedBox(height: 12),
+                  const LinearProgressIndicator(),
+                  const SizedBox(height: 6),
+                  Text(_busyLabel!, style: theme.textTheme.bodySmall),
                 ],
-              ),
-              // Only a request shows progress; the busy hold while the confirm
-              // question is open has no label and draws nothing here.
-              if (_busy && _busyLabel != null) ...[
-                const SizedBox(height: 12),
-                const LinearProgressIndicator(),
-                const SizedBox(height: 6),
-                Text(_busyLabel!, style: theme.textTheme.bodySmall),
-              ],
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: TextStyle(
-                    color: theme.colorScheme.error,
-                    fontWeight: FontWeight.w600,
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: _busy ? null : _close,
-                    child: Text(l10n.commonCancel),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: ElevatedButton.icon(
-                      onPressed: canSubmit ? _submit : null,
-                      icon: const Icon(Icons.check, size: 16),
-                      label: Text(primaryLabel ?? l10n.transferProofSend),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[600],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 10,
+                ],
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: _busy ? null : _close,
+                      child: Text(l10n.commonCancel),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: ElevatedButton.icon(
+                        onPressed: canSubmit ? _submit : null,
+                        icon: const Icon(Icons.check, size: 16),
+                        label: Text(primaryLabel ?? l10n.transferProofSend),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[600],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

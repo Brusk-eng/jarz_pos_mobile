@@ -153,7 +153,12 @@ class _MoveStockSheetState extends ConsumerState<MoveStockSheet> {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          12,
+          16,
+          16 + MediaQuery.paddingOf(context).bottom,
+        ),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: ResponsiveUtils.getDialogWidth(

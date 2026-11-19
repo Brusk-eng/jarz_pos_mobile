@@ -418,7 +418,9 @@ class _NewRequestSheetState extends ConsumerState<NewRequestSheet> {
                   16,
                   8,
                   16,
-                  12 + MediaQuery.of(context).viewInsets.bottom,
+                  12 +
+                      MediaQuery.of(context).viewInsets.bottom +
+                      MediaQuery.of(context).padding.bottom,
                 ),
                 child: Column(
                   children: [

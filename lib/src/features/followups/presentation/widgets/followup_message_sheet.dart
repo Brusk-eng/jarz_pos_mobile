@@ -65,7 +65,12 @@ class _MessageSheet extends StatelessWidget {
     );
 
     return SingleChildScrollView(
-      padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 24),
+      padding: EdgeInsetsDirectional.fromSTEB(
+        20,
+        0,
+        20,
+        24 + MediaQuery.paddingOf(context).bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

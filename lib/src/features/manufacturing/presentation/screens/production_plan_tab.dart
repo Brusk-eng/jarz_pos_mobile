@@ -1229,7 +1229,12 @@ class _ReadinessBanner extends StatelessWidget {
         initialChildSize: 0.6,
         builder: (context, scrollController) => ListView(
           controller: scrollController,
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.paddingOf(context).bottom,
+          ),
           children: [
             Text(
               context.l10n.dailyPlanBomIssuesTitle,

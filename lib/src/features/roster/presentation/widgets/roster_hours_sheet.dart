@@ -68,7 +68,9 @@ class RosterHoursSheet extends ConsumerWidget {
                 )
               else
                 ...hours.rows.map((row) => _HoursRowTile(row: row)),
-              const SizedBox(height: 24),
+              SizedBox(
+                height: 24 + MediaQuery.paddingOf(context).bottom,
+              ),
             ],
           ),
         ),

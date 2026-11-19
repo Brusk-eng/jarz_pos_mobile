@@ -176,7 +176,9 @@ class _ChatLinkCustomerSheetState extends ConsumerState<ChatLinkCustomerSheet> {
         right: 16,
         bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
       ),
-      child: ConstrainedBox(
+      child: SafeArea(
+        top: false,
+        child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.sizeOf(context).height * 0.8,
         ),
@@ -287,6 +289,7 @@ class _ChatLinkCustomerSheetState extends ConsumerState<ChatLinkCustomerSheet> {
               label: Text(chatBi(context, 'New customer', 'عميل جديد')),
             ),
           ],
+        ),
         ),
       ),
     );

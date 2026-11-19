@@ -323,7 +323,12 @@ Future<void> showChatSelectTextSheet(BuildContext context, String text) {
             Expanded(
               child: SelectionArea(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    16 + MediaQuery.paddingOf(sheetContext).bottom,
+                  ),
                   child: SizedBox(
                     width: double.infinity,
                     child: ChatBidiText(

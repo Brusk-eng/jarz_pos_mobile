@@ -344,8 +344,10 @@ class _StaffMemberPickerSheetState
         initialChildSize: 0.75,
         maxChildSize: 0.95,
         minChildSize: 0.5,
-        builder: (ctx, scrollController) =>
-            _buildContent(ctx, scrollController),
+        builder: (ctx, scrollController) => SafeArea(
+          top: false,
+          child: _buildContent(ctx, scrollController),
+        ),
       ),
     );
   }

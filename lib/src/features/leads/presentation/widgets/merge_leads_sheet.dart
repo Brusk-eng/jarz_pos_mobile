@@ -147,92 +147,95 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
         top: 12,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: LeadsTheme.line,
-                borderRadius: BorderRadius.circular(2),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: LeadsTheme.line,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(context.l10n.leadsMergeTitle, style: LeadsTheme.heading),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.leadsMergeSubtitle(widget.lead.leadName.isEmpty
-                ? widget.lead.name
-                : widget.lead.leadName),
-            style: LeadsTheme.bodyMuted,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _searchController,
-            style: LeadsTheme.body,
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              hintText: context.l10n.leadsMergeSearchHint,
-              isDense: true,
-              prefixIcon: const Icon(Icons.search, size: 18),
-              suffixIcon: _searchController.text.isEmpty
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.clear, size: 18),
-                      onPressed: () {
-                        _searchController.clear();
-                        _load();
-                      },
+            const SizedBox(height: 12),
+            Text(context.l10n.leadsMergeTitle, style: LeadsTheme.heading),
+            const SizedBox(height: 4),
+            Text(
+              context.l10n.leadsMergeSubtitle(widget.lead.leadName.isEmpty
+                  ? widget.lead.name
+                  : widget.lead.leadName),
+              style: LeadsTheme.bodyMuted,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _searchController,
+              style: LeadsTheme.body,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                hintText: context.l10n.leadsMergeSearchHint,
+                isDense: true,
+                prefixIcon: const Icon(Icons.search, size: 18),
+                suffixIcon: _searchController.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          _load();
+                        },
+                      ),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onChanged: (_) => setState(() {}),
+              onSubmitted: (value) => _load(query: value),
+            ),
+            const SizedBox(height: 12),
+            Flexible(child: _body()),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _merging ? null : () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: LeadsTheme.deepPlum,
+                      side: const BorderSide(color: LeadsTheme.line),
                     ),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    child: Text(context.l10n.commonCancel),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed:
+                        (_selected.isEmpty || _merging) ? null : _merge,
+                    icon: _merging
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.merge_type, size: 18),
+                    label: Text(
+                      _selected.isEmpty
+                          ? 'Merge'
+                          : context.l10n.leadsMergeAction(_selected.length),
+                    ),
+                    style: FilledButton.styleFrom(
+                        backgroundColor: LeadsTheme.berryPink),
+                  ),
+                ),
+              ],
             ),
-            onChanged: (_) => setState(() {}),
-            onSubmitted: (value) => _load(query: value),
-          ),
-          const SizedBox(height: 12),
-          Flexible(child: _body()),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _merging ? null : () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: LeadsTheme.deepPlum,
-                    side: const BorderSide(color: LeadsTheme.line),
-                  ),
-                  child: Text(context.l10n.commonCancel),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed:
-                      (_selected.isEmpty || _merging) ? null : _merge,
-                  icon: _merging
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.merge_type, size: 18),
-                  label: Text(
-                    _selected.isEmpty
-                        ? 'Merge'
-                        : context.l10n.leadsMergeAction(_selected.length),
-                  ),
-                  style: FilledButton.styleFrom(
-                      backgroundColor: LeadsTheme.berryPink),
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

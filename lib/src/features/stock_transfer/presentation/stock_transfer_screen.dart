@@ -370,7 +370,7 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
                                 },
                               ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16 + MediaQuery.paddingOf(sheetCtx).bottom),
                     ],
                   ),
                 );

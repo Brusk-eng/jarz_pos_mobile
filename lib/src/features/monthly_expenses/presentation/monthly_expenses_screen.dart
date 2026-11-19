@@ -233,7 +233,9 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
     final paid = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => MonthlyExpensePaySheet(
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: MonthlyExpensePaySheet(
         title: ctx.l10n.monthlyExpensesPayTitle(item.displayName),
         periodLabel:
             ctx.l10n.monthlyExpensesPayPeriod(_monthLabel(ctx, state)),
@@ -260,6 +262,7 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
           paymentDate: paymentDate,
           remarks: remarks,
           allowOverpay: allowOverpay,
+        ),
         ),
       ),
     );
@@ -345,20 +348,24 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => RecurringExpenseFormSheet(
-        payload: state.payload,
-        item: item,
-        onSubmit: notifier.saveRecurringExpense,
-        onRemoveAmountChange: (name, effectiveFrom) async {
-          final result = await notifier.removeAmountChange(
-              name: name, effectiveFrom: effectiveFrom);
-          if (result.success && mounted) {
-            _messengerKey.currentState?.showSnackBar(
-              SnackBar(content: Text(l10n.monthlyExpensesAmountHistoryRemoved)),
-            );
-          }
-          return result;
-        },
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: RecurringExpenseFormSheet(
+          payload: state.payload,
+          item: item,
+          onSubmit: notifier.saveRecurringExpense,
+          onRemoveAmountChange: (name, effectiveFrom) async {
+            final result = await notifier.removeAmountChange(
+                name: name, effectiveFrom: effectiveFrom);
+            if (result.success && mounted) {
+              _messengerKey.currentState?.showSnackBar(
+                SnackBar(
+                    content: Text(l10n.monthlyExpensesAmountHistoryRemoved)),
+              );
+            }
+            return result;
+          },
+        ),
       ),
     );
 
@@ -507,18 +514,21 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => EmployeePenaltySheet(
-        row: row,
-        currency: payload.currency,
-        periodLabel:
-            ctx.l10n.monthlyExpensesPayPeriod(_monthLabel(ctx, state)),
-        penaltyUnits: payload.deductions.penaltyUnits,
-        daysPerMonth: payload.deductions.daysPerMonth,
-        onSubmit: ({
-          required PenaltyDraft draft,
-          bool allowOverpay = false,
-        }) =>
-            notifier.addPenalty(draft: draft, allowOverpay: allowOverpay),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: EmployeePenaltySheet(
+          row: row,
+          currency: payload.currency,
+          periodLabel:
+              ctx.l10n.monthlyExpensesPayPeriod(_monthLabel(ctx, state)),
+          penaltyUnits: payload.deductions.penaltyUnits,
+          daysPerMonth: payload.deductions.daysPerMonth,
+          onSubmit: ({
+            required PenaltyDraft draft,
+            bool allowOverpay = false,
+          }) =>
+              notifier.addPenalty(draft: draft, allowOverpay: allowOverpay),
+        ),
       ),
     );
 
@@ -568,7 +578,9 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
     final paid = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => MonthlyExpensePaySheet(
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: MonthlyExpensePaySheet(
         title: ctx.l10n.monthlyExpensesPayTitle(row.displayName),
         // "Salary for October 2026": the month this money is FOR, which is
         // routinely not the month it is paid in.
@@ -605,6 +617,7 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
           allowOverpay: allowOverpay,
           settleAdvances: settleAdvances,
           settleOrders: settleOrders,
+        ),
         ),
       ),
     );

@@ -513,6 +513,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 final kanbanState = ref.watch(kanbanProvider);
                 return SingleChildScrollView(
                   controller: scrollController,
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.paddingOf(context).bottom,
+                  ),
                   child: KanbanFiltersWidget(
                     filters: kanbanState.filters,
                     customers: kanbanState.customers,

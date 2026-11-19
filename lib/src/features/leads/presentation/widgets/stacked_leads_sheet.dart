@@ -82,7 +82,9 @@ class StackedLeadsSheet extends StatelessWidget {
           Flexible(
             child: ListView.separated(
               shrinkWrap: true,
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.only(
+                bottom: 16 + MediaQuery.paddingOf(context).bottom,
+              ),
               itemCount: rows.length,
               separatorBuilder: (_, _) => const Divider(height: 1, indent: 56),
               itemBuilder: (context, i) => _row(context, rows[i], origin),

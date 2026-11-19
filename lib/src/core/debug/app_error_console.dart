@@ -171,7 +171,12 @@ class AppErrorConsole extends StatelessWidget {
                       Expanded(
                         child: ListView.builder(
                           controller: scrollController,
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          padding: EdgeInsets.fromLTRB(
+                            16,
+                            0,
+                            16,
+                            24 + MediaQuery.paddingOf(context).bottom,
+                          ),
                           itemCount: records.length,
                           itemBuilder: (context, index) {
                             return _ErrorRecordTile(record: records[index]);

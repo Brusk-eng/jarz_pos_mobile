@@ -90,6 +90,9 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
                       )
                     : ListView.separated(
                         controller: scrollController,
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.paddingOf(context).bottom,
+                        ),
                         itemCount: _filtered.length,
                         separatorBuilder: (context, index) => const Divider(height: 1),
                         itemBuilder: (context, index) {

@@ -48,7 +48,12 @@ class _TaskFilterSheetState extends State<_TaskFilterSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          24 + MediaQuery.paddingOf(context).bottom,
+        ),
         child: Column(
           key: ValueKey(_resetKey),
           crossAxisAlignment: CrossAxisAlignment.stretch,

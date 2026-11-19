@@ -230,7 +230,12 @@ class _TripGroupCardState extends State<TripGroupCard> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: EdgeInsets.fromLTRB(
+                    8,
+                    0,
+                    8,
+                    MediaQuery.paddingOf(ctx).bottom,
+                  ),
                   child: InvoiceCardWidget(invoice: inv),
                 ),
               ),

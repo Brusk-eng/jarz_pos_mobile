@@ -170,7 +170,12 @@ class _TaskEntryComposerState extends ConsumerState<_TaskEntryComposer> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          20 + MediaQuery.paddingOf(context).bottom,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

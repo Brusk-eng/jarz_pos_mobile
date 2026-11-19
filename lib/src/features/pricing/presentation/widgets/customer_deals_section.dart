@@ -511,7 +511,12 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
     final range = _range;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        20 + MediaQuery.paddingOf(context).bottom,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -740,6 +745,9 @@ class _TargetPickerState extends State<_TargetPicker> {
             child: shown.isEmpty
                 ? Center(child: Text(l10n.commonNoItems))
                 : ListView.builder(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.paddingOf(context).bottom,
+                    ),
                     itemCount: shown.length,
                     itemBuilder: (context, i) {
                       final t = shown[i];

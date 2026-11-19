@@ -205,81 +205,84 @@ class _InvoiceNotesSheetState extends ConsumerState<InvoiceNotesSheet> {
       padding: EdgeInsets.only(bottom: viewInsets.bottom),
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.82,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.l10n.invoiceNotesTitle,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          context.l10n.invoiceInvoiceLabel(widget.invoice.displayId),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.l10n.invoiceNotesTitle,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            context.l10n.invoiceInvoiceLabel(widget.invoice.displayId),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
-                    tooltip: context.l10n.commonClose,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Expanded(child: _buildNotesList()),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _noteController,
-                focusNode: _noteFocusNode,
-                minLines: 2,
-                maxLines: 4,
-                textInputAction: TextInputAction.newline,
-                decoration: InputDecoration(
-                  hintText: context.l10n.invoiceNotesHint,
-                  border: const OutlineInputBorder(),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                      tooltip: context.l10n.commonClose,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-                      child: Text(context.l10n.commonClose),
-                    ),
+                const SizedBox(height: 12),
+                Expanded(child: _buildNotesList()),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _noteController,
+                  focusNode: _noteFocusNode,
+                  minLines: 2,
+                  maxLines: 4,
+                  textInputAction: TextInputAction.newline,
+                  decoration: InputDecoration(
+                    hintText: context.l10n.invoiceNotesHint,
+                    border: const OutlineInputBorder(),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _submitNote,
-                      child: _isSaving
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(context.l10n.invoiceAddingNote),
-                              ],
-                            )
-                          : Text(context.l10n.commonAdd),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+                        child: Text(context.l10n.commonClose),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _isSaving ? null : _submitNote,
+                        child: _isSaving
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(context.l10n.invoiceAddingNote),
+                                ],
+                              )
+                            : Text(context.l10n.commonAdd),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

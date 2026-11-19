@@ -49,8 +49,13 @@ Future<void> shareTrackingLink(
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (_) => SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    builder: (sheetContext) => SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        16 + MediaQuery.paddingOf(sheetContext).bottom,
+      ),
       child: TrackingLinkSheet(
         link: link,
         phone: link.customerPhone ?? fallbackPhone,

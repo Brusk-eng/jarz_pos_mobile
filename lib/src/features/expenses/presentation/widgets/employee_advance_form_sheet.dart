@@ -96,7 +96,9 @@ class _EmployeeAdvanceFormSheetState
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
-      child: SingleChildScrollView(
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
         child: Form(
           key: _formKey,
@@ -300,6 +302,7 @@ class _EmployeeAdvanceFormSheetState
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -500,6 +503,9 @@ class _EmployeePickerSheetState extends State<_EmployeePickerSheet> {
                       )
                     : ListView.builder(
                         controller: scrollController,
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.paddingOf(ctx).bottom,
+                        ),
                         itemCount: matches.length,
                         itemBuilder: (listContext, index) {
                           final option = matches[index];

@@ -28,9 +28,12 @@ Future<bool> showAddPinSheet(
       padding: EdgeInsets.only(
         bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: AddPinSheet(addressName: addressName),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: AddPinSheet(addressName: addressName),
+        ),
       ),
     ),
   );

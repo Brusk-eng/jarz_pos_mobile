@@ -328,7 +328,12 @@ class _CourierTile extends StatelessWidget {
                 Expanded(
                   child: ListView.separated(
                     controller: scrollController,
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.fromLTRB(
+                      12,
+                      12,
+                      12,
+                      12 + MediaQuery.paddingOf(sheetCtx).bottom,
+                    ),
                     itemCount: b.details.length,
                     separatorBuilder: (context, index) => const Divider(height: 1),
                     itemBuilder: (context, index) {

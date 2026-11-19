@@ -1264,7 +1264,10 @@ class _PosScreenState extends ConsumerState<PosScreen>
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                 ),
-                child: CartWidget(scrollController: scrollController),
+                child: SafeArea(
+                  top: false,
+                  child: CartWidget(scrollController: scrollController),
+                ),
               ),
             ),
           ],

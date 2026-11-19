@@ -87,7 +87,12 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          24,
+          24,
+          32 + MediaQuery.paddingOf(context).bottom,
+        ),
         child: Form(
           key: _formKey,
           child: Column(

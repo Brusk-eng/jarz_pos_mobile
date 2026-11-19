@@ -222,7 +222,9 @@ class _RecordCreditPaymentSheetState
     final amount = _amount;
     final overpaying = amount != null && amount > widget.balance + 0.005;
 
-    return Padding(
+    return SafeArea(
+      top: false,
+      child: Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       child: SingleChildScrollView(
         child: Column(
@@ -407,6 +409,7 @@ class _RecordCreditPaymentSheetState
             ),
           ],
         ),
+      ),
       ),
     );
   }

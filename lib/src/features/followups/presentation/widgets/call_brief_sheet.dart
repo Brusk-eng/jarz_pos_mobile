@@ -129,66 +129,69 @@ class _CallBriefSheetState extends ConsumerState<CallBriefSheet> {
         16,
         16 + MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '${l10n.followupsActionBrief} - ${row.displayName}',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-              IconButton(
-                tooltip: l10n.followupsBriefRefresh,
-                onPressed: _loading ? null : () => _load(refresh: true),
-                icon: const Icon(Icons.refresh),
-              ),
-            ],
-          ),
-          if (_fromClaude && !_loading)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                l10n.followupsWrittenByClaude,
-                style: theme.textTheme.labelSmall
-                    ?.copyWith(color: theme.colorScheme.primary),
-              ),
-            ),
-          Flexible(
-            child: SingleChildScrollView(
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: body,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: hasPhone ? widget.onCall : null,
-                  icon: const Icon(Icons.call, size: 18),
-                  label: Text(l10n.followupsActionCall),
-                ),
-              ),
-              if (hasWhatsapp) ...[
-                const SizedBox(width: 8),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: widget.onWhatsapp,
-                    icon: const Icon(Icons.chat, size: 18),
-                    label: Text(l10n.followupsActionWhatsapp),
+                  child: Text(
+                    '${l10n.followupsActionBrief} - ${row.displayName}',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
+                IconButton(
+                  tooltip: l10n.followupsBriefRefresh,
+                  onPressed: _loading ? null : () => _load(refresh: true),
+                  icon: const Icon(Icons.refresh),
+                ),
               ],
-            ],
-          ),
-        ],
+            ),
+            if (_fromClaude && !_loading)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  l10n.followupsWrittenByClaude,
+                  style: theme.textTheme.labelSmall
+                      ?.copyWith(color: theme.colorScheme.primary),
+                ),
+              ),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: body,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: hasPhone ? widget.onCall : null,
+                    icon: const Icon(Icons.call, size: 18),
+                    label: Text(l10n.followupsActionCall),
+                  ),
+                ),
+                if (hasWhatsapp) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onWhatsapp,
+                      icon: const Icon(Icons.chat, size: 18),
+                      label: Text(l10n.followupsActionWhatsapp),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

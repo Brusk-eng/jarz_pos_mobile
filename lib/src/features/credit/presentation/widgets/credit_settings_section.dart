@@ -263,7 +263,9 @@ class _CreditSettingsSheetState extends ConsumerState<CreditSettingsSheet> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
 
-    return Padding(
+    return SafeArea(
+      top: false,
+      child: Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       child: SingleChildScrollView(
         child: Column(
@@ -346,6 +348,7 @@ class _CreditSettingsSheetState extends ConsumerState<CreditSettingsSheet> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

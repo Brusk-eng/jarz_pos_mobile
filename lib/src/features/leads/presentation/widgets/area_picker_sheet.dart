@@ -74,94 +74,97 @@ class _AreaPickerSheetState extends ConsumerState<AreaPickerSheet> {
         top: 12,
         bottom: MediaQuery.of(context).viewInsets.bottom + 16,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: LeadsTheme.line,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(context.l10n.leadsFilterAreas, style: LeadsTheme.heading),
-              const Spacer(),
-              if (selected.isNotEmpty)
-                TextButton(
-                  onPressed: notifier.clearAreas,
-                  style: TextButton.styleFrom(
-                    foregroundColor: LeadsTheme.berryPink,
-                  ),
-                  child: Text(
-                      context.l10n.leadsAreaClearCount(selected.length)),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: LeadsTheme.line,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _searchController,
-            style: LeadsTheme.body,
-            decoration: InputDecoration(
-              hintText: context.l10n.leadsAreaSearchHint,
-              prefixIcon: const Icon(Icons.search, size: 20),
-              isDense: true,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: LeadsTheme.line),
               ),
             ),
-            onChanged: (value) => setState(() => _query = value),
-          ),
-          const SizedBox(height: 8),
-          Flexible(
-            child: ordered.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 28),
-                    child: Center(
-                      child: Text(
-                        context.l10n.leadsAreaNoMatch(_query),
-                        style: LeadsTheme.bodyMuted,
-                      ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(context.l10n.leadsFilterAreas, style: LeadsTheme.heading),
+                const Spacer(),
+                if (selected.isNotEmpty)
+                  TextButton(
+                    onPressed: notifier.clearAreas,
+                    style: TextButton.styleFrom(
+                      foregroundColor: LeadsTheme.berryPink,
                     ),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: ordered.length,
-                    itemBuilder: (context, index) {
-                      final area = ordered[index];
-                      return CheckboxListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        activeColor: LeadsTheme.berryPink,
-                        value: selected.contains(area),
-                        title: Text(area, style: LeadsTheme.body),
-                        onChanged: (_) => notifier.toggleArea(area),
-                      );
-                    },
+                    child: Text(
+                        context.l10n.leadsAreaClearCount(selected.length)),
                   ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: FilledButton.styleFrom(
-                backgroundColor: LeadsTheme.berryPink,
-              ),
-              child: Text(context.l10n.leadsFilterDone),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            TextField(
+              controller: _searchController,
+              style: LeadsTheme.body,
+              decoration: InputDecoration(
+                hintText: context.l10n.leadsAreaSearchHint,
+                prefixIcon: const Icon(Icons.search, size: 20),
+                isDense: true,
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: LeadsTheme.line),
+                ),
+              ),
+              onChanged: (value) => setState(() => _query = value),
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: ordered.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 28),
+                      child: Center(
+                        child: Text(
+                          context.l10n.leadsAreaNoMatch(_query),
+                          style: LeadsTheme.bodyMuted,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: ordered.length,
+                      itemBuilder: (context, index) {
+                        final area = ordered[index];
+                        return CheckboxListTile(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          activeColor: LeadsTheme.berryPink,
+                          value: selected.contains(area),
+                          title: Text(area, style: LeadsTheme.body),
+                          onChanged: (_) => notifier.toggleArea(area),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: LeadsTheme.berryPink,
+                ),
+                child: Text(context.l10n.leadsFilterDone),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

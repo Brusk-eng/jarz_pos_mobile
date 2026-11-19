@@ -1759,75 +1759,78 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         return StatefulBuilder(
           builder: (ctx, setModalState) => Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.payment, size: 20),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.invoiceSelectPaymentMethod,
-                        style: Theme.of(context).textTheme.titleMedium),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _paymentOptionTile(
-                  title: context.l10n.paymentMethodInstapay,
-                  value: 'InstaPay',
-                  groupValue: selected,
-                  onChanged: (v) => setModalState(() => selected = v),
-                  icon: Icons.account_balance,
-                ),
-                _paymentOptionTile(
-                  title: context.l10n.invoiceWallet,
-                  value: 'Wallet',
-                  groupValue: selected,
-                  onChanged: (v) => setModalState(() => selected = v),
-                  icon: Icons.account_balance_wallet,
-                ),
-                _paymentOptionTile(
-                  title: context.l10n.paymentMethodCash,
-                  value: PaymentModes.cash,
-                  groupValue: selected,
-                  onChanged: (v) => setModalState(() => selected = v),
-                  icon: Icons.payments_outlined,
-                ),
-                if (canRecordKashier)
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.payment, size: 20),
+                      const SizedBox(width: 8),
+                      Text(context.l10n.invoiceSelectPaymentMethod,
+                          style: Theme.of(context).textTheme.titleMedium),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   _paymentOptionTile(
-                    // Brand name, shown untranslated like "Kashier Card"
-                    // everywhere else in the app.
-                    title: 'Kashier',
-                    value: 'Kashier',
+                    title: context.l10n.paymentMethodInstapay,
+                    value: 'InstaPay',
                     groupValue: selected,
                     onChanged: (v) => setModalState(() => selected = v),
-                    icon: Icons.credit_card,
+                    icon: Icons.account_balance,
                   ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: Text(context.l10n.commonCancel),
+                  _paymentOptionTile(
+                    title: context.l10n.invoiceWallet,
+                    value: 'Wallet',
+                    groupValue: selected,
+                    onChanged: (v) => setModalState(() => selected = v),
+                    icon: Icons.account_balance_wallet,
+                  ),
+                  _paymentOptionTile(
+                    title: context.l10n.paymentMethodCash,
+                    value: PaymentModes.cash,
+                    groupValue: selected,
+                    onChanged: (v) => setModalState(() => selected = v),
+                    icon: Icons.payments_outlined,
+                  ),
+                  if (canRecordKashier)
+                    _paymentOptionTile(
+                      // Brand name, shown untranslated like "Kashier Card"
+                      // everywhere else in the app.
+                      title: 'Kashier',
+                      value: 'Kashier',
+                      groupValue: selected,
+                      onChanged: (v) => setModalState(() => selected = v),
+                      icon: Icons.credit_card,
                     ),
-                    const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      onPressed: () => Navigator.of(ctx).pop(selected),
-                      icon: const Icon(Icons.check, size: 16),
-                      label: Text(context.l10n.invoiceSubmit),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[600],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 10,
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: Text(context.l10n.commonCancel),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.of(ctx).pop(selected),
+                        icon: const Icon(Icons.check, size: 16),
+                        label: Text(context.l10n.invoiceSubmit),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[600],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                )
-              ],
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         );

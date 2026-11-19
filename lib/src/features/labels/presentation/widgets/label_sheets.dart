@@ -169,7 +169,9 @@ class _SheetScaffold extends StatelessWidget {
         left: 20,
         right: 20,
         top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.paddingOf(context).bottom +
+            20,
       ),
       child: SingleChildScrollView(
         child: Column(

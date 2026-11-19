@@ -140,115 +140,118 @@ class _LogTouchSheetState extends ConsumerState<LogTouchSheet> {
         top: 16,
         bottom: MediaQuery.of(context).viewInsets.bottom + 16,
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(l10n.followupsLogTitle, style: theme.textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text(row.displayName, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 16),
-            if (row.isCall) ...[
-              Text(l10n.followupsReachedLabel,
-                  style: theme.textTheme.titleSmall),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l10n.followupsLogTitle, style: theme.textTheme.titleLarge),
+              const SizedBox(height: 4),
+              Text(row.displayName, style: theme.textTheme.bodyMedium),
+              const SizedBox(height: 16),
+              if (row.isCall) ...[
+                Text(l10n.followupsReachedLabel,
+                    style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                SegmentedButton<FollowupReach>(
+                  emptySelectionAllowed: true,
+                  segments: [
+                    ButtonSegment(
+                      value: FollowupReach.reached,
+                      icon: const Icon(Icons.call_received),
+                      label: Text(l10n.followupsReached),
+                    ),
+                    ButtonSegment(
+                      value: FollowupReach.notReached,
+                      icon: const Icon(Icons.phone_missed),
+                      label: Text(l10n.followupsNotReached),
+                    ),
+                  ],
+                  selected: {if (_reach != null) _reach!},
+                  onSelectionChanged: _saving
+                      ? null
+                      : (s) => setState(() {
+                            _reach = s.isEmpty ? null : s.first;
+                            _error = null;
+                            // The backend accepts only "No Reply" for an
+                            // unanswered call, so it is forced here.
+                            if (_reach == FollowupReach.notReached) {
+                              _outcome = FollowupOutcome.noReply;
+                            } else if (_outcome == FollowupOutcome.noReply) {
+                              _outcome = null;
+                            }
+                          }),
+                ),
+                const SizedBox(height: 16),
+              ],
+              Text(l10n.followupsOutcomeLabel, style: theme.textTheme.titleSmall),
               const SizedBox(height: 8),
-              SegmentedButton<FollowupReach>(
-                emptySelectionAllowed: true,
-                segments: [
-                  ButtonSegment(
-                    value: FollowupReach.reached,
-                    icon: const Icon(Icons.call_received),
-                    label: Text(l10n.followupsReached),
-                  ),
-                  ButtonSegment(
-                    value: FollowupReach.notReached,
-                    icon: const Icon(Icons.phone_missed),
-                    label: Text(l10n.followupsNotReached),
-                  ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final o in FollowupOutcome.values)
+                    ChoiceChip(
+                      label: Text(followupOutcomeLabel(context, o)),
+                      selected: _outcome == o,
+                      onSelected: _saving || !_outcomeAllowed(o)
+                          ? null
+                          : (sel) => setState(() {
+                                _outcome = sel ? o : null;
+                                _error = null;
+                              }),
+                    ),
                 ],
-                selected: {if (_reach != null) _reach!},
-                onSelectionChanged: _saving
-                    ? null
-                    : (s) => setState(() {
-                          _reach = s.isEmpty ? null : s.first;
-                          _error = null;
-                          // The backend accepts only "No Reply" for an
-                          // unanswered call, so it is forced here.
-                          if (_reach == FollowupReach.notReached) {
-                            _outcome = FollowupOutcome.noReply;
-                          } else if (_outcome == FollowupOutcome.noReply) {
-                            _outcome = null;
-                          }
-                        }),
               ),
               const SizedBox(height: 16),
-            ],
-            Text(l10n.followupsOutcomeLabel, style: theme.textTheme.titleSmall),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final o in FollowupOutcome.values)
-                  ChoiceChip(
-                    label: Text(followupOutcomeLabel(context, o)),
-                    selected: _outcome == o,
-                    onSelected: _saving || !_outcomeAllowed(o)
-                        ? null
-                        : (sel) => setState(() {
-                              _outcome = sel ? o : null;
-                              _error = null;
-                            }),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _notes,
-              enabled: !_saving,
-              minLines: 2,
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: l10n.commonNotesLabel,
-                hintText: l10n.followupsNotesHint,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                _error!,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.error),
-              ),
-            ],
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed:
-                        _saving ? null : () => Navigator.of(context).pop(),
-                    child: Text(l10n.commonCancel),
-                  ),
+              TextField(
+                controller: _notes,
+                enabled: !_saving,
+                minLines: 2,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  labelText: l10n.commonNotesLabel,
+                  hintText: l10n.followupsNotesHint,
+                  border: const OutlineInputBorder(),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: _saving ? null : _submit,
-                    child: _saving
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(l10n.commonSave),
-                  ),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _error!,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: theme.colorScheme.error),
                 ),
               ],
-            ),
-          ],
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed:
+                          _saving ? null : () => Navigator.of(context).pop(),
+                      child: Text(l10n.commonCancel),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: _saving ? null : _submit,
+                      child: _saving
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(l10n.commonSave),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
