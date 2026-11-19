@@ -319,13 +319,25 @@ class StockReportTotals {
   final double qty;
   final double stockValue;
 
-  const StockReportTotals({this.qty = 0, this.stockValue = 0});
+  /// Jars held by open (undispatched) orders. Final Products only, and a
+  /// newer key: 0 when the server does not send it.
+  final double reservedQty;
+
+  const StockReportTotals({
+    this.qty = 0,
+    this.stockValue = 0,
+    this.reservedQty = 0,
+  });
+
+  /// What is left once the open orders are dispatched.
+  double get availableQty => qty - reservedQty;
 
   factory StockReportTotals.fromJson(Object? v) {
     final j = ReportJson.map(v);
     return StockReportTotals(
       qty: ReportJson.dbl(j['qty']),
       stockValue: ReportJson.dbl(j['stock_value']),
+      reservedQty: ReportJson.dbl(j['reserved_qty']),
     );
   }
 }

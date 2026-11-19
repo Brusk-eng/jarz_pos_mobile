@@ -18461,6 +18461,87 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rptG2Refresh => 'Refresh';
 
   @override
+  String get rptReservedViewInStock => 'In stock';
+
+  @override
+  String get rptReservedViewAfterOrders => 'After orders';
+
+  @override
+  String get rptReservedLegendHeld => 'Held for open orders';
+
+  @override
+  String rptReservedCellTooltip(
+    String label,
+    String available,
+    String onHand,
+    String held,
+  ) {
+    return '$label: $available after orders · $onHand in stock · $held held';
+  }
+
+  @override
+  String rptReservedJars(int count, String qty) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$qty jars',
+      one: '$qty jar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rptReservedOpenOrders(int count, String qty) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$qty open orders',
+      one: '$qty open order',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rptReservedHeldFor(String jars, String orders) {
+    return '$jars held for $orders';
+  }
+
+  @override
+  String rptReservedOverdueCount(String count) {
+    return '$count overdue';
+  }
+
+  @override
+  String get rptReservedOverdue => 'Overdue';
+
+  @override
+  String rptReservedHeldTotal(String qty) {
+    return 'Held: $qty';
+  }
+
+  @override
+  String rptReservedOfInStock(String qty) {
+    return 'of $qty in stock';
+  }
+
+  @override
+  String get rptReservedSheetTitle => 'Jars held for open orders';
+
+  @override
+  String get rptReservedSheetHint =>
+      'Jars leave the shelf when the order goes out for delivery.';
+
+  @override
+  String rptReservedDeliveryOn(String date) {
+    return 'Delivery $date';
+  }
+
+  @override
+  String rptReservedOrderedNoDate(String date) {
+    return 'Ordered $date · no delivery date';
+  }
+
+  @override
   String get rptUnitEconInputsTitle => 'Owner inputs';
 
   @override

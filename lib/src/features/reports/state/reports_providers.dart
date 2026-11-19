@@ -233,6 +233,17 @@ final finalProductsReportProvider =
   return repo.fetchFinalProductsReport(branch: branch);
 });
 
+/// Which quantities the Final Products table shows: what is on the shelf, or
+/// what is left once the open (undispatched) orders take their jars.
+enum FinalProductsStockView { inStock, afterOrders }
+
+/// The Final Products "In stock | After orders" choice, kept for the session.
+/// Defaults to After orders: "how many can I still sell?" is the question the
+/// report is opened for. Only used when the server reports reservations.
+final finalProductsStockViewProvider = StateProvider<FinalProductsStockView>(
+  (ref) => FinalProductsStockView.afterOrders,
+);
+
 final materialsReportProvider =
     FutureProvider.autoDispose.family<JsonMap, String?>((ref, branch) async {
   final repo = ref.watch(reportsRepositoryProvider);

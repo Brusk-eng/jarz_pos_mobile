@@ -30430,6 +30430,101 @@ abstract class AppLocalizations {
   /// **'Refresh'**
   String get rptG2Refresh;
 
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'In stock'**
+  String get rptReservedViewInStock;
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'After orders'**
+  String get rptReservedViewAfterOrders;
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Held for open orders'**
+  String get rptReservedLegendHeld;
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: {available} after orders · {onHand} in stock · {held} held'**
+  String rptReservedCellTooltip(
+    String label,
+    String available,
+    String onHand,
+    String held,
+  );
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{qty} jar} other{{qty} jars}}'**
+  String rptReservedJars(int count, String qty);
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{qty} open order} other{{qty} open orders}}'**
+  String rptReservedOpenOrders(int count, String qty);
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'{jars} held for {orders}'**
+  String rptReservedHeldFor(String jars, String orders);
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} overdue'**
+  String rptReservedOverdueCount(String count);
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get rptReservedOverdue;
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Held: {qty}'**
+  String rptReservedHeldTotal(String qty);
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'of {qty} in stock'**
+  String rptReservedOfInStock(String qty);
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars held for open orders'**
+  String get rptReservedSheetTitle;
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars leave the shelf when the order goes out for delivery.'**
+  String get rptReservedSheetHint;
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery {date}'**
+  String rptReservedDeliveryOn(String date);
+
+  /// Final Products report: jars held by open (undispatched) orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered {date} · no delivery date'**
+  String rptReservedOrderedNoDate(String date);
+
   /// Reports overhaul (business screens).
   ///
   /// In en, this message translates to:

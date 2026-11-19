@@ -18437,6 +18437,91 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rptG2Refresh => 'تحديث';
 
   @override
+  String get rptReservedViewInStock => 'في المخزن';
+
+  @override
+  String get rptReservedViewAfterOrders => 'بعد الطلبات';
+
+  @override
+  String get rptReservedLegendHeld => 'محجوز لطلبات مفتوحة';
+
+  @override
+  String rptReservedCellTooltip(
+    String label,
+    String available,
+    String onHand,
+    String held,
+  ) {
+    return '$label: $available بعد الطلبات · $onHand في المخزن · $held محجوز';
+  }
+
+  @override
+  String rptReservedJars(int count, String qty) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$qty برطمان',
+      few: '$qty برطمانات',
+      two: 'برطمانين',
+      one: 'برطمان واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rptReservedOpenOrders(int count, String qty) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$qty طلب مفتوح',
+      few: '$qty طلبات مفتوحة',
+      two: 'طلبين مفتوحين',
+      one: 'طلب مفتوح واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rptReservedHeldFor(String jars, String orders) {
+    return '$jars محجوز لـ $orders';
+  }
+
+  @override
+  String rptReservedOverdueCount(String count) {
+    return '$count متأخر';
+  }
+
+  @override
+  String get rptReservedOverdue => 'متأخر';
+
+  @override
+  String rptReservedHeldTotal(String qty) {
+    return 'محجوز: $qty';
+  }
+
+  @override
+  String rptReservedOfInStock(String qty) {
+    return 'من $qty في المخزن';
+  }
+
+  @override
+  String get rptReservedSheetTitle => 'برطمانات محجوزة لطلبات مفتوحة';
+
+  @override
+  String get rptReservedSheetHint =>
+      'البرطمانات بتخرج من المخزن لما الطلب يخرج للتوصيل.';
+
+  @override
+  String rptReservedDeliveryOn(String date) {
+    return 'توصيل $date';
+  }
+
+  @override
+  String rptReservedOrderedNoDate(String date) {
+    return 'اتطلب $date · من غير ميعاد توصيل';
+  }
+
+  @override
   String get rptUnitEconInputsTitle => 'مدخلات المالك';
 
   @override

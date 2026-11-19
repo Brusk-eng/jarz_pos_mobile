@@ -9,6 +9,7 @@ import '../../../../core/utils/responsive_utils.dart';
 import '../../data/models/report_envelopes.dart';
 import '../../data/models/report_json.dart';
 import '../../state/reports_providers.dart';
+import '../widgets/final_products_reserved.dart';
 import '../widgets/report_branch_selector.dart';
 import '../widgets/report_states.dart';
 
@@ -153,7 +154,10 @@ class _WithBranch extends StatelessWidget {
 class _TotalsLine extends StatelessWidget {
   final StockReportTotals totals;
 
-  const _TotalsLine({required this.totals});
+  /// After-orders view: add "Held: N" when open orders hold jars here.
+  final bool showHeld;
+
+  const _TotalsLine({required this.totals, this.showHeld = false});
 
   @override
   Widget build(BuildContext context) {
@@ -163,8 +167,15 @@ class _TotalsLine extends StatelessWidget {
       fontWeight: FontWeight.w500,
       color: theme.colorScheme.onSurfaceVariant,
     );
+    // After orders, lead with what is left so the line agrees with the
+    // table's Total column and the grand total card above it.
+    final held = showHeld && totals.reservedQty > 0;
     final parts = [
-      '${l10n.rptG2TotalQty}: ${_formatQty(context, totals.qty)}',
+      held
+          ? '${l10n.rptReservedViewAfterOrders}: ${_formatQty(context, totals.availableQty)}'
+          : '${l10n.rptG2TotalQty}: ${_formatQty(context, totals.qty)}',
+      if (held)
+        l10n.rptReservedHeldTotal(_formatQty(context, totals.reservedQty)),
       '${l10n.rptG2StockValue}: ${formatCurrency(context, totals.stockValue)}',
     ];
     return Text(parts.join('  •  '), style: style);
@@ -173,12 +184,18 @@ class _TotalsLine extends StatelessWidget {
 
 class _GrandTotalCard extends StatelessWidget {
   final StockReportTotals totals;
-  const _GrandTotalCard({required this.totals});
+
+  /// After-orders view: the quantity is what is left once the open orders
+  /// go out, with "of N in stock" under it.
+  final bool afterOrders;
+  const _GrandTotalCard({required this.totals, this.afterOrders = false});
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final held = afterOrders && totals.reservedQty > 0;
+    final qty = held ? totals.availableQty : totals.qty;
     return Card(
       margin: EdgeInsets.zero,
       color: theme.colorScheme.surfaceContainerHighest,
@@ -207,14 +224,25 @@ class _GrandTotalCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(l10n.rptG2TotalQty, style: theme.textTheme.labelMedium),
+                Text(
+                  held ? l10n.rptReservedViewAfterOrders : l10n.rptG2TotalQty,
+                  style: theme.textTheme.labelMedium,
+                ),
                 const SizedBox(height: 2),
                 Text(
-                  _formatQty(context, totals.qty),
+                  _formatQty(context, qty),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: held && qty < 0 ? theme.colorScheme.error : null,
                   ),
                 ),
+                if (held)
+                  Text(
+                    l10n.rptReservedOfInStock(_formatQty(context, totals.qty)),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
               ],
             ),
           ],
@@ -238,6 +266,7 @@ class _FinalProductsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final reportAsync = ref.watch(finalProductsReportProvider(branch));
+    final view = ref.watch(finalProductsStockViewProvider);
 
     return RefreshIndicator(
       onRefresh: () => ref.refresh(finalProductsReportProvider(branch).future),
@@ -257,7 +286,25 @@ class _FinalProductsTab extends ConsumerWidget {
           // when the server sends them.
           final hasCover = data['cover'] is Map;
           final cover = CoverThresholds.fromJson(data['cover']);
-          final hasHeader = grand != null || hasCover;
+          // Jars held by open orders are a newer key too: no toggle, no
+          // summary and today's numbers when the server does not send them
+          // (or its read failed, or nothing is held).
+          final reserved = ReservedJars.fromReport(data['reserved']);
+          final afterOrders =
+              reserved != null && view == FinalProductsStockView.afterOrders;
+          final header = <Widget>[
+            if (reserved != null) const FinalProductsViewToggle(),
+            if (grand != null)
+              _GrandTotalCard(totals: grand, afterOrders: afterOrders),
+            if (reserved != null) ReservedSummaryTile(reserved: reserved),
+            if (hasCover || afterOrders)
+              _CoverLegend(
+                cover: cover,
+                showDaysCover: hasCover,
+                showHeld: afterOrders,
+              ),
+          ];
+          final hasHeader = header.isNotEmpty;
           return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsetsDirectional.all(8),
@@ -269,9 +316,10 @@ class _FinalProductsTab extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (grand != null) _GrandTotalCard(totals: grand),
-                      if (grand != null && hasCover) const SizedBox(height: 8),
-                      if (hasCover) _CoverLegend(cover: cover),
+                      for (var i = 0; i < header.length; i++) ...[
+                        if (i > 0) const SizedBox(height: 8),
+                        header[i],
+                      ],
                     ],
                   ),
                 );
@@ -285,6 +333,7 @@ class _FinalProductsTab extends ConsumerWidget {
                 warehouses: warehouses,
                 items: items,
                 cover: cover,
+                afterOrders: afterOrders,
               );
               // The Small jar group is rarely looked at: start it collapsed
               // (tap the header to open; the item count stays in the header).
@@ -296,6 +345,7 @@ class _FinalProductsTab extends ConsumerWidget {
                     itemCount: items.length,
                     initiallyExpanded: false,
                     totals: totals,
+                    showHeld: afterOrders,
                     child: table,
                   ),
                 );
@@ -308,7 +358,10 @@ class _FinalProductsTab extends ConsumerWidget {
                   if (totals != null)
                     Padding(
                       padding: const EdgeInsetsDirectional.only(top: 2),
-                      child: _TotalsLine(totals: totals),
+                      child: _TotalsLine(
+                        totals: totals,
+                        showHeld: afterOrders,
+                      ),
                     ),
                   const SizedBox(height: 6),
                   table,
@@ -380,10 +433,17 @@ Color? _coverTint(CoverTone tone) => _coverColor(tone)?.withValues(alpha: 0.18);
 String _formatDays(BuildContext context, double days) =>
     NumberFormat('#,##0.#', context.l10n.localeName).format(days);
 
-/// "Days cover: [< 3] [3–7] [> 7] [No sales]" under the grand total.
+/// "Days cover: [< 3] [3–7] [> 7] [No sales]" under the grand total, and
+/// in the After-orders view "• Held for open orders" for the cell marker.
 class _CoverLegend extends StatelessWidget {
   final CoverThresholds cover;
-  const _CoverLegend({required this.cover});
+  final bool showDaysCover;
+  final bool showHeld;
+  const _CoverLegend({
+    required this.cover,
+    this.showDaysCover = true,
+    this.showHeld = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -397,20 +457,23 @@ class _CoverLegend extends StatelessWidget {
       runSpacing: 6,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text(
-          l10n.rptG2ColumnDaysCover,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        if (showDaysCover) ...[
+          Text(
+            l10n.rptG2ColumnDaysCover,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
-        _LegendChip(label: '< $red', color: _coverRed),
-        _LegendChip(label: '$red–$green', color: _coverAmber),
-        _LegendChip(label: '> $green', color: _coverGreen),
-        _LegendChip(
-          label: l10n.productionRoundStatusNoSales,
-          color: theme.colorScheme.outline,
-          neutral: true,
-        ),
+          _LegendChip(label: '< $red', color: _coverRed),
+          _LegendChip(label: '$red–$green', color: _coverAmber),
+          _LegendChip(label: '> $green', color: _coverGreen),
+          _LegendChip(
+            label: l10n.productionRoundStatusNoSales,
+            color: theme.colorScheme.outline,
+            neutral: true,
+          ),
+        ],
+        if (showHeld) const ReservedLegendEntry(),
       ],
     );
   }
@@ -457,10 +520,16 @@ class _FinalProductsTable extends StatelessWidget {
   final List<JsonMap> items;
   final CoverThresholds cover;
 
+  /// Show what is left once the open orders go out (`available_qty`, tinted
+  /// by `available_days_cover`) instead of what is on the shelf. A cell that
+  /// open orders reduce carries a [ReservedMarkerDot].
+  final bool afterOrders;
+
   const _FinalProductsTable({
     required this.warehouses,
     required this.items,
     this.cover = const CoverThresholds(),
+    this.afterOrders = false,
   });
 
   double _resolveItemColumnWidth({
@@ -544,6 +613,7 @@ class _FinalProductsTable extends StatelessWidget {
     required TextStyle? style,
     String? tooltip,
     Color? tint,
+    bool held = false,
   }) {
     Widget content = Align(
       alignment: AlignmentDirectional.centerEnd,
@@ -578,6 +648,21 @@ class _FinalProductsTable extends StatelessWidget {
               ),
             ),
           );
+    // Open orders hold some of this stock: a dot in the top-end corner,
+    // inside the cell's inset so the row height does not change.
+    if (held) {
+      content = Stack(
+        fit: StackFit.passthrough,
+        children: [
+          content,
+          const PositionedDirectional(
+            top: 4,
+            end: 4,
+            child: ReservedMarkerDot(),
+          ),
+        ],
+      );
+    }
     return SizedBox(
       width: width,
       child: Tooltip(message: tooltip ?? text, child: content),
@@ -694,14 +779,44 @@ class _FinalProductsTable extends StatelessWidget {
                 final value = ReportJson.dbl(item['stock_value']);
                 final hasCover = item.containsKey('days_cover');
                 final whCover = ReportJson.map(item['days_cover']);
+                // After orders: what is left once the open orders go out.
+                // Every key may be missing on an item (older server), so it
+                // falls back to on-hand minus held, and to the on-hand cover.
+                final whReserved = ReportJson.map(item['reserved_qty']);
+                final whAvailable = ReportJson.map(item['available_qty']);
+                final whAvailableCover =
+                    item.containsKey('available_days_cover')
+                    ? ReportJson.map(item['available_days_cover'])
+                    : whCover;
+                final totalHeld = afterOrders
+                    ? ReportJson.dbl(item['total_reserved_qty'])
+                    : 0.0;
+                final totalShown = afterOrders
+                    ? ReportJson.dblOrNull(item['total_available_qty']) ??
+                          total - totalHeld
+                    : total;
+                final totalDays =
+                    afterOrders &&
+                        item.containsKey('total_available_days_cover')
+                    ? ReportJson.dblOrNull(item['total_available_days_cover'])
+                    : ReportJson.dblOrNull(item['total_days_cover']);
                 final totalCover = _coverFor(
                   context,
                   hasCover: hasCover,
-                  qty: total,
-                  days: ReportJson.dblOrNull(item['total_days_cover']),
+                  qty: totalShown,
+                  days: totalDays,
                 );
-                final totalTip =
-                    '${l10n.reportsTotal}: ${_formatQty(context, total)}';
+                final totalTip = totalHeld > 0
+                    ? l10n.rptReservedCellTooltip(
+                        l10n.reportsTotal,
+                        _formatQty(context, totalShown),
+                        _formatQty(context, total),
+                        _formatQty(context, totalHeld),
+                      )
+                    : '${l10n.reportsTotal}: ${_formatQty(context, total)}';
+                // Held tooltips read as one line; the on-hand ones keep the
+                // days cover on a line of its own.
+                final totalSep = totalHeld > 0 ? ' · ' : '\n';
 
                 return DataRow(
                   cells: [
@@ -713,7 +828,14 @@ class _FinalProductsTable extends StatelessWidget {
                       ),
                     ),
                     ...warehouses.map((wh) {
-                      final qty = ReportJson.dbl(whQty[wh]);
+                      final onHand = ReportJson.dbl(whQty[wh]);
+                      final held = afterOrders
+                          ? ReportJson.dbl(whReserved[wh])
+                          : 0.0;
+                      final qty = afterOrders
+                          ? ReportJson.dblOrNull(whAvailable[wh]) ??
+                                onHand - held
+                          : onHand;
                       // A negative bin is stock the branch has oversold. It used to
                       // collapse to the same '-' as an empty cell, which is the one
                       // reading that hides it.
@@ -724,28 +846,40 @@ class _FinalProductsTable extends StatelessWidget {
                         context,
                         hasCover: hasCover,
                         qty: qty,
-                        days: ReportJson.dblOrNull(whCover[wh]),
+                        days: ReportJson.dblOrNull(
+                          (afterOrders ? whAvailableCover : whCover)[wh],
+                        ),
                       );
-                      final tip = '${_shortWarehouse(wh)}: $formattedQty';
+                      final tip = held > 0
+                          ? l10n.rptReservedCellTooltip(
+                              _shortWarehouse(wh),
+                              _formatQty(context, qty),
+                              _formatQty(context, onHand),
+                              _formatQty(context, held),
+                            )
+                          : '${_shortWarehouse(wh)}: $formattedQty';
+                      final sep = held > 0 ? ' · ' : '\n';
                       return DataCell(
                         _buildNumericCell(
                           text: formattedQty,
                           width: dataColWidth,
                           style: qty < 0 ? negativeStyle : cellStyle,
-                          tooltip: c.note == null ? tip : '$tip\n${c.note}',
+                          tooltip: c.note == null ? tip : '$tip$sep${c.note}',
                           tint: c.tint,
+                          held: held > 0,
                         ),
                       );
                     }),
                     DataCell(
                       _buildNumericCell(
-                        text: _formatQty(context, total),
+                        text: _formatQty(context, totalShown),
                         width: dataColWidth,
-                        style: total < 0 ? negativeTotalStyle : totalStyle,
+                        style: totalShown < 0 ? negativeTotalStyle : totalStyle,
                         tooltip: totalCover.note == null
                             ? totalTip
-                            : '$totalTip\n${totalCover.note}',
+                            : '$totalTip$totalSep${totalCover.note}',
                         tint: totalCover.tint,
+                        held: totalHeld > 0,
                       ),
                     ),
                     if (hasValue)
@@ -939,6 +1073,7 @@ class _CollapsibleSection extends StatelessWidget {
   final int itemCount;
   final bool initiallyExpanded;
   final StockReportTotals? totals;
+  final bool showHeld;
   final Widget child;
 
   const _CollapsibleSection({
@@ -947,6 +1082,7 @@ class _CollapsibleSection extends StatelessWidget {
     required this.initiallyExpanded,
     required this.child,
     this.totals,
+    this.showHeld = false,
   });
 
   @override
@@ -971,7 +1107,9 @@ class _CollapsibleSection extends StatelessWidget {
           _CountBadge(count: itemCount),
         ],
       ),
-      subtitle: totals == null ? null : _TotalsLine(totals: totals!),
+      subtitle: totals == null
+          ? null
+          : _TotalsLine(totals: totals!, showHeld: showHeld),
       children: [child],
     );
   }
@@ -1091,11 +1229,8 @@ class _CompactItemGrid extends StatelessWidget {
 
 // ── Shared helpers ─────────────────────────────────────────────────────
 
-String _shortWarehouse(String warehouse) {
-  final dashIdx = warehouse.lastIndexOf(' - ');
-  return dashIdx > 0 ? warehouse.substring(0, dashIdx) : warehouse;
-}
+String _shortWarehouse(String warehouse) => shortWarehouseName(warehouse);
 
 /// Quantities with up to two decimals, grouped, in the app's locale.
 String _formatQty(BuildContext context, double qty) =>
-    NumberFormat('#,##0.##', context.l10n.localeName).format(qty);
+    formatStockQty(context, qty);

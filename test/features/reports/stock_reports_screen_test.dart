@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/stock_reports_screen.dart';
+import 'package:jarz_pos/src/features/reports/presentation/widgets/final_products_reserved.dart';
 import 'package:jarz_pos/src/features/reports/state/reports_providers.dart';
 
 const _finalProducts = <String, dynamic>{
@@ -64,6 +65,92 @@ const _finalProductsWithCover = <String, dynamic>{
   'totals': {'qty': 39, 'stock_value': 3900},
 };
 
+/// A server that also reports jars held by open (undispatched) orders.
+/// Nasr has 100 Mango on the shelf, 50 of them on an order.
+const _finalProductsWithReserved = <String, dynamic>{
+  'cover': {'sales_days': 14, 'red_below': 3, 'green_above': 7},
+  'groups': [
+    {
+      'group_name': 'Jars',
+      'warehouses': ['Maadi - JB', 'Nasr city - JB'],
+      'items': [
+        {
+          'item_name': 'Mango Medium',
+          'warehouse_qty': {'Maadi - JB': 10, 'Nasr city - JB': 100},
+          'total_qty': 110,
+          'stock_value': 11000,
+          'days_cover': {'Maadi - JB': 5.0, 'Nasr city - JB': 8.0},
+          'total_days_cover': 7.5,
+          'reserved_qty': {'Maadi - JB': 0.0, 'Nasr city - JB': 50.0},
+          'available_qty': {'Maadi - JB': 10.0, 'Nasr city - JB': 50.0},
+          'available_days_cover': {'Maadi - JB': 5.0, 'Nasr city - JB': 4.0},
+          'total_reserved_qty': 50.0,
+          'total_available_qty': 60.0,
+          'total_available_days_cover': 4.1,
+        },
+        {
+          'item_name': 'Vanilla Jar',
+          'warehouse_qty': {'Maadi - JB': 3, 'Nasr city - JB': 2},
+          'total_qty': 5,
+          'stock_value': 500,
+          'days_cover': {'Maadi - JB': null, 'Nasr city - JB': null},
+          'total_days_cover': null,
+          // More on orders than on the shelf: oversold after orders.
+          'reserved_qty': {'Maadi - JB': 0.0, 'Nasr city - JB': 6.0},
+          'available_qty': {'Maadi - JB': 3.0, 'Nasr city - JB': -4.0},
+          'available_days_cover': {'Maadi - JB': null, 'Nasr city - JB': null},
+          'total_reserved_qty': 6.0,
+          'total_available_qty': -1.0,
+          'total_available_days_cover': null,
+        },
+      ],
+      'totals': {'qty': 115, 'stock_value': 11500, 'reserved_qty': 56.0},
+    },
+  ],
+  'totals': {'qty': 115, 'stock_value': 11500, 'reserved_qty': 56.0},
+  'reserved': {
+    'qty': 56.0,
+    'order_count': 2,
+    'overdue_count': 1,
+    'failed': false,
+    'states': ['Recieved', 'In Progress'],
+    'orders': [
+      {
+        'invoice': 'ACC-SINV-2026-00011',
+        'woo_order_id': 17529,
+        'customer': 'CUST-0002',
+        'customer_name': 'Cafe Nour',
+        'state': 'Recieved',
+        'posting_date': '2026-07-03',
+        'delivery_date': null,
+        'delivery_slot_label': null,
+        'warehouse': 'Nasr city - JB',
+        'qty': 6.0,
+        'overdue': true,
+        'items': [
+          {'item_code': 'ITEM-2', 'item_name': 'Vanilla Jar', 'qty': 6.0},
+        ],
+      },
+      {
+        'invoice': 'ACC-SINV-2026-00012',
+        'woo_order_id': null,
+        'customer': 'CUST-0001',
+        'customer_name': 'Lucaffe',
+        'state': 'In Progress',
+        'posting_date': '2026-11-19',
+        'delivery_date': '2026-11-20',
+        'delivery_slot_label': null,
+        'warehouse': 'Nasr city - JB',
+        'qty': 50.0,
+        'overdue': false,
+        'items': [
+          {'item_code': 'ITEM-1', 'item_name': 'Mango Medium', 'qty': 50.0},
+        ],
+      },
+    ],
+  },
+};
+
 const _materials = <String, dynamic>{
   'raw_materials': [
     {
@@ -90,12 +177,20 @@ Future<List<String?>> _pump(
   Object? error,
   Map<String, dynamic> finalProducts = _finalProducts,
   Locale locale = const Locale('en'),
+  double bottomInset = 0,
 }) async {
   final view = tester.view;
   view.physicalSize = const Size(400 * 2, 1600 * 2);
   view.devicePixelRatio = 2;
   addTearDown(view.resetPhysicalSize);
   addTearDown(view.resetDevicePixelRatio);
+  if (bottomInset > 0) {
+    // Android draws edge to edge: the bottom inset is the navigation bar.
+    view.padding = FakeViewPadding(bottom: bottomInset * 2);
+    view.viewPadding = FakeViewPadding(bottom: bottomInset * 2);
+    addTearDown(view.resetPadding);
+    addTearDown(view.resetViewPadding);
+  }
 
   final requested = <String?>[];
   await tester.pumpWidget(
@@ -289,5 +384,164 @@ void main() {
       find.byKey(const ValueKey('final-products-cover-legend')),
       findsOneWidget,
     );
+  });
+
+  group('jars held by open orders', () {
+    Finder inTable(Finder f) =>
+        find.descendant(of: find.byType(DataTable), matching: f);
+    final toggle = find.byKey(const ValueKey('final-products-view-toggle'));
+    final summary = find.byKey(const ValueKey('final-products-held-summary'));
+
+    testWidgets('an older server: on-hand numbers, no toggle, no summary',
+        (tester) async {
+      await _pump(
+        tester,
+        initialTab: 0,
+        finalProducts: _finalProductsWithCover,
+      );
+      expect(tester.takeException(), isNull);
+      expect(toggle, findsNothing);
+      expect(summary, findsNothing);
+      expect(find.byType(ReservedMarkerDot), findsNothing);
+      expect(find.byTooltip('Maadi: 4\n4.5 days cover'), findsOneWidget);
+      expect(find.textContaining('Held'), findsNothing);
+    });
+
+    testWidgets('a failed reservation read looks like an older server',
+        (tester) async {
+      await _pump(
+        tester,
+        initialTab: 0,
+        finalProducts: {
+          ..._finalProductsWithReserved,
+          'reserved': {'qty': 0.0, 'failed': true, 'orders': []},
+        },
+      );
+      expect(tester.takeException(), isNull);
+      expect(toggle, findsNothing);
+      expect(summary, findsNothing);
+      expect(find.byTooltip('Nasr city: 100\n8 days cover'), findsOneWidget);
+    });
+
+    testWidgets('defaults to After orders; In stock shows the shelf',
+        (tester) async {
+      await _pump(
+        tester,
+        initialTab: 0,
+        finalProducts: _finalProductsWithReserved,
+      );
+      expect(tester.takeException(), isNull);
+      expect(toggle, findsOneWidget);
+
+      // After orders: Nasr shows 50 of its 100 Mango, marked as held.
+      expect(
+        find.byTooltip(
+          'Nasr city: 50 after orders · 100 in stock · 50 held · 4 days cover',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byTooltip(
+          'Total: 60 after orders · 110 in stock · 50 held · 4.1 days cover',
+        ),
+        findsOneWidget,
+      );
+      // Nothing held at Maadi: the plain tooltip, no marker.
+      expect(find.byTooltip('Maadi: 10\n5 days cover'), findsOneWidget);
+      expect(inTable(find.text('100')), findsNothing);
+      expect(inTable(find.text('50')), findsOneWidget);
+      // Vanilla is oversold once the orders go out.
+      expect(inTable(find.text('-4')), findsOneWidget);
+      // Mango Nasr + total, Vanilla Nasr + total.
+      expect(inTable(find.byType(ReservedMarkerDot)), findsNWidgets(4));
+
+      // Header: the summary, the after-orders grand total and the legend.
+      expect(
+        find.text('56 jars held for 2 open orders'),
+        findsOneWidget,
+      );
+      expect(find.text('1 overdue'), findsOneWidget);
+      expect(find.text('59'), findsOneWidget);
+      expect(find.text('of 115 in stock'), findsOneWidget);
+      expect(find.textContaining('Held: 56'), findsOneWidget);
+      expect(find.text('Held for open orders'), findsOneWidget);
+
+      await tester.tap(find.text('In stock'));
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Nasr city: 100\n8 days cover'), findsOneWidget);
+      expect(find.byTooltip('Total: 110\n7.5 days cover'), findsOneWidget);
+      expect(inTable(find.text('100')), findsOneWidget);
+      expect(inTable(find.text('-4')), findsNothing);
+      expect(find.byType(ReservedMarkerDot), findsNothing);
+      expect(find.text('of 115 in stock'), findsNothing);
+      expect(find.textContaining('Held: 56'), findsNothing);
+      expect(find.text('Held for open orders'), findsNothing);
+      // The summary stays: the orders are still open.
+      expect(summary, findsOneWidget);
+    });
+
+    testWidgets('the summary opens the held orders, overdue marked',
+        (tester) async {
+      await _pump(
+        tester,
+        initialTab: 0,
+        finalProducts: _finalProductsWithReserved,
+      );
+      await tester.tap(summary);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final sheet = find.byType(ReservedOrdersSheet);
+      expect(sheet, findsOneWidget);
+      Finder inSheet(Finder f) => find.descendant(of: sheet, matching: f);
+      expect(inSheet(find.text('Jars held for open orders')), findsOneWidget);
+      // The Woo number wins; a POS order shows its invoice number.
+      expect(inSheet(find.text('#17529')), findsOneWidget);
+      expect(inSheet(find.text('Cafe Nour')), findsOneWidget);
+      expect(inSheet(find.text('2026-00012')), findsOneWidget);
+      expect(inSheet(find.text('Lucaffe')), findsOneWidget);
+      expect(inSheet(find.text('Overdue')), findsOneWidget);
+      expect(inSheet(find.text('6 jars')), findsOneWidget);
+      expect(inSheet(find.text('50 jars')), findsOneWidget);
+      expect(inSheet(find.text('Vanilla Jar ×6')), findsOneWidget);
+      expect(inSheet(find.textContaining('no delivery date')), findsOneWidget);
+      expect(inSheet(find.textContaining('Received')), findsOneWidget);
+    });
+
+    testWidgets('the last held order stays above the navigation bar',
+        (tester) async {
+      await _pump(
+        tester,
+        initialTab: 0,
+        finalProducts: _finalProductsWithReserved,
+        bottomInset: 48,
+      );
+      await tester.tap(summary);
+      await tester.pumpAndSettle();
+
+      final last = find.byKey(
+        const ValueKey('reserved-order-ACC-SINV-2026-00012-Nasr city - JB'),
+      );
+      expect(last, findsOneWidget);
+      const navBarTop = 1600.0 - 48;
+      expect(tester.getRect(last).bottom, lessThanOrEqualTo(navBarTop));
+    });
+
+    testWidgets('works in Arabic', (tester) async {
+      await _pump(
+        tester,
+        initialTab: 0,
+        finalProducts: _finalProductsWithReserved,
+        locale: const Locale('ar'),
+      );
+      expect(tester.takeException(), isNull);
+      expect(toggle, findsOneWidget);
+      expect(inTable(find.byType(ReservedMarkerDot)), findsNWidgets(4));
+      await tester.tap(summary);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ReservedOrdersSheet), findsOneWidget);
+    });
   });
 }
