@@ -141,7 +141,7 @@ class _ChatInboxScreenState extends ConsumerState<ChatInboxScreen> {
                 'Flavour availability',
                 'النكهات المتاحة',
               ),
-              icon: const Icon(Icons.icecream_outlined),
+              icon: const Icon(Icons.inventory_2_outlined),
               onPressed: () => Navigator.of(
                 context,
               ).push(ChatFlavourAvailabilityScreen.route()),
