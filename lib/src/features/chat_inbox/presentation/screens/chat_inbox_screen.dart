@@ -14,6 +14,7 @@ import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
 import '../chat_labels.dart';
 import '../widgets/chat_conversation_tile.dart';
+import 'chat_flavour_availability_screen.dart';
 
 /// `/chats` — the moderator's inbox: Open / Mine / All / Closed, channel
 /// chips, search, and rows that update live from `jarz_chat_update`.
@@ -129,6 +130,21 @@ class _ChatInboxScreenState extends ConsumerState<ChatInboxScreen> {
               ),
               icon: const Icon(Icons.fact_check_outlined),
               onPressed: () => context.push(AppRoutes.chatsFactOverrides),
+            ),
+          // A plain Navigator route (no GoRouter entry in core/), so this
+          // ships as a Dart-only Shorebird patch.
+          if (canAccess)
+            IconButton(
+              key: const ValueKey('chat-flavours-action'),
+              tooltip: chatBi(
+                context,
+                'Flavour availability',
+                'النكهات المتاحة',
+              ),
+              icon: const Icon(Icons.icecream_outlined),
+              onPressed: () => Navigator.of(
+                context,
+              ).push(ChatFlavourAvailabilityScreen.route()),
             ),
           if (canAccess)
             IconButton(
