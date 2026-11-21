@@ -33,6 +33,13 @@ final largeCartonsInHandProvider = StateProvider.family<int, String>(
   (ref, warehouse) => 0,
 );
 
+/// Cartons the packer has ticked off in the packing guide, per branch
+/// warehouse, keyed by [cartonPackKey]. Kept for the app session so closing
+/// and reopening the guide mid-packing does not lose the ticks.
+final packedCartonsProvider = StateProvider.family<Set<String>, String>(
+  (ref, warehouse) => const <String>{},
+);
+
 /// The outcome of the last send, kept on screen until the next attempt.
 class ReplenishmentSendResult {
   const ReplenishmentSendResult.sent({

@@ -84,6 +84,15 @@ class Carton {
   bool get isFull => usedUnits >= capacity;
 }
 
+/// Identity of a carton for the packing check-off: its number, type and exact
+/// contents. When a quantity changes, the cartons it reshuffles get a new key,
+/// so a tick never stays on a carton whose contents are no longer what was
+/// packed.
+String cartonPackKey(Carton carton) {
+  final lines = carton.lines.map((l) => '${l.itemCode}x${l.qty}').join(',');
+  return '${carton.number}|${carton.type.name}|$lines';
+}
+
 class PackingResult {
   const PackingResult({
     required this.cartons,

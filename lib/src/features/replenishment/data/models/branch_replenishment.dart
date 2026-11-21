@@ -55,6 +55,10 @@ class ReplenishmentItem with _$ReplenishmentItem {
     @JsonKey(name: 'move_in')
     @Default(<ReplenishmentMoveIn>[])
     List<ReplenishmentMoveIn> moveIn,
+
+    /// Jars already sold on an order that has not gone out yet: still on the
+    /// shelf, but a customer's. [onHand] is already net of them.
+    @JsonKey(name: 'reserved_qty') @Default(0.0) double reservedQty,
   }) = _ReplenishmentItem;
 
   factory ReplenishmentItem.fromJson(Map<String, dynamic> json) =>

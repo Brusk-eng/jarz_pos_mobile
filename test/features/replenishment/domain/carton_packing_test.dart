@@ -78,4 +78,22 @@ void main() {
       expect(r.isEmpty, isTrue);
     });
   });
+
+  group('cartonPackKey', () {
+    test('two identical full cartons get different keys', () {
+      final r = packCartons([_line('Lotus', 'medium', 24)]);
+      expect(
+        cartonPackKey(r.cartons[0]),
+        isNot(cartonPackKey(r.cartons[1])),
+      );
+    });
+
+    test('the same plan gives the same keys, a changed qty does not', () {
+      final a = packCartons([_line('Lotus', 'medium', 24)]);
+      final b = packCartons([_line('Lotus', 'medium', 24)]);
+      final c = packCartons([_line('Lotus', 'medium', 23)]);
+      expect(cartonPackKey(a.cartons[0]), cartonPackKey(b.cartons[0]));
+      expect(cartonPackKey(a.cartons[1]), isNot(cartonPackKey(c.cartons[1])));
+    });
+  });
 }

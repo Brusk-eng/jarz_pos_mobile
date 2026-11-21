@@ -13325,6 +13325,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String replenishmentCartonsPackedProgress(int packed, int total) {
+    return '$packed of $total cartons packed';
+  }
+
+  @override
+  String get replenishmentCartonsAllPacked => 'All cartons packed';
+
+  @override
+  String get replenishmentCartonPackedToggle => 'Mark carton as packed';
+
+  @override
+  String get replenishmentCartonsClearPacked => 'Clear ticks';
+
+  @override
+  String replenishmentHeldForOrders(String qty) {
+    return '+$qty held for orders';
+  }
+
+  @override
   String replenishmentCartonTitle(int number, String type, String fill) {
     return 'Carton $number · $type · $fill';
   }

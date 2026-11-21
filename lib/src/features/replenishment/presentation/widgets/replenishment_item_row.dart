@@ -79,8 +79,14 @@ class _ReplenishmentItemRowState extends State<ReplenishmentItemRow> {
     final cover = item.hasSalesHistory
         ? l10n.replenishmentDaysOfCover(trimQty(item.daysOfCover!, decimals: 1))
         : l10n.replenishmentNoSalesYet;
+    // "Has" is what the branch can still sell: jars sold on orders that have
+    // not gone out are on the shelf but already a customer's, so they are
+    // named separately instead of being counted as stock.
+    final has = l10n.replenishmentOnHand(qtyWithUom(item.onHand, item.stockUom));
     final meta = [
-      l10n.replenishmentOnHand(qtyWithUom(item.onHand, item.stockUom)),
+      item.reservedQty > 0
+          ? '$has (${l10n.replenishmentHeldForOrders(trimQty(item.reservedQty))})'
+          : has,
       l10n.replenishmentPerDay(trimQty(item.sellsPerDay, decimals: 2)),
       cover,
     ].join(' · ');

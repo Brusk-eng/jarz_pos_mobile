@@ -75,6 +75,11 @@ mixin _$ReplenishmentItem {
   @JsonKey(name: 'move_in')
   List<ReplenishmentMoveIn> get moveIn => throw _privateConstructorUsedError;
 
+  /// Jars already sold on an order that has not gone out yet: still on the
+  /// shelf, but a customer's. [onHand] is already net of them.
+  @JsonKey(name: 'reserved_qty')
+  double get reservedQty => throw _privateConstructorUsedError;
+
   /// Serializes this ReplenishmentItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -109,6 +114,7 @@ abstract class $ReplenishmentItemCopyWith<$Res> {
     @JsonKey(name: 'jar_size') String jarSize,
     @JsonKey(name: 'spare_qty', fromJson: _toInt) int spareQty,
     @JsonKey(name: 'move_in') List<ReplenishmentMoveIn> moveIn,
+    @JsonKey(name: 'reserved_qty') double reservedQty,
   });
 }
 
@@ -143,6 +149,7 @@ class _$ReplenishmentItemCopyWithImpl<$Res, $Val extends ReplenishmentItem>
     Object? jarSize = null,
     Object? spareQty = null,
     Object? moveIn = null,
+    Object? reservedQty = null,
   }) {
     return _then(
       _value.copyWith(
@@ -210,6 +217,10 @@ class _$ReplenishmentItemCopyWithImpl<$Res, $Val extends ReplenishmentItem>
                 ? _value.moveIn
                 : moveIn // ignore: cast_nullable_to_non_nullable
                       as List<ReplenishmentMoveIn>,
+            reservedQty: null == reservedQty
+                ? _value.reservedQty
+                : reservedQty // ignore: cast_nullable_to_non_nullable
+                      as double,
           )
           as $Val,
     );
@@ -242,6 +253,7 @@ abstract class _$$ReplenishmentItemImplCopyWith<$Res>
     @JsonKey(name: 'jar_size') String jarSize,
     @JsonKey(name: 'spare_qty', fromJson: _toInt) int spareQty,
     @JsonKey(name: 'move_in') List<ReplenishmentMoveIn> moveIn,
+    @JsonKey(name: 'reserved_qty') double reservedQty,
   });
 }
 
@@ -275,6 +287,7 @@ class __$$ReplenishmentItemImplCopyWithImpl<$Res>
     Object? jarSize = null,
     Object? spareQty = null,
     Object? moveIn = null,
+    Object? reservedQty = null,
   }) {
     return _then(
       _$ReplenishmentItemImpl(
@@ -342,6 +355,10 @@ class __$$ReplenishmentItemImplCopyWithImpl<$Res>
             ? _value._moveIn
             : moveIn // ignore: cast_nullable_to_non_nullable
                   as List<ReplenishmentMoveIn>,
+        reservedQty: null == reservedQty
+            ? _value.reservedQty
+            : reservedQty // ignore: cast_nullable_to_non_nullable
+                  as double,
       ),
     );
   }
@@ -369,6 +386,7 @@ class _$ReplenishmentItemImpl extends _ReplenishmentItem {
     @JsonKey(name: 'spare_qty', fromJson: _toInt) this.spareQty = 0,
     @JsonKey(name: 'move_in')
     final List<ReplenishmentMoveIn> moveIn = const <ReplenishmentMoveIn>[],
+    @JsonKey(name: 'reserved_qty') this.reservedQty = 0.0,
   }) : _moveIn = moveIn,
        super._();
 
@@ -452,9 +470,15 @@ class _$ReplenishmentItemImpl extends _ReplenishmentItem {
     return EqualUnmodifiableListView(_moveIn);
   }
 
+  /// Jars already sold on an order that has not gone out yet: still on the
+  /// shelf, but a customer's. [onHand] is already net of them.
+  @override
+  @JsonKey(name: 'reserved_qty')
+  final double reservedQty;
+
   @override
   String toString() {
-    return 'ReplenishmentItem(itemCode: $itemCode, itemName: $itemName, stockUom: $stockUom, onHand: $onHand, stockIsNegative: $stockIsNegative, sellsPerDay: $sellsPerDay, daysOfCover: $daysOfCover, targetDays: $targetDays, suggestedQty: $suggestedQty, availableAtSource: $availableAtSource, sendNow: $sendNow, shortBy: $shortBy, itemGroup: $itemGroup, jarSize: $jarSize, spareQty: $spareQty, moveIn: $moveIn)';
+    return 'ReplenishmentItem(itemCode: $itemCode, itemName: $itemName, stockUom: $stockUom, onHand: $onHand, stockIsNegative: $stockIsNegative, sellsPerDay: $sellsPerDay, daysOfCover: $daysOfCover, targetDays: $targetDays, suggestedQty: $suggestedQty, availableAtSource: $availableAtSource, sendNow: $sendNow, shortBy: $shortBy, itemGroup: $itemGroup, jarSize: $jarSize, spareQty: $spareQty, moveIn: $moveIn, reservedQty: $reservedQty)';
   }
 
   @override
@@ -488,7 +512,9 @@ class _$ReplenishmentItemImpl extends _ReplenishmentItem {
             (identical(other.jarSize, jarSize) || other.jarSize == jarSize) &&
             (identical(other.spareQty, spareQty) ||
                 other.spareQty == spareQty) &&
-            const DeepCollectionEquality().equals(other._moveIn, _moveIn));
+            const DeepCollectionEquality().equals(other._moveIn, _moveIn) &&
+            (identical(other.reservedQty, reservedQty) ||
+                other.reservedQty == reservedQty));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -511,6 +537,7 @@ class _$ReplenishmentItemImpl extends _ReplenishmentItem {
     jarSize,
     spareQty,
     const DeepCollectionEquality().hash(_moveIn),
+    reservedQty,
   );
 
   /// Create a copy of ReplenishmentItem
@@ -549,6 +576,7 @@ abstract class _ReplenishmentItem extends ReplenishmentItem {
     @JsonKey(name: 'jar_size') final String jarSize,
     @JsonKey(name: 'spare_qty', fromJson: _toInt) final int spareQty,
     @JsonKey(name: 'move_in') final List<ReplenishmentMoveIn> moveIn,
+    @JsonKey(name: 'reserved_qty') final double reservedQty,
   }) = _$ReplenishmentItemImpl;
   const _ReplenishmentItem._() : super._();
 
@@ -624,6 +652,12 @@ abstract class _ReplenishmentItem extends ReplenishmentItem {
   @override
   @JsonKey(name: 'move_in')
   List<ReplenishmentMoveIn> get moveIn;
+
+  /// Jars already sold on an order that has not gone out yet: still on the
+  /// shelf, but a customer's. [onHand] is already net of them.
+  @override
+  @JsonKey(name: 'reserved_qty')
+  double get reservedQty;
 
   /// Create a copy of ReplenishmentItem
   /// with the given fields replaced by the non-null parameter values.

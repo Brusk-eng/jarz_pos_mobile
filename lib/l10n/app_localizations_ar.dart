@@ -13281,6 +13281,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String replenishmentCartonsPackedProgress(int packed, int total) {
+    return '$packed من $total كرتونة اتجهزت';
+  }
+
+  @override
+  String get replenishmentCartonsAllPacked => 'كل الكراتين اتجهزت';
+
+  @override
+  String get replenishmentCartonPackedToggle => 'علّم الكرتونة إنها اتجهزت';
+
+  @override
+  String get replenishmentCartonsClearPacked => 'امسح العلامات';
+
+  @override
+  String replenishmentHeldForOrders(String qty) {
+    return '+$qty محجوز لطلبات';
+  }
+
+  @override
   String replenishmentCartonTitle(int number, String type, String fill) {
     return 'كرتونة $number · $type · $fill';
   }

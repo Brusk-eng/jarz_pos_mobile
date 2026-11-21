@@ -94,6 +94,17 @@ class PackingGuideSheet extends ConsumerWidget {
       packLinesFor(branch, draft.quantitiesFor(branch)),
       largeInHand: inHand,
     );
+    final packedProvider = packedCartonsProvider(branch.warehouse);
+    final ticked = ref.watch(packedProvider);
+    final keys = [for (final c in result.cartons) cartonPackKey(c)];
+    // Only ticks that still match a carton on the current plan count: a tick
+    // on a carton whose contents changed is dropped, not carried over.
+    final packedCount = keys.where(ticked.contains).length;
+    void toggle(String key) {
+      final next = {...ticked.where(keys.contains)};
+      if (!next.remove(key)) next.add(key);
+      ref.read(packedProvider.notifier).state = next;
+    }
 
     return DraggableScrollableSheet(
       expand: false,
@@ -171,8 +182,21 @@ class PackingGuideSheet extends ConsumerWidget {
                     style: theme.textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
-                  for (final carton in result.cartons)
-                    _CartonCard(carton: carton),
+                  _PackedProgress(
+                    packed: packedCount,
+                    total: result.cartons.length,
+                    onClear: packedCount > 0
+                        ? () => ref.read(packedProvider.notifier).state =
+                              const <String>{}
+                        : null,
+                  ),
+                  const SizedBox(height: 4),
+                  for (var i = 0; i < result.cartons.length; i++)
+                    _CartonCard(
+                      carton: result.cartons[i],
+                      packed: ticked.contains(keys[i]),
+                      onToggle: () => toggle(keys[i]),
+                    ),
                   if (result.unpacked.isNotEmpty)
                     Card(
                       color: theme.colorScheme.tertiaryContainer,
@@ -225,10 +249,79 @@ class PackingGuideSheet extends ConsumerWidget {
   }
 }
 
+/// "3 of 7 cartons packed", a bar, and a way to start over.
+class _PackedProgress extends StatelessWidget {
+  const _PackedProgress({
+    required this.packed,
+    required this.total,
+    required this.onClear,
+  });
+
+  final int packed;
+  final int total;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final done = total > 0 && packed >= total;
+    final doneColor = Colors.green.shade700;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              done ? Icons.check_circle : Icons.inventory_2_outlined,
+              size: 18,
+              color: done ? doneColor : theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                done
+                    ? l10n.replenishmentCartonsAllPacked
+                    : l10n.replenishmentCartonsPackedProgress(packed, total),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: done ? doneColor : null,
+                ),
+              ),
+            ),
+            if (onClear != null)
+              TextButton(
+                onPressed: onClear,
+                child: Text(l10n.replenishmentCartonsClearPacked),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: total == 0 ? 0 : packed / total,
+            minHeight: 6,
+            color: done ? doneColor : null,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One carton. Tapping anywhere on it (or its box) ticks it off as packed;
+/// a packed carton dims so the eye goes to the next one still to fill.
 class _CartonCard extends StatelessWidget {
-  const _CartonCard({required this.carton});
+  const _CartonCard({
+    required this.carton,
+    required this.packed,
+    required this.onToggle,
+  });
 
   final Carton carton;
+  final bool packed;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -236,22 +329,50 @@ class _CartonCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.replenishmentCartonTitle(
-                carton.number,
-                _typeLabel(l10n, carton.type),
-                _fillLabel(l10n, carton),
+      color: packed ? theme.colorScheme.surfaceContainerHighest : null,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onToggle,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 12, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Checkbox(
+                value: packed,
+                onChanged: (_) => onToggle(),
+                semanticLabel: l10n.replenishmentCartonPackedToggle,
               ),
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: 4),
-            for (final line in carton.lines) Text('${line.name} × ${line.qty}'),
-          ],
+              Expanded(
+                child: Opacity(
+                  opacity: packed ? 0.55 : 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.replenishmentCartonTitle(
+                            carton.number,
+                            _typeLabel(l10n, carton.type),
+                            _fillLabel(l10n, carton),
+                          ),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            decoration: packed
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        for (final line in carton.lines)
+                          Text('${line.name} × ${line.qty}'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

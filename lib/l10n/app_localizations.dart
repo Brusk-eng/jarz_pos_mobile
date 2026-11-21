@@ -21791,6 +21791,36 @@ abstract class AppLocalizations {
   /// **'{cartons} cartons · {jars} jars'**
   String replenishmentPackingSummary(int cartons, int jars);
 
+  /// No description provided for @replenishmentCartonsPackedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{packed} of {total} cartons packed'**
+  String replenishmentCartonsPackedProgress(int packed, int total);
+
+  /// No description provided for @replenishmentCartonsAllPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'All cartons packed'**
+  String get replenishmentCartonsAllPacked;
+
+  /// No description provided for @replenishmentCartonPackedToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark carton as packed'**
+  String get replenishmentCartonPackedToggle;
+
+  /// No description provided for @replenishmentCartonsClearPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear ticks'**
+  String get replenishmentCartonsClearPacked;
+
+  /// No description provided for @replenishmentHeldForOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'+{qty} held for orders'**
+  String replenishmentHeldForOrders(String qty);
+
   /// No description provided for @replenishmentCartonTitle.
   ///
   /// In en, this message translates to:

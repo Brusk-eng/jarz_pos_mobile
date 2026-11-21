@@ -31,6 +31,7 @@ _$ReplenishmentItemImpl _$$ReplenishmentItemImplFromJson(
           ?.map((e) => ReplenishmentMoveIn.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const <ReplenishmentMoveIn>[],
+  reservedQty: (json['reserved_qty'] as num?)?.toDouble() ?? 0.0,
 );
 
 Map<String, dynamic> _$$ReplenishmentItemImplToJson(
@@ -52,6 +53,7 @@ Map<String, dynamic> _$$ReplenishmentItemImplToJson(
   'jar_size': instance.jarSize,
   'spare_qty': instance.spareQty,
   'move_in': instance.moveIn,
+  'reserved_qty': instance.reservedQty,
 };
 
 _$ReplenishmentMoveInImpl _$$ReplenishmentMoveInImplFromJson(
