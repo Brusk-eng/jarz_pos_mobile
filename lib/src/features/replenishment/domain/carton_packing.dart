@@ -210,3 +210,34 @@ PackingResult packCartons(List<PackLine> lines, {int largeInHand = 0}) {
     totalJars: totalJars,
   );
 }
+
+/// The packing plan as the `carton_plan` object `submit_transfer` takes (the
+/// caller JSON-encodes it), so the receiving branch sees exactly the cartons
+/// the packer saw. Shape: version, totals, `cartons[]` (number, type, jars,
+/// lines) and the `unpacked` hand-packed lines.
+Map<String, dynamic> cartonPlanToJson(PackingResult result) {
+  Map<String, dynamic> lineJson(String code, String name, int qty) => {
+    'item_code': code,
+    'item_name': name,
+    'qty': qty,
+  };
+  return {
+    'version': 1,
+    'total_cartons': result.cartons.length,
+    'total_jars': result.totalJars,
+    'large': result.largeUsed,
+    'b2b': result.b2bUsed,
+    'cartons': [
+      for (final c in result.cartons)
+        {
+          'number': c.number,
+          'type': c.type.name,
+          'jars': c.jars,
+          'lines': [for (final l in c.lines) lineJson(l.itemCode, l.name, l.qty)],
+        },
+    ],
+    'unpacked': [
+      for (final l in result.unpacked) lineJson(l.itemCode, l.name, l.qty),
+    ],
+  };
+}

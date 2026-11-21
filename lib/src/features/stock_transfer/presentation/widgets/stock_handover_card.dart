@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../data/stock_handover_models.dart';
+import 'handover_carton_plan.dart';
 import 'handover_format.dart';
 
 /// One handover: who → who, who declared it and when, its lines, and the
@@ -119,6 +120,14 @@ class StockHandoverCard extends StatelessWidget {
                     ?.copyWith(color: theme.colorScheme.outline),
               ),
             const Divider(height: 16),
+            // Only while it waits to be received: the recent list stays compact.
+            if (h.cartonPlan != null && h.isPending) ...[
+              HandoverCartonPlanCard(
+                handoverName: h.name,
+                plan: h.cartonPlan!,
+              ),
+              const Divider(height: 16),
+            ],
             for (final line in h.items) _LineRow(line: line, showDeclared: h.changed),
             if (h.isRejected && (h.rejectReason ?? '').isNotEmpty)
               Padding(

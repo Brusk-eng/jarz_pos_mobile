@@ -96,4 +96,31 @@ void main() {
       expect(cartonPackKey(a.cartons[1]), isNot(cartonPackKey(c.cartons[1])));
     });
   });
+
+  group('cartonPlanToJson', () {
+    test('encodes totals, cartons and hand-packed lines', () {
+      final r = packCartons([
+        _line('Lotus Medium', 'medium', 30),
+        _line('Mystery', '', 2),
+      ], largeInHand: 1);
+      final json = cartonPlanToJson(r);
+      expect(json['version'], 1);
+      expect(json['total_cartons'], r.cartons.length);
+      expect(json['total_jars'], 30);
+      expect(json['large'], 1);
+      expect(json['b2b'], r.cartons.length - 1);
+      final cartons = json['cartons'] as List;
+      final first = cartons.first as Map;
+      expect(first['number'], 1);
+      expect(first['type'], 'large');
+      expect(first['jars'], 20);
+      expect(first['lines'], [
+        {'item_code': 'Lotus Medium', 'item_name': 'Lotus Medium', 'qty': 20},
+      ]);
+      expect((cartons.last as Map)['type'], 'b2b');
+      expect(json['unpacked'], [
+        {'item_code': 'Mystery', 'item_name': 'Mystery', 'qty': 2},
+      ]);
+    });
+  });
 }

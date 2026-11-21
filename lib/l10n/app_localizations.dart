@@ -32947,6 +32947,48 @@ abstract class AppLocalizations {
   /// **'Waiting for a manager to match'**
   String get stockHandoverGroupWaiting;
 
+  /// No description provided for @stockHandoverCartonsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cartons to receive: {total} ({text})'**
+  String stockHandoverCartonsTitle(int total, String text);
+
+  /// No description provided for @stockHandoverCartonRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Carton {number} · {type} · {jars, plural, =1{1 jar} other{{jars} jars}}'**
+  String stockHandoverCartonRow(int number, String type, int jars);
+
+  /// No description provided for @stockHandoverCartonsReceivedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{received} of {total} cartons received'**
+  String stockHandoverCartonsReceivedProgress(int received, int total);
+
+  /// No description provided for @stockHandoverCartonsAllReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'All cartons received'**
+  String get stockHandoverCartonsAllReceived;
+
+  /// No description provided for @stockHandoverCartonReceivedToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark carton as received'**
+  String get stockHandoverCartonReceivedToggle;
+
+  /// No description provided for @stockHandoverCartonsClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear ticks'**
+  String get stockHandoverCartonsClear;
+
+  /// No description provided for @stockHandoverPackedByHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed by hand'**
+  String get stockHandoverPackedByHand;
+
   /// No description provided for @stockHandoverUnknownSender.
   ///
   /// In en, this message translates to:

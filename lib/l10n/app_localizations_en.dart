@@ -19954,6 +19954,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stockHandoverGroupWaiting => 'Waiting for a manager to match';
 
   @override
+  String stockHandoverCartonsTitle(int total, String text) {
+    return 'Cartons to receive: $total ($text)';
+  }
+
+  @override
+  String stockHandoverCartonRow(int number, String type, int jars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jars,
+      locale: localeName,
+      other: '$jars jars',
+      one: '1 jar',
+    );
+    return 'Carton $number · $type · $_temp0';
+  }
+
+  @override
+  String stockHandoverCartonsReceivedProgress(int received, int total) {
+    return '$received of $total cartons received';
+  }
+
+  @override
+  String get stockHandoverCartonsAllReceived => 'All cartons received';
+
+  @override
+  String get stockHandoverCartonReceivedToggle => 'Mark carton as received';
+
+  @override
+  String get stockHandoverCartonsClear => 'Clear ticks';
+
+  @override
+  String get stockHandoverPackedByHand => 'Packed by hand';
+
+  @override
   String get stockHandoverUnknownSender => 'I don\'t know who sent it';
 
   @override

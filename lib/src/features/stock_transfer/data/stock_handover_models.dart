@@ -6,6 +6,8 @@
 /// so one odd row can never blank the whole screen.
 library;
 
+import 'dart:convert';
+
 double _toDouble(Object? value) {
   if (value is num) return value.toDouble();
   if (value is String) return double.tryParse(value.trim()) ?? 0;
@@ -198,6 +200,105 @@ class StockHandoverLine {
   }
 }
 
+/// One line inside a carton (or a hand-packed line).
+class CartonPlanLine {
+  const CartonPlanLine({
+    required this.itemCode,
+    required this.itemName,
+    required this.qty,
+  });
+
+  final String itemCode;
+  final String itemName;
+  final int qty;
+
+  factory CartonPlanLine.fromJson(Map<String, dynamic> json) {
+    final code = _toStr(json['item_code']);
+    final name = _toStr(json['item_name']);
+    return CartonPlanLine(
+      itemCode: code,
+      itemName: name.isEmpty ? code : name,
+      qty: _toDouble(json['qty']).round(),
+    );
+  }
+}
+
+/// One carton of the sender's packing plan.
+class CartonPlanCarton {
+  const CartonPlanCarton({
+    required this.number,
+    required this.type,
+    required this.jars,
+    this.lines = const [],
+  });
+
+  final int number;
+
+  /// `large` or `b2b`.
+  final String type;
+  final int jars;
+  final List<CartonPlanLine> lines;
+
+  bool get isLarge => type == 'large';
+
+  factory CartonPlanCarton.fromJson(Map<String, dynamic> json) {
+    final lines = _maps(json['lines']).map(CartonPlanLine.fromJson).toList();
+    final jars = _toDouble(json['jars']).round();
+    return CartonPlanCarton(
+      number: _toDouble(json['number']).round(),
+      type: _toStr(json['type']) == 'large' ? 'large' : 'b2b',
+      jars: jars > 0 ? jars : lines.fold(0, (sum, l) => sum + l.qty),
+      lines: lines,
+    );
+  }
+}
+
+/// The cartons the sender packed for a transfer (`carton_plan`): how many to
+/// expect and what is in each. Count only, never stock-moved.
+class HandoverCartonPlan {
+  const HandoverCartonPlan({
+    required this.cartons,
+    this.unpacked = const [],
+    this.totalJars = 0,
+  });
+
+  final List<CartonPlanCarton> cartons;
+
+  /// Lines packed by hand (jar size unknown to the packer).
+  final List<CartonPlanLine> unpacked;
+  final int totalJars;
+
+  int get large => cartons.where((c) => c.isLarge).length;
+  int get b2b => cartons.length - large;
+
+  /// Reads the `carton_plan` value of a handover: a map, or a JSON string of
+  /// one. Null for absent, malformed or empty plans so the UI simply hides it.
+  static HandoverCartonPlan? tryParse(Object? raw) {
+    try {
+      var value = raw;
+      if (value is String) {
+        if (value.trim().isEmpty) return null;
+        value = jsonDecode(value);
+      }
+      if (value is! Map) return null;
+      final json = Map<String, dynamic>.from(value);
+      final cartons =
+          _maps(json['cartons']).map(CartonPlanCarton.fromJson).toList();
+      final unpacked =
+          _maps(json['unpacked']).map(CartonPlanLine.fromJson).toList();
+      if (cartons.isEmpty) return null;
+      final total = _toDouble(json['total_jars']).round();
+      return HandoverCartonPlan(
+        cartons: cartons,
+        unpacked: unpacked,
+        totalJars: total > 0 ? total : cartons.fold(0, (s, c) => s + c.jars),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
 class StockHandover {
   const StockHandover({
     required this.name,
@@ -220,6 +321,7 @@ class StockHandover {
     this.stockEntry,
     this.rejectReason,
     this.items = const [],
+    this.cartonPlan,
   });
 
   final String name;
@@ -253,6 +355,9 @@ class StockHandover {
   final String? stockEntry;
   final String? rejectReason;
   final List<StockHandoverLine> items;
+
+  /// The sender's carton packing plan, when the server sent one.
+  final HandoverCartonPlan? cartonPlan;
 
   bool get isPending => status == 'Pending';
   bool get isConfirmed => status == 'Confirmed';
@@ -313,6 +418,7 @@ class StockHandover {
       stockEntry: _toOptStr(json['stock_entry']),
       rejectReason: _toOptStr(json['reject_reason']),
       items: _maps(json['items']).map(StockHandoverLine.fromJson).toList(),
+      cartonPlan: HandoverCartonPlan.tryParse(json['carton_plan']),
     );
   }
 }

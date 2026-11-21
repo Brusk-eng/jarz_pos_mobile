@@ -89,6 +89,7 @@ class StockTransferService {
     required List<Map<String, dynamic>> lines,
     String? postingDate,
     bool direct = false,
+    String? cartonPlan,
   }) async {
     final resp = await _dio.post(ApiEndpoints.submitTransfer, data: {
       'source_warehouse': sourceWarehouse,
@@ -98,6 +99,8 @@ class StockTransferService {
       // One-step post of a branch pair (JARZ Manager only); omitted otherwise
       // so an older server sees exactly the request it always did.
       if (direct) 'direct': 1,
+      // JSON string of the carton packing plan (replenishment sends only).
+      if (cartonPlan != null) 'carton_plan': cartonPlan,
     });
     final payload = resp.data;
     if (payload is Map && payload['message'] is Map) return Map<String, dynamic>.from(payload['message'] as Map);

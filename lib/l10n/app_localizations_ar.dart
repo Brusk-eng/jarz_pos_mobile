@@ -19938,6 +19938,41 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stockHandoverGroupWaiting => 'مستنية المدير يطابقها';
 
   @override
+  String stockHandoverCartonsTitle(int total, String text) {
+    return 'كراتين الاستلام: $total ($text)';
+  }
+
+  @override
+  String stockHandoverCartonRow(int number, String type, int jars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jars,
+      locale: localeName,
+      other: '$jars برطمان',
+      few: '$jars برطمانات',
+      two: 'برطمانين',
+      one: 'برطمان واحد',
+    );
+    return 'كرتونة $number · $type · $_temp0';
+  }
+
+  @override
+  String stockHandoverCartonsReceivedProgress(int received, int total) {
+    return '$received من $total كرتونة استلمت';
+  }
+
+  @override
+  String get stockHandoverCartonsAllReceived => 'كل الكراتين استلمت';
+
+  @override
+  String get stockHandoverCartonReceivedToggle => 'علّم الكرتونة إنها استلمت';
+
+  @override
+  String get stockHandoverCartonsClear => 'امسح العلامات';
+
+  @override
+  String get stockHandoverPackedByHand => 'اتعبت يدوي';
+
+  @override
   String get stockHandoverUnknownSender => 'مش عارف مين بعتها';
 
   @override

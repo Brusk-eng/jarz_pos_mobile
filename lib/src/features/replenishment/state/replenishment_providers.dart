@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/frappe_error_message.dart';
@@ -5,6 +7,7 @@ import '../../stock_transfer/data/stock_handover_models.dart';
 import '../../stock_transfer/data/stock_transfer_service.dart';
 import '../data/models/branch_replenishment.dart';
 import '../data/replenishment_service.dart';
+import '../domain/carton_packing.dart';
 import '../domain/replenishment_draft.dart';
 
 /// What the factory should send today.
@@ -205,6 +208,12 @@ class ReplenishmentDraftNotifier extends AutoDisposeNotifier<ReplenishmentDraft>
     final lines = sendLines(branch, quantities);
     if (lines.isEmpty) return false;
     final totals = totalsFor(branch, quantities);
+    // The same plan the packing guide shows, so the receiving branch sees the
+    // cartons the packer saw. Nothing is sent when there is nothing to pack.
+    final packing = packCartons(
+      packLinesFor(branch, quantities),
+      largeInHand: ref.read(largeCartonsInHandProvider(branch.warehouse)),
+    );
 
     state = state.copyWith(sending: true, clearResult: true);
     try {
@@ -214,6 +223,9 @@ class ReplenishmentDraftNotifier extends AutoDisposeNotifier<ReplenishmentDraft>
             sourceWarehouse: sourceWarehouse,
             targetWarehouse: branch.warehouse,
             lines: lines,
+            cartonPlan: packing.isEmpty
+                ? null
+                : jsonEncode(cartonPlanToJson(packing)),
           );
       final outcome = TransferSubmitOutcome.fromJson(response);
       state = state.copyWith(
