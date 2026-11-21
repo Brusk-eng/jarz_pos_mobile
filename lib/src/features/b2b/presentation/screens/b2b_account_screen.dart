@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +11,9 @@ import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
 import '../../../../core/widgets/customer_shipping_address_flow.dart';
+import '../../../../core/utils/pasted_text.dart' show PhoneInputFormatter;
+import '../../../../core/widgets/paste_icon_button.dart';
+import '../../../../core/widgets/paste_or_clear_button.dart';
 import '../../../geo/presentation/widgets/location_link_field.dart'
     show LocationLinkValue;
 import '../../../credit/data/models/settlement_models.dart';
@@ -209,6 +213,10 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
                 setState(() => _todosExpanded = !_todosExpanded),
             onSendSample: () => _bindAndOrder(account, isSample: true),
             onPlaceOrder: () => _bindAndOrder(account, isSample: false),
+            onMakeCustomer:
+                (customer == null || customer.isEmpty) && !isCustomerAccount
+                ? () => _makeCustomer(account)
+                : null,
             onLogCall: isCustomerAccount ? null : () => _logCall(account),
             onMarkLost: isCustomerAccount ? null : () => _markLost(account),
             onJourneyChanged: isCustomerAccount ? null : _reload,
@@ -232,11 +240,8 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
             onOpenInvoices: (customer != null && customer.isNotEmpty)
                 ? (branch) => _openInvoices(account, branch)
                 : null,
-            onLinkMapsBranch: (maps, delivery) => _linkMapsBranch(
-              detail,
-              maps: maps,
-              delivery: delivery,
-            ),
+            onLinkMapsBranch: (maps, delivery) =>
+                _linkMapsBranch(detail, maps: maps, delivery: delivery),
             onUnlinkMapsBranch: (delivery) =>
                 _unlinkMapsBranch(detail, delivery),
             onRenameBranch: (customer != null && customer.isNotEmpty)
@@ -723,11 +728,72 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
     );
   }
 
-  Future<_LeadCustomerSetup?> _promptLeadCustomerSetup(B2bAccount account) {
+  Future<_LeadCustomerSetup?> _promptLeadCustomerSetup(
+    B2bAccount account, {
+    bool setupOnly = false,
+  }) {
+    final leadName = account.doctype == 'Lead'
+        ? account.name
+        : account.branchLead;
     return showDialog<_LeadCustomerSetup>(
       context: context,
-      builder: (ctx) => _LeadCustomerDialog(account: account),
+      builder: (ctx) => _LeadCustomerDialog(
+        account: account,
+        leadName: leadName,
+        setupOnly: setupOnly,
+      ),
     );
+  }
+
+  /// Links or creates the Customer for this Lead and stops there: no POS, no
+  /// order, no sample. The order-binding endpoint creates the Customer without
+  /// writing any invoice, so it doubles as the "just make it a customer" call.
+  Future<void> _makeCustomer(B2bAccount account) async {
+    final setup = await _promptLeadCustomerSetup(account, setupOnly: true);
+    if (setup == null || !mounted) return;
+    setState(() => _busy = true);
+    final repo = ref.read(b2bRepositoryProvider);
+    try {
+      String? customerName;
+      if (setup.existingCustomer case final existing?) {
+        await repo.linkExistingCustomer(
+          partyDoctype: widget.doctype,
+          partyName: widget.name,
+          customer: existing['name']?.toString() ?? '',
+        );
+        customerName =
+            existing['customer_name']?.toString() ??
+            existing['name']?.toString();
+      } else if (setup.createFields case final fields?) {
+        final binding = await repo.placeB2bOrder(
+          partyDoctype: widget.doctype,
+          partyName: widget.name,
+          customerName: fields.customerName,
+          mobileNo: fields.mobileNo,
+          customerPrimaryAddress: fields.address,
+          territoryId: fields.territoryId,
+        );
+        customerName = binding.customerName ?? fields.customerName;
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${context.l10n.commonCustomerLabel}: ${customerName ?? account.title}',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+        _reload();
+      }
+    }
   }
 }
 
@@ -735,7 +801,20 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
 /// dropdown sourced from [territoriesProvider]; all fields are required.
 class _LeadCustomerDialog extends ConsumerStatefulWidget {
   final B2bAccount account;
-  const _LeadCustomerDialog({required this.account});
+
+  /// The Lead whose saved contacts and primary address prefill the form
+  /// (the account itself for a Lead, its source Lead for an Opportunity).
+  final String? leadName;
+
+  /// True when the dialog only sets up the Customer (no order follows), so
+  /// the confirm button reads Save instead of Continue.
+  final bool setupOnly;
+
+  const _LeadCustomerDialog({
+    required this.account,
+    this.leadName,
+    this.setupOnly = false,
+  });
 
   @override
   ConsumerState<_LeadCustomerDialog> createState() =>
@@ -756,6 +835,15 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
   Map<String, dynamic>? _selectedCustomer;
   List<Map<String, dynamic>> _matches = const [];
 
+  /// People on this account with a phone: the Lead's saved contacts plus the
+  /// account's own numbers, one entry per distinct phone.
+  List<LeadContact> _contacts = const [];
+  int? _contactIndex;
+
+  static const List<TextInputFormatter> _phoneFormatters = [
+    PhoneInputFormatter(),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -764,7 +852,85 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
       text: widget.account.contact.mobileNo ?? '',
     );
     _searchCtrl = TextEditingController(text: widget.account.title);
+    _contacts = _accountContacts(const []);
     unawaited(_search(widget.account.title));
+    unawaited(_loadLead());
+  }
+
+  List<LeadContact> _accountContacts(List<LeadContact> leadContacts) {
+    final out = <LeadContact>[];
+    final seen = <String>{};
+    void add(LeadContact c) {
+      final phone = c.phone.trim();
+      if (phone.isEmpty || !seen.add(phone)) return;
+      out.add(c);
+    }
+
+    // Primary contact first, then the rest as saved, then the account's own.
+    for (final c in leadContacts.where((c) => c.isPrimary)) {
+      add(c);
+    }
+    for (final c in leadContacts) {
+      add(c);
+    }
+    for (final phone in [
+      widget.account.contact.mobileNo,
+      widget.account.contact.phone,
+    ]) {
+      add(LeadContact(contactName: widget.account.title, phone: phone ?? ''));
+    }
+    return out;
+  }
+
+  /// Best effort: a missing or unreadable Lead just leaves the form as it was.
+  Future<void> _loadLead() async {
+    final leadName = widget.leadName?.trim() ?? '';
+    if (leadName.isEmpty) return;
+    try {
+      final lead = await ref.read(leadsRepositoryProvider).getLead(leadName);
+      if (!mounted) return;
+      setState(() {
+        _contacts = _accountContacts(lead.contacts);
+        _contactIndex = null;
+        if (_addressCtrl.text.trim().isEmpty) {
+          final address = _formatLeadAddress(lead.primaryAddress);
+          if (address != null) _addressCtrl.text = address;
+        }
+      });
+    } catch (_) {
+      // Contacts are a convenience; typing the number still works.
+    }
+  }
+
+  static String? _formatLeadAddress(LeadAddress? address) {
+    if (address == null) return null;
+    final parts = [
+      address.addressLine1,
+      address.addressLine2,
+      address.city,
+      address.state,
+      address.country,
+    ].where((s) => s.trim().isNotEmpty).toList();
+    return parts.isEmpty ? null : parts.join(', ');
+  }
+
+  void _useContact(int? index) {
+    setState(() => _contactIndex = index);
+    if (index == null || index >= _contacts.length) return;
+    final phone = _contacts[index].phone.trim();
+    _mobileCtrl.value = TextEditingValue(
+      text: phone,
+      selection: TextSelection.collapsed(offset: phone.length),
+    );
+  }
+
+  String _contactLabel(LeadContact c) {
+    final parts = [
+      c.displayName,
+      if (c.role.trim().isNotEmpty) c.role.trim(),
+      if (c.phone.trim() != c.displayName) c.phone.trim(),
+    ];
+    return parts.join(' · ');
   }
 
   @override
@@ -871,7 +1037,12 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
                                 ),
                               ),
                             )
-                          : null,
+                          : PasteIconButton(
+                              key: const ValueKey('b2b-setup-search-paste'),
+                              controller: _searchCtrl,
+                              replace: true,
+                              onChanged: _onSearchChanged,
+                            ),
                       border: const OutlineInputBorder(),
                     ),
                   ),
@@ -902,7 +1073,11 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
                         context,
                         _LeadCustomerSetup(existingCustomer: _selectedCustomer),
                       )),
-          child: Text(_createNew ? l10n.b2bContinue : l10n.b2bLinkAndContinue),
+          child: Text(
+            widget.setupOnly
+                ? l10n.commonSave
+                : (_createNew ? l10n.b2bContinue : l10n.b2bLinkAndContinue),
+          ),
         ),
       ],
     );
@@ -911,18 +1086,64 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
   List<Widget> _buildCreateFields() => [
     TextFormField(
       controller: _nameCtrl,
-      decoration: InputDecoration(labelText: context.l10n.b2bCustomerName),
+      decoration: InputDecoration(
+        labelText: context.l10n.b2bCustomerName,
+        suffixIcon: PasteIconButton(
+          key: const ValueKey('b2b-setup-name-paste'),
+          controller: _nameCtrl,
+          replace: true,
+        ),
+      ),
       validator: _required,
     ),
+    if (_contacts.isNotEmpty)
+      DropdownButtonFormField<int>(
+        key: ValueKey('b2b-setup-contact-${_contacts.length}'),
+        initialValue: _contactIndex,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: context.l10n.leadContactsTitle,
+          prefixIcon: const Icon(Icons.contacts_outlined),
+        ),
+        items: [
+          for (var i = 0; i < _contacts.length; i++)
+            DropdownMenuItem<int>(
+              value: i,
+              child: Text(
+                _contactLabel(_contacts[i]),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+        ],
+        onChanged: _useContact,
+      ),
     TextFormField(
       controller: _mobileCtrl,
       keyboardType: TextInputType.phone,
-      decoration: InputDecoration(labelText: context.l10n.leadFieldMobile),
+      inputFormatters: _phoneFormatters,
+      decoration: InputDecoration(
+        labelText: context.l10n.leadFieldMobile,
+        suffixIcon: PasteIconButton(
+          key: const ValueKey('b2b-setup-mobile-paste'),
+          controller: _mobileCtrl,
+          replace: true,
+          inputFormatters: _phoneFormatters,
+        ),
+      ),
       validator: _required,
     ),
     TextFormField(
       controller: _addressCtrl,
-      decoration: InputDecoration(labelText: context.l10n.b2bAddress),
+      minLines: 1,
+      maxLines: 3,
+      decoration: InputDecoration(
+        labelText: context.l10n.b2bAddress,
+        suffixIcon: PasteOrClearButton(
+          key: const ValueKey('b2b-setup-address-paste'),
+          controller: _addressCtrl,
+        ),
+      ),
       validator: _required,
     ),
     _buildTerritoryField(),
@@ -1053,6 +1274,10 @@ class _AccountBody extends StatelessWidget {
   final VoidCallback onToggleTodos;
   final VoidCallback onSendSample;
   final VoidCallback onPlaceOrder;
+
+  /// Turns a Lead/Opportunity into a Customer without opening the POS. Null
+  /// once a Customer is linked (and on a Customer account).
+  final VoidCallback? onMakeCustomer;
   final VoidCallback? onLogCall;
   final VoidCallback? onMarkLost;
   final VoidCallback? onJourneyChanged;
@@ -1088,6 +1313,7 @@ class _AccountBody extends StatelessWidget {
     required this.onToggleTodos,
     required this.onSendSample,
     required this.onPlaceOrder,
+    this.onMakeCustomer,
     this.onLogCall,
     this.onMarkLost,
     this.onJourneyChanged,
@@ -1343,6 +1569,13 @@ class _AccountBody extends StatelessWidget {
                       icon: const Icon(Icons.shopping_cart_outlined),
                       label: Text(context.l10n.b2bPlaceOrder),
                     ),
+                    if (onMakeCustomer != null)
+                      OutlinedButton.icon(
+                        key: const ValueKey('b2b-make-customer'),
+                        onPressed: busy ? null : onMakeCustomer,
+                        icon: const Icon(Icons.person_add_alt_1_outlined),
+                        label: Text(context.l10n.b2bCustomerSetupTitle),
+                      ),
                     if (onLogCall != null)
                       OutlinedButton.icon(
                         onPressed: busy ? null : onLogCall,
@@ -1839,7 +2072,11 @@ class _BranchesSection extends ConsumerWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.star_rounded, size: 14, color: LeadsTheme.gold),
+                const Icon(
+                  Icons.star_rounded,
+                  size: 14,
+                  color: LeadsTheme.gold,
+                ),
                 const SizedBox(width: 2),
                 Text(
                   maps.reviews != null
