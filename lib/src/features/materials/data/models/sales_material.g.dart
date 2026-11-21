@@ -17,6 +17,8 @@ _$SalesMaterialImpl _$$SalesMaterialImplFromJson(Map<String, dynamic> json) =>
       isDefault: json['is_default'] as bool? ?? false,
       pageCount: (json['page_count'] as num?)?.toInt() ?? 0,
       ready: json['ready'] as bool? ?? false,
+      sourceType: json['source_type'] as String? ?? 'Uploaded File',
+      generated: json['generated'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$SalesMaterialImplToJson(_$SalesMaterialImpl instance) =>
@@ -30,6 +32,8 @@ Map<String, dynamic> _$$SalesMaterialImplToJson(_$SalesMaterialImpl instance) =>
       'is_default': instance.isDefault,
       'page_count': instance.pageCount,
       'ready': instance.ready,
+      'source_type': instance.sourceType,
+      'generated': instance.generated,
     };
 
 _$MaterialLibraryImpl _$$MaterialLibraryImplFromJson(
@@ -44,6 +48,7 @@ _$MaterialLibraryImpl _$$MaterialLibraryImplFromJson(
   namePlaceholder: json['name_placeholder'] as String? ?? '{name}',
   linkPlaceholder: json['link_placeholder'] as String? ?? '{link}',
   nameFallback: json['name_fallback'] as String? ?? '',
+  canEditSheets: json['can_edit_sheets'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$MaterialLibraryImplToJson(
@@ -54,6 +59,7 @@ Map<String, dynamic> _$$MaterialLibraryImplToJson(
   'name_placeholder': instance.namePlaceholder,
   'link_placeholder': instance.linkPlaceholder,
   'name_fallback': instance.nameFallback,
+  'can_edit_sheets': instance.canEditSheets,
 };
 
 _$MaterialShareImpl _$$MaterialShareImplFromJson(Map<String, dynamic> json) =>

@@ -18067,6 +18067,276 @@ abstract class AppLocalizations {
   /// **'Leave {token} where you want the link; it is replaced automatically when you send.'**
   String materialsLinkPlaceholderHint(Object token);
 
+  /// Chip on a generated price sheet in the send-materials sheet: its prices are filled in live for the recipient
+  ///
+  /// In en, this message translates to:
+  /// **'auto prices'**
+  String get materialsAutoPricesChip;
+
+  /// No description provided for @materialsPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get materialsPreview;
+
+  /// No description provided for @materialsEditTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit template'**
+  String get materialsEditTemplate;
+
+  /// No description provided for @materialsNoRecipientCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'No phone on this customer yet. Send anyway and pick the chat in WhatsApp.'**
+  String get materialsNoRecipientCustomer;
+
+  /// No description provided for @priceSheetPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Price sheet preview'**
+  String get priceSheetPreviewTitle;
+
+  /// No description provided for @priceSheetPreparedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepared for {name}'**
+  String priceSheetPreparedFor(String name);
+
+  /// No description provided for @priceSheetDealUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Special prices valid until {date}'**
+  String priceSheetDealUntil(String date);
+
+  /// No description provided for @priceSheetAsOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices as of {date}'**
+  String priceSheetAsOf(String date);
+
+  /// No description provided for @priceSheetNoPages.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet has no pages yet.'**
+  String get priceSheetNoPages;
+
+  /// No description provided for @priceSheetPinchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinch to zoom in on the prices.'**
+  String get priceSheetPinchHint;
+
+  /// No description provided for @priceSheetOpenPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Open PDF'**
+  String get priceSheetOpenPdf;
+
+  /// No description provided for @priceSheetTemplateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Price sheet template'**
+  String get priceSheetTemplateTitle;
+
+  /// No description provided for @priceSheetHeadingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get priceSheetHeadingLabel;
+
+  /// No description provided for @priceSheetPriceListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price list'**
+  String get priceSheetPriceListLabel;
+
+  /// No description provided for @priceSheetEachCustomerList.
+  ///
+  /// In en, this message translates to:
+  /// **'Each customer\'\'s own list'**
+  String get priceSheetEachCustomerList;
+
+  /// No description provided for @priceSheetSizesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sizes (table columns, in the order picked)'**
+  String get priceSheetSizesLabel;
+
+  /// No description provided for @priceSheetShowDealsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Show customer deal prices'**
+  String get priceSheetShowDealsLabel;
+
+  /// No description provided for @priceSheetShowDealsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer with a running deal sees the deal price and when it ends.'**
+  String get priceSheetShowDealsHint;
+
+  /// No description provided for @priceSheetFlavoursLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Flavours (table rows)'**
+  String get priceSheetFlavoursLabel;
+
+  /// No description provided for @priceSheetRowLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name on the sheet'**
+  String get priceSheetRowLabelHint;
+
+  /// No description provided for @priceSheetAddFlavour.
+  ///
+  /// In en, this message translates to:
+  /// **'Add flavour'**
+  String get priceSheetAddFlavour;
+
+  /// No description provided for @priceSheetTermsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms (one per line)'**
+  String get priceSheetTermsLabel;
+
+  /// No description provided for @priceSheetTermsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a line with “Label:” to highlight the label.'**
+  String get priceSheetTermsHint;
+
+  /// No description provided for @priceSheetAddTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Add term'**
+  String get priceSheetAddTerm;
+
+  /// No description provided for @priceSheetFooterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Footer'**
+  String get priceSheetFooterLabel;
+
+  /// No description provided for @priceSheetDefaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected by default'**
+  String get priceSheetDefaultLabel;
+
+  /// No description provided for @priceSheetDefaultHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticked automatically when a rep opens the send sheet.'**
+  String get priceSheetDefaultHint;
+
+  /// No description provided for @priceSheetSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get priceSheetSave;
+
+  /// No description provided for @priceSheetSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Template saved'**
+  String get priceSheetSaved;
+
+  /// No description provided for @priceSheetReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a pricing manager can change this template.'**
+  String get priceSheetReadOnly;
+
+  /// No description provided for @priceSheetNeedSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one size.'**
+  String get priceSheetNeedSize;
+
+  /// No description provided for @priceSheetNeedRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable at least one flavour.'**
+  String get priceSheetNeedRow;
+
+  /// No description provided for @priceSheetMoveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get priceSheetMoveUp;
+
+  /// No description provided for @priceSheetMoveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get priceSheetMoveDown;
+
+  /// No description provided for @priceSheetRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get priceSheetRemove;
+
+  /// No description provided for @clientPreviewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'See what the client gets'**
+  String get clientPreviewButton;
+
+  /// No description provided for @clientPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What the client gets'**
+  String get clientPreviewTitle;
+
+  /// No description provided for @clientPreviewMessageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp message'**
+  String get clientPreviewMessageLabel;
+
+  /// No description provided for @clientPreviewLinkCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Link is created when you press send'**
+  String get clientPreviewLinkCaption;
+
+  /// No description provided for @clientPreviewPageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Their page'**
+  String get clientPreviewPageLabel;
+
+  /// No description provided for @clientPreviewGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello {name}'**
+  String clientPreviewGreeting(String name);
+
+  /// No description provided for @clientPreviewDownloadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Download only. The client gets a download button for this file.'**
+  String get clientPreviewDownloadOnly;
+
+  /// No description provided for @clientPreviewNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to show on the page yet.'**
+  String get clientPreviewNoItems;
+
+  /// No description provided for @clientPreviewBackToEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to edit'**
+  String get clientPreviewBackToEdit;
+
+  /// No description provided for @clientPreviewSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get clientPreviewSend;
+
   /// Shown after the server rejected the stored session and the app signed the user out
   ///
   /// In en, this message translates to:

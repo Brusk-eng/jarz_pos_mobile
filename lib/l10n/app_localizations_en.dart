@@ -11049,6 +11049,156 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get materialsAutoPricesChip => 'auto prices';
+
+  @override
+  String get materialsPreview => 'Preview';
+
+  @override
+  String get materialsEditTemplate => 'Edit template';
+
+  @override
+  String get materialsNoRecipientCustomer =>
+      'No phone on this customer yet. Send anyway and pick the chat in WhatsApp.';
+
+  @override
+  String get priceSheetPreviewTitle => 'Price sheet preview';
+
+  @override
+  String priceSheetPreparedFor(String name) {
+    return 'Prepared for $name';
+  }
+
+  @override
+  String priceSheetDealUntil(String date) {
+    return 'Special prices valid until $date';
+  }
+
+  @override
+  String priceSheetAsOf(String date) {
+    return 'Prices as of $date';
+  }
+
+  @override
+  String get priceSheetNoPages => 'This sheet has no pages yet.';
+
+  @override
+  String get priceSheetPinchHint => 'Pinch to zoom in on the prices.';
+
+  @override
+  String get priceSheetOpenPdf => 'Open PDF';
+
+  @override
+  String get priceSheetTemplateTitle => 'Price sheet template';
+
+  @override
+  String get priceSheetHeadingLabel => 'Heading';
+
+  @override
+  String get priceSheetPriceListLabel => 'Price list';
+
+  @override
+  String get priceSheetEachCustomerList => 'Each customer\'s own list';
+
+  @override
+  String get priceSheetSizesLabel =>
+      'Sizes (table columns, in the order picked)';
+
+  @override
+  String get priceSheetShowDealsLabel => 'Show customer deal prices';
+
+  @override
+  String get priceSheetShowDealsHint =>
+      'A customer with a running deal sees the deal price and when it ends.';
+
+  @override
+  String get priceSheetFlavoursLabel => 'Flavours (table rows)';
+
+  @override
+  String get priceSheetRowLabelHint => 'Name on the sheet';
+
+  @override
+  String get priceSheetAddFlavour => 'Add flavour';
+
+  @override
+  String get priceSheetTermsLabel => 'Terms (one per line)';
+
+  @override
+  String get priceSheetTermsHint =>
+      'Start a line with “Label:” to highlight the label.';
+
+  @override
+  String get priceSheetAddTerm => 'Add term';
+
+  @override
+  String get priceSheetFooterLabel => 'Footer';
+
+  @override
+  String get priceSheetDefaultLabel => 'Selected by default';
+
+  @override
+  String get priceSheetDefaultHint =>
+      'Ticked automatically when a rep opens the send sheet.';
+
+  @override
+  String get priceSheetSave => 'Save';
+
+  @override
+  String get priceSheetSaved => 'Template saved';
+
+  @override
+  String get priceSheetReadOnly =>
+      'Only a pricing manager can change this template.';
+
+  @override
+  String get priceSheetNeedSize => 'Pick at least one size.';
+
+  @override
+  String get priceSheetNeedRow => 'Enable at least one flavour.';
+
+  @override
+  String get priceSheetMoveUp => 'Move up';
+
+  @override
+  String get priceSheetMoveDown => 'Move down';
+
+  @override
+  String get priceSheetRemove => 'Remove';
+
+  @override
+  String get clientPreviewButton => 'See what the client gets';
+
+  @override
+  String get clientPreviewTitle => 'What the client gets';
+
+  @override
+  String get clientPreviewMessageLabel => 'WhatsApp message';
+
+  @override
+  String get clientPreviewLinkCaption => 'Link is created when you press send';
+
+  @override
+  String get clientPreviewPageLabel => 'Their page';
+
+  @override
+  String clientPreviewGreeting(String name) {
+    return 'Hello $name';
+  }
+
+  @override
+  String get clientPreviewDownloadOnly =>
+      'Download only. The client gets a download button for this file.';
+
+  @override
+  String get clientPreviewNoItems => 'Nothing to show on the page yet.';
+
+  @override
+  String get clientPreviewBackToEdit => 'Back to edit';
+
+  @override
+  String get clientPreviewSend => 'Send';
+
+  @override
   String get sessionExpiredMessage =>
       'Your session ended. Please sign in again.';
 

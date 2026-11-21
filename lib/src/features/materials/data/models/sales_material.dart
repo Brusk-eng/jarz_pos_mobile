@@ -29,10 +29,27 @@ class SalesMaterial with _$SalesMaterial {
     /// because a link opened ten seconds after a 40MB upload is the one case
     /// where the reader waits.
     @Default(false) bool ready,
+
+    /// `Uploaded File` (a PDF/image a manager uploaded) or `Generated Price
+    /// List` (a sheet the server renders from live prices per recipient).
+    @JsonKey(name: 'source_type') @Default('Uploaded File') String sourceType,
+
+    /// True for a generated price sheet: its prices are filled in at send time
+    /// for the customer it goes to, so the sheet offers a preview instead of a
+    /// file. Absent on an older server, hence the default.
+    @Default(false) bool generated,
   }) = _SalesMaterial;
 
   factory SalesMaterial.fromJson(Map<String, dynamic> json) =>
       _$SalesMaterialFromJson(json);
+
+  /// The server's source type for a sheet rendered from live prices.
+  static const generatedSourceType = 'Generated Price List';
+
+  /// Either flag is enough: `generated` is the convenience boolean, and
+  /// `source_type` is the field it is derived from.
+  bool get isGenerated =>
+      generated || sourceType.trim() == generatedSourceType;
 
   /// What to show in the picker: the Arabic title when the library has one.
   String get label {
@@ -60,6 +77,10 @@ class MaterialLibrary with _$MaterialLibrary {
     @JsonKey(name: 'name_placeholder') @Default('{name}') String namePlaceholder,
     @JsonKey(name: 'link_placeholder') @Default('{link}') String linkPlaceholder,
     @JsonKey(name: 'name_fallback') @Default('') String nameFallback,
+
+    /// Whether this user may edit a generated price sheet's template (full
+    /// manager pricing access). The server enforces it again on save.
+    @JsonKey(name: 'can_edit_sheets') @Default(false) bool canEditSheets,
   }) = _MaterialLibrary;
 
   factory MaterialLibrary.fromJson(Map<String, dynamic> json) =>

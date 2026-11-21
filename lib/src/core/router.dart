@@ -88,6 +88,8 @@ import '../features/visits/presentation/screens/visit_builder_screen.dart';
 import '../features/visits/presentation/screens/visit_plan_screen.dart';
 import '../features/visits/presentation/screens/visit_plans_screen.dart';
 import '../features/pricing/presentation/screens/pricing_screen.dart';
+import '../features/materials/presentation/screens/price_sheet_preview_screen.dart';
+import '../features/materials/presentation/screens/price_sheet_template_screen.dart';
 import '../features/credit/presentation/screens/credit_accounts_screen.dart';
 import '../features/credit/presentation/screens/credit_account_detail_screen.dart';
 import '../features/leads/presentation/screens/leads_list_screen.dart';
@@ -948,6 +950,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.pricing,
         name: 'pricing',
         builder: (context, state) => const PricingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.priceSheetTemplate,
+        name: 'price-sheet-template',
+        builder: (context, state) => PriceSheetTemplateScreen(
+          material: state.uri.queryParameters['material'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.priceSheetPreview,
+        name: 'price-sheet-preview',
+        builder: (context, state) {
+          final query = state.uri.queryParameters;
+          String? blankToNull(String? value) =>
+              (value == null || value.trim().isEmpty) ? null : value;
+          return PriceSheetPreviewScreen(
+            material: query['material'] ?? '',
+            title: blankToNull(query['title']),
+            referenceDoctype: blankToNull(query['doctype']),
+            referenceName: blankToNull(query['name']),
+          );
+        },
       ),
       // ── Credit accounts ───────────────────────────────────────────────
       // `/credit-accounts/detail` is a static segment and must stay declared

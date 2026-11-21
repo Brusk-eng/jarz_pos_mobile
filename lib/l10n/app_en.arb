@@ -6359,6 +6359,82 @@
       "token": {}
     }
   },
+  "materialsAutoPricesChip": "auto prices",
+  "@materialsAutoPricesChip": {
+    "description": "Chip on a generated price sheet in the send-materials sheet: its prices are filled in live for the recipient"
+  },
+  "materialsPreview": "Preview",
+  "materialsEditTemplate": "Edit template",
+  "materialsNoRecipientCustomer": "No phone on this customer yet. Send anyway and pick the chat in WhatsApp.",
+  "priceSheetPreviewTitle": "Price sheet preview",
+  "priceSheetPreparedFor": "Prepared for {name}",
+  "@priceSheetPreparedFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "priceSheetDealUntil": "Special prices valid until {date}",
+  "@priceSheetDealUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "priceSheetAsOf": "Prices as of {date}",
+  "@priceSheetAsOf": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "priceSheetNoPages": "This sheet has no pages yet.",
+  "priceSheetPinchHint": "Pinch to zoom in on the prices.",
+  "priceSheetOpenPdf": "Open PDF",
+  "priceSheetTemplateTitle": "Price sheet template",
+  "priceSheetHeadingLabel": "Heading",
+  "priceSheetPriceListLabel": "Price list",
+  "priceSheetEachCustomerList": "Each customer''s own list",
+  "priceSheetSizesLabel": "Sizes (table columns, in the order picked)",
+  "priceSheetShowDealsLabel": "Show customer deal prices",
+  "priceSheetShowDealsHint": "A customer with a running deal sees the deal price and when it ends.",
+  "priceSheetFlavoursLabel": "Flavours (table rows)",
+  "priceSheetRowLabelHint": "Name on the sheet",
+  "priceSheetAddFlavour": "Add flavour",
+  "priceSheetTermsLabel": "Terms (one per line)",
+  "priceSheetTermsHint": "Start a line with “Label:” to highlight the label.",
+  "priceSheetAddTerm": "Add term",
+  "priceSheetFooterLabel": "Footer",
+  "priceSheetDefaultLabel": "Selected by default",
+  "priceSheetDefaultHint": "Ticked automatically when a rep opens the send sheet.",
+  "priceSheetSave": "Save",
+  "priceSheetSaved": "Template saved",
+  "priceSheetReadOnly": "Only a pricing manager can change this template.",
+  "priceSheetNeedSize": "Pick at least one size.",
+  "priceSheetNeedRow": "Enable at least one flavour.",
+  "priceSheetMoveUp": "Move up",
+  "priceSheetMoveDown": "Move down",
+  "priceSheetRemove": "Remove",
+  "clientPreviewButton": "See what the client gets",
+  "clientPreviewTitle": "What the client gets",
+  "clientPreviewMessageLabel": "WhatsApp message",
+  "clientPreviewLinkCaption": "Link is created when you press send",
+  "clientPreviewPageLabel": "Their page",
+  "clientPreviewGreeting": "Hello {name}",
+  "@clientPreviewGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clientPreviewDownloadOnly": "Download only. The client gets a download button for this file.",
+  "clientPreviewNoItems": "Nothing to show on the page yet.",
+  "clientPreviewBackToEdit": "Back to edit",
+  "clientPreviewSend": "Send",
   "sessionExpiredMessage": "Your session ended. Please sign in again.",
   "@sessionExpiredMessage": {
     "description": "Shown after the server rejected the stored session and the app signed the user out"

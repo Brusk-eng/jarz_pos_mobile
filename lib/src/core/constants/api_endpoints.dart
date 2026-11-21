@@ -797,6 +797,20 @@ abstract final class ApiEndpoints {
   static const getMaterialShares =
       '/api/method/jarz_pos.api.materials.get_material_shares';
 
+  // A generated price sheet: the server fills a manager-edited template with
+  // live (and deal) prices per recipient. Preview renders it for the app; the
+  // template pair reads and saves the template itself (save is manager-only).
+  static const previewPriceSheet =
+      '/api/method/jarz_pos.api.price_sheet.preview_price_sheet';
+  static const getPriceSheetTemplate =
+      '/api/method/jarz_pos.api.price_sheet.get_price_sheet_template';
+  static const savePriceSheetTemplate =
+      '/api/method/jarz_pos.api.price_sheet.save_price_sheet_template';
+  // "See what the client gets": the final message and the client page's items
+  // for a pack, without minting a link or counting a view.
+  static const previewMaterialShare =
+      '/api/method/jarz_pos.api.materials.preview_material_share';
+
   // ── B2B visit planning ────────────────────────────────────────────────
   // A day's field route: which doors, in what order. The catalog answers "who
   // is worth visiting"; these answer "and when am I actually going".

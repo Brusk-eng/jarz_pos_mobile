@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../core/constants/app_routes.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
@@ -9,6 +12,7 @@ import '../../../../core/localization/localized_display_mappers.dart';
 import '../../data/materials_repository.dart';
 import '../../data/models/sales_material.dart';
 import '../../state/materials_notifier.dart';
+import '../screens/client_preview_screen.dart';
 
 /// One person the pack can go to.
 ///
@@ -140,6 +144,31 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
     });
   }
 
+  /// The ticked materials ordered as the library lists them, so the price
+  /// list stays first on the customer's page instead of following the tap
+  /// order. Shared by send and the client preview so both see the same pack.
+  List<String> _orderedPicked(MaterialLibrary library) => library.materials
+      .map((m) => m.name)
+      .where(_picked.contains)
+      .toList();
+
+  /// "See what the client gets" with exactly what Send would send now: the
+  /// current (edited) message, the ticked materials, the chosen recipient.
+  /// Send pressed there runs this sheet's own send with those same inputs.
+  Future<void> _openClientPreview() async {
+    final library = _library;
+    if (library == null || _picked.isEmpty || _sending) return;
+    final send = await showClientPreview(
+      context,
+      referenceDoctype: widget.referenceDoctype,
+      referenceName: widget.referenceName,
+      materials: _orderedPicked(library),
+      contactName: _recipient?.name,
+      message: _message.text,
+    );
+    if (send && mounted) await _send();
+  }
+
   Future<void> _send() async {
     final library = _library;
     if (library == null || _picked.isEmpty) return;
@@ -153,12 +182,7 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
       final share = await ref.read(materialsRepositoryProvider).createShare(
             referenceDoctype: widget.referenceDoctype,
             referenceName: widget.referenceName,
-            // Ordered as the library lists them, so the price list stays first
-            // on the customer's page instead of following the tap order.
-            materials: library.materials
-                .map((m) => m.name)
-                .where(_picked.contains)
-                .toList(),
+            materials: _orderedPicked(library),
             contactName: _recipient?.name,
             contactPhone: _recipient?.phone,
             message: _message.text,
@@ -187,6 +211,31 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
         SnackBar(content: Text(context.userErrorMessage(error))),
       );
     }
+  }
+
+  /// The sheet as this record would receive it: their price list, their
+  /// running deal, their name on top.
+  void _openPreview(SalesMaterial material) {
+    context.push(
+      Uri(
+        path: AppRoutes.priceSheetPreview,
+        queryParameters: {
+          'material': material.name,
+          'title': material.label,
+          'doctype': widget.referenceDoctype,
+          'name': widget.referenceName,
+        },
+      ).toString(),
+    );
+  }
+
+  Future<void> _openTemplate(SalesMaterial material) async {
+    await context.push(
+      Uri(
+        path: AppRoutes.priceSheetTemplate,
+        queryParameters: {'material': material.name},
+      ).toString(),
+    );
   }
 
   /// Launch directly. Do NOT gate on `canLaunchUrl`: on Android 11+ it returns
@@ -284,6 +333,9 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
               const SizedBox(height: 8),
               _RecipientPicker(
                 recipients: widget.recipients,
+                emptyText: widget.referenceDoctype == 'Customer'
+                    ? l10n.materialsNoRecipientCustomer
+                    : l10n.materialsNoRecipient,
                 selected: _recipient,
                 enabled: !_sending,
                 onChanged: _chooseRecipient,
@@ -296,6 +348,9 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
                   material: material,
                   checked: _picked.contains(material.name),
                   enabled: !_sending,
+                  canEditTemplate: library.canEditSheets,
+                  onPreview: () => _openPreview(material),
+                  onEditTemplate: () => _openTemplate(material),
                   onChanged: (on) => setState(() {
                     if (on) {
                       _picked.add(material.name);
@@ -332,21 +387,39 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
           top: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: (_sending || _picked.isEmpty) ? null : _send,
-                icon: _sending
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.send),
-                label: Text(
-                  _sending ? l10n.materialsSending : l10n.materialsSendCta,
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    key: const ValueKey('materials-client-preview'),
+                    onPressed: (_sending || _picked.isEmpty)
+                        ? null
+                        : _openClientPreview,
+                    icon: const Icon(Icons.visibility_outlined),
+                    label: Text(
+                      l10n.clientPreviewButton,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    key: const ValueKey('materials-send'),
+                    onPressed: (_sending || _picked.isEmpty) ? null : _send,
+                    icon: _sending
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.send),
+                    label: Text(
+                      _sending ? l10n.materialsSending : l10n.materialsSendCta,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -361,18 +434,19 @@ class _RecipientPicker extends StatelessWidget {
     required this.selected,
     required this.enabled,
     required this.onChanged,
+    required this.emptyText,
   });
 
   final List<MaterialRecipient> recipients;
   final MaterialRecipient? selected;
   final bool enabled;
   final ValueChanged<MaterialRecipient?> onChanged;
+  final String emptyText;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     if (recipients.isEmpty) {
-      return _Notice(text: l10n.materialsNoRecipient);
+      return _Notice(text: emptyText);
     }
     return Wrap(
       spacing: 8,
@@ -406,12 +480,20 @@ class _MaterialTile extends StatelessWidget {
     required this.checked,
     required this.enabled,
     required this.onChanged,
+    this.canEditTemplate = false,
+    this.onPreview,
+    this.onEditTemplate,
   });
 
   final SalesMaterial material;
   final bool checked;
   final bool enabled;
   final ValueChanged<bool> onChanged;
+
+  /// Only consulted for a generated sheet.
+  final bool canEditTemplate;
+  final VoidCallback? onPreview;
+  final VoidCallback? onEditTemplate;
 
   @override
   Widget build(BuildContext context) {
@@ -422,6 +504,50 @@ class _MaterialTile extends StatelessWidget {
       if (material.pageCount > 1) l10n.materialsPageCount(material.pageCount),
       if (!material.ready) l10n.materialsPreparing,
     ];
+    final generated = material.isGenerated;
+    final theme = Theme.of(context);
+    Widget? subtitle = bits.isEmpty ? null : Text(bits.join(' · '));
+    if (generated) {
+      // A generated sheet has no file to describe: its prices are filled in
+      // for whoever it is sent to, so it offers a look at exactly that.
+      subtitle = Wrap(
+        spacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          if (bits.isNotEmpty) Text(bits.join(' · ')),
+          Container(
+            key: ValueKey('materials-auto-prices-${material.name}'),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              l10n.materialsAutoPricesChip,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+          TextButton.icon(
+            key: ValueKey('materials-preview-${material.name}'),
+            style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+            onPressed: onPreview,
+            icon: const Icon(Icons.visibility, size: 16),
+            label: Text(l10n.materialsPreview),
+          ),
+          if (canEditTemplate)
+            TextButton.icon(
+              key: ValueKey('materials-edit-template-${material.name}'),
+              style:
+                  TextButton.styleFrom(visualDensity: VisualDensity.compact),
+              onPressed: onEditTemplate,
+              icon: const Icon(Icons.edit_outlined, size: 16),
+              label: Text(l10n.materialsEditTemplate),
+            ),
+        ],
+      );
+    }
     return CheckboxListTile(
       value: checked,
       onChanged: enabled ? (value) => onChanged(value ?? false) : null,
@@ -429,7 +555,7 @@ class _MaterialTile extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       controlAffinity: ListTileControlAffinity.leading,
       title: Text(material.label),
-      subtitle: bits.isEmpty ? null : Text(bits.join(' · ')),
+      subtitle: subtitle,
     );
   }
 }

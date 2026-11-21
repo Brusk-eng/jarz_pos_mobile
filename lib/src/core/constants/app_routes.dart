@@ -140,6 +140,11 @@ abstract final class AppRoutes {
 
   // ── Pricing (Price Lists) ─────────────────────────────────────────────
   static const pricing = '/pricing';
+  // A generated price sheet's template editor and its rendered preview, both
+  // keyed by `?material=<Jarz Sales Material>`; the preview also takes
+  // `&doctype=&name=` to render it the way that record would receive it.
+  static const priceSheetTemplate = '/pricing/price-sheet';
+  static const priceSheetPreview = '/pricing/price-sheet/preview';
 
   // ── B2B customer labels (printed-label stock + reorder alerts) ────────
   static const labels = '/labels';

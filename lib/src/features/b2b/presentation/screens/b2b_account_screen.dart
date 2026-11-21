@@ -15,6 +15,9 @@ import '../../../geo/presentation/widgets/location_link_field.dart'
 import '../../../credit/data/models/settlement_models.dart';
 import '../../../credit/presentation/widgets/credit_settings_section.dart';
 import '../../../pricing/presentation/widgets/customer_deals_section.dart';
+import '../../../materials/presentation/widgets/send_materials_section.dart';
+import '../../../materials/presentation/widgets/send_materials_sheet.dart'
+    show MaterialRecipient;
 import '../../../credit/presentation/widgets/settlement_terms_section.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../journey/state/journey_notes_notifier.dart'
@@ -50,6 +53,24 @@ import '../../../../core/utils/territory_label.dart';
 /// server moves to the Customer on conversion. An Opportunity with no Customer
 /// falls back to its linked Lead; with neither there is nothing to attach
 /// terms to and the section is omitted.
+/// Who the price sheet can go to from the account screen: the account's own
+/// mobile and landline, under the account's name. Same shape as the lead
+/// page's `_recipientsFor` (one entry per distinct phone, never a duplicate),
+/// minus the named contacts that only a Lead carries.
+@visibleForTesting
+List<MaterialRecipient> b2bMaterialRecipients(B2bAccount account) {
+  final recipients = <MaterialRecipient>[];
+  final name = account.title.trim().isNotEmpty
+      ? account.title.trim()
+      : account.name.trim();
+  for (final phone in [account.contact.mobileNo, account.contact.phone]) {
+    final value = phone?.trim() ?? '';
+    if (value.isEmpty || recipients.any((r) => r.phone == value)) continue;
+    recipients.add(MaterialRecipient(name: name, phone: value));
+  }
+  return recipients;
+}
+
 SettlementParty? settlementPartyForAccount(B2bAccount account) {
   final customer = account.customer?.trim() ?? '';
   if (customer.isNotEmpty) return SettlementParty.customer(customer);
@@ -1186,6 +1207,15 @@ class _AccountBody extends StatelessWidget {
                 key: const ValueKey('b2b-customer-deals'),
                 customer: party.name,
                 customerName: account.title,
+              ),
+              // The price sheet, sent on WhatsApp with this customer's own
+              // prices (and any deal above) filled in by the server.
+              const SizedBox(height: 12),
+              SendMaterialsSection(
+                key: const ValueKey('b2b-send-materials'),
+                referenceDoctype: 'Customer',
+                referenceName: party.name,
+                recipients: b2bMaterialRecipients(account),
               ),
             ],
             const SizedBox(height: 16),

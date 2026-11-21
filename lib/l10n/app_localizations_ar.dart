@@ -10993,6 +10993,154 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get materialsAutoPricesChip => 'أسعار تلقائية';
+
+  @override
+  String get materialsPreview => 'معاينة';
+
+  @override
+  String get materialsEditTemplate => 'تعديل القالب';
+
+  @override
+  String get materialsNoRecipientCustomer =>
+      'لا يوجد رقم هاتف لهذا العميل بعد. أرسل على أي حال واختر المحادثة في واتساب.';
+
+  @override
+  String get priceSheetPreviewTitle => 'معاينة قائمة الأسعار';
+
+  @override
+  String priceSheetPreparedFor(String name) {
+    return 'مُعدّة لـ $name';
+  }
+
+  @override
+  String priceSheetDealUntil(String date) {
+    return 'الأسعار الخاصة سارية حتى $date';
+  }
+
+  @override
+  String priceSheetAsOf(String date) {
+    return 'الأسعار بتاريخ $date';
+  }
+
+  @override
+  String get priceSheetNoPages => 'لا توجد صفحات لهذه القائمة بعد.';
+
+  @override
+  String get priceSheetPinchHint => 'كبّر بإصبعين لرؤية الأسعار.';
+
+  @override
+  String get priceSheetOpenPdf => 'فتح ملف PDF';
+
+  @override
+  String get priceSheetTemplateTitle => 'قالب قائمة الأسعار';
+
+  @override
+  String get priceSheetHeadingLabel => 'العنوان';
+
+  @override
+  String get priceSheetPriceListLabel => 'قائمة الأسعار';
+
+  @override
+  String get priceSheetEachCustomerList => 'قائمة كل عميل الخاصة';
+
+  @override
+  String get priceSheetSizesLabel => 'الأحجام (أعمدة الجدول بترتيب الاختيار)';
+
+  @override
+  String get priceSheetShowDealsLabel => 'إظهار أسعار العروض الخاصة للعميل';
+
+  @override
+  String get priceSheetShowDealsHint =>
+      'العميل الذي لديه عرض ساري يرى سعر العرض وتاريخ انتهائه.';
+
+  @override
+  String get priceSheetFlavoursLabel => 'النكهات (صفوف الجدول)';
+
+  @override
+  String get priceSheetRowLabelHint => 'الاسم على القائمة';
+
+  @override
+  String get priceSheetAddFlavour => 'إضافة نكهة';
+
+  @override
+  String get priceSheetTermsLabel => 'الشروط (سطر لكل شرط)';
+
+  @override
+  String get priceSheetTermsHint => 'ابدأ السطر بـ «العنوان:» لتمييز العنوان.';
+
+  @override
+  String get priceSheetAddTerm => 'إضافة شرط';
+
+  @override
+  String get priceSheetFooterLabel => 'التذييل';
+
+  @override
+  String get priceSheetDefaultLabel => 'مختارة افتراضيًا';
+
+  @override
+  String get priceSheetDefaultHint =>
+      'تُحدَّد تلقائيًا عندما يفتح المندوب شاشة الإرسال.';
+
+  @override
+  String get priceSheetSave => 'حفظ';
+
+  @override
+  String get priceSheetSaved => 'تم حفظ القالب';
+
+  @override
+  String get priceSheetReadOnly => 'مدير التسعير فقط يمكنه تعديل هذا القالب.';
+
+  @override
+  String get priceSheetNeedSize => 'اختر حجمًا واحدًا على الأقل.';
+
+  @override
+  String get priceSheetNeedRow => 'فعّل نكهة واحدة على الأقل.';
+
+  @override
+  String get priceSheetMoveUp => 'تحريك لأعلى';
+
+  @override
+  String get priceSheetMoveDown => 'تحريك لأسفل';
+
+  @override
+  String get priceSheetRemove => 'إزالة';
+
+  @override
+  String get clientPreviewButton => 'شوف اللي هيوصل للعميل';
+
+  @override
+  String get clientPreviewTitle => 'اللي هيوصل للعميل';
+
+  @override
+  String get clientPreviewMessageLabel => 'رسالة واتساب';
+
+  @override
+  String get clientPreviewLinkCaption =>
+      'الرابط يتم إنشاؤه عند الضغط على إرسال';
+
+  @override
+  String get clientPreviewPageLabel => 'الصفحة اللي هيفتحها';
+
+  @override
+  String clientPreviewGreeting(String name) {
+    return 'Hello $name';
+  }
+
+  @override
+  String get clientPreviewDownloadOnly =>
+      'للتنزيل فقط. سيظهر للعميل زر لتنزيل هذا الملف.';
+
+  @override
+  String get clientPreviewNoItems => 'لا يوجد ما يُعرض في الصفحة بعد.';
+
+  @override
+  String get clientPreviewBackToEdit => 'رجوع للتعديل';
+
+  @override
+  String get clientPreviewSend => 'إرسال';
+
+  @override
   String get sessionExpiredMessage =>
       'انتهت جلستك. يُرجى تسجيل الدخول مرة أخرى.';
 

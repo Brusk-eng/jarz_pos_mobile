@@ -42,6 +42,16 @@ mixin _$SalesMaterial {
   /// where the reader waits.
   bool get ready => throw _privateConstructorUsedError;
 
+  /// `Uploaded File` (a PDF/image a manager uploaded) or `Generated Price
+  /// List` (a sheet the server renders from live prices per recipient).
+  @JsonKey(name: 'source_type')
+  String get sourceType => throw _privateConstructorUsedError;
+
+  /// True for a generated price sheet: its prices are filled in at send time
+  /// for the customer it goes to, so the sheet offers a preview instead of a
+  /// file. Absent on an older server, hence the default.
+  bool get generated => throw _privateConstructorUsedError;
+
   /// Serializes this SalesMaterial to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -69,6 +79,8 @@ abstract class $SalesMaterialCopyWith<$Res> {
     @JsonKey(name: 'is_default') bool isDefault,
     @JsonKey(name: 'page_count') int pageCount,
     bool ready,
+    @JsonKey(name: 'source_type') String sourceType,
+    bool generated,
   });
 }
 
@@ -96,6 +108,8 @@ class _$SalesMaterialCopyWithImpl<$Res, $Val extends SalesMaterial>
     Object? isDefault = null,
     Object? pageCount = null,
     Object? ready = null,
+    Object? sourceType = null,
+    Object? generated = null,
   }) {
     return _then(
       _value.copyWith(
@@ -135,6 +149,14 @@ class _$SalesMaterialCopyWithImpl<$Res, $Val extends SalesMaterial>
                 ? _value.ready
                 : ready // ignore: cast_nullable_to_non_nullable
                       as bool,
+            sourceType: null == sourceType
+                ? _value.sourceType
+                : sourceType // ignore: cast_nullable_to_non_nullable
+                      as String,
+            generated: null == generated
+                ? _value.generated
+                : generated // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -160,6 +182,8 @@ abstract class _$$SalesMaterialImplCopyWith<$Res>
     @JsonKey(name: 'is_default') bool isDefault,
     @JsonKey(name: 'page_count') int pageCount,
     bool ready,
+    @JsonKey(name: 'source_type') String sourceType,
+    bool generated,
   });
 }
 
@@ -186,6 +210,8 @@ class __$$SalesMaterialImplCopyWithImpl<$Res>
     Object? isDefault = null,
     Object? pageCount = null,
     Object? ready = null,
+    Object? sourceType = null,
+    Object? generated = null,
   }) {
     return _then(
       _$SalesMaterialImpl(
@@ -225,6 +251,14 @@ class __$$SalesMaterialImplCopyWithImpl<$Res>
             ? _value.ready
             : ready // ignore: cast_nullable_to_non_nullable
                   as bool,
+        sourceType: null == sourceType
+            ? _value.sourceType
+            : sourceType // ignore: cast_nullable_to_non_nullable
+                  as String,
+        generated: null == generated
+            ? _value.generated
+            : generated // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -243,6 +277,8 @@ class _$SalesMaterialImpl extends _SalesMaterial {
     @JsonKey(name: 'is_default') this.isDefault = false,
     @JsonKey(name: 'page_count') this.pageCount = 0,
     this.ready = false,
+    @JsonKey(name: 'source_type') this.sourceType = 'Uploaded File',
+    this.generated = false,
   }) : super._();
 
   factory _$SalesMaterialImpl.fromJson(Map<String, dynamic> json) =>
@@ -280,9 +316,22 @@ class _$SalesMaterialImpl extends _SalesMaterial {
   @JsonKey()
   final bool ready;
 
+  /// `Uploaded File` (a PDF/image a manager uploaded) or `Generated Price
+  /// List` (a sheet the server renders from live prices per recipient).
+  @override
+  @JsonKey(name: 'source_type')
+  final String sourceType;
+
+  /// True for a generated price sheet: its prices are filled in at send time
+  /// for the customer it goes to, so the sheet offers a preview instead of a
+  /// file. Absent on an older server, hence the default.
+  @override
+  @JsonKey()
+  final bool generated;
+
   @override
   String toString() {
-    return 'SalesMaterial(name: $name, title: $title, titleAr: $titleAr, displayTitle: $displayTitle, materialType: $materialType, downloadUrl: $downloadUrl, isDefault: $isDefault, pageCount: $pageCount, ready: $ready)';
+    return 'SalesMaterial(name: $name, title: $title, titleAr: $titleAr, displayTitle: $displayTitle, materialType: $materialType, downloadUrl: $downloadUrl, isDefault: $isDefault, pageCount: $pageCount, ready: $ready, sourceType: $sourceType, generated: $generated)';
   }
 
   @override
@@ -303,7 +352,11 @@ class _$SalesMaterialImpl extends _SalesMaterial {
                 other.isDefault == isDefault) &&
             (identical(other.pageCount, pageCount) ||
                 other.pageCount == pageCount) &&
-            (identical(other.ready, ready) || other.ready == ready));
+            (identical(other.ready, ready) || other.ready == ready) &&
+            (identical(other.sourceType, sourceType) ||
+                other.sourceType == sourceType) &&
+            (identical(other.generated, generated) ||
+                other.generated == generated));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -319,6 +372,8 @@ class _$SalesMaterialImpl extends _SalesMaterial {
     isDefault,
     pageCount,
     ready,
+    sourceType,
+    generated,
   );
 
   /// Create a copy of SalesMaterial
@@ -346,6 +401,8 @@ abstract class _SalesMaterial extends SalesMaterial {
     @JsonKey(name: 'is_default') final bool isDefault,
     @JsonKey(name: 'page_count') final int pageCount,
     final bool ready,
+    @JsonKey(name: 'source_type') final String sourceType,
+    final bool generated,
   }) = _$SalesMaterialImpl;
   const _SalesMaterial._() : super._();
 
@@ -382,6 +439,18 @@ abstract class _SalesMaterial extends SalesMaterial {
   @override
   bool get ready;
 
+  /// `Uploaded File` (a PDF/image a manager uploaded) or `Generated Price
+  /// List` (a sheet the server renders from live prices per recipient).
+  @override
+  @JsonKey(name: 'source_type')
+  String get sourceType;
+
+  /// True for a generated price sheet: its prices are filled in at send time
+  /// for the customer it goes to, so the sheet offers a preview instead of a
+  /// file. Absent on an older server, hence the default.
+  @override
+  bool get generated;
+
   /// Create a copy of SalesMaterial
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -406,6 +475,11 @@ mixin _$MaterialLibrary {
   @JsonKey(name: 'name_fallback')
   String get nameFallback => throw _privateConstructorUsedError;
 
+  /// Whether this user may edit a generated price sheet's template (full
+  /// manager pricing access). The server enforces it again on save.
+  @JsonKey(name: 'can_edit_sheets')
+  bool get canEditSheets => throw _privateConstructorUsedError;
+
   /// Serializes this MaterialLibrary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -429,6 +503,7 @@ abstract class $MaterialLibraryCopyWith<$Res> {
     @JsonKey(name: 'name_placeholder') String namePlaceholder,
     @JsonKey(name: 'link_placeholder') String linkPlaceholder,
     @JsonKey(name: 'name_fallback') String nameFallback,
+    @JsonKey(name: 'can_edit_sheets') bool canEditSheets,
   });
 }
 
@@ -452,6 +527,7 @@ class _$MaterialLibraryCopyWithImpl<$Res, $Val extends MaterialLibrary>
     Object? namePlaceholder = null,
     Object? linkPlaceholder = null,
     Object? nameFallback = null,
+    Object? canEditSheets = null,
   }) {
     return _then(
       _value.copyWith(
@@ -475,6 +551,10 @@ class _$MaterialLibraryCopyWithImpl<$Res, $Val extends MaterialLibrary>
                 ? _value.nameFallback
                 : nameFallback // ignore: cast_nullable_to_non_nullable
                       as String,
+            canEditSheets: null == canEditSheets
+                ? _value.canEditSheets
+                : canEditSheets // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -496,6 +576,7 @@ abstract class _$$MaterialLibraryImplCopyWith<$Res>
     @JsonKey(name: 'name_placeholder') String namePlaceholder,
     @JsonKey(name: 'link_placeholder') String linkPlaceholder,
     @JsonKey(name: 'name_fallback') String nameFallback,
+    @JsonKey(name: 'can_edit_sheets') bool canEditSheets,
   });
 }
 
@@ -518,6 +599,7 @@ class __$$MaterialLibraryImplCopyWithImpl<$Res>
     Object? namePlaceholder = null,
     Object? linkPlaceholder = null,
     Object? nameFallback = null,
+    Object? canEditSheets = null,
   }) {
     return _then(
       _$MaterialLibraryImpl(
@@ -541,6 +623,10 @@ class __$$MaterialLibraryImplCopyWithImpl<$Res>
             ? _value.nameFallback
             : nameFallback // ignore: cast_nullable_to_non_nullable
                   as String,
+        canEditSheets: null == canEditSheets
+            ? _value.canEditSheets
+            : canEditSheets // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -555,6 +641,7 @@ class _$MaterialLibraryImpl extends _MaterialLibrary {
     @JsonKey(name: 'name_placeholder') this.namePlaceholder = '{name}',
     @JsonKey(name: 'link_placeholder') this.linkPlaceholder = '{link}',
     @JsonKey(name: 'name_fallback') this.nameFallback = '',
+    @JsonKey(name: 'can_edit_sheets') this.canEditSheets = false,
   }) : _materials = materials,
        super._();
 
@@ -583,9 +670,15 @@ class _$MaterialLibraryImpl extends _MaterialLibrary {
   @JsonKey(name: 'name_fallback')
   final String nameFallback;
 
+  /// Whether this user may edit a generated price sheet's template (full
+  /// manager pricing access). The server enforces it again on save.
+  @override
+  @JsonKey(name: 'can_edit_sheets')
+  final bool canEditSheets;
+
   @override
   String toString() {
-    return 'MaterialLibrary(materials: $materials, messageTemplate: $messageTemplate, namePlaceholder: $namePlaceholder, linkPlaceholder: $linkPlaceholder, nameFallback: $nameFallback)';
+    return 'MaterialLibrary(materials: $materials, messageTemplate: $messageTemplate, namePlaceholder: $namePlaceholder, linkPlaceholder: $linkPlaceholder, nameFallback: $nameFallback, canEditSheets: $canEditSheets)';
   }
 
   @override
@@ -604,7 +697,9 @@ class _$MaterialLibraryImpl extends _MaterialLibrary {
             (identical(other.linkPlaceholder, linkPlaceholder) ||
                 other.linkPlaceholder == linkPlaceholder) &&
             (identical(other.nameFallback, nameFallback) ||
-                other.nameFallback == nameFallback));
+                other.nameFallback == nameFallback) &&
+            (identical(other.canEditSheets, canEditSheets) ||
+                other.canEditSheets == canEditSheets));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -616,6 +711,7 @@ class _$MaterialLibraryImpl extends _MaterialLibrary {
     namePlaceholder,
     linkPlaceholder,
     nameFallback,
+    canEditSheets,
   );
 
   /// Create a copy of MaterialLibrary
@@ -642,6 +738,7 @@ abstract class _MaterialLibrary extends MaterialLibrary {
     @JsonKey(name: 'name_placeholder') final String namePlaceholder,
     @JsonKey(name: 'link_placeholder') final String linkPlaceholder,
     @JsonKey(name: 'name_fallback') final String nameFallback,
+    @JsonKey(name: 'can_edit_sheets') final bool canEditSheets,
   }) = _$MaterialLibraryImpl;
   const _MaterialLibrary._() : super._();
 
@@ -662,6 +759,12 @@ abstract class _MaterialLibrary extends MaterialLibrary {
   @override
   @JsonKey(name: 'name_fallback')
   String get nameFallback;
+
+  /// Whether this user may edit a generated price sheet's template (full
+  /// manager pricing access). The server enforces it again on save.
+  @override
+  @JsonKey(name: 'can_edit_sheets')
+  bool get canEditSheets;
 
   /// Create a copy of MaterialLibrary
   /// with the given fields replaced by the non-null parameter values.
