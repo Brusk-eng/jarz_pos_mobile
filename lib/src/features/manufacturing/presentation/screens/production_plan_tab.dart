@@ -14,6 +14,7 @@ import '../../data/models/basket_rollup.dart';
 import '../../data/models/batch_line.dart';
 import '../../data/models/daily_plan.dart';
 import '../../data/models/production_suggestion.dart';
+import '../../data/models/shortage_count_plan.dart';
 import '../../state/daily_plan_providers.dart';
 import '../../state/plan_board_providers.dart';
 import '../../state/production_basket_notifier.dart';
@@ -29,6 +30,8 @@ import '../widgets/mixer_run_summary.dart';
 import '../widgets/plan_jar_row.dart';
 import '../widgets/production_format.dart';
 import '../widgets/recipe_sheet_card.dart';
+import '../widgets/shortage_count_fix_dialog.dart';
+import '../widgets/shortage_fix_strings.dart';
 
 /// The day, in one list.
 ///
@@ -249,7 +252,14 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
                   )
                 else if (rollup != null) ...[
                   const SizedBox(height: 8),
-                  BasketPickList(rollup: rollup),
+                  BasketPickList(
+                    rollup: rollup,
+                    // Same tier that may back-date production: a count moves
+                    // stock value, so floor operators do not get the button.
+                    onAddMissingStock: rollup.hasShortages && policy.canBackDate
+                        ? _addMissingStock
+                        : null,
+                  ),
                 ],
                 // The method for every recipe jar typed below, as one sheet,
                 // whatever state the pick list above is in.
@@ -730,6 +740,92 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   ///
   /// The rule itself lives in `backDateRefusal` so the Today screen gates on
   /// exactly the same one.
+  /// "Insufficient inventory" answered in one tap: production is recorded
+  /// after the jars are already made, so the shortfall is a count that was
+  /// wrong. The server works out the items and counts for the basket at the
+  /// production moment, the user confirms them (and that it was a miscount,
+  /// not a missing base or purchase invoice), and a Stock Reconciliation adds
+  /// them a few minutes before production.
+  Future<void> _addMissingStock() async {
+    final t = ShortageFixStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final service = ref.read(manufacturingServiceProvider);
+    final overlay = ref.read(loadingOverlayProvider.notifier);
+    final basket = ref.read(productionBasketProvider);
+    final policy = ref.read(productionPolicyOrFallbackProvider);
+    final postingDate = basket.postingDate ?? policy.today();
+
+    final backDateError = _backDateRefusal(context, postingDate);
+    if (backDateError != null) {
+      messenger.showSnackBar(SnackBar(content: Text(backDateError)));
+      return;
+    }
+
+    final explicitTime = hasExplicitPostingTime(basket.postingDate);
+    final today = policy.today();
+    final isPastDay = DateTime(
+      postingDate.year,
+      postingDate.month,
+      postingDate.day,
+    ).isBefore(DateTime(today.year, today.month, today.day));
+    // Today with no chosen time: let the server use its own clock, so a
+    // tablet a few minutes fast can never post the count in the future.
+    final scheduledAt = (explicitTime || isPastDay)
+        ? startScheduledAt(postingDate, explicitTime: explicitTime)
+        : null;
+    final lines = basket.toApiLines();
+    if (lines.isEmpty) return;
+
+    ShortageCountPlan plan;
+    overlay.show();
+    try {
+      plan = await service.previewShortageCountFix(
+        lines,
+        scheduledAt: scheduledAt,
+      );
+    } catch (error) {
+      overlay.hide();
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(_lineError(context, error))),
+      );
+      return;
+    }
+    overlay.hide();
+    if (!mounted) return;
+    if (plan.items.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(t.nothing)));
+      ref.invalidate(basketRollupProvider);
+      return;
+    }
+
+    final confirmed = await confirmShortageCountFix(context, plan);
+    if (!confirmed || !mounted) return;
+
+    overlay.show();
+    try {
+      final done = await service.fixShortageByCount(
+        lines,
+        scheduledAt: scheduledAt,
+      );
+      overlay.hide();
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(t.done(done.stockReconciliations.join(', ')))),
+      );
+    } catch (error) {
+      overlay.hide();
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(_lineError(context, error))),
+      );
+    } finally {
+      // Re-read the pick list either way: after a success the shortage is
+      // gone and Start batches unblocks; after a failure it shows the truth.
+      if (mounted) ref.invalidate(basketRollupProvider);
+    }
+  }
+
   String? _backDateRefusal(BuildContext context, DateTime date) {
     return backDateRefusal(
       context.l10n,

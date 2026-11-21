@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../data/models/basket_rollup.dart';
 import 'production_format.dart';
+import 'shortage_fix_strings.dart';
 import 'stock_elsewhere_note.dart';
 
 /// The consolidated pick list, and the shortages only it can see.
@@ -19,9 +20,18 @@ import 'stock_elsewhere_note.dart';
 /// together (the pick list the store keeper fills) and each flavour on its own
 /// (what goes to one bench).
 class BasketPickList extends StatefulWidget {
-  const BasketPickList({super.key, required this.rollup});
+  const BasketPickList({
+    super.key,
+    required this.rollup,
+    this.onAddMissingStock,
+  });
 
   final BasketRollup rollup;
+
+  /// "The count was wrong": adds every shortfall as a stock count a few
+  /// minutes before production. Null hides the button (no shortage, or a user
+  /// who may not post one).
+  final VoidCallback? onAddMissingStock;
 
   @override
   State<BasketPickList> createState() => _BasketPickListState();
@@ -113,6 +123,16 @@ class _BasketPickListState extends State<BasketPickList> {
                   for (final component in short)
                     _PickListRow(component: component),
                 ],
+              ),
+            ),
+          if (rollup.hasShortages && widget.onAddMissingStock != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+              child: FilledButton.tonalIcon(
+                key: const ValueKey('add-missing-stock'),
+                onPressed: widget.onAddMissingStock,
+                icon: const Icon(Icons.playlist_add_check),
+                label: Text(ShortageFixStrings.of(context).button),
               ),
             ),
           if (_open) ...[

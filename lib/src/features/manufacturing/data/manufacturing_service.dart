@@ -15,6 +15,7 @@ import 'models/production_policy.dart';
 import 'models/production_suggestion.dart';
 import 'models/recipe_sheet.dart';
 import 'models/running_batch.dart';
+import 'models/shortage_count_plan.dart';
 import 'models/sop.dart';
 
 final manufacturingServiceProvider = Provider<ManufacturingService>((ref) {
@@ -30,8 +31,57 @@ class ManufacturingService {
   /// patch: `core/**` changes force a full APK.
   static const _getRecipeSheetEndpoint =
       '/api/method/jarz_pos.api.sop.get_recipe_sheet';
+
+  /// The "counted wrong" fix for a basket shortage. Kept here for the same
+  /// reason as the recipe sheet endpoint.
+  static const _previewShortageCountFixEndpoint =
+      '/api/method/jarz_pos.api.production.preview_shortage_count_fix';
+  static const _fixShortageByCountEndpoint =
+      '/api/method/jarz_pos.api.production.fix_shortage_by_count';
   final Dio _dio;
   ManufacturingService(this._dio);
+
+  /// What the shortage correction would post: items, counts, and the count
+  /// moment a few minutes before production. Posts nothing.
+  Future<ShortageCountPlan> previewShortageCountFix(
+    List<Map<String, dynamic>> lines, {
+    String? scheduledAt,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        _previewShortageCountFixEndpoint,
+        data: {
+          'lines': lines,
+          if (scheduledAt != null) 'scheduled_at': scheduledAt,
+        },
+      );
+      return ShortageCountPlan.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to check missing stock');
+    }
+  }
+
+  /// Posts the correction as a Stock Reconciliation. [lines] and
+  /// [scheduledAt] must be what the preview was asked about: the server
+  /// recomputes the counts from them rather than trusting the client.
+  Future<ShortageCountPlan> fixShortageByCount(
+    List<Map<String, dynamic>> lines, {
+    String? scheduledAt,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        _fixShortageByCountEndpoint,
+        data: {
+          'lines': lines,
+          if (scheduledAt != null) 'scheduled_at': scheduledAt,
+          'confirm_miscount': 1,
+        },
+      );
+      return ShortageCountPlan.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to add missing stock');
+    }
+  }
 
   Exception _friendlyError(Object error, {required String fallback}) {
     return mapFrappeError(error, fallback: fallback);
