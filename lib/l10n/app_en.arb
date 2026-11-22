@@ -11867,5 +11867,73 @@
   "metaAdsBlendedRoasShort": "Blended ROAS",
   "@metaAdsBlendedRoasShort": {"description": "Meta Ads report: short label of the per-row / filtered-scope blended ROAS (real retail sales shared out by Meta's purchase value, against spend)."},
   "metaAdsBlendedPerRowNote": "Per ad: real sales shared out by Meta''s purchase value (estimate).",
-  "@metaAdsBlendedPerRowNote": {"description": "Meta Ads report, blended ROAS: explains the per-row Blended ROAS figure."}
+  "@metaAdsBlendedPerRowNote": {"description": "Meta Ads report, blended ROAS: explains the per-row Blended ROAS figure."},
+  "shiftSheetTitle": "Shift sheet",
+  "shiftSheetReviewAction": "Review shift sheet",
+  "shiftSheetReviewHint": "Check the orders, jars and payouts before you count the drawer.",
+  "shiftSheetOpenedAt": "Opened {time}",
+  "@shiftSheetOpenedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetClosedAt": "Closed {time}",
+  "@shiftSheetClosedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetOrdersTitle": "Orders",
+  "shiftSheetNoOrders": "No orders in this shift yet.",
+  "shiftSheetJarsCount": "{count} jars",
+  "@shiftSheetJarsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftSheetPickup": "Pickup",
+  "shiftSheetDeliveryFee": "Delivery {amount}",
+  "@shiftSheetDeliveryFee": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetCourier": "Courier: {name}",
+  "@shiftSheetCourier": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetUnpaid": "Unpaid",
+  "shiftSheetJarsByFlavour": "Jars by flavour",
+  "shiftSheetFlavour": "Flavour",
+  "shiftSheetSmall": "Small",
+  "shiftSheetMedium": "Medium",
+  "shiftSheetLarge": "Large",
+  "shiftSheetNoJars": "No jars sold in this shift.",
+  "shiftSheetPayoutsTitle": "Payouts",
+  "shiftSheetNoPayouts": "No payouts in this shift.",
+  "shiftSheetPayoutAdvance": "Advance",
+  "shiftSheetPayoutExpense": "Expense",
+  "shiftSheetTotalsTitle": "Shift totals",
+  "shiftSheetTotalOrders": "Orders",
+  "shiftSheetTotalJars": "Jars",
+  "shiftSheetTotalSales": "Sales total",
+  "shiftSheetTotalDeliveryFees": "Delivery fees",
+  "shiftSheetTotalPayouts": "Payouts",
+  "shiftSheetOpeningCash": "Opening cash",
+  "shiftSheetExpectedClosing": "Expected closing",
+  "shiftSheetCountedClosing": "Counted closing",
+  "shiftSheetDifference": "Difference",
+  "shiftSheetLoadFailed": "Unable to load the shift sheet."
 }

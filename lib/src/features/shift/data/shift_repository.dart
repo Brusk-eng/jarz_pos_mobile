@@ -5,6 +5,7 @@ import '../../../core/network/dio_provider.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../models/shift_models.dart';
+import '../models/shift_sheet_models.dart';
 
 class ShiftRepository {
   ShiftRepository(this._dio);
@@ -130,6 +131,24 @@ class ShiftRepository {
       );
     } catch (e) {
       throw _mapApiException(e, fallback: 'Failed to load shift history');
+    }
+  }
+
+  /// The sales sheet for one shift. Staff get per-order rows with
+  /// `totals: null`; managers get the totals too.
+  Future<ShiftSheet> getShiftSheet(String openingEntry) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.getShiftSheet,
+        data: {'opening_entry': openingEntry},
+      );
+      final message = response.data is Map ? response.data['message'] : null;
+      if (message is Map) {
+        return ShiftSheet.fromJson(Map<String, dynamic>.from(message));
+      }
+      throw Exception('Unexpected shift sheet response');
+    } catch (e) {
+      throw _mapApiException(e, fallback: 'Failed to load shift sheet');
     }
   }
 

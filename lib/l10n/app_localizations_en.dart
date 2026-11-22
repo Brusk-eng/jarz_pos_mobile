@@ -21787,4 +21787,114 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get metaAdsBlendedPerRowNote =>
       'Per ad: real sales shared out by Meta\'s purchase value (estimate).';
+
+  @override
+  String get shiftSheetTitle => 'Shift sheet';
+
+  @override
+  String get shiftSheetReviewAction => 'Review shift sheet';
+
+  @override
+  String get shiftSheetReviewHint =>
+      'Check the orders, jars and payouts before you count the drawer.';
+
+  @override
+  String shiftSheetOpenedAt(String time) {
+    return 'Opened $time';
+  }
+
+  @override
+  String shiftSheetClosedAt(String time) {
+    return 'Closed $time';
+  }
+
+  @override
+  String get shiftSheetOrdersTitle => 'Orders';
+
+  @override
+  String get shiftSheetNoOrders => 'No orders in this shift yet.';
+
+  @override
+  String shiftSheetJarsCount(int count) {
+    return '$count jars';
+  }
+
+  @override
+  String get shiftSheetPickup => 'Pickup';
+
+  @override
+  String shiftSheetDeliveryFee(String amount) {
+    return 'Delivery $amount';
+  }
+
+  @override
+  String shiftSheetCourier(String name) {
+    return 'Courier: $name';
+  }
+
+  @override
+  String get shiftSheetUnpaid => 'Unpaid';
+
+  @override
+  String get shiftSheetJarsByFlavour => 'Jars by flavour';
+
+  @override
+  String get shiftSheetFlavour => 'Flavour';
+
+  @override
+  String get shiftSheetSmall => 'Small';
+
+  @override
+  String get shiftSheetMedium => 'Medium';
+
+  @override
+  String get shiftSheetLarge => 'Large';
+
+  @override
+  String get shiftSheetNoJars => 'No jars sold in this shift.';
+
+  @override
+  String get shiftSheetPayoutsTitle => 'Payouts';
+
+  @override
+  String get shiftSheetNoPayouts => 'No payouts in this shift.';
+
+  @override
+  String get shiftSheetPayoutAdvance => 'Advance';
+
+  @override
+  String get shiftSheetPayoutExpense => 'Expense';
+
+  @override
+  String get shiftSheetTotalsTitle => 'Shift totals';
+
+  @override
+  String get shiftSheetTotalOrders => 'Orders';
+
+  @override
+  String get shiftSheetTotalJars => 'Jars';
+
+  @override
+  String get shiftSheetTotalSales => 'Sales total';
+
+  @override
+  String get shiftSheetTotalDeliveryFees => 'Delivery fees';
+
+  @override
+  String get shiftSheetTotalPayouts => 'Payouts';
+
+  @override
+  String get shiftSheetOpeningCash => 'Opening cash';
+
+  @override
+  String get shiftSheetExpectedClosing => 'Expected closing';
+
+  @override
+  String get shiftSheetCountedClosing => 'Counted closing';
+
+  @override
+  String get shiftSheetDifference => 'Difference';
+
+  @override
+  String get shiftSheetLoadFailed => 'Unable to load the shift sheet.';
 }

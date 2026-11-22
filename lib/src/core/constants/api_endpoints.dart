@@ -141,6 +141,11 @@ abstract final class ApiEndpoints {
   static const forceCloseShift =
       '/api/method/jarz_pos.api.shift.force_close_shift';
 
+  /// Per-shift sales sheet (orders, jars by flavour, payouts). Totals are
+  /// filled for managers only.
+  static const getShiftSheet =
+      '/api/method/jarz_pos.api.shift.get_shift_sheet';
+
   /// Past shifts, newest first. Amounts come back only for managers.
   static const listShifts = '/api/method/jarz_pos.api.shift.list_shifts';
 

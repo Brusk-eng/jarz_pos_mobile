@@ -35937,6 +35937,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Per ad: real sales shared out by Meta\'\'s purchase value (estimate).'**
   String get metaAdsBlendedPerRowNote;
+
+  /// No description provided for @shiftSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift sheet'**
+  String get shiftSheetTitle;
+
+  /// No description provided for @shiftSheetReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review shift sheet'**
+  String get shiftSheetReviewAction;
+
+  /// No description provided for @shiftSheetReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the orders, jars and payouts before you count the drawer.'**
+  String get shiftSheetReviewHint;
+
+  /// No description provided for @shiftSheetOpenedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Opened {time}'**
+  String shiftSheetOpenedAt(String time);
+
+  /// No description provided for @shiftSheetClosedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed {time}'**
+  String shiftSheetClosedAt(String time);
+
+  /// No description provided for @shiftSheetOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get shiftSheetOrdersTitle;
+
+  /// No description provided for @shiftSheetNoOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders in this shift yet.'**
+  String get shiftSheetNoOrders;
+
+  /// No description provided for @shiftSheetJarsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} jars'**
+  String shiftSheetJarsCount(int count);
+
+  /// No description provided for @shiftSheetPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup'**
+  String get shiftSheetPickup;
+
+  /// No description provided for @shiftSheetDeliveryFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery {amount}'**
+  String shiftSheetDeliveryFee(String amount);
+
+  /// No description provided for @shiftSheetCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier: {name}'**
+  String shiftSheetCourier(String name);
+
+  /// No description provided for @shiftSheetUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get shiftSheetUnpaid;
+
+  /// No description provided for @shiftSheetJarsByFlavour.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars by flavour'**
+  String get shiftSheetJarsByFlavour;
+
+  /// No description provided for @shiftSheetFlavour.
+  ///
+  /// In en, this message translates to:
+  /// **'Flavour'**
+  String get shiftSheetFlavour;
+
+  /// No description provided for @shiftSheetSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get shiftSheetSmall;
+
+  /// No description provided for @shiftSheetMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get shiftSheetMedium;
+
+  /// No description provided for @shiftSheetLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get shiftSheetLarge;
+
+  /// No description provided for @shiftSheetNoJars.
+  ///
+  /// In en, this message translates to:
+  /// **'No jars sold in this shift.'**
+  String get shiftSheetNoJars;
+
+  /// No description provided for @shiftSheetPayoutsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payouts'**
+  String get shiftSheetPayoutsTitle;
+
+  /// No description provided for @shiftSheetNoPayouts.
+  ///
+  /// In en, this message translates to:
+  /// **'No payouts in this shift.'**
+  String get shiftSheetNoPayouts;
+
+  /// No description provided for @shiftSheetPayoutAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance'**
+  String get shiftSheetPayoutAdvance;
+
+  /// No description provided for @shiftSheetPayoutExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get shiftSheetPayoutExpense;
+
+  /// No description provided for @shiftSheetTotalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift totals'**
+  String get shiftSheetTotalsTitle;
+
+  /// No description provided for @shiftSheetTotalOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get shiftSheetTotalOrders;
+
+  /// No description provided for @shiftSheetTotalJars.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars'**
+  String get shiftSheetTotalJars;
+
+  /// No description provided for @shiftSheetTotalSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales total'**
+  String get shiftSheetTotalSales;
+
+  /// No description provided for @shiftSheetTotalDeliveryFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery fees'**
+  String get shiftSheetTotalDeliveryFees;
+
+  /// No description provided for @shiftSheetTotalPayouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Payouts'**
+  String get shiftSheetTotalPayouts;
+
+  /// No description provided for @shiftSheetOpeningCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening cash'**
+  String get shiftSheetOpeningCash;
+
+  /// No description provided for @shiftSheetExpectedClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected closing'**
+  String get shiftSheetExpectedClosing;
+
+  /// No description provided for @shiftSheetCountedClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted closing'**
+  String get shiftSheetCountedClosing;
+
+  /// No description provided for @shiftSheetDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get shiftSheetDifference;
+
+  /// No description provided for @shiftSheetLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the shift sheet.'**
+  String get shiftSheetLoadFailed;
 }
 
 class _AppLocalizationsDelegate

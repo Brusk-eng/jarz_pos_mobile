@@ -11,6 +11,7 @@ import '../../auth/state/login_notifier.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../models/shift_models.dart';
 import '../state/shift_notifier.dart';
+import 'shift_sheet_screen.dart';
 import 'widgets/shift_history.dart';
 
 String _normalizeShiftError(String error) {
@@ -251,6 +252,18 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             child: ListView(
               padding: const EdgeInsets.only(bottom: 12),
               children: [
+                // The paper sales sheet, on screen. Rows only for staff: the
+                // server sends no totals, so the blind count below stays blind.
+                Card(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  child: ListTile(
+                    leading: const Icon(Icons.receipt_long),
+                    title: Text(l10n.shiftSheetReviewAction),
+                    subtitle: Text(l10n.shiftSheetReviewHint),
+                    onTap: () =>
+                        ShiftSheetScreen.open(context, summary.openingEntry),
+                  ),
+                ),
                 if (hasCourierCloseBlock) ...[
                   if (canAcknowledge)
                     _buildCourierCarryCard(context, courierCloseBlock!, summary)

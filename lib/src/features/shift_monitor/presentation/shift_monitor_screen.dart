@@ -8,6 +8,7 @@ import '../../../core/network/user_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
+import '../../shift/presentation/shift_sheet_screen.dart';
 import '../../shift/presentation/widgets/shift_history.dart';
 import '../models/shift_monitor_models.dart';
 import 'force_close_shift_dialog.dart';
@@ -753,33 +754,49 @@ class _ShiftDetailsCard extends ConsumerWidget {
               ),
             ],
           ),
-          // An open shift blocks every other user from starting one on this
-          // branch, so a manager needs a way to close it without going to Desk.
-          if (shift.isOpen && shift.openingEntry.isNotEmpty) ...[
+          if (shift.openingEntry.isNotEmpty) ...[
             const SizedBox(height: 12),
             Align(
               alignment: AlignmentDirectional.centerEnd,
-              child: OutlinedButton.icon(
-                // Icons.logout is already in the bundle. A glyph that appears
-                // nowhere else changes the tree-shaken MaterialIcons font,
-                // which makes the production Shorebird patch throw
-                // UnpatchableChangeException and forces a full APK rollout —
-                // so new icons are avoided unless a build is happening anyway.
-                icon: const Icon(Icons.logout, size: 18),
-                label: Text(l10n.shiftMonitorForceCloseAction),
-                onPressed: () async {
-                  final closed = await ForceCloseShiftDialog.show(
-                    context,
-                    shift.openingEntry,
-                  );
-                  if (closed == true && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.shiftMonitorForceCloseSuccess),
-                      ),
-                    );
-                  }
-                },
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
+                children: [
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.receipt_long, size: 18),
+                    label: Text(l10n.shiftSheetTitle),
+                    onPressed: () =>
+                        ShiftSheetScreen.open(context, shift.openingEntry),
+                  ),
+                  // An open shift blocks every other user from starting one on
+                  // this branch, so a manager needs a way to close it without
+                  // going to Desk.
+                  if (shift.isOpen)
+                    OutlinedButton.icon(
+                      // Icons.logout is already in the bundle. A glyph that
+                      // appears nowhere else changes the tree-shaken
+                      // MaterialIcons font, which makes the production
+                      // Shorebird patch throw UnpatchableChangeException and
+                      // forces a full APK rollout, so new icons are avoided
+                      // unless a build is happening anyway.
+                      icon: const Icon(Icons.logout, size: 18),
+                      label: Text(l10n.shiftMonitorForceCloseAction),
+                      onPressed: () async {
+                        final closed = await ForceCloseShiftDialog.show(
+                          context,
+                          shift.openingEntry,
+                        );
+                        if (closed == true && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.shiftMonitorForceCloseSuccess),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                ],
               ),
             ),
           ],

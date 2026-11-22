@@ -21769,4 +21769,114 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get metaAdsBlendedPerRowNote =>
       'لكل إعلان: المبيعات الحقيقية متوزعة حسب مشتريات ميتا (تقدير).';
+
+  @override
+  String get shiftSheetTitle => 'ورقة الوردية';
+
+  @override
+  String get shiftSheetReviewAction => 'مراجعة ورقة الوردية';
+
+  @override
+  String get shiftSheetReviewHint =>
+      'راجع الطلبات والبرطمانات والمصروفات قبل ما تعد الدرج.';
+
+  @override
+  String shiftSheetOpenedAt(String time) {
+    return 'اتفتحت $time';
+  }
+
+  @override
+  String shiftSheetClosedAt(String time) {
+    return 'اتقفلت $time';
+  }
+
+  @override
+  String get shiftSheetOrdersTitle => 'الطلبات';
+
+  @override
+  String get shiftSheetNoOrders => 'مفيش طلبات في الوردية دي لسه.';
+
+  @override
+  String shiftSheetJarsCount(int count) {
+    return '$count برطمان';
+  }
+
+  @override
+  String get shiftSheetPickup => 'استلام';
+
+  @override
+  String shiftSheetDeliveryFee(String amount) {
+    return 'التوصيل $amount';
+  }
+
+  @override
+  String shiftSheetCourier(String name) {
+    return 'الساعي: $name';
+  }
+
+  @override
+  String get shiftSheetUnpaid => 'غير مدفوع';
+
+  @override
+  String get shiftSheetJarsByFlavour => 'البرطمانات حسب الطعم';
+
+  @override
+  String get shiftSheetFlavour => 'الطعم';
+
+  @override
+  String get shiftSheetSmall => 'صغير';
+
+  @override
+  String get shiftSheetMedium => 'وسط';
+
+  @override
+  String get shiftSheetLarge => 'كبير';
+
+  @override
+  String get shiftSheetNoJars => 'مفيش برطمانات اتباعت في الوردية دي.';
+
+  @override
+  String get shiftSheetPayoutsTitle => 'المصروفات والسلف';
+
+  @override
+  String get shiftSheetNoPayouts => 'مفيش مصروفات في الوردية دي.';
+
+  @override
+  String get shiftSheetPayoutAdvance => 'سلفة';
+
+  @override
+  String get shiftSheetPayoutExpense => 'مصروف';
+
+  @override
+  String get shiftSheetTotalsTitle => 'إجماليات الوردية';
+
+  @override
+  String get shiftSheetTotalOrders => 'الطلبات';
+
+  @override
+  String get shiftSheetTotalJars => 'البرطمانات';
+
+  @override
+  String get shiftSheetTotalSales => 'إجمالي المبيعات';
+
+  @override
+  String get shiftSheetTotalDeliveryFees => 'رسوم التوصيل';
+
+  @override
+  String get shiftSheetTotalPayouts => 'المصروفات';
+
+  @override
+  String get shiftSheetOpeningCash => 'نقدية البداية';
+
+  @override
+  String get shiftSheetExpectedClosing => 'الإقفال المتوقع';
+
+  @override
+  String get shiftSheetCountedClosing => 'الإقفال المعدود';
+
+  @override
+  String get shiftSheetDifference => 'الفرق';
+
+  @override
+  String get shiftSheetLoadFailed => 'مش قادرين نحمّل ورقة الوردية.';
 }
