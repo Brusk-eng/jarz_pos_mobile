@@ -17,8 +17,10 @@ import '../../../../core/repositories/customer_address_repository.dart';
 import '../../../credit/data/models/credit_models.dart';
 import '../../../credit/state/credit_providers.dart';
 import '../../../geo/presentation/widgets/location_link_field.dart';
+import '../../data/models/customer_duplicate_models.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
+import 'duplicate_customer_dialog.dart';
 import '../../../../core/utils/territory_label.dart';
 // providers file not present; we use repository providers directly
 
@@ -888,12 +890,14 @@ class _QuickAddCustomerWidgetState
                                 enabled: !_isLoading,
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return context.l10n.customerNameRequired;
-                              }
-                              return null;
-                            },
+                            // Rejects "...", "-", "123": a name nobody can
+                            // search for again is how duplicates get made.
+                            validator: (value) => validateCustomerNameField(
+                              context,
+                              value,
+                              requiredMessage:
+                                  context.l10n.customerNameRequired,
+                            ),
                           );
                           final mobileField = TextFormField(
                             controller: _mobileController,
@@ -1220,6 +1224,53 @@ class _QuickAddCustomerWidgetState
           }
         }
         addressValue = partnerLabel;
+      }
+
+      // Pre-create duplicate warning. Fails open: an old backend, an error or
+      // no network yields "no matches" and the create goes ahead.
+      final secondary = _secondaryMobileController.text.trim();
+      CustomerDuplicateCheck check;
+      try {
+        check = await ref
+            .read(posRepositoryProvider)
+            .checkCustomerDuplicates(
+              customerName: _nameController.text.trim(),
+              mobileNumber: _mobileController.text.trim(),
+              secondaryMobile: secondary.isNotEmpty ? secondary : null,
+              address: addressValue,
+            );
+      } catch (_) {
+        check = CustomerDuplicateCheck.none;
+      }
+      if (!mounted) return;
+      if (check.nameInvalid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(customerNameNoLetterMessage(context)),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+        return;
+      }
+      if (check.hasMatches) {
+        final decision = await showDuplicateCustomerDialog(
+          context,
+          matches: check.matches,
+        );
+        if (!mounted) return;
+        switch (decision.action) {
+          case DuplicateCustomerAction.cancel:
+            return;
+          case DuplicateCustomerAction.useExisting:
+            // Same path as tapping a search result: the parent's callback
+            // closes this Quick Add dialog and runs the address selection.
+            widget.onCustomerCreated(
+              Map<String, dynamic>.from(decision.match!.raw),
+            );
+            return;
+          case DuplicateCustomerAction.createNew:
+            break;
+        }
       }
 
       final newCustomer = await ref

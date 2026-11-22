@@ -9,6 +9,7 @@ import '../../../../core/network/frappe_exc_type.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/utils/territory_label.dart';
 import '../../domain/models/delivery_slot.dart';
+import '../models/customer_duplicate_models.dart';
 import '../models/pos_models.dart';
 
 /// Set on an amendment cart line built from a draft whose server reply carried
@@ -1015,6 +1016,46 @@ class PosRepository {
       throw ApiException(message ?? 'Failed to create customer');
     } catch (e) {
       throw ApiException('Failed to create customer');
+    }
+  }
+
+  /// Asks the backend for existing customers that look like the one about to
+  /// be created (same phone, second phone, delivery address or name).
+  ///
+  /// FAILS OPEN: an old backend without the endpoint (404), a server error, a
+  /// timeout or no network all return [CustomerDuplicateCheck.none], so this
+  /// warning can never stop a create.
+  Future<CustomerDuplicateCheck> checkCustomerDuplicates({
+    required String customerName,
+    required String mobileNumber,
+    String? secondaryMobile,
+    String? address,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.checkCustomerDuplicates,
+        data: FormData.fromMap({
+          'customer_name': customerName,
+          'mobile_no': mobileNumber,
+          if (secondaryMobile != null && secondaryMobile.isNotEmpty)
+            'secondary_mobile': secondaryMobile,
+          if (address != null && address.isNotEmpty) 'address': address,
+        }),
+        // A slow check must not hold the create hostage.
+        options: Options(
+          sendTimeout: const Duration(seconds: 8),
+          receiveTimeout: const Duration(seconds: 8),
+        ),
+      );
+      if (response.statusCode == 200 && response.data is Map) {
+        return CustomerDuplicateCheck.fromJson(
+          (response.data as Map)['message'],
+        );
+      }
+      return CustomerDuplicateCheck.none;
+    } catch (e) {
+      debugPrint('checkCustomerDuplicates failed open: $e');
+      return CustomerDuplicateCheck.none;
     }
   }
 

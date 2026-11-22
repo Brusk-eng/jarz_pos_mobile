@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/utils/territory_label.dart';
+import '../../../pos/data/models/customer_duplicate_models.dart';
 import '../../../pos/data/repositories/pos_repository.dart';
+import '../../../pos/presentation/widgets/duplicate_customer_dialog.dart';
 import '../../data/chat_repository.dart';
 import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
@@ -158,6 +160,48 @@ class _ChatNewCustomerScreenState extends ConsumerState<ChatNewCustomerScreen> {
     });
     final failed = context.l10n.customerCreateFailed;
     try {
+      // Pre-create duplicate warning, shared with the POS Quick Add. Fails
+      // open: an old backend, an error or no network means "no matches".
+      CustomerDuplicateCheck check;
+      try {
+        check = await ref
+            .read(posRepositoryProvider)
+            .checkCustomerDuplicates(
+              customerName: _name.text.trim(),
+              mobileNumber: _mobile.text.trim(),
+              address: _address.text.trim(),
+            );
+      } catch (_) {
+        check = CustomerDuplicateCheck.none;
+      }
+      if (!mounted) return;
+      if (check.nameInvalid) {
+        setState(() => _busy = false);
+        _snack(customerNameNoLetterMessage(context));
+        return;
+      }
+      if (check.hasMatches) {
+        final decision = await showDuplicateCustomerDialog(
+          context,
+          matches: check.matches,
+        );
+        if (!mounted) return;
+        switch (decision.action) {
+          case DuplicateCustomerAction.cancel:
+            setState(() => _busy = false);
+            return;
+          case DuplicateCustomerAction.useExisting:
+            // Same result as "Link customer" picking a search hit.
+            Navigator.of(context).pop(
+              ChatLinkChoice.picked(
+                ChatCustomerOption.fromJson(decision.match!.raw),
+              ),
+            );
+            return;
+          case DuplicateCustomerAction.createNew:
+            break;
+        }
+      }
       final pin = ChatNewCustomerPrefill(location: _location);
       final result = await ref
           .read(chatThreadProvider(widget.conversation).notifier)
@@ -254,9 +298,12 @@ class _ChatNewCustomerScreenState extends ConsumerState<ChatNewCustomerScreen> {
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.person),
                   ),
-                  validator: (value) => (value ?? '').trim().isEmpty
-                      ? l10n.customerNameRequired
-                      : null,
+                  // Rejects "...", "-", "123" like the POS Quick Add.
+                  validator: (value) => validateCustomerNameField(
+                    context,
+                    value,
+                    requiredMessage: l10n.customerNameRequired,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(

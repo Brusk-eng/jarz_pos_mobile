@@ -42,6 +42,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.customer.search_customers';
   static const createCustomer =
       '/api/method/jarz_pos.api.customer.create_customer';
+  static const checkCustomerDuplicates =
+      '/api/method/jarz_pos.api.customer.check_customer_duplicates';
   static const updateDefaultAddress =
       '/api/method/jarz_pos.api.customer.update_default_address';
   static const getCustomerShippingAddresses =
