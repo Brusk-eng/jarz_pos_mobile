@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../replenishment/presentation/widgets/done_cartons_section.dart';
 import '../../data/stock_handover_models.dart';
 
 /// Cartons the receiver has ticked off, per handover name. Session-only: a
@@ -91,12 +92,15 @@ class HandoverCartonPlanCard extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 4),
+        // Still to receive, in order; ticked cartons leave this list.
         for (final carton in plan.cartons)
-          _ReceivedCartonRow(
-            carton: carton,
-            received: ticked.contains(carton.number),
-            onToggle: () => toggle(carton.number),
-          ),
+          if (!ticked.contains(carton.number))
+            _ReceivedCartonRow(
+              key: ValueKey(carton.number),
+              carton: carton,
+              received: false,
+              onToggle: () => toggle(carton.number),
+            ),
         if (plan.unpacked.isNotEmpty)
           Card(
             margin: const EdgeInsets.symmetric(vertical: 4),
@@ -116,6 +120,18 @@ class HandoverCartonPlanCard extends ConsumerWidget {
               ),
             ),
           ),
+        DoneCartonsSection(
+          children: [
+            for (final carton in plan.cartons)
+              if (ticked.contains(carton.number))
+                _ReceivedCartonRow(
+                  key: ValueKey(carton.number),
+                  carton: carton,
+                  received: true,
+                  onToggle: () => toggle(carton.number),
+                ),
+          ],
+        ),
       ],
     );
   }
@@ -123,6 +139,7 @@ class HandoverCartonPlanCard extends ConsumerWidget {
 
 class _ReceivedCartonRow extends StatelessWidget {
   const _ReceivedCartonRow({
+    super.key,
     required this.carton,
     required this.received,
     required this.onToggle,

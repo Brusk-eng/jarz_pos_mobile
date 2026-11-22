@@ -117,10 +117,19 @@ void main() {
     await tester.tap(find.text('Carton 2 · B2B · 6 jars'));
     await tester.pumpAndSettle();
     expect(find.text('2 of 3 cartons received'), findsOneWidget);
+    // Received cartons leave the list into a closed "Done (2)" section.
+    expect(find.text('Carton 1 · Large · 20 jars'), findsNothing);
+    expect(find.text('Done (2)'), findsOneWidget);
+    expect(find.byType(Checkbox), findsOneWidget);
 
-    await tester.tap(find.byType(Checkbox).at(2));
+    await tester.tap(find.byType(Checkbox).first);
     await tester.pumpAndSettle();
     expect(find.text('All cartons received'), findsOneWidget);
+    expect(find.text('Done (3)'), findsOneWidget);
+
+    await tester.tap(find.text('Done (3)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Carton 1 · Large · 20 jars'), findsOneWidget);
 
     await tester.tap(find.text('Clear ticks'));
     await tester.pumpAndSettle();

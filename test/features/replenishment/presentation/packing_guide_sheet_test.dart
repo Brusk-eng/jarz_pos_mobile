@@ -59,14 +59,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('1 of 2 cartons packed'), findsOneWidget);
     expect(find.text('Clear ticks'), findsOneWidget);
+    // The packed carton leaves the list into a closed "Done (1)" section.
+    expect(find.textContaining('Carton 1'), findsNothing);
+    expect(find.byType(Checkbox), findsOneWidget);
+    expect(find.text('Done (1)'), findsOneWidget);
+
+    // Opening Done shows it again; tapping it there unticks it back.
+    await tester.tap(find.text('Done (1)'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Carton 1'), findsOneWidget);
+    await tester.tap(find.textContaining('Carton 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('0 of 2 cartons packed'), findsOneWidget);
+    expect(find.textContaining('Done ('), findsNothing);
+    expect(find.byType(Checkbox), findsNWidgets(2));
 
     // Tapping the carton body ticks it too.
+    await tester.tap(find.byType(Checkbox).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.textContaining('Carton 2'));
     await tester.pumpAndSettle();
     expect(find.text('All cartons packed'), findsOneWidget);
+    expect(find.text('Done (2)'), findsOneWidget);
+    expect(find.byType(Checkbox), findsNothing);
 
     await tester.tap(find.text('Clear ticks'));
     await tester.pumpAndSettle();
     expect(find.text('0 of 2 cartons packed'), findsOneWidget);
+    expect(find.byType(Checkbox), findsNWidgets(2));
   });
 }

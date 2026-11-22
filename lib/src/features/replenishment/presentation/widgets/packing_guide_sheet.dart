@@ -8,6 +8,7 @@ import '../../data/models/branch_replenishment.dart';
 import '../../domain/carton_packing.dart';
 import '../../domain/replenishment_draft.dart';
 import '../../state/replenishment_providers.dart';
+import 'done_cartons_section.dart';
 
 /// "3 B2B cartons" / "1 large carton + 2 B2B cartons"; empty when nothing packs.
 String cartonCountText(AppLocalizations l10n, PackingResult result) {
@@ -191,12 +192,15 @@ class PackingGuideSheet extends ConsumerWidget {
                         : null,
                   ),
                   const SizedBox(height: 4),
+                  // Still to pack, in order; ticked cartons leave this list.
                   for (var i = 0; i < result.cartons.length; i++)
-                    _CartonCard(
-                      carton: result.cartons[i],
-                      packed: ticked.contains(keys[i]),
-                      onToggle: () => toggle(keys[i]),
-                    ),
+                    if (!ticked.contains(keys[i]))
+                      _CartonCard(
+                        key: ValueKey(keys[i]),
+                        carton: result.cartons[i],
+                        packed: false,
+                        onToggle: () => toggle(keys[i]),
+                      ),
                   if (result.unpacked.isNotEmpty)
                     Card(
                       color: theme.colorScheme.tertiaryContainer,
@@ -215,6 +219,18 @@ class PackingGuideSheet extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  DoneCartonsSection(
+                    children: [
+                      for (var i = 0; i < result.cartons.length; i++)
+                        if (ticked.contains(keys[i]))
+                          _CartonCard(
+                            key: ValueKey(keys[i]),
+                            carton: result.cartons[i],
+                            packed: true,
+                            onToggle: () => toggle(keys[i]),
+                          ),
+                    ],
+                  ),
                 ],
               ],
             ),
@@ -314,6 +330,7 @@ class _PackedProgress extends StatelessWidget {
 /// a packed carton dims so the eye goes to the next one still to fill.
 class _CartonCard extends StatelessWidget {
   const _CartonCard({
+    super.key,
     required this.carton,
     required this.packed,
     required this.onToggle,
