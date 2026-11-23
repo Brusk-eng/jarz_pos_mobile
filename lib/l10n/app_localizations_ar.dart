@@ -21879,4 +21879,88 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shiftSheetLoadFailed => 'مش قادرين نحمّل ورقة الوردية.';
+
+  @override
+  String get shiftSheetReasonNew => 'جديد';
+
+  @override
+  String get shiftSheetReasonOutForDelivery => 'خرج للتوصيل';
+
+  @override
+  String get shiftSheetReasonSettled => 'تم التسوية';
+
+  @override
+  String get shiftSheetFilterAll => 'الكل';
+
+  @override
+  String get shiftSheetReturnsTitle => 'المرتجعات والمبالغ المستردة';
+
+  @override
+  String get shiftSheetNoReturns => 'مفيش مرتجعات في الوردية دي.';
+
+  @override
+  String get shiftSheetReturnedAmount => 'قيمة المرتجع';
+
+  @override
+  String get shiftSheetRefundAmount => 'المبلغ المسترد';
+
+  @override
+  String get shiftSheetRefundKindCash => 'نقدية الفرع';
+
+  @override
+  String get shiftSheetRefundKindBank => 'البنك';
+
+  @override
+  String get shiftSheetRefundKindCredit => 'رصيد للعميل';
+
+  @override
+  String get shiftSheetTotalNewOrders => 'طلبات جديدة';
+
+  @override
+  String get shiftSheetTotalOutForDeliveryOrders => 'طلبات خرجت للتوصيل';
+
+  @override
+  String get shiftSheetTotalSettledOrders => 'طلبات تمت تسويتها';
+
+  @override
+  String get shiftSheetTotalSettledAmount => 'مبلغ التسوية';
+
+  @override
+  String get shiftSheetTotalReturns => 'المرتجعات';
+
+  @override
+  String get shiftSheetTotalReturnsAmount => 'قيمة المرتجعات';
+
+  @override
+  String get shiftSheetTotalCashRefunds => 'مبالغ مستردة نقدًا';
+
+  @override
+  String get shiftSheetTotalBankRefunds => 'مبالغ مستردة من البنك';
+
+  @override
+  String get shiftSheetSalesNote =>
+      'إجماليات المبيعات للطلبات اللي اتعملت في الوردية دي بس.';
+
+  @override
+  String get returnRefundFromBranchCash => 'من نقدية الفرع';
+
+  @override
+  String shiftSheetOutForDeliveryAt(String time) {
+    return 'خرج للتوصيل $time';
+  }
+
+  @override
+  String shiftSheetSettledAt(String time) {
+    return 'اتسوّى $time';
+  }
+
+  @override
+  String shiftSheetSettledAmountLabel(String amount) {
+    return 'المسوّى: $amount';
+  }
+
+  @override
+  String returnRefundFromAccount(String account) {
+    return 'من $account';
+  }
 }

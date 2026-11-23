@@ -36135,6 +36135,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load the shift sheet.'**
   String get shiftSheetLoadFailed;
+
+  /// No description provided for @shiftSheetReasonNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get shiftSheetReasonNew;
+
+  /// No description provided for @shiftSheetReasonOutForDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery'**
+  String get shiftSheetReasonOutForDelivery;
+
+  /// No description provided for @shiftSheetReasonSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get shiftSheetReasonSettled;
+
+  /// No description provided for @shiftSheetFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get shiftSheetFilterAll;
+
+  /// No description provided for @shiftSheetReturnsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns & refunds'**
+  String get shiftSheetReturnsTitle;
+
+  /// No description provided for @shiftSheetNoReturns.
+  ///
+  /// In en, this message translates to:
+  /// **'No returns in this shift.'**
+  String get shiftSheetNoReturns;
+
+  /// No description provided for @shiftSheetReturnedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get shiftSheetReturnedAmount;
+
+  /// No description provided for @shiftSheetRefundAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get shiftSheetRefundAmount;
+
+  /// No description provided for @shiftSheetRefundKindCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch cash'**
+  String get shiftSheetRefundKindCash;
+
+  /// No description provided for @shiftSheetRefundKindBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get shiftSheetRefundKindBank;
+
+  /// No description provided for @shiftSheetRefundKindCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer credit'**
+  String get shiftSheetRefundKindCredit;
+
+  /// No description provided for @shiftSheetTotalNewOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'New orders'**
+  String get shiftSheetTotalNewOrders;
+
+  /// No description provided for @shiftSheetTotalOutForDeliveryOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery orders'**
+  String get shiftSheetTotalOutForDeliveryOrders;
+
+  /// No description provided for @shiftSheetTotalSettledOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled orders'**
+  String get shiftSheetTotalSettledOrders;
+
+  /// No description provided for @shiftSheetTotalSettledAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled amount'**
+  String get shiftSheetTotalSettledAmount;
+
+  /// No description provided for @shiftSheetTotalReturns.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns'**
+  String get shiftSheetTotalReturns;
+
+  /// No description provided for @shiftSheetTotalReturnsAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns amount'**
+  String get shiftSheetTotalReturnsAmount;
+
+  /// No description provided for @shiftSheetTotalCashRefunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash refunds'**
+  String get shiftSheetTotalCashRefunds;
+
+  /// No description provided for @shiftSheetTotalBankRefunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank refunds'**
+  String get shiftSheetTotalBankRefunds;
+
+  /// No description provided for @shiftSheetSalesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales totals cover orders created in this shift only.'**
+  String get shiftSheetSalesNote;
+
+  /// No description provided for @returnRefundFromBranchCash.
+  ///
+  /// In en, this message translates to:
+  /// **'From branch cash'**
+  String get returnRefundFromBranchCash;
+
+  /// No description provided for @shiftSheetOutForDeliveryAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery {time}'**
+  String shiftSheetOutForDeliveryAt(String time);
+
+  /// No description provided for @shiftSheetSettledAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled {time}'**
+  String shiftSheetSettledAt(String time);
+
+  /// No description provided for @shiftSheetSettledAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled: {amount}'**
+  String shiftSheetSettledAmountLabel(String amount);
+
+  /// No description provided for @returnRefundFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From {account}'**
+  String returnRefundFromAccount(String account);
 }
 
 class _AppLocalizationsDelegate

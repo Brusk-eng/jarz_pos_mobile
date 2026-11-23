@@ -105,7 +105,15 @@ class _SheetBody extends StatelessWidget {
           _TotalsCard(totals: totals),
           const SizedBox(height: 16),
         ],
-        _OrdersSection(orders: sheet.orders),
+        _OrdersSection(
+          orders: sheet.orders,
+          amountsHidden: sheet.amountsHidden,
+        ),
+        const SizedBox(height: 16),
+        _ReturnsSection(
+          returns: sheet.returns,
+          amountsHidden: sheet.amountsHidden,
+        ),
         const SizedBox(height: 16),
         _FlavourSection(rows: sheet.jarsByFlavour),
         const SizedBox(height: 16),
@@ -200,34 +208,175 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _OrdersSection extends StatelessWidget {
-  const _OrdersSection({required this.orders});
+enum _OrderFilter { all, created, outForDelivery, settled }
+
+class _OrdersSection extends StatefulWidget {
+  const _OrdersSection({required this.orders, required this.amountsHidden});
 
   final List<ShiftSheetOrder> orders;
+  final bool amountsHidden;
+
+  @override
+  State<_OrdersSection> createState() => _OrdersSectionState();
+}
+
+class _OrdersSectionState extends State<_OrdersSection> {
+  _OrderFilter _filter = _OrderFilter.all;
+
+  bool _matches(ShiftSheetOrder o) => switch (_filter) {
+    _OrderFilter.all => true,
+    _OrderFilter.created => o.isNew,
+    _OrderFilter.outForDelivery => o.isOutForDelivery,
+    _OrderFilter.settled => o.isSettled,
+  };
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final visible = widget.orders.where(_matches).toList();
+    final labels = <_OrderFilter, String>{
+      _OrderFilter.all: l10n.shiftSheetFilterAll,
+      _OrderFilter.created: l10n.shiftSheetReasonNew,
+      _OrderFilter.outForDelivery: l10n.shiftSheetReasonOutForDelivery,
+      _OrderFilter.settled: l10n.shiftSheetReasonSettled,
+    };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(l10n.shiftSheetOrdersTitle),
-        if (orders.isEmpty)
+        if (widget.orders.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final f in _OrderFilter.values)
+                  ChoiceChip(
+                    key: ValueKey('shiftSheetFilter_${f.name}'),
+                    label: Text(labels[f]!),
+                    selected: _filter == f,
+                    visualDensity: VisualDensity.compact,
+                    onSelected: (_) => setState(() => _filter = f),
+                  ),
+              ],
+            ),
+          ),
+        if (visible.isEmpty)
           Text(
             l10n.shiftSheetNoOrders,
             style: Theme.of(context).textTheme.bodyMedium,
           )
         else
-          for (final order in orders) _OrderRow(order: order),
+          for (final order in visible)
+            _OrderRow(order: order, amountsHidden: widget.amountsHidden),
+      ],
+    );
+  }
+}
+
+class _ReasonChip extends StatelessWidget {
+  const _ReasonChip({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Theme.of(context).textTheme.bodySmall;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: muted?.copyWith(color: color, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+class _ReturnsSection extends StatelessWidget {
+  const _ReturnsSection({required this.returns, required this.amountsHidden});
+
+  final List<ShiftSheetReturn> returns;
+  final bool amountsHidden;
+
+  String _kindLabel(BuildContext context, ShiftSheetReturn r) {
+    final l10n = context.l10n;
+    final base = switch (r.refundKind) {
+      'cash' => l10n.shiftSheetRefundKindCash,
+      'bank' => l10n.shiftSheetRefundKindBank,
+      _ => l10n.shiftSheetRefundKindCredit,
+    };
+    final account = r.refundAccount;
+    return r.refundKind == 'bank' && account != null && account.isNotEmpty
+        ? '$base · $account'
+        : base;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.bodySmall;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(l10n.shiftSheetReturnsTitle),
+        if (returns.isEmpty)
+          Text(l10n.shiftSheetNoReturns, style: theme.textTheme.bodyMedium)
+        else
+          for (final r in returns)
+            Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      r.at == null
+                          ? '#${r.orderNumber}'
+                          : '#${r.orderNumber} · ${formatDateTime(context, r.at!, pattern: 'h:mm a')}',
+                      style: theme.textTheme.titleSmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 2,
+                      children: [
+                        if (!amountsHidden)
+                          Text(
+                            '${l10n.shiftSheetReturnedAmount}: ${formatCurrency(context, r.amount)}',
+                            style: muted,
+                          ),
+                        if (!amountsHidden)
+                          Text(
+                            '${l10n.shiftSheetRefundAmount}: ${formatCurrency(context, r.refundAmount)}',
+                            style: muted,
+                          ),
+                        Text(_kindLabel(context, r), style: muted),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
       ],
     );
   }
 }
 
 class _OrderRow extends StatelessWidget {
-  const _OrderRow({required this.order});
+  const _OrderRow({required this.order, required this.amountsHidden});
 
   final ShiftSheetOrder order;
+  final bool amountsHidden;
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +385,35 @@ class _OrderRow extends StatelessWidget {
     final muted = theme.textTheme.bodySmall;
     final created = order.createdAt;
     final method = order.paymentMethod;
+
+    final ofd = order.outForDeliveryAt;
+    final settled = order.settledAt;
+    String hm(DateTime d) => formatDateTime(context, d, pattern: 'h:mm a');
+    final reasonChips = <Widget>[
+      if (order.isNew)
+        _ReasonChip(label: l10n.shiftSheetReasonNew, color: Colors.blue.shade700),
+      if (order.isOutForDelivery)
+        _ReasonChip(
+          label: l10n.shiftSheetReasonOutForDelivery,
+          color: Colors.orange.shade800,
+        ),
+      if (order.isSettled)
+        _ReasonChip(
+          label: l10n.shiftSheetReasonSettled,
+          color: Colors.green.shade700,
+        ),
+      if (ofd != null)
+        Text(l10n.shiftSheetOutForDeliveryAt(hm(ofd)), style: muted),
+      if (settled != null)
+        Text(l10n.shiftSheetSettledAt(hm(settled)), style: muted),
+      if (order.settledAmount > 0 && !amountsHidden)
+        Text(
+          l10n.shiftSheetSettledAmountLabel(
+            formatCurrency(context, order.settledAmount),
+          ),
+          style: muted,
+        ),
+    ];
 
     final details = <Widget>[
       Text(l10n.shiftSheetJarsCount(order.jars), style: muted),
@@ -294,6 +472,13 @@ class _OrderRow extends StatelessWidget {
                   style: theme.textTheme.titleSmall,
                 ),
               ],
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 6,
+              runSpacing: 2,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: reasonChips,
             ),
             const SizedBox(height: 4),
             Wrap(spacing: 10, runSpacing: 2, children: details),
@@ -475,6 +660,13 @@ class _TotalsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _SectionTitle(l10n.shiftSheetTotalsTitle),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                l10n.shiftSheetSalesNote,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
             row(l10n.shiftSheetTotalOrders, '${totals.orders}'),
             row(l10n.shiftSheetTotalJars, '${totals.jars}'),
             row(
@@ -488,6 +680,30 @@ class _TotalsCard extends StatelessWidget {
             row(
               l10n.shiftSheetTotalPayouts,
               formatCurrency(context, totals.payouts),
+            ),
+            const Divider(height: 20),
+            row(l10n.shiftSheetTotalNewOrders, '${totals.newOrders}'),
+            row(
+              l10n.shiftSheetTotalOutForDeliveryOrders,
+              '${totals.outForDeliveryOrders}',
+            ),
+            row(l10n.shiftSheetTotalSettledOrders, '${totals.settledOrders}'),
+            row(
+              l10n.shiftSheetTotalSettledAmount,
+              formatCurrency(context, totals.settledAmount),
+            ),
+            row(l10n.shiftSheetTotalReturns, '${totals.returns}'),
+            row(
+              l10n.shiftSheetTotalReturnsAmount,
+              formatCurrency(context, totals.returnsAmount),
+            ),
+            row(
+              l10n.shiftSheetTotalCashRefunds,
+              formatCurrency(context, totals.cashRefunds),
+            ),
+            row(
+              l10n.shiftSheetTotalBankRefunds,
+              formatCurrency(context, totals.bankRefunds),
             ),
             const Divider(height: 20),
             row(

@@ -133,6 +133,18 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
 
   bool get _canRefundNow => _toggles['can_refund_now'] == true;
 
+  /// Where a "refund now" will be paid from. Null when the server (older
+  /// build) did not send the fields, so nothing new is shown.
+  String? _refundSourceLabel() {
+    final l10n = context.l10n;
+    final p = widget.preview;
+    if (p['refund_from_branch_cash'] == true) {
+      return l10n.returnRefundFromBranchCash;
+    }
+    final account = p['refund_account']?.toString().trim() ?? '';
+    return account.isEmpty ? null : l10n.returnRefundFromAccount(account);
+  }
+
   bool get _canChooseCourierFee => _toggles['can_choose_courier_fee'] == true;
 
   void _setQty(String siDetail, double max, double value) {
@@ -247,7 +259,9 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
                         enabled: _canRefundNow,
                         title: Text(l10n.returnOrderRefundNow),
                         subtitle: _canRefundNow
-                            ? null
+                            ? (_refundSourceLabel() == null
+                                ? null
+                                : Text(_refundSourceLabel()!))
                             : Text(
                                 _toggles['refund_blocked_reason']?.toString() ??
                                     l10n.returnOrderRefundUnavailable,

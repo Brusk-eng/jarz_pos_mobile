@@ -7706,5 +7706,58 @@
   "shiftSheetExpectedClosing": "الإقفال المتوقع",
   "shiftSheetCountedClosing": "الإقفال المعدود",
   "shiftSheetDifference": "الفرق",
-  "shiftSheetLoadFailed": "مش قادرين نحمّل ورقة الوردية."
+  "shiftSheetLoadFailed": "مش قادرين نحمّل ورقة الوردية.",
+  "shiftSheetReasonNew": "جديد",
+  "shiftSheetReasonOutForDelivery": "خرج للتوصيل",
+  "shiftSheetReasonSettled": "تم التسوية",
+  "shiftSheetFilterAll": "الكل",
+  "shiftSheetReturnsTitle": "المرتجعات والمبالغ المستردة",
+  "shiftSheetNoReturns": "مفيش مرتجعات في الوردية دي.",
+  "shiftSheetReturnedAmount": "قيمة المرتجع",
+  "shiftSheetRefundAmount": "المبلغ المسترد",
+  "shiftSheetRefundKindCash": "نقدية الفرع",
+  "shiftSheetRefundKindBank": "البنك",
+  "shiftSheetRefundKindCredit": "رصيد للعميل",
+  "shiftSheetTotalNewOrders": "طلبات جديدة",
+  "shiftSheetTotalOutForDeliveryOrders": "طلبات خرجت للتوصيل",
+  "shiftSheetTotalSettledOrders": "طلبات تمت تسويتها",
+  "shiftSheetTotalSettledAmount": "مبلغ التسوية",
+  "shiftSheetTotalReturns": "المرتجعات",
+  "shiftSheetTotalReturnsAmount": "قيمة المرتجعات",
+  "shiftSheetTotalCashRefunds": "مبالغ مستردة نقدًا",
+  "shiftSheetTotalBankRefunds": "مبالغ مستردة من البنك",
+  "shiftSheetSalesNote": "إجماليات المبيعات للطلبات اللي اتعملت في الوردية دي بس.",
+  "returnRefundFromBranchCash": "من نقدية الفرع",
+  "shiftSheetOutForDeliveryAt": "خرج للتوصيل {time}",
+  "@shiftSheetOutForDeliveryAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetSettledAt": "اتسوّى {time}",
+  "@shiftSheetSettledAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetSettledAmountLabel": "المسوّى: {amount}",
+  "@shiftSheetSettledAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "returnRefundFromAccount": "من {account}",
+  "@returnRefundFromAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  }
 }

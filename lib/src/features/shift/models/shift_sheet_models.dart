@@ -39,6 +39,12 @@ List<Map<String, dynamic>> _rows(dynamic v) {
       .toList(growable: false);
 }
 
+List<String> _reasons(dynamic v) {
+  if (v is! List) return const ['created'];
+  final out = v.map(_str).whereType<String>().toList(growable: false);
+  return out.isEmpty ? const ['created'] : out;
+}
+
 DateTime? _date(dynamic v) {
   final s = _str(v);
   if (s == null) return null;
@@ -60,6 +66,10 @@ class ShiftSheetOrder {
     this.paymentMethod,
     this.state,
     this.channel,
+    this.reasons = const ['created'],
+    this.outForDeliveryAt,
+    this.settledAt,
+    this.settledAmount = 0,
   });
 
   factory ShiftSheetOrder.fromJson(Map<String, dynamic> json) {
@@ -78,6 +88,10 @@ class ShiftSheetOrder {
       paymentMethod: _str(json['payment_method']),
       state: _str(json['state']),
       channel: _str(json['channel']),
+      reasons: _reasons(json['reasons']),
+      outForDeliveryAt: _date(json['out_for_delivery_at']),
+      settledAt: _date(json['settled_at']),
+      settledAmount: _num(json['settled_amount']),
     );
   }
 
@@ -94,6 +108,18 @@ class ShiftSheetOrder {
   final String? paymentMethod;
   final String? state;
   final String? channel;
+
+  /// Why the order is on this sheet: subset of `created`,
+  /// `out_for_delivery`, `settled`. Old servers omit it, so it defaults to
+  /// `created`.
+  final List<String> reasons;
+  final DateTime? outForDeliveryAt;
+  final DateTime? settledAt;
+  final double settledAmount;
+
+  bool get isNew => reasons.contains('created');
+  bool get isOutForDelivery => reasons.contains('out_for_delivery');
+  bool get isSettled => reasons.contains('settled');
 
   bool get isUnpaid => outstandingAmount > 0;
 }
@@ -151,6 +177,45 @@ class ShiftSheetPayout {
   final DateTime? at;
 }
 
+/// A return (credit note) booked in the shift, with where the refund came from.
+class ShiftSheetReturn {
+  const ShiftSheetReturn({
+    required this.creditNote,
+    required this.order,
+    required this.orderNumber,
+    this.amount = 0,
+    this.refundAmount = 0,
+    this.refundAccount,
+    this.refundKind = 'credit',
+    this.at,
+  });
+
+  factory ShiftSheetReturn.fromJson(Map<String, dynamic> json) {
+    final order = _str(json['order']) ?? '';
+    return ShiftSheetReturn(
+      creditNote: _str(json['credit_note']) ?? '',
+      order: order,
+      orderNumber: _str(json['order_number']) ?? order,
+      amount: _num(json['amount']),
+      refundAmount: _num(json['refund_amount']),
+      refundAccount: _str(json['refund_account']),
+      refundKind: _str(json['refund_kind']) ?? 'credit',
+      at: _date(json['at']),
+    );
+  }
+
+  final String creditNote;
+  final String order;
+  final String orderNumber;
+  final double amount;
+  final double refundAmount;
+  final String? refundAccount;
+
+  /// `cash`, `bank` or `credit`.
+  final String refundKind;
+  final DateTime? at;
+}
+
 class ShiftSheetTotals {
   const ShiftSheetTotals({
     this.orders = 0,
@@ -162,6 +227,14 @@ class ShiftSheetTotals {
     this.expectedClosing,
     this.actualClosing,
     this.difference,
+    this.newOrders = 0,
+    this.outForDeliveryOrders = 0,
+    this.settledOrders = 0,
+    this.settledAmount = 0,
+    this.returns = 0,
+    this.returnsAmount = 0,
+    this.cashRefunds = 0,
+    this.bankRefunds = 0,
   });
 
   factory ShiftSheetTotals.fromJson(Map<String, dynamic> json) {
@@ -176,6 +249,14 @@ class ShiftSheetTotals {
       expectedClosing: opt(json['expected_closing']),
       actualClosing: opt(json['actual_closing']),
       difference: opt(json['difference']),
+      newOrders: _int(json['new_orders']),
+      outForDeliveryOrders: _int(json['out_for_delivery_orders']),
+      settledOrders: _int(json['settled_orders']),
+      settledAmount: _num(json['settled_amount']),
+      returns: _int(json['returns']),
+      returnsAmount: _num(json['returns_amount']),
+      cashRefunds: _num(json['cash_refunds']),
+      bankRefunds: _num(json['bank_refunds']),
     );
   }
 
@@ -188,6 +269,14 @@ class ShiftSheetTotals {
   final double? expectedClosing;
   final double? actualClosing;
   final double? difference;
+  final int newOrders;
+  final int outForDeliveryOrders;
+  final int settledOrders;
+  final double settledAmount;
+  final int returns;
+  final double returnsAmount;
+  final double cashRefunds;
+  final double bankRefunds;
 }
 
 class ShiftSheet {
@@ -206,6 +295,7 @@ class ShiftSheet {
     this.orders = const [],
     this.jarsByFlavour = const [],
     this.payouts = const [],
+    this.returns = const [],
     this.totals,
   });
 
@@ -230,6 +320,7 @@ class ShiftSheet {
       jarsByFlavour:
           _rows(json['jars_by_flavour']).map(ShiftSheetFlavour.fromJson).toList(),
       payouts: _rows(json['payouts']).map(ShiftSheetPayout.fromJson).toList(),
+      returns: _rows(json['returns']).map(ShiftSheetReturn.fromJson).toList(),
       totals: totalsRaw is Map
           ? ShiftSheetTotals.fromJson(Map<String, dynamic>.from(totalsRaw))
           : null,
@@ -250,6 +341,7 @@ class ShiftSheet {
   final List<ShiftSheetOrder> orders;
   final List<ShiftSheetFlavour> jarsByFlavour;
   final List<ShiftSheetPayout> payouts;
+  final List<ShiftSheetReturn> returns;
   final ShiftSheetTotals? totals;
 
   String get staffLabel => userFullName.isNotEmpty ? userFullName : user;

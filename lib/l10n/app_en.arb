@@ -11935,5 +11935,58 @@
   "shiftSheetExpectedClosing": "Expected closing",
   "shiftSheetCountedClosing": "Counted closing",
   "shiftSheetDifference": "Difference",
-  "shiftSheetLoadFailed": "Unable to load the shift sheet."
+  "shiftSheetLoadFailed": "Unable to load the shift sheet.",
+  "shiftSheetReasonNew": "New",
+  "shiftSheetReasonOutForDelivery": "Out for delivery",
+  "shiftSheetReasonSettled": "Settled",
+  "shiftSheetFilterAll": "All",
+  "shiftSheetReturnsTitle": "Returns & refunds",
+  "shiftSheetNoReturns": "No returns in this shift.",
+  "shiftSheetReturnedAmount": "Returned",
+  "shiftSheetRefundAmount": "Refunded",
+  "shiftSheetRefundKindCash": "Branch cash",
+  "shiftSheetRefundKindBank": "Bank",
+  "shiftSheetRefundKindCredit": "Customer credit",
+  "shiftSheetTotalNewOrders": "New orders",
+  "shiftSheetTotalOutForDeliveryOrders": "Out for delivery orders",
+  "shiftSheetTotalSettledOrders": "Settled orders",
+  "shiftSheetTotalSettledAmount": "Settled amount",
+  "shiftSheetTotalReturns": "Returns",
+  "shiftSheetTotalReturnsAmount": "Returns amount",
+  "shiftSheetTotalCashRefunds": "Cash refunds",
+  "shiftSheetTotalBankRefunds": "Bank refunds",
+  "shiftSheetSalesNote": "Sales totals cover orders created in this shift only.",
+  "returnRefundFromBranchCash": "From branch cash",
+  "shiftSheetOutForDeliveryAt": "Out for delivery {time}",
+  "@shiftSheetOutForDeliveryAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetSettledAt": "Settled {time}",
+  "@shiftSheetSettledAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetSettledAmountLabel": "Settled: {amount}",
+  "@shiftSheetSettledAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "returnRefundFromAccount": "From {account}",
+  "@returnRefundFromAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  }
 }

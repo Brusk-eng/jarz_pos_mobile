@@ -21897,4 +21897,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shiftSheetLoadFailed => 'Unable to load the shift sheet.';
+
+  @override
+  String get shiftSheetReasonNew => 'New';
+
+  @override
+  String get shiftSheetReasonOutForDelivery => 'Out for delivery';
+
+  @override
+  String get shiftSheetReasonSettled => 'Settled';
+
+  @override
+  String get shiftSheetFilterAll => 'All';
+
+  @override
+  String get shiftSheetReturnsTitle => 'Returns & refunds';
+
+  @override
+  String get shiftSheetNoReturns => 'No returns in this shift.';
+
+  @override
+  String get shiftSheetReturnedAmount => 'Returned';
+
+  @override
+  String get shiftSheetRefundAmount => 'Refunded';
+
+  @override
+  String get shiftSheetRefundKindCash => 'Branch cash';
+
+  @override
+  String get shiftSheetRefundKindBank => 'Bank';
+
+  @override
+  String get shiftSheetRefundKindCredit => 'Customer credit';
+
+  @override
+  String get shiftSheetTotalNewOrders => 'New orders';
+
+  @override
+  String get shiftSheetTotalOutForDeliveryOrders => 'Out for delivery orders';
+
+  @override
+  String get shiftSheetTotalSettledOrders => 'Settled orders';
+
+  @override
+  String get shiftSheetTotalSettledAmount => 'Settled amount';
+
+  @override
+  String get shiftSheetTotalReturns => 'Returns';
+
+  @override
+  String get shiftSheetTotalReturnsAmount => 'Returns amount';
+
+  @override
+  String get shiftSheetTotalCashRefunds => 'Cash refunds';
+
+  @override
+  String get shiftSheetTotalBankRefunds => 'Bank refunds';
+
+  @override
+  String get shiftSheetSalesNote =>
+      'Sales totals cover orders created in this shift only.';
+
+  @override
+  String get returnRefundFromBranchCash => 'From branch cash';
+
+  @override
+  String shiftSheetOutForDeliveryAt(String time) {
+    return 'Out for delivery $time';
+  }
+
+  @override
+  String shiftSheetSettledAt(String time) {
+    return 'Settled $time';
+  }
+
+  @override
+  String shiftSheetSettledAmountLabel(String amount) {
+    return 'Settled: $amount';
+  }
+
+  @override
+  String returnRefundFromAccount(String account) {
+    return 'From $account';
+  }
 }

@@ -96,4 +96,83 @@ void main() {
     expect(sheet.totals, isNull);
     expect(ShiftSheet.fromJson(const {}).openingEntry, '');
   });
+
+  test('old server JSON defaults new fields', () {
+    final sheet = ShiftSheet.fromJson({
+      'opening_entry': 'O',
+      'amounts_hidden': 0,
+      'orders': [
+        {'name': 'A'},
+      ],
+      'totals': {'orders': 2},
+    });
+    final o = sheet.orders.single;
+    expect(o.reasons, ['created']);
+    expect(o.isNew, isTrue);
+    expect(o.isSettled, isFalse);
+    expect(o.outForDeliveryAt, isNull);
+    expect(o.settledAt, isNull);
+    expect(o.settledAmount, 0);
+    expect(sheet.returns, isEmpty);
+    expect(sheet.totals!.newOrders, 0);
+    expect(sheet.totals!.cashRefunds, 0);
+  });
+
+  test('parses reasons, returns and new totals', () {
+    final sheet = ShiftSheet.fromJson({
+      'opening_entry': 'O',
+      'orders': [
+        {
+          'name': 'A',
+          'reasons': ['out_for_delivery', 'settled'],
+          'out_for_delivery_at': '2026-11-23T10:15:00',
+          'settled_at': '2026-11-23T12:00:00',
+          'settled_amount': '250.5',
+        },
+      ],
+      'returns': [
+        {
+          'credit_note': 'CN-1',
+          'order': 'SINV-1',
+          'order_number': '1001',
+          'amount': 100,
+          'refund_amount': 80,
+          'refund_account': 'Bank - J',
+          'refund_kind': 'bank',
+          'at': '2026-11-23T13:00:00',
+        },
+        'junk',
+      ],
+      'totals': {
+        'new_orders': 3,
+        'out_for_delivery_orders': 2,
+        'settled_orders': 1,
+        'settled_amount': 250.5,
+        'returns': 1,
+        'returns_amount': 100,
+        'cash_refunds': 0,
+        'bank_refunds': 80,
+      },
+    });
+    final o = sheet.orders.single;
+    expect(o.reasons, ['out_for_delivery', 'settled']);
+    expect(o.isNew, isFalse);
+    expect(o.isOutForDelivery, isTrue);
+    expect(o.isSettled, isTrue);
+    expect(o.outForDeliveryAt, DateTime(2026, 11, 23, 10, 15));
+    expect(o.settledAmount, 250.5);
+    final r = sheet.returns.single;
+    expect(r.orderNumber, '1001');
+    expect(r.refundKind, 'bank');
+    expect(r.refundAccount, 'Bank - J');
+    expect(r.refundAmount, 80);
+    final t = sheet.totals!;
+    expect(t.newOrders, 3);
+    expect(t.outForDeliveryOrders, 2);
+    expect(t.settledOrders, 1);
+    expect(t.settledAmount, 250.5);
+    expect(t.returns, 1);
+    expect(t.returnsAmount, 100);
+    expect(t.bankRefunds, 80);
+  });
 }
