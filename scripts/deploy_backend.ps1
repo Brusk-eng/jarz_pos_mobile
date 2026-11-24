@@ -32,7 +32,17 @@ param(
     # Without it, jarz_social is deployed only where it is already installed
     # (unpinned, like hrms), so a server that has no deploy key for the private
     # repo yet can still take a POS hotfix.
-    [string]$SocialCommit
+    [string]$SocialCommit,
+
+    # Restrict this run to the named apps (comma-separated, e.g. `-OnlyApps jarz_social`).
+    # Every app NOT named is left exactly where the server has it: not resolved, not
+    # integrity-checked, not pulled. This exists so one app's work (the Jarz Studio
+    # rebuild in jarz_social) can reach staging without dragging along whatever else is
+    # on main of the other repos. The post-pull steps (migrate, cache clear, restart)
+    # still act on the whole site, but no other app's code changes under them.
+    # Pins keep their usual meaning for the named apps (-SocialCommit for jarz_social).
+    # -Commit pins jarz_pos, so it is refused unless jarz_pos is among the named apps.
+    [string]$OnlyApps
 )
 
 $ErrorActionPreference = 'Stop'
@@ -899,6 +909,23 @@ if ($includeSocial) {
 }
 else {
     Write-Info 'jarz_social: not installed on this server and not requested (pass -SocialCommit <sha> to install/pin it)'
+    Write-Host ''
+}
+
+# -OnlyApps: narrow the run to the named apps, after the jarz_social decision above
+# has settled the full list. Refuses names that are not part of this run, so a typo or
+# an uninstalled app fails loudly instead of silently deploying nothing.
+if ($OnlyApps) {
+    $onlyList = @($OnlyApps -split '[,\s]+' | Where-Object { $_ })
+    $unknown = @($onlyList | Where-Object { $config.CustomApps -notcontains $_ })
+    if ($onlyList.Count -eq 0 -or $unknown.Count -gt 0) {
+        throw "-OnlyApps names app(s) not part of this run: $($unknown -join ', '). Candidates: $($config.CustomApps -join ', ') (jarz_social needs -SocialCommit or an existing clone)."
+    }
+    if ($Commit -and $onlyList -notcontains 'jarz_pos') {
+        throw '-Commit pins jarz_pos, which -OnlyApps excludes; drop -Commit or add jarz_pos to -OnlyApps.'
+    }
+    $config.CustomApps = @($config.CustomApps | Where-Object { $onlyList -contains $_ })
+    Write-Info "-OnlyApps: this run touches only $($config.CustomApps -join ', '); every other app stays at the server's current commit"
     Write-Host ''
 }
 
