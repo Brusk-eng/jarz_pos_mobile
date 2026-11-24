@@ -1027,6 +1027,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     required String returnType,
     required String refundMode,
     required bool payCourierForTrip,
+    String? goodsCondition,
     String? notes,
   }) async {
     final transitioning = Set<String>.from(state.transitioningInvoices)..add(invoiceId);
@@ -1043,6 +1044,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         returnType: returnType,
         refundMode: refundMode,
         payCourierForTrip: payCourierForTrip,
+        goodsCondition: goodsCondition,
         notes: notes,
         requestId: 'ret-app-${const Uuid().v4()}',
       );

@@ -22051,4 +22051,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String shiftSheetRowBranchPaidCourier(String amount) {
     return 'الفرع دفع للساعي $amount';
   }
+
+  @override
+  String get returnOrderGoodsDamagedTitle => 'البضاعة تالفة';
+
+  @override
+  String get returnOrderGoodsDamagedYes => 'هتتسجل هالك ومش هترجع المخزون.';
+
+  @override
+  String get returnOrderGoodsDamagedNo => 'هترجع مخزون الفرع وتتباع تاني.';
 }

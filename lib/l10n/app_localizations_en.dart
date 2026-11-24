@@ -22069,4 +22069,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String shiftSheetRowBranchPaidCourier(String amount) {
     return 'Branch paid courier $amount';
   }
+
+  @override
+  String get returnOrderGoodsDamagedTitle => 'The goods are damaged';
+
+  @override
+  String get returnOrderGoodsDamagedYes =>
+      'Written off as waste. They will not go back into stock.';
+
+  @override
+  String get returnOrderGoodsDamagedNo =>
+      'They go back into branch stock, ready to sell.';
 }

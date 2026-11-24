@@ -9,9 +9,16 @@ import '../../../helpers/test_helpers.dart';
 Map<String, dynamic> _preview({
   bool canRefundNow = true,
   bool canChooseCourierFee = true,
+  bool canWriteOffGoods = false,
   List<Map<String, dynamic>>? lines,
 }) {
   return {
+    // Only a server that can book the loss sends this block.
+    if (canWriteOffGoods)
+      'goods': {
+        'can_write_off': true,
+        'write_off_account': 'Stock Adjustment - J',
+      },
     'invoice_id': 'ACC-SINV-2026-00001',
     'customer_name': 'Test Customer',
     'currency': 'EGP',
@@ -191,6 +198,91 @@ void main() {
       await tester.pumpAndSettle();
 
       expect((await pending)!.payCourierForTrip, isFalse);
+    });
+
+    testWidgets('the goods question is not asked on a server that cannot act on it',
+        (tester) async {
+      final pending = await _openDialog(tester);
+
+      expect(find.text('The goods are damaged'), findsNothing);
+
+      await tester.enterText(find.byType(TextFormField).first, 'Old server');
+      await tester.tap(find.text('Confirm return'));
+      await tester.pumpAndSettle();
+
+      // Nothing sent, so the server keeps its own rule.
+      expect((await pending)!.goodsCondition, isNull);
+    });
+
+    testWidgets('returned goods go back to stock unless the operator says otherwise',
+        (tester) async {
+      final pending = await _openDialog(
+        tester,
+        preview: _preview(canWriteOffGoods: true),
+      );
+
+      expect(find.text('The goods are damaged'), findsOneWidget);
+      expect(
+        find.text('They go back into branch stock, ready to sell.'),
+        findsOneWidget,
+      );
+
+      await tester.enterText(find.byType(TextFormField).first, 'Changed mind');
+      await tester.tap(find.text('Confirm return'));
+      await tester.pumpAndSettle();
+
+      expect((await pending)!.goodsCondition, 'restock');
+    });
+
+    testWidgets('marking the goods damaged sends them to waste', (tester) async {
+      final pending = await _openDialog(
+        tester,
+        preview: _preview(canWriteOffGoods: true),
+      );
+
+      final goodsSwitch = find.byKey(const Key('return-goods-damaged-switch'));
+      await tester.ensureVisible(goodsSwitch);
+      await tester.pumpAndSettle();
+      await tester.tap(goodsSwitch);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Written off as waste. They will not go back into stock.'),
+        findsOneWidget,
+      );
+
+      // A failed delivery that melted on the way back: the type stays what it
+      // is, the goods are still waste.
+      await tester.enterText(find.byType(TextFormField).first, 'Melted');
+      await tester.tap(find.text('Confirm return'));
+      await tester.pumpAndSettle();
+
+      final result = await pending;
+      expect(result!.goodsCondition, 'waste');
+      expect(result.returnType, 'Customer Return');
+    });
+
+    testWidgets('choosing the Damaged type switches the goods to damaged',
+        (tester) async {
+      final pending = await _openDialog(
+        tester,
+        preview: _preview(canWriteOffGoods: true),
+      );
+
+      await tester.ensureVisible(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Damaged').last);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'Broken jar');
+      await tester.tap(find.text('Confirm return'));
+      await tester.pumpAndSettle();
+
+      final result = await pending;
+      expect(result!.returnType, 'Damaged');
+      expect(result.goodsCondition, 'waste');
     });
 
     testWidgets('a fully returned line cannot be selected again',

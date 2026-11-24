@@ -187,6 +187,7 @@ class _FakeKanbanService extends KanbanService {
   }
 
   final List<String?> returnRequestIds = [];
+  final List<String?> returnGoodsConditions = [];
 
   @override
   Future<Map<String, dynamic>> submitInvoiceReturn({
@@ -196,9 +197,11 @@ class _FakeKanbanService extends KanbanService {
     required String returnType,
     required String refundMode,
     required bool payCourierForTrip,
+    String? goodsCondition,
     String? notes,
     String? requestId,
   }) async {
+    returnGoodsConditions.add(goodsCondition);
     returnRequestIds.add(requestId);
     return {'success': true, 'credit_note': 'ACC-SINV-CN-1'};
   }
@@ -788,6 +791,28 @@ void main() {
       expect(service.returnRequestIds.every((id) => id != null && id.startsWith('ret-app-')),
           isTrue);
       expect(service.returnRequestIds[0], isNot(service.returnRequestIds[1]));
+    });
+
+    test('the goods answer reaches the server, and silence stays silence', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      // The dialog did not ask (older server): nothing may be invented here.
+      await submitReturn(notifier);
+      await notifier.submitInvoiceReturn(
+        invoiceId: 'INV-OLD',
+        lines: const [
+          {'si_detail': 'row-1', 'qty': 1},
+        ],
+        reason: 'Melted on the way back',
+        returnType: 'Failed Delivery',
+        refundMode: 'customer_credit',
+        payCourierForTrip: true,
+        goodsCondition: 'waste',
+      );
+
+      expect(service.returnGoodsConditions, [null, 'waste']);
     });
 
     test('clearError sets error to null', () async {

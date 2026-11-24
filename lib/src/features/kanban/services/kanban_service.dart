@@ -278,6 +278,7 @@ class KanbanService {
     required String returnType,
     required String refundMode,
     required bool payCourierForTrip,
+    String? goodsCondition,
     String? notes,
     String? requestId,
   }) async {
@@ -296,6 +297,11 @@ class KanbanService {
       }
       if (notes != null && notes.trim().isNotEmpty) {
         payload["notes"] = notes.trim();
+      }
+      // `waste` or `restock`. Left out when the dialog did not ask, so the
+      // server applies its own rule (a "Damaged" return is written off).
+      if (goodsCondition != null && goodsCondition.isNotEmpty) {
+        payload["goods_condition"] = goodsCondition;
       }
 
       final response = await _dio.post(

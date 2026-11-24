@@ -4105,6 +4105,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       returnType: request.returnType,
       refundMode: request.refundMode,
       payCourierForTrip: request.payCourierForTrip,
+      goodsCondition: request.goodsCondition,
       notes: request.notes,
     );
     if (!mounted) return;

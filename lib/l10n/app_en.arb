@@ -12049,5 +12049,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "returnOrderGoodsDamagedTitle": "The goods are damaged",
+  "returnOrderGoodsDamagedYes": "Written off as waste. They will not go back into stock.",
+  "returnOrderGoodsDamagedNo": "They go back into branch stock, ready to sell."
 }

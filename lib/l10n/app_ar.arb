@@ -7820,5 +7820,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "returnOrderGoodsDamagedTitle": "البضاعة تالفة",
+  "returnOrderGoodsDamagedYes": "هتتسجل هالك ومش هترجع المخزون.",
+  "returnOrderGoodsDamagedNo": "هترجع مخزون الفرع وتتباع تاني."
 }

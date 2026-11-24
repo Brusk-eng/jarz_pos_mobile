@@ -12,6 +12,7 @@ class OrderReturnRequest {
     required this.returnType,
     required this.refundMode,
     required this.payCourierForTrip,
+    this.goodsCondition,
     this.notes,
   });
 
@@ -21,6 +22,11 @@ class OrderReturnRequest {
   final String returnType;
   final String refundMode;
   final bool payCourierForTrip;
+
+  /// `waste` (written off) or `restock` (back on the shelf). Null when the
+  /// server did not offer the question — an older build — so nothing is sent
+  /// and the server keeps its own rule.
+  final String? goodsCondition;
   final String? notes;
 }
 
@@ -68,6 +74,12 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
   String _returnType = 'Customer Return';
   String _refundMode = 'customer_credit';
   bool _payCourierForTrip = true;
+
+  /// Whether the goods came back unsellable. Follows the return type until the
+  /// operator touches the switch: a "Damaged" return starts as damaged, but a
+  /// failed delivery that melted on the way back is damaged too, and a dented
+  /// box with good jars is not.
+  bool _goodsDamaged = false;
 
   @override
   void initState() {
@@ -147,6 +159,14 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
 
   bool get _canChooseCourierFee => _toggles['can_choose_courier_fee'] == true;
 
+  /// The goods question is asked only when the server can act on the answer:
+  /// it sends `goods.can_write_off` once it knows how to book the loss. An
+  /// older server sends no `goods` block at all, and the switch stays hidden.
+  bool get _canWriteOffGoods {
+    final goods = widget.preview['goods'];
+    return goods is Map && goods['can_write_off'] == true;
+  }
+
   void _setQty(String siDetail, double max, double value) {
     setState(() {
       final clamped = value.clamp(0.0, max).toDouble();
@@ -206,10 +226,30 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
                             child: Text(_localizedType(type)),
                           ))
                       .toList(),
-                  onChanged: (value) =>
-                      setState(() => _returnType = value ?? _returnType),
+                  onChanged: (value) => setState(() {
+                    _returnType = value ?? _returnType;
+                    // The type is the first hint about the goods; the switch
+                    // below stays free to say otherwise.
+                    _goodsDamaged = _returnType == 'Damaged';
+                  }),
                 ),
                 const SizedBox(height: 12),
+
+                if (_canWriteOffGoods) ...[
+                  SwitchListTile(
+                    key: const Key('return-goods-damaged-switch'),
+                    contentPadding: EdgeInsets.zero,
+                    value: _goodsDamaged,
+                    onChanged: (value) => setState(() => _goodsDamaged = value),
+                    title: Text(l10n.returnOrderGoodsDamagedTitle),
+                    subtitle: Text(
+                      _goodsDamaged
+                          ? l10n.returnOrderGoodsDamagedYes
+                          : l10n.returnOrderGoodsDamagedNo,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
 
                 TextFormField(
                   controller: _reasonController,
@@ -464,6 +504,10 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
         // fall back to credit rather than sending an option it would reject.
         refundMode: _canRefundNow ? _refundMode : 'customer_credit',
         payCourierForTrip: _canChooseCourierFee ? _payCourierForTrip : true,
+        // Sent only when the question was actually asked.
+        goodsCondition: _canWriteOffGoods
+            ? (_goodsDamaged ? 'waste' : 'restock')
+            : null,
         notes: notes.isEmpty ? null : notes,
       ),
     );

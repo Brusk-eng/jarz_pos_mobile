@@ -36441,6 +36441,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Branch paid courier {amount}'**
   String shiftSheetRowBranchPaidCourier(String amount);
+
+  /// No description provided for @returnOrderGoodsDamagedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The goods are damaged'**
+  String get returnOrderGoodsDamagedTitle;
+
+  /// No description provided for @returnOrderGoodsDamagedYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Written off as waste. They will not go back into stock.'**
+  String get returnOrderGoodsDamagedYes;
+
+  /// No description provided for @returnOrderGoodsDamagedNo.
+  ///
+  /// In en, this message translates to:
+  /// **'They go back into branch stock, ready to sell.'**
+  String get returnOrderGoodsDamagedNo;
 }
 
 class _AppLocalizationsDelegate
