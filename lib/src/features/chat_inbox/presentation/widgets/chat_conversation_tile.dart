@@ -5,10 +5,11 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/chat_models.dart';
 import '../chat_bidi.dart';
 import '../chat_labels.dart';
+import 'chat_notes_strip.dart' show kChatNoteAccent;
 
 /// One inbox row: channel icon, name, preview, live "waiting N min" (red at
-/// [kChatWaitingAlertMinutes]+), complaint badge, draft-ready dot and the
-/// unread count.
+/// [kChatWaitingAlertMinutes]+), complaint badge, open staff-notes badge,
+/// draft-ready dot and the unread count.
 class ChatConversationTile extends StatelessWidget {
   const ChatConversationTile({
     super.key,
@@ -118,6 +119,36 @@ class ChatConversationTile extends StatelessWidget {
             _Pill(
               label: l10n.chatComplaintBadge,
               color: theme.colorScheme.error,
+            ),
+          ],
+          if (summary.openNotes > 0) ...[
+            const SizedBox(width: 6),
+            Tooltip(
+              message: chatBi(
+                context,
+                'Open staff notes: ${formatCount(context, summary.openNotes)}',
+                'ملاحظات مفتوحة: ${formatCount(context, summary.openNotes)}',
+              ),
+              child: Row(
+                key: ValueKey('chat-notes-badge-${summary.name}'),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.sticky_note_2,
+                    size: 16,
+                    color: kChatNoteAccent,
+                  ),
+                  if (summary.openNotes > 1)
+                    Text(
+                      formatCount(context, summary.openNotes),
+                      style: const TextStyle(
+                        color: kChatNoteAccent,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ],

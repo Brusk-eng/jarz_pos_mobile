@@ -564,6 +564,9 @@ class ChatThreadState {
   final bool hasMoreOlder;
   final bool loadingOlder;
 
+  /// Staff notes on this chat, newest first.
+  final List<ChatNote> notes;
+
   const ChatThreadState({
     required this.conversation,
     this.messages = const <ChatMessage>[],
@@ -572,7 +575,11 @@ class ChatThreadState {
     this.customerSuggestion,
     this.hasMoreOlder = false,
     this.loadingOlder = false,
+    this.notes = const <ChatNote>[],
   });
+
+  /// Notes not yet marked handled.
+  int get openNoteCount => chatOpenNoteCount(notes);
 
   ChatThreadState copyWith({
     ChatConversationSummary? conversation,
@@ -585,6 +592,7 @@ class ChatThreadState {
     bool clearSuggestion = false,
     bool? hasMoreOlder,
     bool? loadingOlder,
+    List<ChatNote>? notes,
   }) {
     return ChatThreadState(
       // A summary without the media / reaction info (a socket event) keeps
@@ -599,6 +607,7 @@ class ChatThreadState {
           : (customerSuggestion ?? this.customerSuggestion),
       hasMoreOlder: hasMoreOlder ?? this.hasMoreOlder,
       loadingOlder: loadingOlder ?? this.loadingOlder,
+      notes: notes ?? this.notes,
     );
   }
 }
@@ -725,6 +734,7 @@ class ChatThreadNotifier
       customer: thread.customer,
       customerSuggestion: thread.customerSuggestion,
       hasMoreOlder: thread.messages.length >= pageSize,
+      notes: thread.notes ?? const <ChatNote>[],
     );
   }
 
@@ -808,6 +818,7 @@ class ChatThreadNotifier
             customer: thread.customer,
             customerSuggestion: thread.customerSuggestion,
             hasMoreOlder: thread.messages.length >= pageSize,
+            notes: thread.notes ?? const <ChatNote>[],
           ),
         );
         _afterServerRead(thread.conversation);
@@ -834,6 +845,8 @@ class ChatThreadNotifier
               clearCustomer: thread.customer == null,
               customerSuggestion: thread.customerSuggestion,
               clearSuggestion: thread.customerSuggestion == null,
+              // Absent on an older server: keep what the thread holds.
+              notes: thread.notes,
             ),
           );
           _afterServerRead(
@@ -1156,6 +1169,48 @@ class ChatThreadNotifier
     return result;
   }
 
+  // ── Staff notes ───────────────────────────────────────────────────────
+
+  /// Hold [notes] (the server's full list) and move the summary's open count
+  /// with them, here and in the inbox row.
+  void _applyNotes(List<ChatNote> notes) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final open = chatOpenNoteCount(notes);
+    final summary = current.conversation.openNotes == open
+        ? current.conversation
+        : current.conversation.copyWith(openNotes: open);
+    state = AsyncData(current.copyWith(conversation: summary, notes: notes));
+    if (!identical(summary, current.conversation)) _publishSummary(summary);
+  }
+
+  /// `add_chat_note`. A refusal (blank, too long) rethrows.
+  Future<void> addNote(String note) {
+    return _mutate(() async {
+      final notes = await _repo.addChatNote(conversation: arg, note: note);
+      _applyNotes(notes);
+    });
+  }
+
+  /// `set_chat_note_handled`: [handled] false reopens the note.
+  Future<void> setNoteHandled(ChatNote note, bool handled) {
+    return _mutate(() async {
+      final notes = await _repo.setChatNoteHandled(
+        note: note.name,
+        handled: handled,
+      );
+      _applyNotes(notes);
+    });
+  }
+
+  /// `delete_chat_note` (author or manager).
+  Future<void> deleteNote(ChatNote note) {
+    return _mutate(() async {
+      final notes = await _repo.deleteChatNote(note: note.name);
+      _applyNotes(notes);
+    });
+  }
+
   /// What "Start order" hands to the POS; [withOrder] also has the server
   /// read the order out of the chat (slow: a model call).
   Future<ChatOrderPrefill> orderPrefill({bool withOrder = false}) =>
@@ -1179,6 +1234,18 @@ class ChatThreadNotifier
       next = next.copyWith(
         messages: mergeChatMessages(next.messages, [message]),
       );
+    }
+    final notes = event.notes;
+    if (notes != null) {
+      // `kind: note` carries the full current list.
+      next = next.copyWith(notes: notes);
+      if (summary == null &&
+          next.conversation.openNotes != chatOpenNoteCount(notes)) {
+        next = next.copyWith(
+          conversation:
+              next.conversation.copyWith(openNotes: chatOpenNoteCount(notes)),
+        );
+      }
     }
     final draft = event.draft;
     if (draft != null) {

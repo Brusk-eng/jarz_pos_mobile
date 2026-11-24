@@ -260,6 +260,10 @@ class ChatConversationSummary {
   /// endpoints and socket events may not; the thread then keeps what it knew.
   final bool approveInfoKnown;
 
+  /// Staff notes on this chat not yet marked handled (`open_notes`); 0 when
+  /// the server omits it.
+  final int openNotes;
+
   const ChatConversationSummary({
     required this.name,
     this.channel = '',
@@ -289,6 +293,7 @@ class ChatConversationSummary {
     this.mediaInfoKnown = false,
     this.canApproveFacts = false,
     this.approveInfoKnown = false,
+    this.openNotes = 0,
   });
 
   factory ChatConversationSummary.fromJson(dynamic raw) {
@@ -333,6 +338,7 @@ class ChatConversationSummary {
           json.containsKey('reaction_choices'),
       canApproveFacts: chatBool(json['can_approve_facts']),
       approveInfoKnown: json.containsKey('can_approve_facts'),
+      openNotes: chatInt(json['open_notes']),
     );
   }
 
@@ -364,6 +370,7 @@ class ChatConversationSummary {
     int? unreadCount,
     String? status,
     bool? hasPendingDraft,
+    int? openNotes,
   }) {
     return ChatConversationSummary(
       name: name,
@@ -394,6 +401,7 @@ class ChatConversationSummary {
       mediaInfoKnown: mediaInfoKnown,
       canApproveFacts: canApproveFacts,
       approveInfoKnown: approveInfoKnown,
+      openNotes: openNotes ?? this.openNotes,
     );
   }
 
@@ -433,6 +441,7 @@ class ChatConversationSummary {
       canApproveFacts:
           takeApprove ? previous.canApproveFacts : canApproveFacts,
       approveInfoKnown: approveInfoKnown || takeApprove,
+      openNotes: openNotes,
     );
   }
 }
@@ -832,12 +841,17 @@ class ChatThread {
   /// (phone match only); null when linked, weak, or an older server.
   final ChatCustomerCandidate? customerSuggestion;
 
+  /// Staff notes, newest first; null when the server did not send `notes`
+  /// (an older backend), so a refresh keeps what the thread already holds.
+  final List<ChatNote>? notes;
+
   const ChatThread({
     required this.conversation,
     this.messages = const <ChatMessage>[],
     this.draft,
     this.customer,
     this.customerSuggestion,
+    this.notes,
   });
 
   factory ChatThread.fromJson(dynamic raw) {
@@ -856,9 +870,100 @@ class ChatThread {
       customerSuggestion: ChatCustomerCandidate.maybeFromJson(
         json['customer_suggestion'],
       ),
+      notes: json.containsKey('notes') ? chatNoteList(json['notes']) : null,
     );
   }
 }
+
+/// One staff note on a chat (`Jarz Chat Note`): management tells the
+/// moderator something about this conversation ("apologise", "free
+/// delivery"). The AI draft reads them server-side.
+class ChatNote {
+  final String name;
+  final String conversation;
+  final String note;
+  final String? author;
+  final String? authorName;
+
+  /// Raw site-tz datetimes, kept as sent.
+  final String? createdAt;
+
+  /// Marked handled by a moderator.
+  final bool resolved;
+  final String? resolvedBy;
+  final String? resolvedByName;
+  final String? resolvedAt;
+
+  /// Whether the caller may delete it (its author, or a manager).
+  final bool canDelete;
+
+  const ChatNote({
+    required this.name,
+    this.conversation = '',
+    this.note = '',
+    this.author,
+    this.authorName,
+    this.createdAt,
+    this.resolved = false,
+    this.resolvedBy,
+    this.resolvedByName,
+    this.resolvedAt,
+    this.canDelete = false,
+  });
+
+  factory ChatNote.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    return ChatNote(
+      name: chatString(json['name']),
+      conversation: chatString(json['conversation']),
+      note: chatString(json['note']).trim(),
+      author: chatNullableString(json['author']),
+      authorName: chatNullableString(json['author_name']),
+      createdAt: chatNullableString(json['created_at']),
+      resolved: chatBool(json['resolved']),
+      resolvedBy: chatNullableString(json['resolved_by']),
+      resolvedByName: chatNullableString(json['resolved_by_name']),
+      resolvedAt: chatNullableString(json['resolved_at']),
+      canDelete: chatBool(json['can_delete']),
+    );
+  }
+
+  /// Not handled yet.
+  bool get isOpen => !resolved;
+
+  /// Who wrote it: the full name, then the user id.
+  String get authorLabel => authorName ?? author ?? '';
+
+  /// Who marked it handled: the full name, then the user id.
+  String? get resolvedByLabel => resolvedByName ?? resolvedBy;
+
+  DateTime? get createdTime => chatParseDateTime(createdAt);
+  DateTime? get resolvedTime => chatParseDateTime(resolvedAt);
+
+  /// The first non-blank line of the note.
+  String get firstLine {
+    for (final line in note.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.isNotEmpty) return trimmed;
+    }
+    return '';
+  }
+}
+
+/// A `notes` list: rows without a `name` are dropped; order is kept (the
+/// server sends newest first).
+List<ChatNote> chatNoteList(dynamic raw) {
+  if (raw is! List) return const <ChatNote>[];
+  return raw
+      .whereType<Map>()
+      .map(ChatNote.fromJson)
+      .where((n) => n.name.isNotEmpty)
+      .toList(growable: false);
+}
+
+/// How many of [notes] are still open.
+int chatOpenNoteCount(List<ChatNote> notes) =>
+    notes.where((n) => n.isOpen).length;
 
 /// `send_draft` answer.
 class ChatSendDraftResult {
@@ -1447,11 +1552,15 @@ class ChatMetrics {
 class ChatUpdateEvent {
   final String conversation;
 
-  /// `message` | `draft` | `status` | `assigned`.
+  /// `message` | `draft` | `status` | `assigned` | `note`.
   final String kind;
   final ChatConversationSummary? summary;
   final ChatMessage? message;
   final ChatDraft? draft;
+
+  /// `kind: note`: the chat's full current notes list, newest first. Null
+  /// when the event did not carry `notes`.
+  final List<ChatNote>? notes;
 
   const ChatUpdateEvent({
     required this.conversation,
@@ -1459,6 +1568,7 @@ class ChatUpdateEvent {
     this.summary,
     this.message,
     this.draft,
+    this.notes,
   });
 
   factory ChatUpdateEvent.fromJson(dynamic raw) {
@@ -1479,6 +1589,7 @@ class ChatUpdateEvent {
           ? ChatMessage.fromJson(messageRaw)
           : null,
       draft: ChatDraft.maybeFromJson(json['draft']),
+      notes: json['notes'] is List ? chatNoteList(json['notes']) : null,
     );
   }
 }

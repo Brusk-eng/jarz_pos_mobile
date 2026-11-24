@@ -430,6 +430,62 @@ class ChatRepository {
     return ChatMetrics.fromJson(_payload(response));
   }
 
+  // ── Staff notes ─────────────────────────────────────────────────────────
+
+  /// Feature-local paths (kept out of `ApiEndpoints`, so a Dart-only patch).
+  static const getChatNotesPath =
+      '/api/method/jarz_pos.api.chat.get_chat_notes';
+  static const addChatNotePath = '/api/method/jarz_pos.api.chat.add_chat_note';
+  static const setChatNoteHandledPath =
+      '/api/method/jarz_pos.api.chat.set_chat_note_handled';
+  static const deleteChatNotePath =
+      '/api/method/jarz_pos.api.chat.delete_chat_note';
+
+  /// The longest note the server accepts.
+  static const chatNoteMaxLength = 1000;
+
+  /// `get_chat_notes`: the chat's notes, newest first.
+  Future<List<ChatNote>> fetchChatNotes(String conversation) async {
+    final response = await _dio.get(
+      getChatNotesPath,
+      queryParameters: {'conversation': conversation},
+    );
+    return chatNoteList(_map(response)['notes']);
+  }
+
+  /// `add_chat_note`; answers the full list, newest first.
+  Future<List<ChatNote>> addChatNote({
+    required String conversation,
+    required String note,
+  }) async {
+    final response = await _dio.post(
+      addChatNotePath,
+      data: {'conversation': conversation, 'note': note},
+    );
+    return chatNoteList(_map(response)['notes']);
+  }
+
+  /// `set_chat_note_handled`: [handled] true marks it done, false reopens it.
+  Future<List<ChatNote>> setChatNoteHandled({
+    required String note,
+    required bool handled,
+  }) async {
+    final response = await _dio.post(
+      setChatNoteHandledPath,
+      data: {'note': note, 'handled': handled ? 1 : 0},
+    );
+    return chatNoteList(_map(response)['notes']);
+  }
+
+  /// `delete_chat_note` (author or manager only).
+  Future<List<ChatNote>> deleteChatNote({required String note}) async {
+    final response = await _dio.post(
+      deleteChatNotePath,
+      data: {'note': note},
+    );
+    return chatNoteList(_map(response)['notes']);
+  }
+
   /// `get_unread_total` — the drawer badge.
   Future<ChatUnreadTotal> fetchUnreadTotal() async {
     final response = await _dio.get(ApiEndpoints.chatGetUnreadTotal);

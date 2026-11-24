@@ -22,6 +22,7 @@ import '../widgets/chat_link_sheet.dart';
 import '../../data/chat_media_limits.dart';
 import '../widgets/chat_image_gallery.dart' show chatIsGalleryImage;
 import '../widgets/chat_message_bubble.dart';
+import '../widgets/chat_notes_strip.dart';
 
 enum _ThreadAction {
   assignToMe,
@@ -31,6 +32,7 @@ enum _ThreadAction {
   linkCustomer,
   startOrder,
   contactType,
+  addNote,
 }
 
 /// Value of the "Let AI decide" row of the contact-type picker (an empty
@@ -55,6 +57,10 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
   bool _draftBusy = false;
   bool _sending = false;
   bool _actionBusy = false;
+
+  /// The staff-notes strip is open (collapsed by default).
+  bool _notesExpanded = false;
+  bool _notesBusy = false;
 
   String get _name => widget.conversation;
   ChatThreadNotifier get _notifier =>
@@ -390,6 +396,68 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     });
   }
 
+  // ── Staff notes ───────────────────────────────────────────────────────
+
+  Future<void> _addNote() async {
+    final added = await showChatAddNoteDialog(
+      context,
+      onSubmit: (note) => _notifier.addNote(note),
+    );
+    if (!added || !mounted) return;
+    setState(() => _notesExpanded = true);
+    _snack(_bi('Note added', 'اتضافت الملاحظة'));
+  }
+
+  Future<void> _runNoteWrite(Future<void> Function() write) async {
+    if (_notesBusy) return;
+    setState(() => _notesBusy = true);
+    try {
+      await write();
+    } catch (e) {
+      _snackError(e);
+    } finally {
+      if (mounted) setState(() => _notesBusy = false);
+    }
+  }
+
+  void _setNoteHandled(ChatNote note, bool handled) =>
+      _runNoteWrite(() => _notifier.setNoteHandled(note, handled));
+
+  Future<void> _deleteNote(ChatNote note) async {
+    final confirmed = await showChatDeleteNoteDialog(context);
+    if (!confirmed || !mounted) return;
+    await _runNoteWrite(() => _notifier.deleteNote(note));
+  }
+
+  /// A new open note from someone else arrived while the thread is open
+  /// (socket or poll): open the strip and say so, so it is not missed.
+  void _onThreadChanged(
+    AsyncValue<ChatThreadState>? previous,
+    AsyncValue<ChatThreadState> next,
+  ) {
+    final before = previous?.valueOrNull;
+    final after = next.valueOrNull;
+    if (before == null || after == null || identical(before.notes, after.notes)) {
+      return;
+    }
+    final arrived = chatNewOpenNotes(
+      before.notes,
+      after.notes,
+      currentUser: ref.read(userRolesFutureProvider).valueOrNull?.user,
+    );
+    if (arrived.isEmpty || !mounted) return;
+    setState(() => _notesExpanded = true);
+    final first = arrived.first;
+    final who = first.authorLabel;
+    _snack(
+      who.isEmpty
+          ? _bi('New staff note: ${first.firstLine}',
+              'ملاحظة جديدة: ${first.firstLine}')
+          : _bi('New note from $who: ${first.firstLine}',
+              'ملاحظة جديدة من $who: ${first.firstLine}'),
+    );
+  }
+
   /// Inline bilingual text (no .arb key: an .arb edit forces a full APK).
   String _bi(String en, String ar) =>
       Localizations.localeOf(context).languageCode == 'ar' ? ar : en;
@@ -524,6 +592,8 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
         _startOrder(state.conversation);
       case _ThreadAction.contactType:
         _pickContactType(state.conversation);
+      case _ThreadAction.addNote:
+        _addNote();
     }
   }
 
@@ -534,6 +604,7 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     final state = thread.valueOrNull;
     final currentUser = ref.watch(userRolesFutureProvider).valueOrNull?.user;
     final dismissed = ref.watch(chatDismissedSuggestionsProvider);
+    ref.listen(chatThreadProvider(_name), _onThreadChanged);
 
     return Scaffold(
       appBar: AppBar(
@@ -622,6 +693,13 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
                         chatBi(context, 'Contact type', 'نوع جهة الاتصال'),
                       ),
                     ),
+                    PopupMenuItem(
+                      key: const ValueKey('chat-menu-add-note'),
+                      value: _ThreadAction.addNote,
+                      child: Text(
+                        chatBi(context, 'Add staff note', 'إضافة ملاحظة للفريق'),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -661,6 +739,18 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
           onEdit: _editMessage,
           onDelete: _deleteMessage,
           onAttach: _attach,
+          notesStrip: ChatNotesStrip(
+            notes: data.notes,
+            expanded: _notesExpanded,
+            onToggleExpanded: () =>
+                setState(() => _notesExpanded = !_notesExpanded),
+            onAdd: _addNote,
+            onSetHandled: _setNoteHandled,
+            onDelete: _deleteNote,
+            now: ref.read(chatClockProvider)(),
+            busy: _notesBusy,
+            maxListHeight: MediaQuery.sizeOf(context).height * 0.3,
+          ),
           linkBanner: data.conversation.customer != null
               ? null
               : ChatLinkBanner(
@@ -709,6 +799,7 @@ class _ThreadBody extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onAttach,
+    this.notesStrip,
     required this.linkBanner,
     required this.sending,
     required this.draftBusy,
@@ -730,6 +821,9 @@ class _ThreadBody extends StatelessWidget {
   final Future<void> Function(ChatMessage message, String text) onEdit;
   final Future<void> Function(ChatMessage message) onDelete;
   final VoidCallback onAttach;
+
+  /// Staff notes, pinned above everything else in the body.
+  final Widget? notesStrip;
   final Widget? linkBanner;
   final bool sending;
   final bool draftBusy;
@@ -760,6 +854,7 @@ class _ThreadBody extends StatelessWidget {
             : null;
         return Column(
           children: [
+            if (notesStrip != null) notesStrip!,
             if (linkBanner != null) linkBanner!,
             if (!state.conversation.windowOpen)
               Container(
