@@ -28,6 +28,9 @@ Map<String, dynamic> _payload({required bool manager}) => {
       'is_pickup': 0,
       'area': 'Maadi Sarayat Compound',
       'payment_method': 'Cash',
+      'shipping_expense': 45,
+      'courier_cash_in': 205,
+      'courier_fee_paid': 45,
     },
     {
       'name': 'ACC-2',
@@ -61,6 +64,35 @@ Map<String, dynamic> _payload({required bool manager}) => {
           'expected_closing': 790,
           'actual_closing': 780,
           'difference': -10,
+          'delivery_orders': 1,
+          'delivery_income': 30,
+          'delivery_cost': 45,
+          'delivery_net': -15,
+        }
+      : null,
+  'cash_flow': manager
+      ? {
+          'opening': 500,
+          'sales_cash': 80,
+          'courier_orders': 205,
+          'courier_fees': -45,
+          'expenses': -40,
+          'refunds': 0,
+          'handovers': 0,
+          'other': 0,
+          'expected': 700,
+          'counted': 690,
+          'difference': -10,
+          'is_open': false,
+          'lines': [
+            {
+              'kind': 'expenses',
+              'voucher_no': 'E1',
+              'label': 'Ice',
+              'amount': -40,
+              'at': '2026-11-20T11:00:00',
+            },
+          ],
         }
       : null,
 };
@@ -97,7 +129,7 @@ Future<void> _pump(
 }
 
 void main() {
-  testWidgets('staff sheet shows orders and flavours but no totals', (
+  testWidgets('staff sheet shows orders and flavours but no money cards', (
     tester,
   ) async {
     await _pump(tester, _payload(manager: false));
@@ -105,21 +137,85 @@ void main() {
     expect(find.textContaining('#1002'), findsOneWidget);
     expect(find.text('Pickup'), findsOneWidget);
     expect(find.textContaining('Unpaid'), findsOneWidget);
+    expect(find.text('All (2)'), findsOneWidget);
+    expect(find.text('Cash drawer'), findsNothing);
+    expect(find.text('Sales total'), findsNothing);
+    expect(find.text('Delivery profit'), findsNothing);
+    expect(find.text('Delivery loss'), findsNothing);
+    expect(find.textContaining('Courier cost'), findsNothing);
+    expect(find.textContaining('Courier handed in'), findsNothing);
+    // Flavours are collapsed until tapped.
+    expect(find.text('Mango'), findsNothing);
+    await tester.scrollUntilVisible(find.text('Jars by flavour'), 200);
+    await tester.tap(find.text('Jars by flavour'));
+    await tester.pumpAndSettle();
     expect(find.text('Mango'), findsOneWidget);
     expect(find.text('Large'), findsNothing, reason: 'all-zero column hidden');
     expect(find.text('Small'), findsOneWidget);
-    expect(find.text('Shift totals'), findsNothing);
-    expect(find.text('Expected closing'), findsNothing);
-    expect(find.text('Counted closing'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('manager sheet shows the totals card', (tester) async {
+  testWidgets('manager sheet shows cash drawer, sales and delivery', (
+    tester,
+  ) async {
     await _pump(tester, _payload(manager: true));
-    expect(find.text('Shift totals'), findsOneWidget);
-    expect(find.text('Expected closing'), findsOneWidget);
-    expect(find.text('Counted closing'), findsOneWidget);
+    expect(find.text('Cash drawer'), findsOneWidget);
+    expect(find.text('Opening cash'), findsOneWidget);
+    expect(find.text('Cash sales at the branch'), findsOneWidget);
+    expect(find.text('Expected in drawer'), findsOneWidget);
+    expect(find.text('Counted'), findsOneWidget);
+    expect(find.textContaining('Short'), findsOneWidget);
+    // zero rows are hidden
+    expect(find.text('Refunds paid in cash'), findsNothing);
+    expect(find.text('Handed over / deposited'), findsNothing);
+
+    // The expenses row expands to its voucher lines.
+    expect(find.text('Ice'), findsNothing);
+    await tester.tap(find.text('Expenses & advances'));
+    await tester.pumpAndSettle();
+    expect(find.text('Ice'), findsOneWidget);
+
+    await tester.scrollUntilVisible(find.text('Sales total'), 200);
     expect(find.text('Sales total'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Delivery loss'), 200);
+    expect(find.text('Delivery loss'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.textContaining('Courier handed in'),
+      200,
+    );
+    expect(find.textContaining('Courier cost '), findsOneWidget);
+    expect(find.textContaining('Courier handed in'), findsOneWidget);
+    expect(find.textContaining('Settled:'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('open shift shows expected so far and hides the count', (
+    tester,
+  ) async {
+    final payload = _payload(manager: true);
+    payload['cash_flow'] = {
+      ...(payload['cash_flow'] as Map<String, dynamic>),
+      'is_open': true,
+      'counted': null,
+      'difference': null,
+    };
+    await _pump(tester, payload);
+    expect(find.text('Expected so far'), findsOneWidget);
+    expect(find.text('Counted'), findsNothing);
+    expect(find.byKey(const ValueKey('shiftSheetDiffPill')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('manager sheet from an old server has no cash or delivery card', (
+    tester,
+  ) async {
+    final payload = _payload(manager: true)..remove('cash_flow');
+    (payload['totals'] as Map<String, dynamic>).remove('delivery_orders');
+    await _pump(tester, payload);
+    expect(find.text('Cash drawer'), findsNothing);
+    expect(find.text('Sales total'), findsOneWidget);
+    expect(find.text('Delivery loss'), findsNothing);
+    expect(find.text('Delivery profit'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -128,7 +224,7 @@ void main() {
   ) async {
     await _pump(tester, _payload(manager: true), locale: const Locale('ar'));
     expect(find.text('ورقة الوردية'), findsOneWidget);
-    expect(find.text('إجماليات الوردية'), findsOneWidget);
+    expect(find.text('درج الكاش'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

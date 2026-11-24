@@ -11988,5 +11988,66 @@
         "type": "String"
       }
     }
+  },
+  "shiftSheetCashTitle": "Cash drawer",
+  "shiftSheetCashSales": "Cash sales at the branch",
+  "shiftSheetCashCourierOrders": "Order money from couriers",
+  "shiftSheetCashCourierFees": "Courier fees paid",
+  "shiftSheetCashExpenses": "Expenses & advances",
+  "shiftSheetCashRefunds": "Refunds paid in cash",
+  "shiftSheetCashHandovers": "Handed over / deposited",
+  "shiftSheetCashOther": "Other movements",
+  "shiftSheetCashExpected": "Expected in drawer",
+  "shiftSheetCashExpectedSoFar": "Expected so far",
+  "shiftSheetCashCounted": "Counted",
+  "shiftSheetCashMatches": "Matches",
+  "shiftSheetCashShort": "Short {amount}",
+  "@shiftSheetCashShort": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetCashOver": "Over {amount}",
+  "@shiftSheetCashOver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetSalesTitle": "Sales",
+  "shiftSheetSalesOrdersCreated": "Orders created this shift",
+  "shiftSheetSalesDeliveryCharged": "Delivery charged",
+  "shiftSheetDeliveryTitle": "Delivery",
+  "shiftSheetDeliveryOrdersOut": "Orders sent out",
+  "shiftSheetDeliveryIncome": "Customers paid for delivery",
+  "shiftSheetDeliveryCost": "Courier cost",
+  "shiftSheetDeliveryProfit": "Delivery profit",
+  "shiftSheetDeliveryLoss": "Delivery loss",
+  "shiftSheetRowCourierCost": "Courier cost {amount}",
+  "@shiftSheetRowCourierCost": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetRowCourierHandedIn": "Courier handed in {amount}",
+  "@shiftSheetRowCourierHandedIn": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetRowBranchPaidCourier": "Branch paid courier {amount}",
+  "@shiftSheetRowBranchPaidCourier": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

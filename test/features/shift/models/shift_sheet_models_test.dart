@@ -175,4 +175,145 @@ void main() {
     expect(t.returnsAmount, 100);
     expect(t.bankRefunds, 80);
   });
+
+  test(
+    'old server JSON defaults the courier, delivery and cash-flow fields',
+    () {
+      final sheet = ShiftSheet.fromJson({
+        'opening_entry': 'O',
+        'amounts_hidden': 0,
+        'orders': [
+          {'name': 'A', 'delivery_fee': 30},
+        ],
+        'totals': {'orders': 1},
+      });
+      final o = sheet.orders.single;
+      expect(o.shippingExpense, isNull);
+      expect(o.courierCashIn, 0);
+      expect(o.courierFeePaid, 0);
+      final t = sheet.totals!;
+      expect(t.deliveryOrders, 0);
+      expect(t.deliveryIncome, 0);
+      expect(t.deliveryCost, 0);
+      expect(t.deliveryNet, 0);
+      expect(t.courierCashIn, 0);
+      expect(t.courierFeesPaid, 0);
+      expect(sheet.cashFlow, isNull);
+    },
+  );
+
+  test('parses per-order courier money and delivery totals', () {
+    final sheet = ShiftSheet.fromJson({
+      'opening_entry': 'O',
+      'orders': [
+        {
+          'name': 'A',
+          'shipping_expense': '45',
+          'courier_cash_in': 205,
+          'courier_fee_paid': 45,
+        },
+        {'name': 'B', 'shipping_expense': 0, 'courier_cash_in': '-60'},
+        {'name': 'C', 'shipping_expense': null},
+      ],
+      'totals': {
+        'delivery_orders': '12',
+        'delivery_income': 360,
+        'delivery_cost': 540.5,
+        'delivery_net': -180.5,
+        'courier_cash_in': 5800,
+        'courier_fees_paid': 995,
+      },
+      'cash_flow': null,
+    });
+    final a = sheet.orders[0];
+    expect(a.shippingExpense, 45);
+    expect(a.courierCashIn, 205);
+    expect(a.courierFeePaid, 45);
+    expect(sheet.orders[1].shippingExpense, 0);
+    expect(sheet.orders[1].courierCashIn, -60);
+    expect(sheet.orders[2].shippingExpense, isNull);
+    final t = sheet.totals!;
+    expect(t.deliveryOrders, 12);
+    expect(t.deliveryIncome, 360);
+    expect(t.deliveryCost, 540.5);
+    expect(t.deliveryNet, -180.5);
+    expect(t.courierCashIn, 5800);
+    expect(t.courierFeesPaid, 995);
+    expect(sheet.cashFlow, isNull);
+  });
+
+  test('parses the cash_flow waterfall and its lines', () {
+    final sheet = ShiftSheet.fromJson({
+      'opening_entry': 'O',
+      'cash_flow': {
+        'opening': 101,
+        'sales_cash': 240,
+        'courier_orders': 5800,
+        'courier_fees': -995,
+        'expenses': '-95',
+        'refunds': 0,
+        'handovers': -3000,
+        'other': 0,
+        'expected': 2051,
+        'counted': 2051,
+        'difference': 0,
+        'is_open': false,
+        'lines': [
+          {
+            'kind': 'handovers',
+            'voucher_type': 'Journal Entry',
+            'voucher_no': 'ACC-JV-1',
+            'label': 'Cash - J',
+            'amount': -3000,
+            'at': '2026-11-23T22:10:00',
+          },
+          {'kind': 'expenses', 'voucher_no': 'EXP-1', 'amount': -95},
+          'junk',
+        ],
+      },
+    });
+    final f = sheet.cashFlow!;
+    expect(f.opening, 101);
+    expect(f.salesCash, 240);
+    expect(f.courierOrders, 5800);
+    expect(f.courierFees, -995);
+    expect(f.expenses, -95);
+    expect(f.handovers, -3000);
+    expect(f.expected, 2051);
+    expect(f.counted, 2051);
+    expect(f.difference, 0);
+    expect(f.isOpen, isFalse);
+    expect(
+      f.opening +
+          ShiftSheetCashFlow.kinds.map(f.amountOf).reduce((a, b) => a + b),
+      f.expected,
+    );
+    expect(f.lines.length, 2);
+    final h = f.linesOf('handovers').single;
+    expect(h.voucherType, 'Journal Entry');
+    expect(h.label, 'Cash - J');
+    expect(h.amount, -3000);
+    expect(h.at, DateTime(2026, 11, 23, 22, 10));
+    // label falls back to the voucher number
+    expect(f.linesOf('expenses').single.label, 'EXP-1');
+    expect(f.linesOf('refunds'), isEmpty);
+  });
+
+  test('open shift cash_flow keeps counted and difference null', () {
+    final f = ShiftSheet.fromJson({
+      'opening_entry': 'O',
+      'cash_flow': {
+        'opening': 100,
+        'expected': 100,
+        'counted': null,
+        'difference': null,
+        'is_open': 1,
+      },
+    }).cashFlow!;
+    expect(f.isOpen, isTrue);
+    expect(f.counted, isNull);
+    expect(f.difference, isNull);
+    expect(f.lines, isEmpty);
+    expect(f.salesCash, 0);
+  });
 }

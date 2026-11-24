@@ -7759,5 +7759,66 @@
         "type": "String"
       }
     }
+  },
+  "shiftSheetCashTitle": "درج الكاش",
+  "shiftSheetCashSales": "مبيعات كاش في الفرع",
+  "shiftSheetCashCourierOrders": "فلوس الطلبات من السعاة",
+  "shiftSheetCashCourierFees": "أجرة السعاة",
+  "shiftSheetCashExpenses": "مصروفات وسلف",
+  "shiftSheetCashRefunds": "مرتجعات اتردت كاش",
+  "shiftSheetCashHandovers": "اتسلّم أو اتورّد",
+  "shiftSheetCashOther": "حركات تانية",
+  "shiftSheetCashExpected": "المفروض في الدرج",
+  "shiftSheetCashExpectedSoFar": "المفروض لحد دلوقتي",
+  "shiftSheetCashCounted": "المعدود",
+  "shiftSheetCashMatches": "مظبوط",
+  "shiftSheetCashShort": "ناقص {amount}",
+  "@shiftSheetCashShort": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetCashOver": "زيادة {amount}",
+  "@shiftSheetCashOver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetSalesTitle": "المبيعات",
+  "shiftSheetSalesOrdersCreated": "طلبات اتعملت في الوردية",
+  "shiftSheetSalesDeliveryCharged": "توصيل على العملاء",
+  "shiftSheetDeliveryTitle": "التوصيل",
+  "shiftSheetDeliveryOrdersOut": "طلبات خرجت",
+  "shiftSheetDeliveryIncome": "العملاء دفعوا توصيل",
+  "shiftSheetDeliveryCost": "تكلفة السعاة",
+  "shiftSheetDeliveryProfit": "مكسب التوصيل",
+  "shiftSheetDeliveryLoss": "خسارة التوصيل",
+  "shiftSheetRowCourierCost": "تكلفة الساعي {amount}",
+  "@shiftSheetRowCourierCost": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetRowCourierHandedIn": "الساعي سلّم {amount}",
+  "@shiftSheetRowCourierHandedIn": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetRowBranchPaidCourier": "الفرع دفع للساعي {amount}",
+  "@shiftSheetRowBranchPaidCourier": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

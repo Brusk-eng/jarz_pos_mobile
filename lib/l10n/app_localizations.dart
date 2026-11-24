@@ -36285,6 +36285,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'From {account}'**
   String returnRefundFromAccount(String account);
+
+  /// No description provided for @shiftSheetCashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash drawer'**
+  String get shiftSheetCashTitle;
+
+  /// No description provided for @shiftSheetCashSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash sales at the branch'**
+  String get shiftSheetCashSales;
+
+  /// No description provided for @shiftSheetCashCourierOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Order money from couriers'**
+  String get shiftSheetCashCourierOrders;
+
+  /// No description provided for @shiftSheetCashCourierFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier fees paid'**
+  String get shiftSheetCashCourierFees;
+
+  /// No description provided for @shiftSheetCashExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses & advances'**
+  String get shiftSheetCashExpenses;
+
+  /// No description provided for @shiftSheetCashRefunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunds paid in cash'**
+  String get shiftSheetCashRefunds;
+
+  /// No description provided for @shiftSheetCashHandovers.
+  ///
+  /// In en, this message translates to:
+  /// **'Handed over / deposited'**
+  String get shiftSheetCashHandovers;
+
+  /// No description provided for @shiftSheetCashOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other movements'**
+  String get shiftSheetCashOther;
+
+  /// No description provided for @shiftSheetCashExpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected in drawer'**
+  String get shiftSheetCashExpected;
+
+  /// No description provided for @shiftSheetCashExpectedSoFar.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected so far'**
+  String get shiftSheetCashExpectedSoFar;
+
+  /// No description provided for @shiftSheetCashCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted'**
+  String get shiftSheetCashCounted;
+
+  /// No description provided for @shiftSheetCashMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get shiftSheetCashMatches;
+
+  /// No description provided for @shiftSheetCashShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Short {amount}'**
+  String shiftSheetCashShort(String amount);
+
+  /// No description provided for @shiftSheetCashOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over {amount}'**
+  String shiftSheetCashOver(String amount);
+
+  /// No description provided for @shiftSheetSalesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get shiftSheetSalesTitle;
+
+  /// No description provided for @shiftSheetSalesOrdersCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders created this shift'**
+  String get shiftSheetSalesOrdersCreated;
+
+  /// No description provided for @shiftSheetSalesDeliveryCharged.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery charged'**
+  String get shiftSheetSalesDeliveryCharged;
+
+  /// No description provided for @shiftSheetDeliveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get shiftSheetDeliveryTitle;
+
+  /// No description provided for @shiftSheetDeliveryOrdersOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders sent out'**
+  String get shiftSheetDeliveryOrdersOut;
+
+  /// No description provided for @shiftSheetDeliveryIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers paid for delivery'**
+  String get shiftSheetDeliveryIncome;
+
+  /// No description provided for @shiftSheetDeliveryCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier cost'**
+  String get shiftSheetDeliveryCost;
+
+  /// No description provided for @shiftSheetDeliveryProfit.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery profit'**
+  String get shiftSheetDeliveryProfit;
+
+  /// No description provided for @shiftSheetDeliveryLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery loss'**
+  String get shiftSheetDeliveryLoss;
+
+  /// No description provided for @shiftSheetRowCourierCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier cost {amount}'**
+  String shiftSheetRowCourierCost(String amount);
+
+  /// No description provided for @shiftSheetRowCourierHandedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier handed in {amount}'**
+  String shiftSheetRowCourierHandedIn(String amount);
+
+  /// No description provided for @shiftSheetRowBranchPaidCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch paid courier {amount}'**
+  String shiftSheetRowBranchPaidCourier(String amount);
 }
 
 class _AppLocalizationsDelegate

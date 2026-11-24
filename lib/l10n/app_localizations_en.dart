@@ -21981,4 +21981,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String returnRefundFromAccount(String account) {
     return 'From $account';
   }
+
+  @override
+  String get shiftSheetCashTitle => 'Cash drawer';
+
+  @override
+  String get shiftSheetCashSales => 'Cash sales at the branch';
+
+  @override
+  String get shiftSheetCashCourierOrders => 'Order money from couriers';
+
+  @override
+  String get shiftSheetCashCourierFees => 'Courier fees paid';
+
+  @override
+  String get shiftSheetCashExpenses => 'Expenses & advances';
+
+  @override
+  String get shiftSheetCashRefunds => 'Refunds paid in cash';
+
+  @override
+  String get shiftSheetCashHandovers => 'Handed over / deposited';
+
+  @override
+  String get shiftSheetCashOther => 'Other movements';
+
+  @override
+  String get shiftSheetCashExpected => 'Expected in drawer';
+
+  @override
+  String get shiftSheetCashExpectedSoFar => 'Expected so far';
+
+  @override
+  String get shiftSheetCashCounted => 'Counted';
+
+  @override
+  String get shiftSheetCashMatches => 'Matches';
+
+  @override
+  String shiftSheetCashShort(String amount) {
+    return 'Short $amount';
+  }
+
+  @override
+  String shiftSheetCashOver(String amount) {
+    return 'Over $amount';
+  }
+
+  @override
+  String get shiftSheetSalesTitle => 'Sales';
+
+  @override
+  String get shiftSheetSalesOrdersCreated => 'Orders created this shift';
+
+  @override
+  String get shiftSheetSalesDeliveryCharged => 'Delivery charged';
+
+  @override
+  String get shiftSheetDeliveryTitle => 'Delivery';
+
+  @override
+  String get shiftSheetDeliveryOrdersOut => 'Orders sent out';
+
+  @override
+  String get shiftSheetDeliveryIncome => 'Customers paid for delivery';
+
+  @override
+  String get shiftSheetDeliveryCost => 'Courier cost';
+
+  @override
+  String get shiftSheetDeliveryProfit => 'Delivery profit';
+
+  @override
+  String get shiftSheetDeliveryLoss => 'Delivery loss';
+
+  @override
+  String shiftSheetRowCourierCost(String amount) {
+    return 'Courier cost $amount';
+  }
+
+  @override
+  String shiftSheetRowCourierHandedIn(String amount) {
+    return 'Courier handed in $amount';
+  }
+
+  @override
+  String shiftSheetRowBranchPaidCourier(String amount) {
+    return 'Branch paid courier $amount';
+  }
 }

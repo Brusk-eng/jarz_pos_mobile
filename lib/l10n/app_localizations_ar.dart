@@ -21963,4 +21963,92 @@ class AppLocalizationsAr extends AppLocalizations {
   String returnRefundFromAccount(String account) {
     return 'من $account';
   }
+
+  @override
+  String get shiftSheetCashTitle => 'درج الكاش';
+
+  @override
+  String get shiftSheetCashSales => 'مبيعات كاش في الفرع';
+
+  @override
+  String get shiftSheetCashCourierOrders => 'فلوس الطلبات من السعاة';
+
+  @override
+  String get shiftSheetCashCourierFees => 'أجرة السعاة';
+
+  @override
+  String get shiftSheetCashExpenses => 'مصروفات وسلف';
+
+  @override
+  String get shiftSheetCashRefunds => 'مرتجعات اتردت كاش';
+
+  @override
+  String get shiftSheetCashHandovers => 'اتسلّم أو اتورّد';
+
+  @override
+  String get shiftSheetCashOther => 'حركات تانية';
+
+  @override
+  String get shiftSheetCashExpected => 'المفروض في الدرج';
+
+  @override
+  String get shiftSheetCashExpectedSoFar => 'المفروض لحد دلوقتي';
+
+  @override
+  String get shiftSheetCashCounted => 'المعدود';
+
+  @override
+  String get shiftSheetCashMatches => 'مظبوط';
+
+  @override
+  String shiftSheetCashShort(String amount) {
+    return 'ناقص $amount';
+  }
+
+  @override
+  String shiftSheetCashOver(String amount) {
+    return 'زيادة $amount';
+  }
+
+  @override
+  String get shiftSheetSalesTitle => 'المبيعات';
+
+  @override
+  String get shiftSheetSalesOrdersCreated => 'طلبات اتعملت في الوردية';
+
+  @override
+  String get shiftSheetSalesDeliveryCharged => 'توصيل على العملاء';
+
+  @override
+  String get shiftSheetDeliveryTitle => 'التوصيل';
+
+  @override
+  String get shiftSheetDeliveryOrdersOut => 'طلبات خرجت';
+
+  @override
+  String get shiftSheetDeliveryIncome => 'العملاء دفعوا توصيل';
+
+  @override
+  String get shiftSheetDeliveryCost => 'تكلفة السعاة';
+
+  @override
+  String get shiftSheetDeliveryProfit => 'مكسب التوصيل';
+
+  @override
+  String get shiftSheetDeliveryLoss => 'خسارة التوصيل';
+
+  @override
+  String shiftSheetRowCourierCost(String amount) {
+    return 'تكلفة الساعي $amount';
+  }
+
+  @override
+  String shiftSheetRowCourierHandedIn(String amount) {
+    return 'الساعي سلّم $amount';
+  }
+
+  @override
+  String shiftSheetRowBranchPaidCourier(String amount) {
+    return 'الفرع دفع للساعي $amount';
+  }
 }

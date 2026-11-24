@@ -45,6 +45,13 @@ List<String> _reasons(dynamic v) {
   return out.isEmpty ? const ['created'] : out;
 }
 
+double? _optNum(dynamic v) {
+  if (v == null) return null;
+  if (v is String && v.trim().isEmpty) return null;
+  if (v is num || v is String) return _num(v);
+  return null;
+}
+
 DateTime? _date(dynamic v) {
   final s = _str(v);
   if (s == null) return null;
@@ -70,6 +77,9 @@ class ShiftSheetOrder {
     this.outForDeliveryAt,
     this.settledAt,
     this.settledAmount = 0,
+    this.shippingExpense,
+    this.courierCashIn = 0,
+    this.courierFeePaid = 0,
   });
 
   factory ShiftSheetOrder.fromJson(Map<String, dynamic> json) {
@@ -92,6 +102,9 @@ class ShiftSheetOrder {
       outForDeliveryAt: _date(json['out_for_delivery_at']),
       settledAt: _date(json['settled_at']),
       settledAmount: _num(json['settled_amount']),
+      shippingExpense: _optNum(json['shipping_expense']),
+      courierCashIn: _num(json['courier_cash_in']),
+      courierFeePaid: _num(json['courier_fee_paid']),
     );
   }
 
@@ -115,7 +128,22 @@ class ShiftSheetOrder {
   final List<String> reasons;
   final DateTime? outForDeliveryAt;
   final DateTime? settledAt;
+
+  /// Gross order money settled in this shift. Parsed for compatibility but
+  /// no longer shown: [courierCashIn] is what actually reached the drawer.
   final double settledAmount;
+
+  /// Courier cost of the order. 0 for pickup and for partner deliveries we
+  /// don't pay; null while the order has not gone out yet (or old server).
+  final double? shippingExpense;
+
+  /// Cash the courier handed the branch for this order in this shift (order
+  /// money minus the courier's fee). Negative when the branch paid the
+  /// courier (prepaid order). 0 when not settled in this shift.
+  final double courierCashIn;
+
+  /// Courier fee deducted at that settlement.
+  final double courierFeePaid;
 
   bool get isNew => reasons.contains('created');
   bool get isOutForDelivery => reasons.contains('out_for_delivery');
@@ -235,6 +263,12 @@ class ShiftSheetTotals {
     this.returnsAmount = 0,
     this.cashRefunds = 0,
     this.bankRefunds = 0,
+    this.deliveryOrders = 0,
+    this.deliveryIncome = 0,
+    this.deliveryCost = 0,
+    this.deliveryNet = 0,
+    this.courierCashIn = 0,
+    this.courierFeesPaid = 0,
   });
 
   factory ShiftSheetTotals.fromJson(Map<String, dynamic> json) {
@@ -257,6 +291,12 @@ class ShiftSheetTotals {
       returnsAmount: _num(json['returns_amount']),
       cashRefunds: _num(json['cash_refunds']),
       bankRefunds: _num(json['bank_refunds']),
+      deliveryOrders: _int(json['delivery_orders']),
+      deliveryIncome: _num(json['delivery_income']),
+      deliveryCost: _num(json['delivery_cost']),
+      deliveryNet: _num(json['delivery_net']),
+      courierCashIn: _num(json['courier_cash_in']),
+      courierFeesPaid: _num(json['courier_fees_paid']),
     );
   }
 
@@ -277,6 +317,132 @@ class ShiftSheetTotals {
   final double returnsAmount;
   final double cashRefunds;
   final double bankRefunds;
+
+  /// Orders sent out for delivery in this shift (not pickup).
+  final int deliveryOrders;
+
+  /// Delivery charged to customers on [deliveryOrders].
+  final double deliveryIncome;
+
+  /// Courier cost of [deliveryOrders].
+  final double deliveryCost;
+
+  /// [deliveryIncome] minus [deliveryCost]; negative = delivery ran at a loss.
+  final double deliveryNet;
+  final double courierCashIn;
+  final double courierFeesPaid;
+}
+
+/// One voucher behind a cash-drawer movement.
+class ShiftSheetCashLine {
+  const ShiftSheetCashLine({
+    required this.kind,
+    this.voucherType,
+    this.voucherNo,
+    this.label = '',
+    this.amount = 0,
+    this.at,
+  });
+
+  factory ShiftSheetCashLine.fromJson(Map<String, dynamic> json) {
+    final voucherNo = _str(json['voucher_no']);
+    return ShiftSheetCashLine(
+      kind: _str(json['kind']) ?? 'other',
+      voucherType: _str(json['voucher_type']),
+      voucherNo: voucherNo,
+      label: _str(json['label']) ?? voucherNo ?? '',
+      amount: _num(json['amount']),
+      at: _date(json['at']),
+    );
+  }
+
+  /// One of [ShiftSheetCashFlow.kinds].
+  final String kind;
+  final String? voucherType;
+  final String? voucherNo;
+  final String label;
+
+  /// Signed: money out of the drawer is negative.
+  final double amount;
+  final DateTime? at;
+}
+
+/// How the drawer got from the opening cash to the expected closing cash.
+///
+/// Manager-only; null for staff and on servers that predate it. Signs are
+/// applied by the server and `opening + every kind == expected`.
+class ShiftSheetCashFlow {
+  const ShiftSheetCashFlow({
+    this.opening = 0,
+    this.salesCash = 0,
+    this.courierOrders = 0,
+    this.courierFees = 0,
+    this.expenses = 0,
+    this.refunds = 0,
+    this.handovers = 0,
+    this.other = 0,
+    this.expected = 0,
+    this.counted,
+    this.difference,
+    this.isOpen = false,
+    this.lines = const [],
+  });
+
+  factory ShiftSheetCashFlow.fromJson(Map<String, dynamic> json) {
+    return ShiftSheetCashFlow(
+      opening: _num(json['opening']),
+      salesCash: _num(json['sales_cash']),
+      courierOrders: _num(json['courier_orders']),
+      courierFees: _num(json['courier_fees']),
+      expenses: _num(json['expenses']),
+      refunds: _num(json['refunds']),
+      handovers: _num(json['handovers']),
+      other: _num(json['other']),
+      expected: _num(json['expected']),
+      counted: _optNum(json['counted']),
+      difference: _optNum(json['difference']),
+      isOpen: _flag(json['is_open']),
+      lines: _rows(json['lines']).map(ShiftSheetCashLine.fromJson).toList(),
+    );
+  }
+
+  /// Movement kinds in display order.
+  static const kinds = <String>[
+    'sales_cash',
+    'courier_orders',
+    'courier_fees',
+    'expenses',
+    'refunds',
+    'handovers',
+    'other',
+  ];
+
+  final double opening;
+  final double salesCash;
+  final double courierOrders;
+  final double courierFees;
+  final double expenses;
+  final double refunds;
+  final double handovers;
+  final double other;
+  final double expected;
+  final double? counted;
+  final double? difference;
+  final bool isOpen;
+  final List<ShiftSheetCashLine> lines;
+
+  double amountOf(String kind) => switch (kind) {
+    'sales_cash' => salesCash,
+    'courier_orders' => courierOrders,
+    'courier_fees' => courierFees,
+    'expenses' => expenses,
+    'refunds' => refunds,
+    'handovers' => handovers,
+    _ => other,
+  };
+
+  List<ShiftSheetCashLine> linesOf(String kind) =>
+      lines.where((l) => l.kind == kind).toList(growable: false);
 }
 
 class ShiftSheet {
@@ -297,10 +463,12 @@ class ShiftSheet {
     this.payouts = const [],
     this.returns = const [],
     this.totals,
+    this.cashFlow,
   });
 
   factory ShiftSheet.fromJson(Map<String, dynamic> json) {
     final totalsRaw = json['totals'];
+    final cashFlowRaw = json['cash_flow'];
     return ShiftSheet(
       openingEntry: _str(json['opening_entry']) ?? '',
       closingEntry: _str(json['closing_entry']),
@@ -314,15 +482,20 @@ class ShiftSheet {
       isManagerView: _flag(json['is_manager_view']),
       // Hidden unless the server says otherwise: failing closed keeps the
       // blind count blind if the field ever goes missing.
-      amountsHidden:
-          json.containsKey('amounts_hidden') ? _flag(json['amounts_hidden']) : true,
+      amountsHidden: json.containsKey('amounts_hidden')
+          ? _flag(json['amounts_hidden'])
+          : true,
       orders: _rows(json['orders']).map(ShiftSheetOrder.fromJson).toList(),
-      jarsByFlavour:
-          _rows(json['jars_by_flavour']).map(ShiftSheetFlavour.fromJson).toList(),
+      jarsByFlavour: _rows(
+        json['jars_by_flavour'],
+      ).map(ShiftSheetFlavour.fromJson).toList(),
       payouts: _rows(json['payouts']).map(ShiftSheetPayout.fromJson).toList(),
       returns: _rows(json['returns']).map(ShiftSheetReturn.fromJson).toList(),
       totals: totalsRaw is Map
           ? ShiftSheetTotals.fromJson(Map<String, dynamic>.from(totalsRaw))
+          : null,
+      cashFlow: cashFlowRaw is Map
+          ? ShiftSheetCashFlow.fromJson(Map<String, dynamic>.from(cashFlowRaw))
           : null,
     );
   }
@@ -343,6 +516,9 @@ class ShiftSheet {
   final List<ShiftSheetPayout> payouts;
   final List<ShiftSheetReturn> returns;
   final ShiftSheetTotals? totals;
+
+  /// Manager-only drawer waterfall; null for staff and older servers.
+  final ShiftSheetCashFlow? cashFlow;
 
   String get staffLabel => userFullName.isNotEmpty ? userFullName : user;
   String get branchDisplay => branchLabel.isNotEmpty ? branchLabel : posProfile;

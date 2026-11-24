@@ -17,9 +17,10 @@ final shiftSheetProvider = FutureProvider.autoDispose
 
 /// The digital replacement for the paper sales sheet.
 ///
-/// Staff get rows only; the server withholds `totals` from them, so the totals
-/// card is simply absent (no hint that it exists) and the blind count stays
-/// blind. Managers get the totals card as well.
+/// Staff get rows only; the server withholds `totals` and `cash_flow` from
+/// them, so the money cards are simply absent (no hint that they exist) and
+/// the blind count stays blind. Managers get, money first: the cash drawer
+/// waterfall, sales, and delivery result, then the order rows.
 class ShiftSheetScreen extends ConsumerWidget {
   const ShiftSheetScreen({super.key, required this.openingEntry});
 
@@ -95,15 +96,24 @@ class _SheetBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totals = sheet.totals;
+    final cashFlow = sheet.cashFlow;
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       children: [
         _Header(sheet: sheet),
         const SizedBox(height: 16),
-        if (totals != null) ...[
-          _TotalsCard(totals: totals),
+        if (cashFlow != null) ...[
+          _CashDrawerCard(flow: cashFlow),
           const SizedBox(height: 16),
+        ],
+        if (totals != null) ...[
+          _SalesCard(totals: totals),
+          const SizedBox(height: 16),
+          if (totals.deliveryOrders > 0) ...[
+            _DeliveryCard(totals: totals),
+            const SizedBox(height: 16),
+          ],
         ],
         _OrdersSection(
           orders: sheet.orders,
@@ -115,9 +125,9 @@ class _SheetBody extends StatelessWidget {
           amountsHidden: sheet.amountsHidden,
         ),
         const SizedBox(height: 16),
-        _FlavourSection(rows: sheet.jarsByFlavour),
-        const SizedBox(height: 16),
         _PayoutsSection(payouts: sheet.payouts),
+        const SizedBox(height: 16),
+        _FlavourSection(rows: sheet.jarsByFlavour),
       ],
     );
   }
@@ -223,12 +233,14 @@ class _OrdersSection extends StatefulWidget {
 class _OrdersSectionState extends State<_OrdersSection> {
   _OrderFilter _filter = _OrderFilter.all;
 
-  bool _matches(ShiftSheetOrder o) => switch (_filter) {
+  static bool _matchesFilter(ShiftSheetOrder o, _OrderFilter f) => switch (f) {
     _OrderFilter.all => true,
     _OrderFilter.created => o.isNew,
     _OrderFilter.outForDelivery => o.isOutForDelivery,
     _OrderFilter.settled => o.isSettled,
   };
+
+  bool _matches(ShiftSheetOrder o) => _matchesFilter(o, _filter);
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +266,9 @@ class _OrdersSectionState extends State<_OrdersSection> {
                 for (final f in _OrderFilter.values)
                   ChoiceChip(
                     key: ValueKey('shiftSheetFilter_${f.name}'),
-                    label: Text(labels[f]!),
+                    label: Text(
+                      '${labels[f]!} (${widget.orders.where((o) => _matchesFilter(o, f)).length})',
+                    ),
                     selected: _filter == f,
                     visualDensity: VisualDensity.compact,
                     onSelected: (_) => setState(() => _filter = f),
@@ -333,7 +347,10 @@ class _ReturnsSection extends StatelessWidget {
             Card(
               margin: const EdgeInsets.only(bottom: 8),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -391,7 +408,10 @@ class _OrderRow extends StatelessWidget {
     String hm(DateTime d) => formatDateTime(context, d, pattern: 'h:mm a');
     final reasonChips = <Widget>[
       if (order.isNew)
-        _ReasonChip(label: l10n.shiftSheetReasonNew, color: Colors.blue.shade700),
+        _ReasonChip(
+          label: l10n.shiftSheetReasonNew,
+          color: Colors.blue.shade700,
+        ),
       if (order.isOutForDelivery)
         _ReasonChip(
           label: l10n.shiftSheetReasonOutForDelivery,
@@ -406,14 +426,10 @@ class _OrderRow extends StatelessWidget {
         Text(l10n.shiftSheetOutForDeliveryAt(hm(ofd)), style: muted),
       if (settled != null)
         Text(l10n.shiftSheetSettledAt(hm(settled)), style: muted),
-      if (order.settledAmount > 0 && !amountsHidden)
-        Text(
-          l10n.shiftSheetSettledAmountLabel(
-            formatCurrency(context, order.settledAmount),
-          ),
-          style: muted,
-        ),
     ];
+
+    final shipping = order.shippingExpense;
+    final cashIn = order.courierCashIn;
 
     final details = <Widget>[
       Text(l10n.shiftSheetJarsCount(order.jars), style: muted),
@@ -425,6 +441,24 @@ class _OrderRow extends StatelessWidget {
               ),
         style: muted,
       ),
+      if (!amountsHidden && shipping != null && !order.isPickup)
+        Text(
+          l10n.shiftSheetRowCourierCost(formatCurrency(context, shipping)),
+          style: muted,
+        ),
+      if (!amountsHidden && cashIn.abs() >= 0.005)
+        Text(
+          cashIn > 0
+              ? l10n.shiftSheetRowCourierHandedIn(
+                  formatCurrency(context, cashIn),
+                )
+              : l10n.shiftSheetRowBranchPaidCourier(
+                  formatCurrency(context, -cashIn),
+                ),
+          style: muted?.copyWith(
+            color: cashIn > 0 ? Colors.green.shade700 : Colors.orange.shade800,
+          ),
+        ),
       if ((order.courier ?? '').isNotEmpty)
         Text(l10n.shiftSheetCourier(order.courier!), style: muted),
       if ((order.area ?? '').isNotEmpty) Text(order.area!, style: muted),
@@ -520,10 +554,20 @@ class _FlavourSection extends StatelessWidget {
         .where((r) => r.small != 0 || r.medium != 0 || r.large != 0)
         .toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    // Collapsed by default so the money comes first; the jar counts are a
+    // reference the manager opens on demand.
+    return ExpansionTile(
+      key: const ValueKey('shiftSheetFlavours'),
+      tilePadding: EdgeInsetsDirectional.zero,
+      childrenPadding: const EdgeInsetsDirectional.only(bottom: 8),
+      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      title: Text(
+        l10n.shiftSheetJarsByFlavour,
+        style: theme.textTheme.titleMedium,
+      ),
       children: [
-        _SectionTitle(l10n.shiftSheetJarsByFlavour),
         if (visible.isEmpty)
           Text(l10n.shiftSheetNoJars, style: theme.textTheme.bodyMedium)
         else
@@ -618,8 +662,271 @@ class _PayoutsSection extends StatelessWidget {
   }
 }
 
-class _TotalsCard extends StatelessWidget {
-  const _TotalsCard({required this.totals});
+/// One label/value line used by the manager cards.
+class _KvRow extends StatelessWidget {
+  const _KvRow({
+    required this.label,
+    this.value = '',
+    this.valueColor,
+    this.bold = false,
+    this.valueWidget,
+  });
+
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool bold;
+
+  /// Replaces the [value] text (e.g. the difference pill).
+  final Widget? valueWidget;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelStyle = bold
+        ? theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)
+        : theme.textTheme.bodyMedium;
+    final valueStyle = bold
+        ? theme.textTheme.titleMedium?.copyWith(
+            color: valueColor,
+            fontWeight: FontWeight.w700,
+          )
+        : theme.textTheme.titleSmall?.copyWith(color: valueColor);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(child: Text(label, style: labelStyle)),
+          const SizedBox(width: 8),
+          valueWidget ?? Text(value, style: valueStyle),
+        ],
+      ),
+    );
+  }
+}
+
+String _signedMoney(BuildContext context, double v) {
+  final abs = formatCurrency(context, v.abs());
+  if (v.abs() < 0.005) return abs;
+  return v > 0 ? '+$abs' : '−$abs';
+}
+
+bool _isZero(double v) => v.abs() < 0.005;
+
+/// The drawer waterfall: opening cash, each movement, then expected vs
+/// counted. Manager-only (the server sends `cash_flow` to managers only).
+class _CashDrawerCard extends StatelessWidget {
+  const _CashDrawerCard({required this.flow});
+
+  final ShiftSheetCashFlow flow;
+
+  String _kindLabel(BuildContext context, String kind) {
+    final l10n = context.l10n;
+    return switch (kind) {
+      'sales_cash' => l10n.shiftSheetCashSales,
+      'courier_orders' => l10n.shiftSheetCashCourierOrders,
+      'courier_fees' => l10n.shiftSheetCashCourierFees,
+      'expenses' => l10n.shiftSheetCashExpenses,
+      'refunds' => l10n.shiftSheetCashRefunds,
+      'handovers' => l10n.shiftSheetCashHandovers,
+      _ => l10n.shiftSheetCashOther,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final counted = flow.counted;
+    final diff =
+        flow.difference ?? (counted == null ? null : counted - flow.expected);
+
+    return Card(
+      key: const ValueKey('shiftSheetCashDrawer'),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionTitle(l10n.shiftSheetCashTitle),
+            _KvRow(
+              label: l10n.shiftSheetOpeningCash,
+              value: formatCurrency(context, flow.opening),
+            ),
+            for (final kind in ShiftSheetCashFlow.kinds)
+              if (!_isZero(flow.amountOf(kind)))
+                _CashMovementRow(
+                  key: ValueKey('shiftSheetCash_$kind'),
+                  label: _kindLabel(context, kind),
+                  amount: flow.amountOf(kind),
+                  lines: flow.linesOf(kind),
+                ),
+            const Divider(height: 20),
+            _KvRow(
+              label: flow.isOpen
+                  ? l10n.shiftSheetCashExpectedSoFar
+                  : l10n.shiftSheetCashExpected,
+              value: formatCurrency(context, flow.expected),
+              bold: true,
+            ),
+            if (!flow.isOpen) ...[
+              _KvRow(
+                label: l10n.shiftSheetCashCounted,
+                value: counted == null
+                    ? l10n.commonNotSpecified
+                    : formatCurrency(context, counted),
+              ),
+              if (diff != null)
+                _KvRow(
+                  label: l10n.shiftSheetDifference,
+                  valueWidget: _DiffPill(diff: diff),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Green "Matches", red "Short X" or orange "Over X".
+class _DiffPill extends StatelessWidget {
+  const _DiffPill({required this.diff});
+
+  final double diff;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final (String text, Color color) = _isZero(diff)
+        ? (l10n.shiftSheetCashMatches, Colors.green.shade700)
+        : diff < 0
+        ? (
+            l10n.shiftSheetCashShort(formatCurrency(context, -diff)),
+            Colors.red.shade700,
+          )
+        : (
+            l10n.shiftSheetCashOver(formatCurrency(context, diff)),
+            Colors.orange.shade800,
+          );
+    return Container(
+      key: const ValueKey('shiftSheetDiffPill'),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+/// A waterfall row; when the server sent the vouchers behind it, tapping it
+/// lists them inline.
+class _CashMovementRow extends StatefulWidget {
+  const _CashMovementRow({
+    super.key,
+    required this.label,
+    required this.amount,
+    required this.lines,
+  });
+
+  final String label;
+  final double amount;
+  final List<ShiftSheetCashLine> lines;
+
+  @override
+  State<_CashMovementRow> createState() => _CashMovementRowState();
+}
+
+class _CashMovementRowState extends State<_CashMovementRow> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final value = _signedMoney(context, widget.amount);
+    if (widget.lines.isEmpty) {
+      return _KvRow(label: widget.label, value: value);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          borderRadius: BorderRadius.circular(6),
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(widget.label, style: theme.textTheme.bodyMedium),
+                ),
+                Icon(
+                  _expanded ? Icons.expand_less : Icons.expand_more,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const Spacer(),
+                const SizedBox(width: 8),
+                Text(value, style: theme.textTheme.titleSmall),
+              ],
+            ),
+          ),
+        ),
+        if (_expanded)
+          Container(
+            margin: const EdgeInsetsDirectional.only(start: 8, bottom: 4),
+            decoration: BoxDecoration(
+              border: BorderDirectional(
+                start: BorderSide(color: theme.dividerColor, width: 2),
+              ),
+            ),
+            child: Column(
+              children: [
+                for (final line in widget.lines)
+                  ListTile(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: const EdgeInsetsDirectional.only(start: 8),
+                    title: Text(
+                      line.label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: line.at == null
+                        ? null
+                        : Text(
+                            formatDateTime(
+                              context,
+                              line.at!,
+                              pattern: 'h:mm a',
+                            ),
+                          ),
+                    trailing: Text(
+                      _signedMoney(context, line.amount),
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Sales of the orders created in this shift (manager only).
+class _SalesCard extends StatelessWidget {
+  const _SalesCard({required this.totals});
 
   final ShiftSheetTotals totals;
 
@@ -627,95 +934,77 @@ class _TotalsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final diff = totals.difference;
-    final diffColor = diff == null || diff == 0
-        ? null
-        : (diff > 0 ? Colors.green.shade700 : Colors.red.shade700);
-
-    Widget row(String label, String value, {Color? color}) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-            const SizedBox(width: 8),
-            Text(
-              value,
-              style: theme.textTheme.titleSmall?.copyWith(color: color),
-            ),
-          ],
-        ),
-      );
-    }
-
-    String optMoney(double? v) =>
-        v == null ? l10n.commonNotSpecified : formatCurrency(context, v);
-
     return Card(
+      key: const ValueKey('shiftSheetSales'),
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionTitle(l10n.shiftSheetTotalsTitle),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                l10n.shiftSheetSalesNote,
-                style: theme.textTheme.bodySmall,
-              ),
+            _SectionTitle(l10n.shiftSheetSalesTitle),
+            _KvRow(
+              label: l10n.shiftSheetSalesOrdersCreated,
+              value: '${totals.orders}',
             ),
-            row(l10n.shiftSheetTotalOrders, '${totals.orders}'),
-            row(l10n.shiftSheetTotalJars, '${totals.jars}'),
-            row(
-              l10n.shiftSheetTotalSales,
-              formatCurrency(context, totals.grandTotal),
+            _KvRow(label: l10n.shiftSheetTotalJars, value: '${totals.jars}'),
+            _KvRow(
+              label: l10n.shiftSheetTotalSales,
+              value: formatCurrency(context, totals.grandTotal),
             ),
-            row(
-              l10n.shiftSheetTotalDeliveryFees,
-              formatCurrency(context, totals.deliveryFees),
+            _KvRow(
+              label: l10n.shiftSheetSalesDeliveryCharged,
+              value: formatCurrency(context, totals.deliveryFees),
             ),
-            row(
-              l10n.shiftSheetTotalPayouts,
-              formatCurrency(context, totals.payouts),
+            const SizedBox(height: 4),
+            Text(l10n.shiftSheetSalesNote, style: theme.textTheme.bodySmall),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// What delivery earned versus what the couriers cost (manager only).
+class _DeliveryCard extends StatelessWidget {
+  const _DeliveryCard({required this.totals});
+
+  final ShiftSheetTotals totals;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final net = totals.deliveryNet;
+    final loss = net < 0 && !_isZero(net);
+    return Card(
+      key: const ValueKey('shiftSheetDelivery'),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionTitle(l10n.shiftSheetDeliveryTitle),
+            _KvRow(
+              label: l10n.shiftSheetDeliveryOrdersOut,
+              value: '${totals.deliveryOrders}',
             ),
-            const Divider(height: 20),
-            row(l10n.shiftSheetTotalNewOrders, '${totals.newOrders}'),
-            row(
-              l10n.shiftSheetTotalOutForDeliveryOrders,
-              '${totals.outForDeliveryOrders}',
+            _KvRow(
+              label: l10n.shiftSheetDeliveryIncome,
+              value: formatCurrency(context, totals.deliveryIncome),
             ),
-            row(l10n.shiftSheetTotalSettledOrders, '${totals.settledOrders}'),
-            row(
-              l10n.shiftSheetTotalSettledAmount,
-              formatCurrency(context, totals.settledAmount),
+            _KvRow(
+              label: l10n.shiftSheetDeliveryCost,
+              value: formatCurrency(context, totals.deliveryCost),
             ),
-            row(l10n.shiftSheetTotalReturns, '${totals.returns}'),
-            row(
-              l10n.shiftSheetTotalReturnsAmount,
-              formatCurrency(context, totals.returnsAmount),
-            ),
-            row(
-              l10n.shiftSheetTotalCashRefunds,
-              formatCurrency(context, totals.cashRefunds),
-            ),
-            row(
-              l10n.shiftSheetTotalBankRefunds,
-              formatCurrency(context, totals.bankRefunds),
-            ),
-            const Divider(height: 20),
-            row(
-              l10n.shiftSheetOpeningCash,
-              formatCurrency(context, totals.openingAmount),
-            ),
-            row(l10n.shiftSheetExpectedClosing, optMoney(totals.expectedClosing)),
-            row(l10n.shiftSheetCountedClosing, optMoney(totals.actualClosing)),
-            row(
-              l10n.shiftSheetDifference,
-              optMoney(totals.difference),
-              color: diffColor,
+            const Divider(height: 16),
+            _KvRow(
+              label: loss
+                  ? l10n.shiftSheetDeliveryLoss
+                  : l10n.shiftSheetDeliveryProfit,
+              value: formatCurrency(context, net.abs()),
+              valueColor: loss ? Colors.red.shade700 : Colors.green.shade700,
+              bold: true,
             ),
           ],
         ),
