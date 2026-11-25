@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/l10n/studio_labels.dart';
 import '../../../core/l10n/studio_strings.dart';
@@ -15,7 +16,11 @@ import '../../inbox/presentation/inbox_strings.dart';
 import '../../inbox/presentation/ui_helpers.dart';
 import '../../review/data/review_repository.dart';
 import '../../session/state/studio_session_notifier.dart';
+import '../../calendar/calendar_strings.dart';
 import '../../calendar/data/calendar_repository.dart';
+import '../../ideas/presentation/ideas_strings.dart';
+import '../../ideas/presentation/my_ideas_screen.dart' show myIdeasPath;
+import '../../pieces/presentation/piece_widgets.dart' show askText;
 import '../../results/presentation/piece_results_screen.dart' show fileReadFlow;
 import '../data/today_repository.dart';
 import '../state/today_state.dart';
@@ -110,6 +115,8 @@ class TodayBody extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
+            if (role == StudioRole.creator || role == StudioRole.story)
+              const _MyIdeasLink(),
             _TasksSection(role: role),
           ],
         ),
@@ -233,6 +240,27 @@ const _lineActions = {
 
 /// One line of a block. Tapping it opens `line.route`; inline buttons come
 /// only from `line.actions`.
+/// Creator and story lead: a way back to the ideas they brought.
+class _MyIdeasLink extends StatelessWidget {
+  const _MyIdeasLink();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: StudioSpacing.md),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TextButton.icon(
+          key: const ValueKey('today-my-ideas'),
+          onPressed: () => context.push(myIdeasPath),
+          icon: const Icon(Icons.lightbulb_outline, size: 18),
+          label: Text(IdeasStrings.of(context).myIdeas),
+        ),
+      ),
+    );
+  }
+}
+
 class TodayLineTile extends ConsumerStatefulWidget {
   const TodayLineTile({super.key, required this.line});
   final TodayLine line;
@@ -250,13 +278,27 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
     final inboxStrings = InboxStrings.of(context);
     final router = GoRouter.maybeOf(context);
     // Actions the line can do in place; the rest open the exact screen.
-    final inline = action == 'tick' || action == 'approve';
+    final inline =
+        action == 'tick' || action == 'approve' || action == 'wont_post';
     if (!inline) {
       router?.push(line.route);
       return;
     }
-    final notes = ref.read(todayDoneNotesProvider.notifier);
     final id = line.ref?.name ?? line.id;
+    // Won't post asks for the reason first (the same sheet as the post screen).
+    String? reason;
+    final c = CalendarStrings.of(context);
+    final wontDone = c.markedWont;
+    if (action == 'wont_post') {
+      reason = await askText(
+        context,
+        title: c.wontPostTitle,
+        label: c.reasonLabel,
+        requiredMessage: c.reasonNeeded,
+      );
+      if (reason == null || !mounted) return;
+    }
+    final notes = ref.read(todayDoneNotesProvider.notifier);
     // Taken before the write: the write refreshes Today at once.
     final block = ref
         .read(todayProvider)
@@ -270,6 +312,11 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
       if (action == 'tick') {
         await ref.read(todayRepositoryProvider).tick(id);
         next = t.tickedNext;
+      } else if (action == 'wont_post') {
+        await ref
+            .read(calendarRepositoryProvider)
+            .wontPost(id, reason!, requestId: const Uuid().v4());
+        next = wontDone;
       } else {
         final v = await ref.read(reviewRepositoryProvider).approve(id);
         final post = v.post;

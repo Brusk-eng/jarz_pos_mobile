@@ -133,6 +133,20 @@ class IdeasNotifier extends PagedNotifier<StudioIdea> {
   }
 }
 
+/// The ideas the signed-in person raised, every status (`mine=true`,
+/// `status=all`). Refreshed by every idea write (`write_refresh.dart`).
+final myIdeasProvider =
+    AsyncNotifierProvider<MyIdeasNotifier, PagedState<StudioIdea>>(
+      MyIdeasNotifier.new,
+    );
+
+class MyIdeasNotifier extends PagedNotifier<StudioIdea> {
+  @override
+  Future<StudioIdeaPage> fetchPage(String? after) => ref
+      .read(ideasRepositoryProvider)
+      .list(status: 'all', mine: true, after: after);
+}
+
 final ideaProvider = FutureProvider.autoDispose.family<StudioIdea, String>(
   (ref, id) => ref.watch(ideasRepositoryProvider).get(id),
 );

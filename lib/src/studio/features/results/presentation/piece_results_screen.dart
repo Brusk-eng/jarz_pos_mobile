@@ -216,7 +216,6 @@ Future<void> fileReadFlow(
   PostRead read,
 ) async {
   final t = ResultsStrings.of(context);
-  final messenger = ScaffoldMessenger.maybeOf(context);
   final m = MoreStrings.of(context);
   final values = await showDialog<Map<String, num>>(
     context: context,
@@ -238,12 +237,12 @@ Future<void> fileReadFlow(
       avgWatchS: values['avg_watch_s']?.toDouble(),
       reelLenS: values['reel_len_s']?.toDouble(),
     );
-    showMoreSnack(messenger, t.readFiledOk);
+    showMoreSnack(t.readFiledOk);
   } on StudioAlreadyDone {
     notifier.markFiled(read.postId);
-    showMoreSnack(messenger, t.readAlreadyFiled);
+    showMoreSnack(t.readAlreadyFiled);
   } catch (e) {
-    showMoreSnack(messenger, moreErrorText(m, e));
+    showMoreSnack(moreErrorText(m, e));
   }
 }
 

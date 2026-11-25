@@ -9,6 +9,7 @@ import 'package:jarz_pos/src/studio/data/fake/fake_studio_api.dart';
 import 'package:jarz_pos/src/studio/data/models/studio_models.dart';
 import 'package:jarz_pos/src/studio/shared/media/studio_media_widgets.dart';
 import 'package:video_player/video_player.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 /// A video controller that never touches a platform: it "loads" at once.
 class FakeVideoController extends VideoPlayerController {
@@ -202,6 +203,7 @@ Future<ProviderContainer> pumpReview(
         }),
       ],
       child: MaterialApp(
+        scaffoldMessengerKey: studioMessengerKey,
         debugShowCheckedModeBanner: false,
         theme: buildStudioTheme(locale: Locale(locale)),
         locale: Locale(locale),
@@ -242,6 +244,7 @@ Future<void> pumpReviewRouter(
         studioVideoControllerFactoryProvider.overrideWithValue(log.factory),
       ],
       child: MaterialApp.router(
+        scaffoldMessengerKey: studioMessengerKey,
         debugShowCheckedModeBanner: false,
         theme: buildStudioTheme(),
         supportedLocales: const [Locale('en'), Locale('ar')],

@@ -20,6 +20,7 @@ import 'package:jarz_pos/src/studio/studio_app.dart';
 
 import 'helpers.dart';
 import 'inbox/ui_test_helpers.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 /// A fake API whose calls to [hang] never answer: the screen is opened "before
 /// its data has arrived" and stays there.
@@ -53,6 +54,7 @@ Future<void> _mount(WidgetTester tester, FakeStudioApi api, Widget home) async {
         studioFakeRoleProvider.overrideWithValue(api.role),
       ],
       child: MaterialApp(
+        scaffoldMessengerKey: studioMessengerKey,
         theme: buildStudioTheme(locale: const Locale('en')),
         locale: const Locale('en'),
         supportedLocales: StudioStrings.supportedLocales,

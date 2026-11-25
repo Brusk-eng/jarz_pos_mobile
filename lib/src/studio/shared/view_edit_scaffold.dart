@@ -22,6 +22,7 @@ class ViewEditScaffold extends StatelessWidget {
     this.parentRoute,
     this.showLanguageSwitch = false,
     this.bottom,
+    this.rootTab = false,
   });
 
   final String title;
@@ -38,6 +39,11 @@ class ViewEditScaffold extends StatelessWidget {
   final bool showLanguageSwitch;
   final PreferredSizeWidget? bottom;
 
+  /// A bottom-bar destination (Today, Inbox, Calendar, Pieces, More): it is
+  /// where the person lands, so it never shows a back arrow. Pushed screens
+  /// leave this false and always do.
+  final bool rootTab;
+
   @override
   Widget build(BuildContext context) {
     final t = StudioStrings.of(context);
@@ -45,7 +51,7 @@ class ViewEditScaffold extends StatelessWidget {
     final canPop = router?.canPop() ?? Navigator.of(context).canPop();
 
     Widget? leading;
-    if (parentRoute != null || canPop) {
+    if (!rootTab && (parentRoute != null || canPop)) {
       leading = BackButton(
         key: const ValueKey('back'),
         onPressed: () {

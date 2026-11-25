@@ -12,6 +12,7 @@ import 'core/upload/upload_tray.dart';
 import 'data/write_refresh.dart';
 import 'features/assets/state/library_state.dart';
 import 'features/pieces/state/add_version_state.dart';
+import 'shared/studio_toast.dart';
 
 /// Root of the Jarz Studio app.
 class StudioApp extends ConsumerStatefulWidget {
@@ -60,6 +61,7 @@ class _StudioAppState extends ConsumerState<StudioApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: router,
+      scaffoldMessengerKey: studioMessengerKey,
       // The upload tray sits under every screen, so a running upload stays in
       // sight while the person moves around. It draws nothing when idle.
       builder: (context, child) => Column(

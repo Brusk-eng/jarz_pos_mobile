@@ -53,6 +53,7 @@ class CalendarScreen extends ConsumerWidget {
 
     return ViewEditScaffold(
       title: t.tabCalendar,
+      rootTab: true,
       screen: StudioScreen.calendar,
       showLanguageSwitch: true,
       actions: [

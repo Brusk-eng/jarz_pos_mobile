@@ -154,6 +154,7 @@ class _OnSetScreenState extends ConsumerState<OnSetScreen> {
         actions: [
           IconButton(
             key: const ValueKey('help'),
+            tooltip: StudioStrings.of(context).howThisWorks,
             icon: const Icon(Icons.help_outline),
             onPressed: () => HowThisWorksSheet.show(
               context,
@@ -266,6 +267,7 @@ class _Notices extends ConsumerWidget {
           ),
           IconButton(
             key: const ValueKey('notices-dismiss'),
+            tooltip: StudioStrings.of(context).dismiss,
             icon: const Icon(Icons.close, size: 18),
             onPressed: () => ref.read(onSetProvider.notifier).clearNotices(),
           ),

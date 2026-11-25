@@ -18,6 +18,7 @@ import '../shoots_strings.dart';
 import '../state/on_set_state.dart';
 import '../state/shoot_list_state.dart';
 import 'shoot_widgets.dart';
+import '../../../shared/studio_toast.dart';
 
 /// `/shoots/:id`: the plan, the prep checklist, the shots grouped by piece,
 /// the prep page link, and the way into On set. The shoot is stored on the
@@ -297,23 +298,16 @@ class _PrepRow extends ConsumerWidget {
       title: Text(task.text),
       onChanged: canTick
           ? (v) async {
-              final messenger = ScaffoldMessenger.of(context);
               try {
                 await ref
                     .read(onSetProvider.notifier)
                     .tickPrep(shoot.id, task, v ?? false);
               } catch (e) {
-                messenger
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        e is StudioNetworkError
-                            ? t.prepNeedsConnection
-                            : shootErrorText(t, e),
-                      ),
-                    ),
-                  );
+                showStudioToast(
+                  e is StudioNetworkError
+                      ? t.prepNeedsConnection
+                      : shootErrorText(t, e),
+                );
               }
             }
           : null,
@@ -616,7 +610,9 @@ class _ShareSheetState extends ConsumerState<_ShareSheet> {
                     icon: Icon(copied ? Icons.check : Icons.copy),
                     label: Text(copied ? t.linkCopied : t.copyLink),
                     onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: withoutBidiIsolates(l.url)));
+                      await Clipboard.setData(
+                        ClipboardData(text: withoutBidiIsolates(l.url)),
+                      );
                       if (mounted) setState(() => copied = true);
                     },
                   ),

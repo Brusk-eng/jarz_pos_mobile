@@ -175,7 +175,6 @@ class FlavourScreen extends ConsumerWidget {
     );
     if (result == null || !context.mounted) return;
     final t = SettingsStrings.of(context);
-    final messenger = ScaffoldMessenger.maybeOf(context);
     final m = MoreStrings.of(context);
     List<CheckRow> warnings = const [];
     try {
@@ -188,9 +187,9 @@ class FlavourScreen extends ConsumerWidget {
             availableTo: result.to,
             note: result.note,
           );
-      showMoreSnack(messenger, t.flavourSaved);
+      showMoreSnack(t.flavourSaved);
     } catch (e) {
-      showMoreSnack(messenger, moreErrorText(m, e));
+      showMoreSnack(moreErrorText(m, e));
       return;
     }
     if (warnings.isNotEmpty && context.mounted) {

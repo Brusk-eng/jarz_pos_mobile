@@ -17,6 +17,7 @@ import 'package:jarz_pos/src/studio/data/fake/studio_fixtures.g.dart';
 import 'package:jarz_pos/src/studio/features/shell/more_routes.dart';
 import 'package:jarz_pos/src/studio/features/shell/presentation/more_screen.dart';
 import 'package:jarz_pos/src/studio/shared/media/studio_media_widgets.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 /// Loads the brand fonts so goldens look like the app. Call from `setUpAll`.
 Future<void> loadStudioFonts() async {
@@ -149,6 +150,7 @@ Future<ProviderContainer> pumpMore(
         builder: (context, ref, _) {
           final l = ref.watch(studioLocaleProvider);
           return MaterialApp(
+        scaffoldMessengerKey: studioMessengerKey,
             debugShowCheckedModeBanner: false,
             theme: _theme(l.languageCode),
             locale: l,
@@ -219,6 +221,7 @@ Future<({ProviderContainer container, GoRouter router})> pumpMoreRouter(
         builder: (context, ref, _) {
           final l = ref.watch(studioLocaleProvider);
           return MaterialApp.router(
+        scaffoldMessengerKey: studioMessengerKey,
             debugShowCheckedModeBanner: false,
             theme: _theme(l.languageCode),
             locale: l,

@@ -8,6 +8,7 @@ import '../../../shared/studio_error_text.dart';
 import '../data/references_repository.dart';
 import '../references_strings.dart';
 import '../state/references_state.dart';
+import '../../../shared/studio_toast.dart';
 
 /// "Add a reference" (`references.create`): a link, where it was seen, the
 /// format, who made it and a note. Link only: the contract's create takes an
@@ -56,7 +57,6 @@ class _AddReferenceState extends ConsumerState<AddReferenceSheet> {
       return;
     }
     final nav = Navigator.of(context);
-    final messenger = ScaffoldMessenger.maybeOf(context);
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     setState(() {
       _busy = true;
@@ -81,9 +81,7 @@ class _AddReferenceState extends ConsumerState<AddReferenceSheet> {
             requestId: _requestId,
           );
       ref.invalidate(referenceGridProvider);
-      messenger
-        ?..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(a.added)));
+      showStudioToast(a.added);
       nav.pop(true);
     } catch (e) {
       if (!mounted) return;

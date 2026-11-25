@@ -25,63 +25,14 @@ class StudioLabels {
 
   String tr(String en, String ar) => this.ar ? ar : en;
 
-  // ---------------------------------------------------- problem and check codes
+  // ---------------------------------------------------- problem and check lines
 
-  /// Reasons the server gives by stable `code` (a refused move or write, a
-  /// calendar check). The server's `message` stays English. Codes whose message
-  /// carries a name or a number the sentence below does not (`R2`, `R6`) keep
-  /// the server's own line in English and use this one in Arabic.
-  static const _problems = <String, (String, String, bool)>{
-    'no_script': (
-      'Write the script first.',
-      'اكتب السكريبت الأول.',
-      false,
-    ),
-    'labels_missing': (
-      'Set the layer and the awareness level first.',
-      'حدّد الـ layer ومستوى الوعي الأول.',
-      false,
-    ),
-    'voice_ar': (
-      'The Arabic naturalness gate has not passed on this script.',
-      'الفحص العربي لسه ما عدّاش على السكريبت ده.',
-      false,
-    ),
-    'comes_by_itself': (
-      'The system makes this move by itself.',
-      'السيستم بيعمل النقلة دي لوحده.',
-      false,
-    ),
-    'needs_verdict': (
-      'The sell judge has not given a verdict yet.',
-      'الـ sell judge لسه ما قالش رأيه.',
-      false,
-    ),
-    'no_real_reference': (
-      'Every shot needs a real reference.',
-      'كل شوت محتاج مرجع حقيقي.',
-      false,
-    ),
-    'R2': (
-      'A planned post names a flavor that is paused.',
-      'في بوستات متخططة بتذكر flavor موقوف مؤقتًا.',
-      true,
-    ),
-    'R6': (
-      'The same piece goes out twice in one channel less than 14 days apart.',
-      'نفس القطعة هتنزل مرتين في نفس القناة بفرق أقل من 14 يوم.',
-      true,
-    ),
-  };
-
-  /// The words for a problem or a calendar check: by [code] when this app has
-  /// them, else the server's [message] as it came.
+  /// The line for a problem or a calendar check. The server words it in the
+  /// reader's language (contract v1.3), so it is shown as it came; only an
+  /// empty line falls back to the [code].
   String problem(String code, {required String message}) {
-    final w = _problems[code];
-    if (w == null) return message;
-    final (en, arabic, keepServerEnglish) = w;
-    if (!ar) return keepServerEnglish ? message : en;
-    return arabic;
+    final line = message.trim();
+    return line.isEmpty ? code : message;
   }
 
   // ------------------------------------------------------------ action codes

@@ -20,6 +20,7 @@ class StudioTodayScreen extends ConsumerWidget {
     final t = StudioStrings.of(context);
     return ViewEditScaffold(
       title: t.tabToday,
+      rootTab: true,
       screen: StudioScreen.today,
       showLanguageSwitch: true,
       actions: [

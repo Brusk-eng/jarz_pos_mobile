@@ -20,6 +20,7 @@ import 'package:jarz_pos/src/studio/features/pieces/pieces_routes.dart';
 import '../assets/assets_test_utils.dart';
 import '../upload/upload_test_utils.dart';
 import 'harness.dart' as piece_harness;
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 /// Pieces API for the add-version screen: the piece is the contract's example
 /// with the format and actions set by the test; `versions.add` is recorded.
@@ -95,6 +96,7 @@ Future<ProviderContainer> pumpAddVersion(
         reachabilityProbeProvider.overrideWithValue(() async => true),
       ],
       child: MaterialApp.router(
+        scaffoldMessengerKey: studioMessengerKey,
         debugShowCheckedModeBanner: false,
         theme: buildStudioTheme(),
         supportedLocales: const [Locale('en'), Locale('ar')],

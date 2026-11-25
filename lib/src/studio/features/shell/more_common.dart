@@ -7,6 +7,8 @@ import '../../data/studio_error.dart';
 import '../../shared/how_this_works_sheet.dart';
 import '../../shared/media/studio_media_widgets.dart';
 import 'more_strings.dart';
+import '../../shared/studio_toast.dart';
+import '../../core/l10n/studio_strings.dart';
 
 /// The sentence for a failed write, in plain words. VALIDATION shows the
 /// server's own message (it names the field); every other code has its own
@@ -25,13 +27,8 @@ String moreErrorText(MoreStrings t, Object error) {
   };
 }
 
-/// Shows [error] as a snack bar. Call with the messenger and strings taken
-/// before an `await`.
-void showMoreSnack(ScaffoldMessengerState? messenger, String text) {
-  messenger
-    ?..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(text)));
-}
+/// Shows [text] as a toast on the root messenger.
+void showMoreSnack(String text) => showStudioToast(text);
 
 /// Runs a write: on success returns true (and shows [okText] when given); on
 /// failure shows the error in plain words and returns false. A `STALE` or
@@ -41,14 +38,13 @@ Future<bool> runMoreWrite(
   Future<void> Function() call, {
   String? okText,
 }) async {
-  final messenger = ScaffoldMessenger.maybeOf(context);
   final t = MoreStrings.of(context);
   try {
     await call();
-    if (okText != null) showMoreSnack(messenger, okText);
+    if (okText != null) showMoreSnack(okText);
     return true;
   } catch (e) {
-    showMoreSnack(messenger, moreErrorText(t, e));
+    showMoreSnack(moreErrorText(t, e));
     return false;
   }
 }
@@ -333,10 +329,11 @@ class _MoreSearchFieldState extends State<MoreSearchField> {
           prefixIcon: const Icon(Icons.search),
           suffixIcon: ListenableBuilder(
             listenable: _c,
-            builder: (_, _) => _c.text.isEmpty
+            builder: (context, _) => _c.text.isEmpty
                 ? const SizedBox.shrink()
                 : IconButton(
                     key: const ValueKey('search-clear'),
+                    tooltip: StudioStrings.of(context).clear,
                     icon: const Icon(Icons.close),
                     onPressed: () {
                       _c.clear();
@@ -499,7 +496,6 @@ Future<void> openMoreLink(
   WidgetRef ref,
   String url,
 ) async {
-  final messenger = ScaffoldMessenger.maybeOf(context);
   final t = MoreStrings.of(context);
   final uri = Uri.tryParse(url);
   var ok = false;
@@ -508,7 +504,7 @@ Future<void> openMoreLink(
       ok = await ref.read(studioLinkOpenerProvider)(uri);
     } catch (_) {}
   }
-  if (!ok) showMoreSnack(messenger, t.couldNotOpen);
+  if (!ok) showMoreSnack(t.couldNotOpen);
 }
 
 /// Turns "avg_watch_s" into "Avg watch s" (for fields the contract names

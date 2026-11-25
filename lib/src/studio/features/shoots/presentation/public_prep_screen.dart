@@ -7,6 +7,7 @@ import '../../../data/studio_error.dart';
 import '../data/shoots_repository.dart';
 import '../shoots_strings.dart';
 import 'shoot_widgets.dart';
+import '../../../core/l10n/studio_strings.dart';
 
 /// `/prep/:token`: the read-only prep checklist for people without an
 /// account (the kitchen). Arabic first; one button switches to English. A
@@ -175,9 +176,12 @@ class _Message extends StatelessWidget {
             ],
             if (onRetry != null) ...[
               const SizedBox(height: StudioSpacing.lg),
-              OutlinedButton(
-                onPressed: onRetry,
-                child: const Icon(Icons.refresh),
+              Tooltip(
+                message: StudioStrings.of(context).retry,
+                child: OutlinedButton(
+                  onPressed: onRetry,
+                  child: const Icon(Icons.refresh),
+                ),
               ),
             ],
           ],

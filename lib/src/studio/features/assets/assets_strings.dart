@@ -93,6 +93,8 @@ abstract class AssetStrings {
   String get chooseCategory;
   String get noFlavour;
   String get uploadButton;
+  String get uploadPickFirst;
+  String get uploadStillRunning;
   String get saveButton;
   String get cancel;
   String get hideFromLibrary;
@@ -344,6 +346,12 @@ class AssetStringsEn extends AssetStrings {
   String get noFlavour => 'No flavor (general)';
   @override
   String get uploadButton => 'Upload';
+  @override
+  String get uploadPickFirst =>
+      'Pick at least one file first. The upload button wakes up once you have.';
+  @override
+  String get uploadStillRunning =>
+      'The upload is still running. The button wakes up when it is done.';
   @override
   String get saveButton => 'Save';
   @override
@@ -619,6 +627,12 @@ class AssetStringsAr extends AssetStrings {
   String get noFlavour => 'من غير flavor (عام)';
   @override
   String get uploadButton => 'ارفع';
+  @override
+  String get uploadPickFirst =>
+      'اختار ملف واحد على الأقل الأول. زرار الرفع بيشتغل أول ما تختار.';
+  @override
+  String get uploadStillRunning =>
+      'الرفع لسه شغال. الزرار بيشتغل تاني أول ما يخلص.';
   @override
   String get saveButton => 'احفظ';
   @override

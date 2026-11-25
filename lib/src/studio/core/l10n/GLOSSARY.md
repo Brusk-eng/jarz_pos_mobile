@@ -120,3 +120,5 @@ A status says what happens next and who has it, by role.
 - Arabic counts use arCount in plural.dart (1, 2, 3-10, 11+)
 - help (More entry, first-login tour): مساعدة; walkthrough: جولة
 - set it anyway (ad state against the rule): حطّها برضو
+- my ideas (the ideas I brought, any status): أفكاري; show more (load the next page, icon button name): اعرض أكتر; dismiss (close a notice): اقفل
+- check and gate lines come from the server already worded in the person's language (contract 1.3); the app keeps no wording per check code

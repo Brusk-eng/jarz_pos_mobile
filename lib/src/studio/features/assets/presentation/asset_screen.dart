@@ -15,6 +15,7 @@ import '../assets_strings.dart';
 import '../data/assets_repository.dart';
 import 'asset_sheets.dart';
 import 'asset_widgets.dart';
+import '../../../shared/studio_toast.dart';
 
 /// `/assets/:id`: one file with its picture, where it was used, the consent
 /// record for customer content, its rating and comments. Buttons come only
@@ -93,9 +94,7 @@ class _AssetBodyState extends ConsumerState<_AssetBody> {
   AssetNotifier get _notifier =>
       ref.read(assetProvider(widget.asset.id).notifier);
 
-  void _say(String text) => ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(text)));
+  void _say(String text) => showStudioToast(text);
 
   Future<void> _guard(Future<void> Function() body) async {
     final t = AssetStrings.of(context);

@@ -18,6 +18,7 @@ import 'package:jarz_pos/src/studio/features/calendar/state/calendar_state.dart'
 import 'package:jarz_pos/src/studio/features/pieces/pieces_routes.dart';
 import 'package:jarz_pos/src/studio/features/session/state/studio_session_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 /// The day the fixtures were made for: the calendar fixture covers the week
 /// that starts on Saturday 21 Nov 2026.
@@ -106,6 +107,7 @@ Future<StudioTestHarness> pumpFeature(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp.router(
+        scaffoldMessengerKey: studioMessengerKey,
         debugShowCheckedModeBanner: false,
         theme: buildStudioTheme(locale: Locale(locale)),
         locale: Locale(locale),

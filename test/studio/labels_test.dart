@@ -16,6 +16,7 @@ import 'package:jarz_pos/src/studio/features/reports/reports_strings.dart';
 import 'package:jarz_pos/src/studio/features/results/results_strings.dart';
 import 'package:jarz_pos/src/studio/features/settings/settings_strings.dart';
 import 'package:jarz_pos/src/studio/features/shoots/shoots_strings.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 typedef _Label = String Function(BuildContext c, Enum e);
 
@@ -300,6 +301,7 @@ void main() {
       late BuildContext ctx;
       await tester.pumpWidget(
         MaterialApp(
+        scaffoldMessengerKey: studioMessengerKey,
           locale: Locale(locale),
           supportedLocales: StudioStrings.supportedLocales,
           localizationsDelegates: const [

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/l10n/studio_labels.dart';
 import '../data/studio_error.dart';
+import 'studio_toast.dart';
 
 /// The one mapping from a failed Studio call to plain words, in English and
 /// Arabic. Every screen uses this (no screen words SHADOW_MODE, GATE_FAILED,
@@ -82,9 +83,5 @@ String studioErrorText(BuildContext context, Object error) =>
 /// Shows a failure as a snack bar in plain words.
 void showStudioError(BuildContext context, Object error) {
   final text = studioErrorText(context, error);
-  ScaffoldMessenger.maybeOf(context)
-    ?..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(content: Text(text), duration: const Duration(seconds: 6)),
-    );
+  showStudioToast(text, duration: studioErrorToastDuration);
 }

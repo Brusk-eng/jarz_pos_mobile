@@ -11,6 +11,8 @@ import '../../../shared/studio_async_view.dart' show StudioErrorState;
 import '../shoots_strings.dart';
 import '../state/on_set_state.dart';
 import 'shoot_widgets.dart';
+import '../../../shared/studio_toast.dart';
+import '../../../core/l10n/studio_strings.dart';
 
 /// `/shoots/new` and `/shoots/:id/edit`: plan a shoot or change its plan
 /// (founder and marketing lead). Saving never overwrites someone else's
@@ -131,9 +133,7 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
         };
         if (fields.isNotEmpty) await c.update(id, fields);
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(t.saved)));
+        showStudioToast(t.saved);
         context.pop();
       }
     } on StudioStale catch (e) {
@@ -232,6 +232,7 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
         actions: [
           IconButton(
             key: const ValueKey('help'),
+            tooltip: StudioStrings.of(context).howThisWorks,
             icon: const Icon(Icons.help_outline),
             onPressed: () => HowThisWorksSheet.show(
               context,
@@ -383,7 +384,11 @@ class _PickField extends StatelessWidget {
           errorText: error,
           suffixIcon: onClear == null
               ? const Icon(Icons.expand_more)
-              : IconButton(icon: const Icon(Icons.close), onPressed: onClear),
+              : IconButton(
+                  tooltip: StudioStrings.of(context).clear,
+                  icon: const Icon(Icons.close),
+                  onPressed: onClear,
+                ),
         ),
         child: Text(value ?? hint),
       ),

@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import 'inbox_strings.dart';
+import '../../../shared/studio_toast.dart';
 
-void showStudioNote(BuildContext context, String text) {
-  ScaffoldMessenger.maybeOf(context)
-    ?..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(text)));
-}
+void showStudioNote(BuildContext context, String text) => showStudioToast(text);
 
 DateTime? _wallTime(String? iso) {
   if (iso == null || iso.length < 10) return null;

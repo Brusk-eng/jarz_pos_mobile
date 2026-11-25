@@ -30,6 +30,7 @@ class PiecesScreen extends ConsumerWidget {
 
     return ViewEditScaffold(
       title: t.tabPieces,
+      rootTab: true,
       screen: StudioScreen.pieces,
       showLanguageSwitch: true,
       actions: [

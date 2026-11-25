@@ -13,6 +13,7 @@ import '../data/ideas_repository.dart';
 import 'idea_forms.dart';
 import 'ideas_strings.dart';
 import '../../../shared/studio_error_text.dart';
+import '../../../shared/studio_toast.dart';
 
 /// One idea: hook, format, who it is for, source. Keep, Drop and Edit appear
 /// only when the server lists them in `actions`.
@@ -53,25 +54,20 @@ class _IdeaCardState extends ConsumerState<IdeaCard> {
     if (ok != true || !mounted) return;
     setState(() => _busy = true);
     final router = GoRouter.maybeOf(context);
-    final messenger = ScaffoldMessenger.maybeOf(context);
     try {
       final piece = await ref
           .read(ideasProvider.notifier)
           .keep(widget.idea.id, requestId: _keepRid);
       _keepRid = const Uuid().v4();
-      messenger
-        ?..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(t.ideaKept),
-            action: piece == null
-                ? null
-                : SnackBarAction(
-                    label: t.openPiece,
-                    onPressed: () => router?.push('/pieces/${piece.id}'),
-                  ),
-          ),
-        );
+      showStudioToast(
+        t.ideaKept,
+        action: piece == null
+            ? null
+            : SnackBarAction(
+                label: t.openPiece,
+                onPressed: () => router?.push('/pieces/${piece.id}'),
+              ),
+      );
     } catch (e) {
       if (mounted) showStudioError(context, e);
     } finally {

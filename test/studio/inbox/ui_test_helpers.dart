@@ -19,6 +19,7 @@ import 'package:jarz_pos/src/studio/data/fake/studio_fixtures.g.dart';
 import 'package:jarz_pos/src/studio/features/inbox/inbox_routes.dart';
 import 'package:jarz_pos/src/studio/features/inbox/state/inbox_state.dart';
 import 'package:jarz_pos/src/studio/studio_app.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 /// A fake API whose fixtures can be edited per key. [edits] maps a fixture key
 /// (`today.get`, `decisions.list`...) to a function that changes its decoded
@@ -109,6 +110,7 @@ Future<void> pumpMini(
         studioApiProvider.overrideWithValue(api),
       ],
       child: MaterialApp.router(
+        scaffoldMessengerKey: studioMessengerKey,
         routerConfig: router,
         locale: Locale(locale),
         theme: buildStudioTheme(locale: Locale(locale)),

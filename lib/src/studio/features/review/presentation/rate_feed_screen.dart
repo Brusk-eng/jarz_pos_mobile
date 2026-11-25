@@ -16,6 +16,7 @@ import '../review_strings.dart';
 import '../state/rate_feed_state.dart';
 import 'review_helpers.dart';
 import 'review_sheets.dart';
+import '../../../shared/studio_toast.dart';
 
 /// `/inbox/rate`: the versions waiting for my rating, one per page, swiped
 /// vertically. The video plays muted on its own; one tap on a number rates it
@@ -156,7 +157,6 @@ class _FeedState extends ConsumerState<_Feed> {
   Future<void> _rate(RateCard card, int score) async {
     final id = rateCardId(card)!;
     final t = ReviewStrings.of(context);
-    final messenger = ScaffoldMessenger.of(context);
     final at = _cards.indexOf(card);
     final comment = _drafts.remove(id);
     final future = ref
@@ -167,15 +167,9 @@ class _FeedState extends ConsumerState<_Feed> {
     if (!mounted || outcome.ok) return;
     // Taken back: say why and go back to that card.
     if (comment != null) _drafts[id] = comment;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            '${t.feedRollback(rateCardTitle(card))} ${failureText(context, outcome)}',
-          ),
-        ),
-      );
+    showStudioToast(
+      '${t.feedRollback(rateCardTitle(card))} ${failureText(context, outcome)}',
+    );
     if (at >= 0 && _pc.hasClients) {
       _pc.animateToPage(
         at,

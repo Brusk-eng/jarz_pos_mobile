@@ -64,6 +64,7 @@ class StudioInboxScreen extends ConsumerWidget {
 
     return ViewEditScaffold(
       title: t.tabInbox,
+      rootTab: true,
       screen: screens[initialIndex],
       showLanguageSwitch: true,
       body: Column(

@@ -8,6 +8,7 @@ import '../../../shared/studio_async_view.dart';
 import '../data/decisions_repository.dart';
 import 'decision_card.dart';
 import 'decisions_strings.dart';
+import '../../../core/l10n/studio_strings.dart';
 
 /// Decisions with Open and Answered tabs, as a list of cards.
 class DecisionsList extends ConsumerWidget {
@@ -86,10 +87,13 @@ class DecisionsList extends ConsumerWidget {
                     ),
                   if (d.hasMore)
                     Center(
-                      child: TextButton(
-                        onPressed: () =>
-                            ref.read(decisionsProvider.notifier).loadMore(),
-                        child: const Icon(Icons.expand_more),
+                      child: Tooltip(
+                        message: StudioStrings.of(context).showMore,
+                        child: TextButton(
+                          onPressed: () =>
+                              ref.read(decisionsProvider.notifier).loadMore(),
+                          child: const Icon(Icons.expand_more),
+                        ),
                       ),
                     ),
                 ],

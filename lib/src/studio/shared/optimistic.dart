@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/l10n/studio_strings.dart';
 import '../data/optimistic_write.dart';
+import 'studio_toast.dart';
 
 /// Optimistic update: take a snapshot, apply the change to local state at
 /// once, call the server, and on failure roll back and tell the user.
@@ -18,7 +19,6 @@ Future<bool> optimistic<T>({
   String? failureMessage,
 }) async {
   // Resolve everything that needs the context before the first await.
-  final messenger = ScaffoldMessenger.maybeOf(context);
   final message = failureMessage ?? StudioStrings.of(context).changeFailed;
 
   try {
@@ -30,9 +30,7 @@ Future<bool> optimistic<T>({
     );
     return true;
   } catch (_) {
-    messenger
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showStudioToast(message);
     return false;
   }
 }

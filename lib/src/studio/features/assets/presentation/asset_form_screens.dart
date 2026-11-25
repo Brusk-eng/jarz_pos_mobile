@@ -16,6 +16,8 @@ import '../assets_strings.dart';
 import '../data/assets_repository.dart';
 import '../state/library_state.dart';
 import 'asset_widgets.dart';
+import '../../../shared/studio_toast.dart';
+import '../../../core/l10n/studio_strings.dart';
 
 /// `/assets/new`: pick files from the phone, say what they are, and send
 /// them up. The upload runs in the background (the tray shows it); each file
@@ -112,9 +114,7 @@ class _AssetAddScreenState extends ConsumerState<AssetAddScreen> {
     if (!mounted) return;
     setState(() => busy = false);
     if (started > 0 && problems.isEmpty) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(t.uploadStarted)));
+      showStudioToast(t.uploadStarted);
       context.canPop() ? context.pop() : context.go('/assets');
     }
   }
@@ -133,6 +133,7 @@ class _AssetAddScreenState extends ConsumerState<AssetAddScreen> {
         actions: [
           IconButton(
             key: const ValueKey('help'),
+            tooltip: StudioStrings.of(context).howThisWorks,
             icon: const Icon(Icons.help_outline),
             onPressed: () => HowThisWorksSheet.show(
               context,
@@ -286,6 +287,15 @@ class _AssetAddScreenState extends ConsumerState<AssetAddScreen> {
                 label: Text(t.uploadButton),
               ),
             ),
+            if (files.isEmpty || busy)
+              Padding(
+                padding: const EdgeInsets.only(top: StudioSpacing.sm),
+                child: Text(
+                  busy ? t.uploadStillRunning : t.uploadPickFirst,
+                  key: const ValueKey('add-upload-why'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
           ],
         ),
       ),
@@ -366,9 +376,7 @@ class _AssetEditScreenState extends ConsumerState<AssetEditScreen> {
       await n.refresh();
       ref.invalidate(libraryProvider);
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(t.saved)));
+      showStudioToast(t.saved);
       updated.id; // saved
       context.pop();
     } on StudioStale catch (e) {

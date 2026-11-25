@@ -42,6 +42,9 @@ abstract class IdeasStrings {
   String get nextKept;
   String get nextDropped;
   String get forWho;
+  String get myIdeas;
+  String get myIdeasEmptyPurpose;
+  String get myIdeasEmptyFirstStep;
   String from(String who);
   String reasonOf(String r);
   String format(String code);
@@ -123,6 +126,14 @@ class IdeasStringsEn extends IdeasStrings {
   String get nextDropped => 'Dropped and archived with the reason.';
   @override
   String get forWho => 'For';
+  @override
+  String get myIdeas => 'My ideas';
+  @override
+  String get myIdeasEmptyPurpose =>
+      'The ideas you brought, and what became of each.';
+  @override
+  String get myIdeasEmptyFirstStep =>
+      'You have not brought an idea yet. Tap New idea: a title and the hook is enough.';
   @override
   String from(String w) => 'from $w';
   @override
@@ -221,6 +232,14 @@ class IdeasStringsAr extends IdeasStrings {
   String get nextDropped => 'اتسابت واتأرشفت مع السبب.';
   @override
   String get forWho => 'لـ';
+  @override
+  String get myIdeas => 'أفكاري';
+  @override
+  String get myIdeasEmptyPurpose =>
+      'الأفكار اللي جبتها، وإيه اللي حصل لكل واحدة.';
+  @override
+  String get myIdeasEmptyFirstStep =>
+      'لسه ما جبتش فكرة. دوس «فكرة جديدة»: عنوان وهوك كفاية.';
   @override
   String from(String w) => 'من $w';
   @override

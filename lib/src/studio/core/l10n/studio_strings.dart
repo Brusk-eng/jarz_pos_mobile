@@ -57,6 +57,9 @@ abstract class StudioStrings {
   String get edit;
   String get back;
   String get retry;
+  String get dismiss;
+  String get clear;
+  String get showMore;
   String get loading;
   String get errorGeneric;
   String get changeFailed;
@@ -135,6 +138,12 @@ class StudioStringsEn extends StudioStrings {
   String get back => 'Back';
   @override
   String get retry => 'Try again';
+  @override
+  String get dismiss => 'Dismiss';
+  @override
+  String get clear => 'Clear';
+  @override
+  String get showMore => 'Show more';
   @override
   String get loading => 'Loading';
   @override
@@ -458,6 +467,12 @@ class StudioStringsAr extends StudioStrings {
   String get back => 'رجوع';
   @override
   String get retry => 'جرّب تاني';
+  @override
+  String get dismiss => 'اقفل';
+  @override
+  String get clear => 'امسح';
+  @override
+  String get showMore => 'اعرض أكتر';
   @override
   String get loading => 'بنحمّل';
   @override

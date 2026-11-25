@@ -16,6 +16,7 @@ import 'package:jarz_pos/src/studio/features/shoots/shoots_routes.dart';
 import 'package:jarz_pos/src/studio/features/shoots/state/on_set_state.dart';
 import 'package:jarz_pos/src/studio/features/shoots/state/shoot_list_state.dart';
 import 'package:jarz_pos/src/studio/shared/media/studio_media_widgets.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 /// The contract's example shoot SHOOT-0006 (3 shots: 107 filmed, 108 and 109
 /// not) behind a Studio API that can lose its connection and keeps its own
@@ -269,6 +270,7 @@ Future<ProviderContainer> pumpShoot(
     ],
     child: location != null
         ? MaterialApp.router(
+        scaffoldMessengerKey: studioMessengerKey,
             debugShowCheckedModeBanner: false,
             theme: buildStudioTheme(locale: Locale(locale)),
             locale: Locale(locale),
@@ -283,6 +285,7 @@ Future<ProviderContainer> pumpShoot(
             ),
           )
         : MaterialApp(
+        scaffoldMessengerKey: studioMessengerKey,
             debugShowCheckedModeBanner: false,
             theme: buildStudioTheme(locale: Locale(locale)),
             locale: Locale(locale),

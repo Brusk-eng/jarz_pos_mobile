@@ -11,8 +11,10 @@ import 'package:jarz_pos/src/studio/shared/stage_chip.dart';
 import 'package:jarz_pos/src/studio/shared/studio_async_view.dart';
 import 'package:jarz_pos/src/studio/shared/verdict_badge.dart';
 import 'package:jarz_pos/src/studio/shared/view_edit_scaffold.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 Widget host(Widget child, {String locale = 'en'}) => MaterialApp(
+        scaffoldMessengerKey: studioMessengerKey,
   theme: buildStudioTheme(locale: Locale(locale)),
   locale: Locale(locale),
   supportedLocales: StudioStrings.supportedLocales,

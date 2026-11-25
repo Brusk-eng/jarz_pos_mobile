@@ -11,6 +11,7 @@ import '../../settings/data/settings_repository.dart';
 import '../state/today_state.dart';
 import 'today_strings.dart';
 import '../../../shared/studio_error_text.dart';
+import '../../../shared/studio_toast.dart';
 
 /// Opens the add / edit form. [task] null adds a new one. Returns true when
 /// saved. Only opened from a button the server allows (add for people who may
@@ -84,7 +85,6 @@ class _TaskFormState extends ConsumerState<_TaskFormSheet> {
     }
     setState(() => _busy = true);
     final nav = Navigator.of(context);
-    final messenger = ScaffoldMessenger.maybeOf(context);
     final notifier = ref.read(todayTasksProvider.notifier);
     final team = _who != null && _who!.startsWith('team:')
         ? _who!.substring(5)
@@ -108,21 +108,13 @@ class _TaskFormState extends ConsumerState<_TaskFormSheet> {
           'due': _due,
         });
       }
-      messenger
-        ?..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(task == null ? t.taskAdded : t.taskSaved)),
-        );
+      showStudioToast(task == null ? t.taskAdded : t.taskSaved);
       nav.pop(true);
     } catch (e) {
-      messenger
-        ?..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(studioErrorMessage(e, ar: isAr)),
-            duration: const Duration(seconds: 6),
-          ),
-        );
+      showStudioToast(
+        studioErrorMessage(e, ar: isAr),
+        duration: studioErrorToastDuration,
+      );
       if (e is StudioStale || e is StudioAlreadyDone) {
         nav.pop(false);
       } else if (mounted) {

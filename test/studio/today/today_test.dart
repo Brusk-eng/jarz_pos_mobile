@@ -146,7 +146,7 @@ void main() {
           'versions.approve',
           'GATE_FAILED',
           problems: [
-            {'code': 'needs_verdict', 'message': 'It needs a final verdict.'},
+            {'code': 'needs_verdict', 'message': 'The sell judge has not given a verdict yet.'},
           ],
         );
       await pumpStudioWith(tester, api);

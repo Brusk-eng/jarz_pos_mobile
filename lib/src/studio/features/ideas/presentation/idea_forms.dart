@@ -9,6 +9,7 @@ import '../../inbox/presentation/inbox_strings.dart';
 import '../data/ideas_repository.dart';
 import 'ideas_strings.dart';
 import '../../../shared/studio_error_text.dart';
+import '../../../shared/studio_toast.dart';
 
 const _formats = ['reel', 'trial', 'static', 'carousel', 'story'];
 
@@ -120,7 +121,6 @@ class _IdeaFormSheetState extends ConsumerState<_IdeaFormSheet> {
     setState(() => _busy = true);
     final repo = ref.read(ideasRepositoryProvider);
     final nav = Navigator.of(context);
-    final messenger = ScaffoldMessenger.maybeOf(context);
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     String? text(String v) => v.trim().isEmpty ? null : v.trim();
     try {
@@ -142,22 +142,16 @@ class _IdeaFormSheetState extends ConsumerState<_IdeaFormSheet> {
         }, baseModified: idea.modified);
       }
       if (idea == null) {
-        messenger
-          ?..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(t.ideaSent)));
+        showStudioToast(t.ideaSent);
       }
       nav.pop(true);
     } catch (e) {
       final gone = e is StudioStale || e is StudioAlreadyDone;
       if (gone) ref.invalidate(ideasProvider);
-      messenger
-        ?..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(studioErrorMessage(e, ar: isAr)),
-            duration: const Duration(seconds: 6),
-          ),
-        );
+      showStudioToast(
+        studioErrorMessage(e, ar: isAr),
+        duration: studioErrorToastDuration,
+      );
       if (gone) {
         nav.pop(false);
       } else if (mounted) {

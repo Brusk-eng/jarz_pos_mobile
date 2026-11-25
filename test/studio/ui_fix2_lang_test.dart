@@ -18,6 +18,7 @@ import 'package:jarz_pos/src/studio/studio_app.dart';
 
 import 'helpers.dart';
 import 'more/more_test_utils.dart' show loadStudioFonts;
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 const _a = '\u2068';
 const _b = '\u2069';
@@ -157,18 +158,18 @@ void main() {
     });
   });
 
-  group('14. Problem and check lines by code', () {
-    test('known codes are worded in both languages', () {
+  group('14. Problem and check lines come from the server', () {
+    test('the server line is shown as sent, in either app language', () {
       final en = StudioLabels.forLanguage('en');
       final ar = StudioLabels.forLanguage('ar');
-      expect(
-        en.problem('no_script', message: 'server'),
-        'Write the script first.',
-      );
-      expect(ar.problem('no_script', message: 'server'), isNot('server'));
-      // A code with names in its message keeps the server's English line.
-      expect(en.problem('R2', message: 'Carrot Cake is paused'), 'Carrot Cake is paused');
-      expect(ar.problem('R2', message: 'Carrot Cake is paused'), contains('flavor'));
+      expect(en.problem('no_script', message: 'As sent'), 'As sent');
+      expect(ar.problem('R2', message: 'كما جت'), 'كما جت');
+    });
+
+    test('an empty line shows the code', () {
+      final ar = StudioLabels.forLanguage('ar');
+      expect(ar.problem('R6', message: ''), 'R6');
+      expect(ar.problem('R6', message: '  '), 'R6');
     });
 
     test('an unknown code falls back to the server message', () {
@@ -187,6 +188,7 @@ void main() {
         usePhone(tester, width: 360, height: 200);
         await tester.pumpWidget(
           MaterialApp(
+        scaffoldMessengerKey: studioMessengerKey,
             debugShowCheckedModeBanner: false,
             theme: buildStudioTheme(locale: Locale(locale)),
             locale: Locale(locale),

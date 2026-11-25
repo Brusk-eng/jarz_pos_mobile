@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/roles/studio_role.dart' show StudioRole;
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
 import '../../../shared/studio_async_view.dart';
+import '../../session/state/studio_session_notifier.dart';
 import '../data/ideas_repository.dart';
 import 'idea_card.dart';
 import 'idea_forms.dart';
+import 'my_ideas_screen.dart';
 import 'ideas_strings.dart';
+import '../../../core/l10n/studio_strings.dart';
 
 /// The Ideas inbox: To decide / Kept / Dropped, a New idea button for anyone.
 class IdeasList extends ConsumerWidget {
@@ -19,6 +24,8 @@ class IdeasList extends ConsumerWidget {
     final t = IdeasStrings.of(context);
     final filter = ref.watch(ideasStatusFilterProvider) ?? 'Open';
     final value = ref.watch(ideasProvider);
+    final role = ref.watch(studioSessionProvider).valueOrNull?.primaryRole;
+    final hasMine = role == StudioRole.creator || role == StudioRole.story;
 
     final firstStep = switch (filter) {
       'Kept' => t.emptyKeptFirstStep,
@@ -57,14 +64,24 @@ class IdeasList extends ConsumerWidget {
             StudioSpacing.gutter,
             0,
           ),
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: FilledButton.tonalIcon(
-              key: const ValueKey('idea-new'),
-              onPressed: () => showProposeSheet(context, ref),
-              icon: const Icon(Icons.add, size: 18),
-              label: Text(t.newIdea),
-            ),
+          child: Wrap(
+            spacing: StudioSpacing.sm,
+            runSpacing: StudioSpacing.xs,
+            children: [
+              FilledButton.tonalIcon(
+                key: const ValueKey('idea-new'),
+                onPressed: () => showProposeSheet(context, ref),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text(t.newIdea),
+              ),
+              if (hasMine)
+                TextButton.icon(
+                  key: const ValueKey('ideas-mine'),
+                  onPressed: () => context.push(myIdeasPath),
+                  icon: const Icon(Icons.lightbulb_outline, size: 18),
+                  label: Text(t.myIdeas),
+                ),
+            ],
           ),
         ),
         const SizedBox(height: StudioSpacing.sm),
@@ -99,10 +116,13 @@ class IdeasList extends ConsumerWidget {
                     ),
                   if (d.hasMore)
                     Center(
-                      child: TextButton(
-                        onPressed: () =>
-                            ref.read(ideasProvider.notifier).loadMore(),
-                        child: const Icon(Icons.expand_more),
+                      child: Tooltip(
+                        message: StudioStrings.of(context).showMore,
+                        child: TextButton(
+                          onPressed: () =>
+                              ref.read(ideasProvider.notifier).loadMore(),
+                          child: const Icon(Icons.expand_more),
+                        ),
                       ),
                     ),
                 ],

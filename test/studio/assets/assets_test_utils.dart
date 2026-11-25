@@ -18,6 +18,7 @@ import 'package:jarz_pos/src/studio/features/assets/assets_routes.dart';
 import 'package:jarz_pos/src/studio/shared/media/studio_media_widgets.dart';
 
 import '../upload/upload_test_utils.dart';
+import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
 
 /// Library API: the contract's three example assets, with filters recorded
 /// and consent validated like the server does. Media calls come from
@@ -281,6 +282,7 @@ Future<ProviderContainer> pumpAssets(
         }),
       ],
       child: MaterialApp.router(
+        scaffoldMessengerKey: studioMessengerKey,
         debugShowCheckedModeBanner: false,
         theme: buildStudioTheme(locale: Locale(locale)),
         locale: Locale(locale),

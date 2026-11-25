@@ -13,6 +13,7 @@ import '../../../shared/stage_chip.dart';
 import '../../calendar/state/cairo_format.dart';
 import '../../calendar/state/cairo_time.dart';
 import '../pieces_strings.dart';
+import '../../../shared/studio_toast.dart';
 
 bool isArabic(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'ar';
@@ -410,8 +411,4 @@ class _AskTextDialogState extends State<_AskTextDialog> {
   }
 }
 
-void showSnack(BuildContext context, String text) {
-  final m = ScaffoldMessenger.maybeOf(context);
-  m?.hideCurrentSnackBar();
-  m?.showSnackBar(SnackBar(content: Text(text)));
-}
+void showSnack(BuildContext context, String text) => showStudioToast(text);

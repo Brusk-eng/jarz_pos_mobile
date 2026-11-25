@@ -110,6 +110,7 @@ class StudioMoreScreen extends ConsumerWidget {
 
     return ViewEditScaffold(
       title: t.moreTitle,
+      rootTab: true,
       showLanguageSwitch: true,
       actions: [
         moreHelpAction(context, title: t.moreHelpTitle, lines: t.moreHelp),

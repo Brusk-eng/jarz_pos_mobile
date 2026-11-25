@@ -222,12 +222,14 @@ class _AddVersionState extends ConsumerState<AddVersionScreen> {
                   ),
                 ),
               const SizedBox(height: StudioSpacing.lg),
-              if (_files.isEmpty)
+              if (_files.isEmpty || _busy)
                 Padding(
                   padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
                   child: Text(
-                    t.pickFirst,
-                    key: const ValueKey('add-version-pick-first'),
+                    _busy ? t.uploadingNow : t.pickFirst,
+                    key: ValueKey(
+                      _busy ? 'add-version-busy' : 'add-version-pick-first',
+                    ),
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
@@ -292,6 +294,10 @@ class AddVersionStrings {
   String get pickFirst => tr(
     'Pick at least one file first. The upload button wakes up once you have.',
     'اختار ملف واحد على الأقل الأول. زرار الرفع بيشتغل أول ما تختار.',
+  );
+  String get uploadingNow => tr(
+    'The upload is still running. The button wakes up when it is done.',
+    'الرفع لسه شغال. الزرار بيشتغل تاني أول ما يخلص.',
   );
   String get notAllowed => tr(
     'Your role cannot add a version to this piece.',

@@ -9,6 +9,7 @@ import 'media_strings.dart';
 import 'studio_network_image.dart';
 import 'studio_video_player.dart';
 import 'studio_video_pool.dart';
+import '../studio_toast.dart';
 
 /// Opens a link outside the app (the browser or the system downloader).
 /// Returns false when it could not. Tests replace it.
@@ -80,7 +81,6 @@ class _StudioMediaViewerState extends ConsumerState<StudioMediaViewer> {
   Future<void> _download() async {
     final t = MediaStrings.of(context);
     final media = widget.items[_index];
-    final messenger = ScaffoldMessenger.of(context);
     setState(() => _downloading = true);
     try {
       final link = await ref
@@ -89,9 +89,7 @@ class _StudioMediaViewerState extends ConsumerState<StudioMediaViewer> {
       final ok = await ref.read(studioLinkOpenerProvider)(Uri.parse(link.url));
       if (!ok) throw StateError('could not open');
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(t.downloadFailed)));
+      showStudioToast(t.downloadFailed);
     } finally {
       if (mounted) setState(() => _downloading = false);
     }

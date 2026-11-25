@@ -58,7 +58,12 @@ final Map<String, List<ProviderOrFamily>> studioWriteRefreshes = () {
     paidRoundProvider,
     queueCandidatesProvider,
   ];
-  final idea = <ProviderOrFamily>[...badges, ideaProvider, ...pieces];
+  final idea = <ProviderOrFamily>[
+    ...badges,
+    ideaProvider,
+    myIdeasProvider,
+    ...pieces,
+  ];
   final shot = <ProviderOrFamily>[
     ...badges,
     shootsProvider,

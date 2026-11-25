@@ -17,6 +17,7 @@ import 'review_helpers.dart';
 import 'review_sheets.dart';
 import 'version_media_view.dart';
 import 'version_sections.dart';
+import '../../../core/l10n/studio_strings.dart';
 
 /// One version of a piece: its media, the sell judge's verdict, ratings,
 /// comments and the buttons the server allows (`actions`). Used for
@@ -372,6 +373,7 @@ class _NoticeBar extends StatelessWidget {
           ),
           IconButton(
             key: const ValueKey('notice-close'),
+            tooltip: StudioStrings.of(context).dismiss,
             visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.close, size: 18),
             onPressed: onClose,
