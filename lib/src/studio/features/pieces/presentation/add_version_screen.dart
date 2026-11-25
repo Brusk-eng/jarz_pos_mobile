@@ -332,9 +332,7 @@ class AddVersionStrings {
   String get saveFrames => tr('Upload the frames', 'ارفع الفريمات');
   String started(int n) => tr(
     n == 1 ? '1 file is uploading.' : '$n files are uploading.',
-    n == 1
-        ? 'ملف واحد بيترفع.'
-        : '${arFile.of(n)} بيترفعوا.',
+    n == 1 ? 'ملف واحد بيترفع.' : '${arFile.of(n)} بيترفعوا.',
   );
   String get whatNext => tr(
     'When the files are stored, the version is added to the piece. It goes to review once it has its verdict, passes the checks and has a slot. Then the founder approves it or sends it back with a reason. You can leave this page; the uploads keep going.',

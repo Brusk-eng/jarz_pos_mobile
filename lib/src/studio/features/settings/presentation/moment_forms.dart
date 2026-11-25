@@ -52,7 +52,9 @@ class MomentForms {
         icon: const Icon(Icons.calendar_month, size: 18),
         label: Text(
           value.isEmpty
-              ? (required ? '$label * ${context.tr('(required)', '(مطلوب)')}' : label)
+              ? (required
+                    ? '$label * ${context.tr('(required)', '(مطلوب)')}'
+                    : label)
               : '$label: ${CairoFormat.isoDay(value, context.isAr)}',
         ),
         onPressed: () async {

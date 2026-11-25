@@ -120,6 +120,7 @@ _$MeProfileImpl _$$MeProfileImplFromJson(Map<String, dynamic> json) =>
       seenHelp: (json['seen_help'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
+      csrfToken: json['csrf_token'] as String?,
     );
 
 Map<String, dynamic> _$$MeProfileImplToJson(_$MeProfileImpl instance) =>
@@ -135,6 +136,7 @@ Map<String, dynamic> _$$MeProfileImplToJson(_$MeProfileImpl instance) =>
       'home_route': instance.homeRoute,
       'nav': instance.nav.map((e) => e.toJson()).toList(),
       'seen_help': instance.seenHelp,
+      'csrf_token': instance.csrfToken,
     };
 
 const _$StudioModeEnumMap = {

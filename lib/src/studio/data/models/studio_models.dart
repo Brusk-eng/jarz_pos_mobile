@@ -141,6 +141,9 @@ abstract class MeProfile with _$MeProfile {
 
     /// help sheets and walkthroughs already seen
     @JsonKey(name: 'seen_help') required List<String> seenHelp,
+
+    /// Frappe CSRF token for the cookie session (contract 1.5); null when none
+    @JsonKey(name: 'csrf_token') String? csrfToken,
   }) = _MeProfile;
 
   factory MeProfile.fromJson(Map<String, dynamic> json) =>

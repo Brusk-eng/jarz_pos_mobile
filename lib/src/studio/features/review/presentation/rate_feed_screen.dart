@@ -320,7 +320,26 @@ class _CardPage extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         if (first == null)
-          const SizedBox.shrink()
+          // The server sent no media (old creatives): say so instead of
+          // leaving a black screen.
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.movie_outlined,
+                  color: Colors.white54,
+                  size: 48,
+                ),
+                const SizedBox(height: StudioSpacing.sm),
+                Text(
+                  t.feedNoMedia,
+                  key: const ValueKey('feed-no-media'),
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          )
         else if (first.kind == MediaKind.video)
           StudioVideoPlayer(
             media: first,

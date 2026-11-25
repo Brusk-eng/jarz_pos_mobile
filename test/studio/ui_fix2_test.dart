@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jarz_pos/src/studio/core/offline/kv_store.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/studio/core/config/studio_config.dart';
@@ -35,6 +36,7 @@ Future<ProviderContainer> _app(
       overrides: [
         studioFakeProvider.overrideWithValue(true),
         studioApiProvider.overrideWithValue(fake),
+        studioKvStoreProvider.overrideWithValue(MemoryKvStore()),
         studioFakeRoleProvider.overrideWithValue(fake.role),
         studioLocaleProvider.overrideWith((ref) => Locale(locale)),
       ],

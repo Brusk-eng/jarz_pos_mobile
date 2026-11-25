@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../data/models/studio_enums.dart';
+import '../../data/models/studio_models.dart';
 import '../../shared/studio_error_text.dart';
 
 /// Texts of the Pieces screens and the plain-word names of the contract's
@@ -379,6 +380,18 @@ class PiecesStrings {
     ReviewOutcome.approved => tr('Approved', 'معتمدة'),
     ReviewOutcome.fix => tr('Needs a fix', 'محتاجة تعديل'),
     _ => tr('Waiting for review', 'مستنية الريفيو'),
+  };
+
+  /// The one status line of a version, for both languages: the outcome when
+  /// there is one, "Waiting for review" only while the version really is
+  /// awaiting review, otherwise it is an older version.
+  String versionStatus(PieceVersion v) => switch (v.reviewOutcome) {
+    ReviewOutcome.approved ||
+    ReviewOutcome.fix => reviewOutcome(v.reviewOutcome),
+    _ =>
+      v.awaitingReview
+          ? tr('Waiting for review', 'مستنية الريفيو')
+          : tr('An older version', 'نسخة أقدم'),
   };
 
   /// An error in plain words for a snackbar or a form: the one app-wide

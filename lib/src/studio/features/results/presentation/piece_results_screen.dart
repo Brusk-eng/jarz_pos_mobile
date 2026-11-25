@@ -47,6 +47,7 @@ class PieceResultsScreen extends ConsumerWidget {
             ),
             Expanded(
               child: StudioAsyncView<PagedState<PieceResult>>(
+                emptyOnNotFound: true,
                 value: value,
                 onRetry: () => ref.invalidate(pieceResultsProvider),
                 empty: StudioEmptyConfig(

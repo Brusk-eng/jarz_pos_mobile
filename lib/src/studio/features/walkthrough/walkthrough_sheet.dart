@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/studio_api.dart';
+import '../../core/offline/kv_store.dart';
 import '../../core/roles/studio_role.dart';
 import '../../core/theme/studio_tokens.dart';
 import '../session/state/studio_session_notifier.dart';
@@ -61,7 +64,11 @@ class _WalkthroughDialogState extends State<_WalkthroughDialog> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(c.icon, size: 40, color: StudioColors.berryPink),
+                            Icon(
+                              c.icon,
+                              size: 40,
+                              color: StudioColors.berryPink,
+                            ),
                             const SizedBox(height: StudioSpacing.md),
                             Text(c.title, style: theme.textTheme.headlineSmall),
                             const SizedBox(height: StudioSpacing.sm),
@@ -129,17 +136,30 @@ class _FirstLoginWalkthroughState extends ConsumerState<FirstLoginWalkthrough> {
     final role = me?.primaryRole;
     if (!_asked && me != null && role != null) {
       final key = WalkthroughStrings.keyFor(role);
+      final localKey = 'walkthrough_seen:${me.user}:$key';
       if (!me.seenHelp.contains(key)) {
         _asked = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
-          await showWalkthrough(context, role);
+          final kv = ref.read(studioKvStoreProvider);
+          // Seen on this device already: the save to the server may have failed.
           try {
-            await ref.read(studioApiProvider).sessionHelpSeen(key: key);
-            ref.read(studioSessionProvider.notifier).markHelpSeen(key);
-          } catch (_) {
-            // Not saved: it shows again next time, which is harmless.
-          }
+            if (await kv.get(localKey) != null) return;
+          } catch (_) {}
+          if (!mounted || !context.mounted) return;
+          await showWalkthrough(context, role);
+          // Remember at once, here, so the tour never repeats even if the
+          // server save below fails.
+          try {
+            await kv.put(localKey, '1');
+          } catch (_) {}
+          if (!mounted) return;
+          final session = ref.read(studioSessionProvider.notifier);
+          final api = ref.read(studioApiProvider);
+          session.markHelpSeen(key);
+          unawaited(
+            api.sessionHelpSeen(key: key).then<void>((_) {}, onError: (_) {}),
+          );
         });
       }
     }

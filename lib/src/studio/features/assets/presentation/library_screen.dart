@@ -240,7 +240,16 @@ class _FilterChip<T> extends StatelessWidget {
         ],
         child: Chip(
           avatar: active == null ? null : const Icon(Icons.check, size: 16),
-          label: Text(active == null ? label : '$label: $active'),
+          // A long flavour name must not push the chip past its box (Arabic puts the
+          // English name inside an RTL line): cap it and ellipsize.
+          label: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: Text(
+              active == null ? label : '$label: \u2068$active\u2069',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           backgroundColor: active == null
               ? Colors.white
               : StudioColors.softBlush.withValues(alpha: 0.6),

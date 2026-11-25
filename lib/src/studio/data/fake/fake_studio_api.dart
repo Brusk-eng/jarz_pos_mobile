@@ -551,7 +551,9 @@ class FakeStudioApi extends StudioApi {
       final tagged = RegExp(r'^(\d+)% tagged$').firstMatch(s);
       if (tagged != null) return '${tagged.group(1)}% متعلّمة';
       final against = RegExp(r'^(\d+) against (\d+)$').firstMatch(s);
-      if (against != null) return '${against.group(1)} مقابل ${against.group(2)}';
+      if (against != null) {
+        return '${against.group(1)} مقابل ${against.group(2)}';
+      }
       if (s == 'Not entered yet') return 'لسه ما اتسجّلش';
       return s;
     }

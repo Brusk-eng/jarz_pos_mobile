@@ -636,7 +636,7 @@ class _Versions extends StatelessWidget {
               s.versionNo(v.versionNo),
               if (v.isCurrent) s.currentVersion,
             ].join(' · '),
-            subtitle: s.reviewOutcome(v.reviewOutcome),
+            subtitle: s.versionStatus(v),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/versions/${v.id}'),
           ),

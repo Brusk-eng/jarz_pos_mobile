@@ -115,7 +115,7 @@ class ResultsStringsEn extends ResultsStrings {
       'The scorecard, and results by piece, format and audience.';
   @override
   String get emptyFirstStep =>
-      'No scorecard yet. It fills in as pieces are read and ads report.';
+      'No scorecard for this week yet. The system fills it each morning.';
   @override
   String weekLabel(String from, String to) => '$from to $to';
   @override
@@ -324,7 +324,7 @@ class ResultsStringsAr extends ResultsStrings {
   String get emptyPurpose => 'الـ scorecard، ونتايج القطع بالنوع والجمهور.';
   @override
   String get emptyFirstStep =>
-      'مفيش scorecard لسه. بتتملي مع قراءة نتايج القطع وأرقام الإعلانات.';
+      'مفيش scorecard للأسبوع ده لسه. السيستم بيملاها كل صبح.';
   @override
   String weekLabel(String from, String to) => 'من $from لحد $to';
   @override
@@ -507,8 +507,7 @@ class ResultsStringsAr extends ResultsStrings {
     _ => wire,
   };
   @override
-  String lastDays(int n) =>
-      'آخر ${arDay.of(n)}';
+  String lastDays(int n) => 'آخر ${arDay.of(n)}';
   @override
   String get avgViews => 'متوسط المشاهدات';
   @override

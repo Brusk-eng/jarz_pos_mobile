@@ -53,6 +53,7 @@ class PaidQueueScreen extends ConsumerWidget {
               ),
             Expanded(
               child: StudioAsyncView<PaidOverview>(
+                emptyOnNotFound: true,
                 value: value,
                 onRetry: () => ref.invalidate(paidOverviewProvider),
                 empty: StudioEmptyConfig(

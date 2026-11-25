@@ -12,7 +12,9 @@ class StudioNotFoundScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     key: const ValueKey('page-not-found'),
-    appBar: AppBar(title: Text(context.tr('Page not found', 'الصفحة مش موجودة'))),
+    appBar: AppBar(
+      title: Text(context.tr('Page not found', 'الصفحة مش موجودة')),
+    ),
     body: Center(
       child: Padding(
         padding: const EdgeInsets.all(StudioSpacing.gutter),

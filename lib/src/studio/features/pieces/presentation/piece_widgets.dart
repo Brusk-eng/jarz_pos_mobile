@@ -122,7 +122,9 @@ class PieceCard extends StatelessWidget {
                     Text(
                       [
                         ownerText(context, piece),
-                        due != null ? s.dueOn(CairoFormat.dayMonth(due, ar)) : s.noDue,
+                        due != null
+                            ? s.dueOn(CairoFormat.dayMonth(due, ar))
+                            : s.noDue,
                       ].join(' · '),
                       style: textTheme.bodySmall,
                     ),
@@ -378,9 +380,7 @@ class _AskTextDialogState extends State<_AskTextDialog> {
             minLines: 1,
             maxLines: widget.maxLines,
             decoration: InputDecoration(
-              labelText: widget.required
-                  ? '${widget.label} *'
-                  : widget.label,
+              labelText: widget.required ? '${widget.label} *' : widget.label,
               helperText: widget.required ? s.requiredHint : null,
               errorText: _error,
             ),

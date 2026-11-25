@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/src/studio/data/studio_error.dart';
 import 'package:jarz_pos/src/studio/features/results/presentation/piece_results_screen.dart';
 import 'package:jarz_pos/src/studio/features/results/presentation/scorecard_screen.dart';
 import 'package:jarz_pos/src/studio/features/results/presentation/summary_screen.dart';
@@ -25,6 +26,20 @@ const _tall = Size(360, 2600);
 
 void main() {
   group('scorecard', () {
+    testWidgets('a week with no scorecard is an empty state, not an error', (
+      tester,
+    ) async {
+      final api = RecordingApi();
+      api.respond['results.scorecard'] = (_) => throw const StudioNotFound(
+        'There is no scorecard for that week yet.',
+        statusCode: 404,
+      );
+      await pumpMore(tester, const ScorecardScreen(), api: api, size: _tall);
+      expect(find.textContaining('fills it each morning'), findsOneWidget);
+      expect(find.textContaining('Something went wrong'), findsNothing);
+      expect(find.text('Previous week'), findsOneWidget);
+    });
+
     testWidgets('numbers filled by the system are read only and sourced', (
       tester,
     ) async {

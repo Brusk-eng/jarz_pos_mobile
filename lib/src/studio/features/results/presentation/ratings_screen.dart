@@ -45,6 +45,7 @@ class RatingsScreen extends ConsumerWidget {
       ],
       body: MoreBody(
         child: StudioAsyncView<RatingsRollup>(
+          emptyOnNotFound: true,
           value: value,
           onRetry: () => ref.invalidate(ratingsRollupProvider),
           empty: StudioEmptyConfig(

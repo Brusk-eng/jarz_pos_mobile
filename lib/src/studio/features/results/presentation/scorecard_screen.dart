@@ -41,17 +41,32 @@ class ScorecardScreen extends ConsumerWidget {
       actions: [moreHelpAction(context, title: t.helpTitle, lines: t.help)],
       body: MoreBody(
         child: StudioAsyncView<WeekScorecard>(
+          emptyOnNotFound: true,
           value: value,
           onRetry: () => ref.invalidate(scorecardProvider(week)),
           empty: StudioEmptyConfig(
             purpose: t.emptyPurpose,
             firstStep: t.emptyFirstStep,
             icon: Icons.insights_outlined,
+            actionLabel: t.previousWeek,
+            onAction: () => _previousWeek(ref, week),
           ),
           builder: (context, c) =>
               _ScorecardBody(card: c, week: week, canSeeMore: canReview),
         ),
       ),
+    );
+  }
+
+  /// From the empty state: step back so the person is never stuck on a week
+  /// with no card. An empty [week] means "this week" (the Sunday before today).
+  void _previousWeek(WidgetRef ref, String week) {
+    final now = DateTime.now();
+    final base =
+        DateTime.tryParse(week) ??
+        DateTime(now.year, now.month, now.day - (now.weekday % 7));
+    ref.read(scorecardWeekProvider.notifier).state = isoDate(
+      base.subtract(const Duration(days: 7)),
     );
   }
 

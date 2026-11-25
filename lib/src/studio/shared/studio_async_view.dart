@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/l10n/studio_strings.dart';
 import '../core/theme/studio_tokens.dart';
+import '../data/studio_error.dart';
 
 /// What an empty screen says: what the screen is for, what to do first, and an
 /// optional action.
@@ -32,6 +33,7 @@ class StudioAsyncView<T> extends StatelessWidget {
     required this.empty,
     this.isEmpty,
     this.onRetry,
+    this.emptyOnNotFound = false,
   });
 
   final AsyncValue<T> value;
@@ -42,6 +44,10 @@ class StudioAsyncView<T> extends StatelessWidget {
   /// iterables and empty maps.
   final bool Function(T data)? isEmpty;
   final VoidCallback? onRetry;
+
+  /// For reads where NOT_FOUND means "nothing there yet" (a week with no
+  /// scorecard): show the empty state instead of the error.
+  final bool emptyOnNotFound;
 
   bool _empty(T data) {
     if (isEmpty != null) return isEmpty!(data);
@@ -55,7 +61,9 @@ class StudioAsyncView<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return value.when(
       loading: () => const StudioSkeleton(),
-      error: (error, _) => StudioErrorState(onRetry: onRetry),
+      error: (error, _) => emptyOnNotFound && error is StudioNotFound
+          ? StudioEmptyState(config: empty)
+          : StudioErrorState(onRetry: onRetry),
       data: (data) => _empty(data)
           ? StudioEmptyState(config: empty)
           : builder(context, data),

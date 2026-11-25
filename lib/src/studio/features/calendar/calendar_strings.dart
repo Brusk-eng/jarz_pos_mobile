@@ -192,6 +192,7 @@ class CalendarStrings {
   String get actionEditSlot => tr('Edit the slot', 'تعديل الميعاد');
   String actionFramePosted(int n) =>
       tr('Mark frame $n posted', 'علّم فريم $n إنه اتنشر');
+
   /// The words on the button; the full sentence above is its accessible name.
   String frameShortPosted(int n) => tr('Frame $n posted', 'فريم $n اتنشر');
   String actionFrameSkipped(int n) => tr('Skip frame $n', 'تخطّى فريم $n');
@@ -223,17 +224,15 @@ class CalendarStrings {
       tr('This post has no caption yet.', 'البوست ده لسه معندوش كابشن.');
   String get noFilesYet =>
       tr('No files on this post yet.', 'مفيش ملفات على البوست ده لسه.');
-  String framesDecided(int done, int total) =>
-      tr(
-        '$done of $total frames decided',
-        '$done من ${arFrame.of(total)} اتحددت',
-      );
+  String framesDecided(int done, int total) => tr(
+    '$done of $total frames decided',
+    '$done من ${arFrame.of(total)} اتحددت',
+  );
   String get framesAllDecided => tr(
     'Every frame is decided. The story now counts as done.',
     'كل الفريمات اتحددت. الـ Story اتحسبت خلصت.',
   );
-  String get wontPostTitle =>
-      tr('Won\'t post', 'مش هيتنشر');
+  String get wontPostTitle => tr('Won\'t post', 'مش هيتنشر');
   String get reasonLabel => tr('Reason', 'السبب');
   String get reasonNeeded => tr('Write the reason first.', 'اكتب السبب الأول.');
   String get confirm => tr('Confirm', 'تأكيد');
@@ -246,8 +245,7 @@ class CalendarStrings {
     'Marked as posted. The 72-hour read comes due in 3 days: file it from this post.',
     'اتعلّم إنه اتنشر. قراءة الـ 72 ساعة ميعادها بعد 3 أيام: سجّلها من البوست ده.',
   );
-  String get markedWont =>
-      tr('Marked Won\'t post.', 'اتعلّم إنه مش هيتنشر.');
+  String get markedWont => tr('Marked Won\'t post.', 'اتعلّم إنه مش هيتنشر.');
   String get retrying => tr('Sent again.', 'اتبعت تاني.');
   String get moved => tr('Moved.', 'اتنقل.');
   String get frameSaved => tr('Frame saved.', 'الفريم اتحفظ.');

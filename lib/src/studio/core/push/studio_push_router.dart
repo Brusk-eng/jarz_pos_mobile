@@ -25,13 +25,33 @@ String studioAppRoute(String route) {
   final m = RegExp(
     r'^/(references|paid|results|reports|settings)(?=$|[/?#])',
   ).firstMatch(route);
-  if (m == null) return route;
-  final rest = route.substring(m.end);
-  // `/settings?section=rules` (the rules-changed line on Today) opens the Rules.
-  if (m.group(1) == 'settings' && rest == '?section=rules') {
-    return '/more/settings/rules';
+  if (m != null) {
+    final rest = route.substring(m.end);
+    // `/settings?section=rules` (the rules-changed line on Today) opens the Rules.
+    if (m.group(1) == 'settings' && rest == '?section=rules') {
+      return '/more/settings/rules';
+    }
+    return '/more/${m.group(1)}$rest';
   }
-  return '/more/${m.group(1)}$rest';
+  // Short forms and the other tab's prefix: each top-level destination has one
+  // stable address, and the obvious guesses land on it.
+  final short = RegExp(
+    r'^(?:/more)?/(library|assets|shoots|calendar|pieces|today|ideas|decisions|approve|rate|my-ideas|notifications|inbox)(?=$|[/?#])',
+  ).firstMatch(route);
+  if (short == null) return route;
+  final rest = route.substring(short.end);
+  final target = switch (short.group(1)!) {
+    'library' || 'assets' => '/assets',
+    'ideas' => '/inbox/ideas',
+    'decisions' => '/inbox/decisions',
+    'approve' => '/inbox/approve',
+    'rate' => '/inbox/rate',
+    'my-ideas' => '/inbox/my-ideas',
+    'notifications' => '/inbox/notifications',
+    final other => '/$other',
+  };
+  final out = '$target$rest';
+  return out == route ? route : out;
 }
 
 String _contractRoute(Map<String, String?> payload) {
@@ -54,7 +74,7 @@ String? studioPushNotificationId(Map<String, String?> payload) {
 
 final _routePatterns = <RegExp>[
   RegExp(
-    r'^/(today|inbox|inbox/approve|inbox/ideas|calendar|pieces|shoots|assets|references|paid|results|reports|settings|more)$',
+    r'^/(today|inbox|inbox/approve|inbox/ideas|calendar|pieces|shoots|assets|library|references|paid|results|reports|settings|more)$',
   ),
   RegExp(r'^/inbox/approve/[^/?#]+$'),
   RegExp(r'^/inbox/decisions/[^/?#]+$'),

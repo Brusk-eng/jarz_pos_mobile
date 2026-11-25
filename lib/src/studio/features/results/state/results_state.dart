@@ -155,7 +155,8 @@ final summaryQueryProvider = Provider<ResultsSummaryQuery>((ref) {
   final days = ref.watch(summaryDaysProvider);
   final now = DateTime.now();
   return (
-    from: isoDate(now.subtract(Duration(days: days))),
+    // Calendar days, not 24-hour blocks: a window across a clock change stays whole.
+    from: isoDate(DateTime(now.year, now.month, now.day - days)),
     to: isoDate(now),
     groupBy: ref.watch(summaryGroupByProvider),
   );

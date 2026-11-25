@@ -34,6 +34,7 @@ abstract class ReviewStrings {
   String postsOn(String when, String? channel);
   String get noSlotYet;
   String get noMedia;
+  String get feedNoMedia;
   String get storyFrames;
   String frameLabel(int n);
   String get framePosted;
@@ -236,6 +237,8 @@ class ReviewStringsEn extends ReviewStrings {
   String get noSlotYet => 'No posting date yet';
   @override
   String get noMedia => 'There is no picture or video on this version yet.';
+  @override
+  String get feedNoMedia => 'No picture or video on this one.';
   @override
   String get storyFrames => 'Story frames';
   @override
@@ -469,6 +472,8 @@ class ReviewStringsAr extends ReviewStrings {
   String get noSlotYet => 'لسه مفيش ميعاد نشر';
   @override
   String get noMedia => 'مفيش صورة ولا فيديو على النسخة دي لسه.';
+  @override
+  String get feedNoMedia => 'مفيش صورة ولا فيديو على القطعة دي.';
   @override
   String get storyFrames => 'فريمات الـ Story';
   @override

@@ -67,7 +67,9 @@ class _LanguageSync {
 
   Future<void> _send(String code) async {
     try {
-      await _ref.read(settingsRepositoryProvider).setMyNotifications(lang: code);
+      await _ref
+          .read(settingsRepositoryProvider)
+          .setMyNotifications(lang: code);
       await _write(_pendingKey, null);
     } catch (_) {
       await _write(_pendingKey, code);
@@ -83,8 +85,8 @@ class _LanguageSync {
     final mine = device ?? current;
     StudioLang? server;
     try {
-      server = (await _ref.read(settingsRepositoryProvider).myNotifications())
-          .lang;
+      server =
+          (await _ref.read(settingsRepositoryProvider).myNotifications()).lang;
     } catch (_) {
       // Offline: the device choice stays; this is tried again next run.
       _signedInDone = false;

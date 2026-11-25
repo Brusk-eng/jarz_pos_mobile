@@ -64,6 +64,7 @@ class SummaryScreen extends ConsumerWidget {
             ),
             Expanded(
               child: StudioAsyncView<ResultSummary>(
+                emptyOnNotFound: true,
                 value: value,
                 onRetry: () => ref.invalidate(resultsSummaryProvider(query)),
                 empty: StudioEmptyConfig(

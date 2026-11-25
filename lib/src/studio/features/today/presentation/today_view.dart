@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/l10n/studio_labels.dart';
+import 'today_words.dart';
 import '../../../core/l10n/studio_strings.dart';
 import '../../../core/router/studio_screen.dart';
 import '../../../core/roles/studio_role.dart' show StudioRole;
@@ -464,7 +465,12 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
                         style: theme.textTheme.titleSmall,
                       ),
                       if (line.subtitle != null)
-                        Text(line.subtitle!, style: theme.textTheme.bodySmall),
+                        Text(
+                          context.isAr
+                              ? todayLineArabic(line.subtitle!)
+                              : line.subtitle!,
+                          style: theme.textTheme.bodySmall,
+                        ),
                       if (line.due != null)
                         Text(
                           t.taskDue(slotText(s, line.due)),

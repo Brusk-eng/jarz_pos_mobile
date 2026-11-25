@@ -29,6 +29,7 @@ class PaidOverviewScreen extends ConsumerWidget {
       actions: [moreHelpAction(context, title: t.helpTitle, lines: t.help)],
       body: MoreBody(
         child: StudioAsyncView<PaidOverview>(
+          emptyOnNotFound: true,
           value: value,
           onRetry: () => ref.invalidate(paidOverviewProvider),
           empty: StudioEmptyConfig(

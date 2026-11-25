@@ -11,6 +11,7 @@ import '../../../core/offline/offline_queue.dart';
 import '../../../core/session/session_manager.dart';
 import '../../data/api/studio_api_endpoints.dart';
 import '../../data/fake/fake_studio_api.dart';
+import '../../data/models/studio_models.dart' show MeProfile;
 import '../../data/studio_error.dart';
 import '../config/studio_config.dart';
 
@@ -44,9 +45,29 @@ abstract class StudioApi extends StudioApiEndpoints {
 /// (POST, or GET for pure reads), the `message` envelope is unwrapped and every
 /// failure becomes a [StudioError].
 class DioStudioApi extends StudioApi {
-  DioStudioApi(this._dio);
+  DioStudioApi(
+    this._dio, {
+    this.retryDelay = const Duration(milliseconds: 1500),
+  });
 
   final Dio _dio;
+
+  /// Wait before the one automatic retry of a read that got a 502, 503 or 504.
+  final Duration retryDelay;
+
+  /// Frappe CSRF token from `session.me` (contract 1.5). Sent as
+  /// `X-Frappe-CSRF-Token` on every POST while it is non-null.
+  String? _csrfToken;
+
+  /// Test hook: the token currently held.
+  String? get csrfToken => _csrfToken;
+
+  @override
+  Future<MeProfile> sessionMe() async {
+    final me = await super.sessionMe();
+    _csrfToken = me.csrfToken;
+    return me;
+  }
 
   @override
   Future<dynamic> call(
@@ -62,9 +83,22 @@ class DioStudioApi extends StudioApi {
             : e.value,
     };
     try {
-      final response = get
-          ? await _dio.get('/api/method/$method', queryParameters: wire)
-          : await _dio.post('/api/method/$method', data: wire);
+      Response<dynamic> response;
+      try {
+        response = await _send(method, wire, get);
+      } on DioException catch (e) {
+        if (get && _isGatewayError(e)) {
+          // A read behind a restarting or overloaded server: one quiet retry.
+          await Future<void>.delayed(retryDelay);
+          response = await _send(method, wire, get);
+        } else if (!get && _isCsrfError(e)) {
+          // A stale CSRF token: fetch a fresh one and send the request once more.
+          await sessionMe();
+          response = await _send(method, wire, get);
+        } else {
+          rethrow;
+        }
+      }
       final data = response.data;
       if (!get) announceCall(method);
       if (data is Map && data.containsKey('message')) return data['message'];
@@ -73,6 +107,41 @@ class DioStudioApi extends StudioApi {
       throw _toStudioError(e);
     }
   }
+
+  Future<Response<dynamic>> _send(
+    String method,
+    Map<String, dynamic> wire,
+    bool get,
+  ) {
+    if (get) return _dio.get('/api/method/$method', queryParameters: wire);
+    final token = _csrfToken;
+    return _dio.post(
+      '/api/method/$method',
+      data: wire,
+      options: token == null
+          ? null
+          : Options(headers: {'X-Frappe-CSRF-Token': token}),
+    );
+  }
+}
+
+bool _isGatewayError(DioException e) {
+  final code = e.response?.statusCode;
+  return code == 502 || code == 503 || code == 504;
+}
+
+/// Frappe answers a POST with a missing or stale CSRF token with HTTP 400 and
+/// `exc_type: CSRFTokenError`.
+bool _isCsrfError(DioException e) {
+  final response = e.response;
+  if (response == null || response.statusCode != 400) return false;
+  var body = response.data;
+  if (body is String && body.trim().startsWith('{')) {
+    try {
+      body = jsonDecode(body);
+    } catch (_) {}
+  }
+  return body is Map && '${body['exc_type']}' == 'CSRFTokenError';
 }
 
 StudioError _toStudioError(DioException e) {

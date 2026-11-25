@@ -1381,6 +1381,10 @@ mixin _$MeProfile {
   @JsonKey(name: 'seen_help')
   List<String> get seenHelp => throw _privateConstructorUsedError;
 
+  /// Frappe CSRF token for the cookie session (contract 1.5); null when none
+  @JsonKey(name: 'csrf_token')
+  String? get csrfToken => throw _privateConstructorUsedError;
+
   /// Serializes this MeProfile to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -1409,6 +1413,7 @@ abstract class $MeProfileCopyWith<$Res> {
     @JsonKey(name: 'home_route') String homeRoute,
     List<NavItem> nav,
     @JsonKey(name: 'seen_help') List<String> seenHelp,
+    @JsonKey(name: 'csrf_token') String? csrfToken,
   });
 
   $PersonRefCopyWith<$Res>? get person;
@@ -1440,6 +1445,7 @@ class _$MeProfileCopyWithImpl<$Res, $Val extends MeProfile>
     Object? homeRoute = null,
     Object? nav = null,
     Object? seenHelp = null,
+    Object? csrfToken = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1487,6 +1493,10 @@ class _$MeProfileCopyWithImpl<$Res, $Val extends MeProfile>
                 ? _value.seenHelp
                 : seenHelp // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            csrfToken: freezed == csrfToken
+                ? _value.csrfToken
+                : csrfToken // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -1529,6 +1539,7 @@ abstract class _$$MeProfileImplCopyWith<$Res>
     @JsonKey(name: 'home_route') String homeRoute,
     List<NavItem> nav,
     @JsonKey(name: 'seen_help') List<String> seenHelp,
+    @JsonKey(name: 'csrf_token') String? csrfToken,
   });
 
   @override
@@ -1560,6 +1571,7 @@ class __$$MeProfileImplCopyWithImpl<$Res>
     Object? homeRoute = null,
     Object? nav = null,
     Object? seenHelp = null,
+    Object? csrfToken = freezed,
   }) {
     return _then(
       _$MeProfileImpl(
@@ -1607,6 +1619,10 @@ class __$$MeProfileImplCopyWithImpl<$Res>
             ? _value._seenHelp
             : seenHelp // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        csrfToken: freezed == csrfToken
+            ? _value.csrfToken
+            : csrfToken // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -1629,6 +1645,7 @@ class _$MeProfileImpl implements _MeProfile {
     @JsonKey(name: 'home_route') required this.homeRoute,
     required final List<NavItem> nav,
     @JsonKey(name: 'seen_help') required final List<String> seenHelp,
+    @JsonKey(name: 'csrf_token') this.csrfToken,
   }) : _roles = roles,
        _nav = nav,
        _seenHelp = seenHelp;
@@ -1698,9 +1715,14 @@ class _$MeProfileImpl implements _MeProfile {
     return EqualUnmodifiableListView(_seenHelp);
   }
 
+  /// Frappe CSRF token for the cookie session (contract 1.5); null when none
+  @override
+  @JsonKey(name: 'csrf_token')
+  final String? csrfToken;
+
   @override
   String toString() {
-    return 'MeProfile(user: $user, fullName: $fullName, roles: $roles, isFounder: $isFounder, mode: $mode, serverTime: $serverTime, person: $person, studioRole: $studioRole, homeRoute: $homeRoute, nav: $nav, seenHelp: $seenHelp)';
+    return 'MeProfile(user: $user, fullName: $fullName, roles: $roles, isFounder: $isFounder, mode: $mode, serverTime: $serverTime, person: $person, studioRole: $studioRole, homeRoute: $homeRoute, nav: $nav, seenHelp: $seenHelp, csrfToken: $csrfToken)';
   }
 
   @override
@@ -1723,7 +1745,9 @@ class _$MeProfileImpl implements _MeProfile {
             (identical(other.homeRoute, homeRoute) ||
                 other.homeRoute == homeRoute) &&
             const DeepCollectionEquality().equals(other._nav, _nav) &&
-            const DeepCollectionEquality().equals(other._seenHelp, _seenHelp));
+            const DeepCollectionEquality().equals(other._seenHelp, _seenHelp) &&
+            (identical(other.csrfToken, csrfToken) ||
+                other.csrfToken == csrfToken));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1741,6 +1765,7 @@ class _$MeProfileImpl implements _MeProfile {
     homeRoute,
     const DeepCollectionEquality().hash(_nav),
     const DeepCollectionEquality().hash(_seenHelp),
+    csrfToken,
   );
 
   /// Create a copy of MeProfile
@@ -1772,6 +1797,7 @@ abstract class _MeProfile implements MeProfile {
     @JsonKey(name: 'home_route') required final String homeRoute,
     required final List<NavItem> nav,
     @JsonKey(name: 'seen_help') required final List<String> seenHelp,
+    @JsonKey(name: 'csrf_token') final String? csrfToken,
   }) = _$MeProfileImpl;
 
   factory _MeProfile.fromJson(Map<String, dynamic> json) =
@@ -1816,6 +1842,11 @@ abstract class _MeProfile implements MeProfile {
   @override
   @JsonKey(name: 'seen_help')
   List<String> get seenHelp;
+
+  /// Frappe CSRF token for the cookie session (contract 1.5); null when none
+  @override
+  @JsonKey(name: 'csrf_token')
+  String? get csrfToken;
 
   /// Create a copy of MeProfile
   /// with the given fields replaced by the non-null parameter values.

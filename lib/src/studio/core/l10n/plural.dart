@@ -55,12 +55,7 @@ const arFrame = ArNoun(
   few: 'فريمات',
   many: 'فريم',
 );
-const arShot = ArNoun(
-  one: 'شوت واحد',
-  two: 'شوتين',
-  few: 'شوتس',
-  many: 'شوت',
-);
+const arShot = ArNoun(one: 'شوت واحد', two: 'شوتين', few: 'شوتس', many: 'شوت');
 const arFile = ArNoun(one: 'ملف', two: 'ملفين', few: 'ملفات', many: 'ملف');
 
 String arCount(

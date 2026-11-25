@@ -424,8 +424,11 @@ class _StateDialogState extends State<_StateDialog> {
     final warnText = switch (warning) {
       WinnerNeedsPurchases(:final have, :final need) =>
         t.againstWinnerPurchases(t.stateLabel(_picked), have, need),
-      CostAboveLine(:final cpa, :final line) =>
-        t.againstCostLine(t.stateLabel(_picked), cpa, line),
+      CostAboveLine(:final cpa, :final line) => t.againstCostLine(
+        t.stateLabel(_picked),
+        cpa,
+        line,
+      ),
       null => null,
     };
     return AlertDialog(
