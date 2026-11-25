@@ -8,12 +8,12 @@ services:
     container_name: pos-web
     labels:
       - traefik.enable=true
-      - traefik.http.routers.pos-web-https.rule=Host(`erpstg.orderjarz.com`) && PathPrefix(`/pos`)
+      - traefik.http.routers.pos-web-https.rule=Host(`erpstg.orderjarz.com`) && (PathPrefix(`/pos`) || PathPrefix(`/studio`))
       - traefik.http.routers.pos-web-https.entrypoints=websecure
       - traefik.http.routers.pos-web-https.tls=true
       - traefik.http.routers.pos-web-https.tls.certresolver=main-resolver
       - traefik.http.services.pos-web.loadbalancer.server.port=80
-      - traefik.http.routers.pos-web-http.rule=Host(`erpstg.orderjarz.com`) && PathPrefix(`/pos`)
+      - traefik.http.routers.pos-web-http.rule=Host(`erpstg.orderjarz.com`) && (PathPrefix(`/pos`) || PathPrefix(`/studio`))
       - traefik.http.routers.pos-web-http.entrypoints=web
       - traefik.http.routers.pos-web-http.middlewares=redirect-to-https@docker
     networks:

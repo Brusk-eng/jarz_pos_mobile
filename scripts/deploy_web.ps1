@@ -8,6 +8,13 @@ param(
     [switch]$AllowDirty,
     [string]$SshKeyPath,
 
+    # Which web app to ship. 'pos' (default) is the POS app served at /pos/ and behaves
+    # exactly as before. 'studio' builds lib/main_studio.dart with --base-href /studio/
+    # and serves it beside the POS app at /studio/ from the same pos-web container (same
+    # origin as the API, so the session cookie works). Staging only for now.
+    [ValidateSet('pos', 'studio')]
+    [string]$App = 'pos',
+
     # Pin the deploy to a known commit; mirrors deploy_backend.ps1 -Commit so
     # "deploy commit X" means the same thing on both halves of a release.
     # Here it asserts the LOCAL checkout is at that commit, because this script
@@ -31,6 +38,17 @@ $remoteServedDownloadDir = "$remoteWebDir/download"
 $remoteMetaPath = "$remoteWebDir/release-metadata.json"
 $localNginxConfigPath = Join-Path $repoRoot 'scripts\pos-web\nginx.conf'
 $remoteNginxConfigPath = '/home/ubuntu/pos-web/nginx.conf'
+# Tracked copies of the container's Dockerfile and compose file. Applied on staging only
+# for now: production's compose differs in its Host() rule and keeps its server-side copy.
+$localDockerfilePath = Join-Path $repoRoot 'scripts\pos-web\Dockerfile'
+$localComposePath = Join-Path $repoRoot 'scripts\pos-web\docker-compose.yml'
+$remoteDockerfilePath = '/home/ubuntu/pos-web/Dockerfile'
+$remoteComposePath = '/home/ubuntu/pos-web/docker-compose.yml'
+$remoteStudioDir = '/home/ubuntu/pos-web/studio-web'
+
+if ($App -eq 'studio' -and $Environment -ne 'staging') {
+    throw "-App studio is staging-only for now; refusing to deploy it to $Environment."
+}
 
 if (-not (Test-Path $SshKeyPath)) {
     throw "SSH key not found at $SshKeyPath"
@@ -53,6 +71,14 @@ $config = switch ($Environment) {
             PosUrl = 'https://erp.orderjarz.com/pos/'
         }
     }
+}
+
+if ($App -eq 'studio') {
+    # Metadata, hash check, upload and health probe all work on $remoteWebDir and
+    # $config.PosUrl, so pointing those at /studio/ reuses them unchanged.
+    $remoteWebDir = $remoteStudioDir
+    $remoteMetaPath = "$remoteWebDir/release-metadata.json"
+    $config.PosUrl = $config.PosUrl -replace '/pos/$', '/studio/'
 }
 
 $sshTarget = "ubuntu@$($config.ServerIp)"
@@ -352,8 +378,13 @@ Write-Step 'Building Flutter web release...'
 $buildStdoutPath = [System.IO.Path]::GetTempFileName()
 $buildStderrPath = [System.IO.Path]::GetTempFileName()
 try {
+    $buildCommand = """$repoRoot\scripts\build_release.bat"" $Environment web"
+    if ($App -eq 'studio') {
+        # The Studio app reads the POS env file and logs in against the Frappe site.
+        $buildCommand = "flutter build web --release -t lib/main_studio.dart --base-href /studio/ --dart-define=ENV=$Environment --dart-define=SENTRY_ENVIRONMENT=$Environment --dart-define=SENTRY_RELEASE=$sentryRelease --dart-define=SENTRY_DIST=$sentryDist --dart-define-from-file=.env.$Environment"
+    }
     $buildProcess = Start-Process -FilePath 'cmd.exe' `
-        -ArgumentList '/c', """$repoRoot\scripts\build_release.bat"" $Environment web" `
+        -ArgumentList '/c', $buildCommand `
         -WorkingDirectory $repoRoot `
         -NoNewWindow `
         -Wait `
@@ -402,12 +433,16 @@ Write-Step 'Uploading web bundle to server...'
 # Compute Linux parent path without PowerShell path manipulation (which converts / to \)
 $remoteWebParentDir = $remoteWebDir.Substring(0, $remoteWebDir.TrimEnd('/').LastIndexOf('/' ))
 $null = Invoke-Remote "rm -rf $remoteWebDir"
-& scp -o StrictHostKeyChecking=no -i $SshKeyPath -r "$repoRoot\build\web" "${sshTarget}:$remoteWebParentDir/" 2>&1 | ForEach-Object { Write-Host $_ }
+# scp -r of build\web into a path that no longer exists names the copy after that path:
+# the POS build lands as pos-web/web, the Studio build as pos-web/studio-web.
+$scpTarget = if ($App -eq 'studio') { $remoteWebDir } else { "$remoteWebParentDir/" }
+& scp -o StrictHostKeyChecking=no -i $SshKeyPath -r "$repoRoot\build\web" "${sshTarget}:$scpTarget" 2>&1 | ForEach-Object { Write-Host $_ }
 if ($LASTEXITCODE -ne 0) {
     throw 'Web bundle upload failed'
 }
 Write-Host ''
 
+if ($App -eq 'pos') {
 Write-Step 'Restoring the APK download bundle...'
 # The web upload above wipes $remoteWebDir, so the internal APK download page is re-mirrored
 # from its durable store (populated by scripts/publish_apk.ps1). Missing store is not an
@@ -420,6 +455,7 @@ else {
     Write-Info 'No APK download store on this server yet; skipping'
 }
 Write-Host ''
+}
 
 Write-Step 'Uploading POS web server config...'
 & scp -o StrictHostKeyChecking=no -i $SshKeyPath "$localNginxConfigPath" "${sshTarget}:$remoteNginxConfigPath" 2>&1 | ForEach-Object { Write-Host $_ }
@@ -427,6 +463,26 @@ if ($LASTEXITCODE -ne 0) {
     throw 'POS web server config upload failed'
 }
 Write-Host ''
+
+if ($Environment -eq 'staging') {
+    Write-Step 'Applying the tracked pos-web Dockerfile and compose file (staging)...'
+    # The compose file is staged with LF endings whatever the checkout's autocrlf did.
+    $composeTmp = [System.IO.Path]::GetTempFileName()
+    try {
+        $composeText = [System.IO.File]::ReadAllText($localComposePath) -replace "`r`n", "`n"
+        [System.IO.File]::WriteAllText($composeTmp, $composeText, (New-Object System.Text.UTF8Encoding($false)))
+        & scp -o StrictHostKeyChecking=no -i $SshKeyPath "$composeTmp" "${sshTarget}:$remoteComposePath" 2>&1 | ForEach-Object { Write-Host $_ }
+        if ($LASTEXITCODE -ne 0) { throw 'pos-web compose upload failed' }
+    }
+    finally {
+        Remove-Item -Path $composeTmp -ErrorAction SilentlyContinue
+    }
+    & scp -o StrictHostKeyChecking=no -i $SshKeyPath "$localDockerfilePath" "${sshTarget}:$remoteDockerfilePath" 2>&1 | ForEach-Object { Write-Host $_ }
+    if ($LASTEXITCODE -ne 0) { throw 'pos-web Dockerfile upload failed' }
+    # The Dockerfile COPYs studio-web/, so the directory must exist even before a Studio deploy.
+    $null = Invoke-Remote "mkdir -p $remoteStudioDir"
+    Write-Host ''
+}
 
 Write-Step 'Rebuilding pos-web container...'
 $null = Invoke-Remote "docker ps -aq --filter name=pos-web | xargs -r docker rm -f >/dev/null 2>&1 || true ; cd /home/ubuntu/pos-web && docker compose up -d --build --no-deps pos-web >/dev/null 2>&1 || docker-compose up -d --build --no-deps pos-web >/dev/null 2>&1"
