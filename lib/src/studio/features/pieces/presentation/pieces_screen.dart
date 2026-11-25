@@ -11,6 +11,7 @@ import '../../session/state/studio_session_notifier.dart';
 import '../pieces_strings.dart';
 import '../state/pieces_view_state.dart';
 import 'board_view.dart';
+import 'piece_filter_sheet.dart';
 import 'list_view.dart';
 import 'piece_create_screen.dart';
 import 'week_view.dart';
@@ -86,6 +87,7 @@ class PiecesScreen extends ConsumerWidget {
               ),
             ),
           ),
+          if (view != PiecesView.week) const PieceFilterBar(),
           Expanded(
             child: switch (view) {
               PiecesView.board => const PiecesBoardView(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../shared/person_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -270,7 +271,7 @@ class _RuleBody extends StatelessWidget {
                           style: theme.textTheme.bodyMedium,
                         ),
                         if (v.note != null && v.note!.isNotEmpty)
-                          Text(v.note!, style: theme.textTheme.bodySmall),
+                          PersonText(v.note!, style: theme.textTheme.bodySmall),
                       ],
                     ),
                   ),

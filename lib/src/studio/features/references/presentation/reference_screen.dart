@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../shared/media/studio_media_widgets.dart';
+import '../../../shared/form_sheet.dart';
 import '../../../shared/studio_async_view.dart';
+import '../../../shared/studio_toast.dart';
+import '../../../shared/studio_tr.dart';
+import '../../ideas/presentation/idea_forms.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../../shell/more_common.dart';
 import '../../shell/more_strings.dart';
@@ -100,7 +105,7 @@ class _ReferenceBody extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: StudioSpacing.md),
-              Text(r.title, style: theme.textTheme.headlineSmall),
+              PersonText(r.title, style: theme.textTheme.headlineSmall),
               if (r.brand != null || r.competitor != null)
                 Padding(
                   padding: const EdgeInsets.only(top: StudioSpacing.xs),
@@ -148,7 +153,8 @@ class _ReferenceBody extends ConsumerWidget {
         if (r.take != null) _Block(label: t.ourTake, text: r.take!),
         if (r.why != null) _Block(label: t.whyItWorks, text: r.why!),
         if (r.text != null) _Block(label: t.textOnIt, text: r.text!),
-        if (r.feasibility != null && r.feasibility != Feasibility.unknown)
+        if ((r.feasibility != null && r.feasibility != Feasibility.unknown) ||
+            r.actions.contains('set_feasibility'))
           _Feasibility(r: r),
         SectionLabel(t.numbers),
         _Numbers(metrics: r.metrics),
@@ -160,7 +166,7 @@ class _ReferenceBody extends ConsumerWidget {
             ListTile(
               dense: true,
               leading: const Icon(Icons.check_circle_outline),
-              title: Text(item.title),
+              title: PersonText(item.title),
             ),
         ],
         SectionLabel(t.notes),
@@ -177,7 +183,7 @@ class _ReferenceBody extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(n.text, style: theme.textTheme.bodyMedium),
+                  PersonText(n.text, style: theme.textTheme.bodyMedium),
                   const SizedBox(height: StudioSpacing.xs),
                   Text(
                     '${n.author.fullName}, ${m.dateTime(n.at)}',
@@ -218,14 +224,79 @@ class _Block extends StatelessWidget {
   );
 }
 
-class _Feasibility extends StatelessWidget {
+class _Feasibility extends ConsumerWidget {
   const _Feasibility({required this.r});
 
   final StudioReference r;
 
-  @override
-  Widget build(BuildContext context) {
+  Future<void> _change(BuildContext context, WidgetRef ref) async {
     final t = ReferencesStrings.of(context);
+    final done = context.tr('Verdict saved.', 'الرأي اتحفظ.');
+    final ok = await StudioFormSheet.show(
+      context,
+      title: context.tr('Change the verdict', 'غيّر الرأي'),
+      submitLabel: context.tr('Save', 'احفظ'),
+      initialValues: {
+        if (r.feasibility != null &&
+            r.feasibility != Feasibility.unknown &&
+            r.feasibility != Feasibility.inbox)
+          'feas': r.feasibility!.wire,
+      },
+      fields: [
+        SheetField(
+          'make',
+          t.whatToMake,
+          lines: 2,
+          initial: r.feasibilityMake ?? '',
+        ),
+        SheetField(
+          'block',
+          t.whatBlocks,
+          lines: 2,
+          initial: r.feasibilityBlock ?? '',
+        ),
+      ],
+      validate: (c, v) => (v['feas'] ?? '').isEmpty
+          ? c.tr('Pick one of the four.', 'اختار واحد من الأربعة.')
+          : ((v['make'] ?? '').length > 600 || (v['block'] ?? '').length > 600)
+          ? c.tr('At most 600 characters.', '600 حرف على الأكتر.')
+          : null,
+      extra: (c, values, rebuild) => Wrap(
+        spacing: StudioSpacing.sm,
+        children: [
+          for (final f in const [
+            Feasibility.can,
+            Feasibility.needs,
+            Feasibility.cant,
+            Feasibility.used,
+          ])
+            ChoiceChip(
+              key: ValueKey('feas-${f.wire}'),
+              label: Text(t.feasibilityLabel(f)),
+              selected: values['feas'] == f.wire,
+              onSelected: (_) {
+                values['feas'] = f.wire;
+                rebuild();
+              },
+            ),
+        ],
+      ),
+      onSubmit: (v) => ref
+          .read(referenceProvider(r.id).notifier)
+          .setFeasibility(
+            v['feas']!,
+            make: (v['make'] ?? '').isEmpty ? null : v['make'],
+            block: (v['block'] ?? '').isEmpty ? null : v['block'],
+          ),
+    );
+    if (ok == true) showStudioToast(done);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ReferencesStrings.of(context);
+    final f = r.feasibility;
+    final known = f != null && f != Feasibility.unknown;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -235,13 +306,24 @@ class _Feasibility extends StatelessWidget {
             children: [
               LabeledValue(
                 t.canWeMakeIt,
-                t.feasibilityLabel(r.feasibility!),
+                known
+                    ? t.feasibilityLabel(f)
+                    : t.feasibilityLabel(Feasibility.inbox),
                 emphasise: true,
               ),
               if (r.feasibilityMake != null)
                 LabeledValue(t.whatToMake, r.feasibilityMake!),
               if (r.feasibilityBlock != null)
                 LabeledValue(t.whatBlocks, r.feasibilityBlock!),
+              if (r.actions.contains('set_feasibility'))
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton(
+                    key: const ValueKey('ref-feasibility'),
+                    onPressed: () => _change(context, ref),
+                    child: Text(context.tr('Change the verdict', 'غيّر الرأي')),
+                  ),
+                ),
             ],
           ),
         ),
@@ -415,6 +497,16 @@ class _Buttons extends ConsumerWidget {
     }
 
     final buttons = <Widget>[
+      OutlinedButton(
+        key: const ValueKey('ref-make-idea'),
+        onPressed: () => showProposeSheet(
+          context,
+          ref,
+          sourceReferenceId: r.id,
+          initialTitle: r.title,
+        ),
+        child: Text(context.tr('Make an idea from this', 'اعمل فكرة من ده')),
+      ),
       if (a.contains('shortlist'))
         FilledButton(
           key: const ValueKey('ref-shortlist'),

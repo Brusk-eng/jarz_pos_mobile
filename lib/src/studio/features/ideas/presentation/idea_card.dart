@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
@@ -145,7 +146,7 @@ class _IdeaCardState extends ConsumerState<IdeaCard> {
             ),
             if (idea.hook != null && idea.hook!.isNotEmpty) ...[
               const SizedBox(height: StudioSpacing.xs),
-              Text(idea.hook!, style: theme.textTheme.bodyMedium),
+              PersonText(idea.hook!, style: theme.textTheme.bodyMedium),
             ],
             const SizedBox(height: StudioSpacing.sm),
             Wrap(

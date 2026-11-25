@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/l10n/studio_labels.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/l10n/studio_strings.dart';
@@ -359,15 +360,15 @@ class _NextCard extends StatelessWidget {
               child: Text(
                 s.stageNext(
                   piece.stage,
-                  who: piece.assignee?.fullName ??
+                  who:
+                      piece.assignee?.fullName ??
                       (piece.assigneeTeam != null &&
                               piece.assigneeTeam != OwnerTeam.unknown
                           ? s.team(piece.assigneeTeam!)
                           : null),
                   parkedReason: piece.parked,
                   sentBack:
-                      piece.currentVersion?.reviewOutcome ==
-                      ReviewOutcome.fix,
+                      piece.currentVersion?.reviewOutcome == ReviewOutcome.fix,
                   reason: piece.versions
                       .where((v) => v.isCurrent)
                       .map((v) => v.reviewReason)
@@ -404,12 +405,12 @@ class _NextCard extends StatelessWidget {
                             ? OutlinedButton(
                                 key: ValueKey('move-${m.to.wire}'),
                                 onPressed: busy ? null : () => onMove(m),
-                                child: Text(m.label),
+                                child: Text(_moveLabel(context, m)),
                               )
                             : FilledButton(
                                 key: ValueKey('move-${m.to.wire}'),
                                 onPressed: busy ? null : () => onMove(m),
-                                child: Text(m.label),
+                                child: Text(_moveLabel(context, m)),
                               ),
                       )
                     : Column(
@@ -804,4 +805,19 @@ class _History extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// The text of a move button. The server sends `label` in English only
+/// (`Piece.next_moves[].label`: "Back to To shoot"), so in Arabic it is built
+/// here from the move's kind and its stage; in English the label is shown as
+/// sent.
+String _moveLabel(BuildContext context, Move m) {
+  final labels = StudioLabels.of(context);
+  if (!labels.ar) return m.label;
+  final stage = labels.pieceStage(m.to);
+  return switch (m.kind) {
+    MoveKind.back => 'رجّعها لـ $stage',
+    MoveKind.forward => 'انقلها لـ $stage',
+    _ => m.label,
+  };
 }

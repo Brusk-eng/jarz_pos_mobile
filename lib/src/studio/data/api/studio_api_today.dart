@@ -8,10 +8,13 @@ import 'studio_api_base.dart';
 /// (real or fake) is all an implementation needs.
 mixin StudioApiToday on StudioApiCore {
   /// `today.get` (GET).
-  Future<TodayView> todayGet({String? date}) async {
+  Future<TodayView> todayGet({String? date, String? asValue}) async {
     final d = await call(
       'jarz_social.api.studio.today.get',
-      params: {if (date != null) 'date': date},
+      params: {
+        if (date != null) 'date': date,
+        if (asValue != null) 'as': asValue,
+      },
       get: true,
     );
     return TodayView.fromJson(Map<String, dynamic>.from(d as Map));

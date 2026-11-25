@@ -199,9 +199,24 @@ class _BoardColumnState extends ConsumerState<_BoardColumn> {
     if (stage == null || cursor == null || _loading) return;
     setState(() => _loading = true);
     try {
+      final f = ref.read(pieceFiltersProvider);
       final page = await ref
           .read(piecesRepositoryProvider)
-          .list(stage: stage.wire, after: cursor);
+          .list(
+            stage: stage.wire,
+            assignee: f.assignee,
+            format: f.format,
+            q: f.q.isEmpty ? null : f.q,
+            situation: f.situation,
+            batch: f.batch,
+            week: f.week,
+            verdict: f.verdict,
+            route: f.route,
+            readyForAds: f.readyForAds,
+            needsVerdict: f.needsVerdict,
+            sort: f.sort,
+            after: cursor,
+          );
       if (!mounted) return;
       setState(() {
         _more.addAll(page.items);

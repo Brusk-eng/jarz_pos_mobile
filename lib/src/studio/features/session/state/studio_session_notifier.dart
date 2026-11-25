@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/studio_config.dart';
 import '../../../core/network/studio_api.dart';
 import '../data/session_repository.dart';
 
@@ -26,7 +27,10 @@ class StudioSessionNotifier extends AsyncNotifier<MeProfile?> {
   /// Returns false when the server rejects the credentials.
   Future<bool> login(String username, String password) async {
     final repo = ref.read(studioSessionRepositoryProvider);
-    final ok = await repo.login(username, password);
+    // The fake build has no Frappe site to sign in to: any login is accepted.
+    final ok = ref.read(studioFakeProvider)
+        ? true
+        : await repo.login(username, password);
     if (!ok) return false;
     state = const AsyncLoading();
     state = await AsyncValue.guard(_load);
@@ -47,7 +51,9 @@ class StudioSessionNotifier extends AsyncNotifier<MeProfile?> {
   }
 
   Future<void> signOut() async {
-    await ref.read(studioSessionRepositoryProvider).logout();
+    if (!ref.read(studioFakeProvider)) {
+      await ref.read(studioSessionRepositoryProvider).logout();
+    }
     state = const AsyncData(null);
   }
 }

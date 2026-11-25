@@ -184,4 +184,79 @@ mixin StudioApiReferences on StudioApiCore {
     );
     return StudioCompetitor.fromJson(Map<String, dynamic>.from(d as Map));
   }
+
+  /// `references.competitor_add` (POST).
+  Future<StudioCompetitor> referencesCompetitorAdd({
+    required String name,
+    String? igHandle,
+    String? adlibUrl,
+    String? market,
+    String? note,
+    String? requestId,
+  }) async {
+    final d = await call(
+      'jarz_social.api.studio.references.competitor_add',
+      params: {
+        'name': name,
+        if (igHandle != null) 'ig_handle': igHandle,
+        if (adlibUrl != null) 'adlib_url': adlibUrl,
+        if (market != null) 'market': market,
+        if (note != null) 'note': note,
+        'request_id': requestId ?? newRequestId(),
+      },
+    );
+    return StudioCompetitor.fromJson(Map<String, dynamic>.from(d as Map));
+  }
+
+  /// `references.competitor_remove` (POST).
+  Future<StudioCompetitor> referencesCompetitorRemove({
+    required String key,
+    required String reason,
+    String? requestId,
+  }) async {
+    final d = await call(
+      'jarz_social.api.studio.references.competitor_remove',
+      params: {
+        'key': key,
+        'reason': reason,
+        'request_id': requestId ?? newRequestId(),
+      },
+    );
+    return StudioCompetitor.fromJson(Map<String, dynamic>.from(d as Map));
+  }
+
+  /// `references.competitor_restore` (POST).
+  Future<StudioCompetitor> referencesCompetitorRestore({
+    required String key,
+    String? requestId,
+  }) async {
+    final d = await call(
+      'jarz_social.api.studio.references.competitor_restore',
+      params: {'key': key, 'request_id': requestId ?? newRequestId()},
+    );
+    return StudioCompetitor.fromJson(Map<String, dynamic>.from(d as Map));
+  }
+
+  /// `references.set_feasibility` (POST).
+  Future<StudioReference> referencesSetFeasibility({
+    required String referenceId,
+    required String feasibility,
+    String? make,
+    String? block,
+    String? baseModified,
+    String? requestId,
+  }) async {
+    final d = await call(
+      'jarz_social.api.studio.references.set_feasibility',
+      params: {
+        'reference_id': referenceId,
+        'feasibility': feasibility,
+        if (make != null) 'make': make,
+        if (block != null) 'block': block,
+        if (baseModified != null) 'base_modified': baseModified,
+        'request_id': requestId ?? newRequestId(),
+      },
+    );
+    return StudioReference.fromJson(Map<String, dynamic>.from(d as Map));
+  }
 }

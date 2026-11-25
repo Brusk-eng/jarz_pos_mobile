@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../shared/person_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/studio_tokens.dart';
@@ -103,7 +104,10 @@ class _PieceCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(r.piece.title, style: theme.textTheme.titleSmall),
+                    PersonText(
+                      r.piece.title,
+                      style: theme.textTheme.titleSmall,
+                    ),
                     Text(
                       '${t.postsCount(r.posts.length)} · ${t.adsCount(r.ads.length)}',
                       style: theme.textTheme.bodySmall,

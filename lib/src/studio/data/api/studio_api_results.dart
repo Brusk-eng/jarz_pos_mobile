@@ -120,4 +120,10 @@ mixin StudioApiResults on StudioApiCore {
     );
     return PostRead.fromJson(Map<String, dynamic>.from(d as Map));
   }
+
+  /// `results.ratings` (GET).
+  Future<RatingsRollup> resultsRatings() async {
+    final d = await call('jarz_social.api.studio.results.ratings', get: true);
+    return RatingsRollup.fromJson(Map<String, dynamic>.from(d as Map));
+  }
 }

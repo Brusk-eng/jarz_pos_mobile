@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/theme/studio_tokens.dart';
@@ -132,7 +133,7 @@ class _TaskFormState extends ConsumerState<_TaskFormSheet> {
     final items = <DropdownMenuItem<String?>>[
       DropdownMenuItem(value: null, child: Text(t.me)),
       for (final p in people.where((p) => p.enabled))
-        DropdownMenuItem(value: p.key, child: Text(p.fullName)),
+        DropdownMenuItem(value: p.key, child: PersonText(p.fullName)),
       DropdownMenuItem(value: 'team:creators', child: Text(t.creatorsTeam)),
       DropdownMenuItem(value: 'team:claude', child: Text(t.claudeTeam)),
     ];

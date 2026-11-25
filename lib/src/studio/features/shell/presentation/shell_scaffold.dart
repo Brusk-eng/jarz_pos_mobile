@@ -22,10 +22,14 @@ class StudioShellScaffold extends ConsumerWidget {
 
   static const _inboxIndex = 1;
 
-  void _select(int index) {
+  /// A tab tap goes to that tab's root when it is the tab already open, or
+  /// when a screen was pushed on top (a pushed screen is never left open
+  /// behind a tab tap). Otherwise the tab comes back as it was.
+  void _select(BuildContext context, int index) {
+    final pushed = GoRouter.maybeOf(context)?.canPop() ?? false;
     navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == navigationShell.currentIndex || pushed,
     );
   }
 
@@ -39,9 +43,8 @@ class StudioShellScaffold extends ConsumerWidget {
       t.tabPieces,
       t.tabMore,
     ];
-    // What waits on this person plus unread notifications, on the Inbox tab.
-    final inboxBadge =
-        ref.watch(inboxBadgeProvider) + ref.watch(unreadBadgeProvider);
+    // What the Inbox tiles of this person add up to, on the Inbox tab.
+    final inboxBadge = ref.watch(inboxBadgeProvider);
     Widget icon(int i, {required bool selected}) {
       final data = selected ? _icons[i].$2 : _icons[i].$1;
       final child = Icon(data);
@@ -58,46 +61,46 @@ class StudioShellScaffold extends ConsumerWidget {
     if (wide) {
       return FirstLoginWalkthrough(
         child: Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
-              key: const ValueKey('shell-rail'),
-              selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: _select,
-              labelType: NavigationRailLabelType.all,
-              destinations: [
-                for (var i = 0; i < 5; i++)
-                  NavigationRailDestination(
-                    icon: icon(i, selected: false),
-                    selectedIcon: icon(i, selected: true),
-                    label: Text(labels[i]),
-                  ),
-              ],
-            ),
-            const VerticalDivider(width: 1),
-            Expanded(child: navigationShell),
-          ],
-        ),
+          body: Row(
+            children: [
+              NavigationRail(
+                key: const ValueKey('shell-rail'),
+                selectedIndex: navigationShell.currentIndex,
+                onDestinationSelected: (i) => _select(context, i),
+                labelType: NavigationRailLabelType.all,
+                destinations: [
+                  for (var i = 0; i < 5; i++)
+                    NavigationRailDestination(
+                      icon: icon(i, selected: false),
+                      selectedIcon: icon(i, selected: true),
+                      label: Text(labels[i]),
+                    ),
+                ],
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(child: navigationShell),
+            ],
+          ),
         ),
       );
     }
 
     return FirstLoginWalkthrough(
       child: Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        key: const ValueKey('shell-bar'),
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: _select,
-        destinations: [
-          for (var i = 0; i < 5; i++)
-            NavigationDestination(
-              icon: icon(i, selected: false),
-              selectedIcon: icon(i, selected: true),
-              label: labels[i],
-            ),
-        ],
-      ),
+        body: navigationShell,
+        bottomNavigationBar: NavigationBar(
+          key: const ValueKey('shell-bar'),
+          selectedIndex: navigationShell.currentIndex,
+          onDestinationSelected: (i) => _select(context, i),
+          destinations: [
+            for (var i = 0; i < 5; i++)
+              NavigationDestination(
+                icon: icon(i, selected: false),
+                selectedIcon: icon(i, selected: true),
+                label: labels[i],
+              ),
+          ],
+        ),
       ),
     );
   }

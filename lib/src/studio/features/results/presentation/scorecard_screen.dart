@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/studio_tr.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -183,6 +184,18 @@ class _ScorecardBody extends ConsumerWidget {
                             ],
                           ),
                         ),
+                        const SizedBox(width: StudioSpacing.sm),
+                        Text(
+                          g.ok
+                              ? context.tr('Held', 'متحقق')
+                              : context.tr('Not held', 'مش متحقق'),
+                          key: ValueKey('gate-state-${g.key}'),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: g.ok
+                                ? StudioColors.success
+                                : StudioColors.danger,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -267,6 +280,13 @@ class _ScorecardBody extends ConsumerWidget {
             title: Text(t.seeSummary),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go('/more/results/summary'),
+          ),
+          ListTile(
+            key: const ValueKey('go-ratings'),
+            leading: const Icon(Icons.star_outline),
+            title: Text(context.tr('Team ratings', 'تقييمات الفريق')),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/more/results/ratings'),
           ),
         ],
       ],

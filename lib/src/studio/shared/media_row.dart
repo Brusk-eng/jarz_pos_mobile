@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/studio_tokens.dart';
 import '../data/models/studio_models.dart';
+import 'person_text.dart';
 import 'media/studio_media_widgets.dart';
 
 /// The one row for "a picture and two lines": a version in a piece, a
@@ -34,7 +35,7 @@ class StudioMediaRow extends StatelessWidget {
         height: 56,
         radius: BorderRadius.circular(StudioRadii.sm),
       ),
-      title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+      title: PersonText(title, maxLines: 2, overflow: TextOverflow.ellipsis),
       subtitle: subtitle == null ? null : Text(subtitle!),
       trailing: trailing,
       onTap: onTap,

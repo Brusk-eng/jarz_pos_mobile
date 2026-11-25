@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
@@ -7,11 +8,14 @@ import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
 import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
+import '../../../shared/studio_tr.dart';
+import '../../session/state/studio_session_notifier.dart';
 import '../../shell/more_common.dart';
 import '../../shell/more_strings.dart';
 import '../data/settings_repository.dart';
 import '../settings_strings.dart';
 import '../state/settings_state.dart';
+import 'moment_forms.dart';
 
 /// The approved claims: a read-only mirror of the registry.
 class ClaimsScreen extends ConsumerWidget {
@@ -138,10 +142,18 @@ class MomentsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = SettingsStrings.of(context);
     final value = ref.watch(momentsProvider);
+    final me = ref.watch(studioSessionProvider).valueOrNull;
     return ViewEditScaffold(
       title: t.momentsTitle,
       parentRoute: '/more/settings',
       actions: [
+        if (me != null && me.canManageMoments)
+          IconButton(
+            key: const ValueKey('moment-add'),
+            tooltip: context.tr('New moment', 'موعد جديد'),
+            icon: const Icon(Icons.add),
+            onPressed: () => MomentForms.edit(context, ref),
+          ),
         moreHelpAction(
           context,
           title: t.momentsHelpTitle,
@@ -183,13 +195,13 @@ class MomentsScreen extends ConsumerWidget {
   }
 }
 
-class _MomentCard extends StatelessWidget {
+class _MomentCard extends ConsumerWidget {
   const _MomentCard({required this.mo});
 
   final StudioMoment mo;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = SettingsStrings.of(context);
     final m = MoreStrings.of(context);
     final theme = Theme.of(context);
@@ -199,7 +211,7 @@ class _MomentCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(mo.title, style: theme.textTheme.titleSmall),
+          PersonText(mo.title, style: theme.textTheme.titleSmall),
           Text(
             [
               if (when != null) m.date(when),
@@ -226,7 +238,25 @@ class _MomentCard extends StatelessWidget {
           if (mo.note != null && mo.note!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: StudioSpacing.xs),
-              child: Text(mo.note!, style: theme.textTheme.bodyMedium),
+              child: PersonText(mo.note!, style: theme.textTheme.bodyMedium),
+            ),
+          if (mo.actions.contains('edit') || mo.actions.contains('move'))
+            Wrap(
+              spacing: StudioSpacing.sm,
+              children: [
+                if (mo.actions.contains('edit'))
+                  TextButton(
+                    key: ValueKey('moment-edit-${mo.id}'),
+                    onPressed: () => MomentForms.edit(context, ref, mo: mo),
+                    child: Text(context.tr('Edit', 'تعديل')),
+                  ),
+                if (mo.actions.contains('move'))
+                  TextButton(
+                    key: ValueKey('moment-move-${mo.id}'),
+                    onPressed: () => MomentForms.move(context, ref, mo),
+                    child: Text(context.tr('Move', 'انقل')),
+                  ),
+              ],
             ),
         ],
       ),

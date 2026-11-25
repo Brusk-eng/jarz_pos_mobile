@@ -18,6 +18,10 @@ extension MeProfileX on MeProfile {
   bool get canAddReferences =>
       primaryRole == StudioRole.founder || primaryRole == StudioRole.lead;
 
+  /// `settings.moment_set` (create, edit, move a moment): Founder and Lead.
+  bool get canManageMoments =>
+      primaryRole == StudioRole.founder || primaryRole == StudioRole.lead;
+
   /// Adding a version to the paid queue is the founder's write.
   bool get canAddToPaidQueue => isFounder;
 

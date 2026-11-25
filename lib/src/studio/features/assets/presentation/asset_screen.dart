@@ -9,6 +9,7 @@ import '../../../data/models/studio_models.dart';
 import '../../../data/studio_error.dart';
 import '../../../shared/how_this_works_sheet.dart';
 import '../../../shared/media/studio_media_widgets.dart';
+import '../../../shared/save_files.dart';
 import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../assets_strings.dart';
@@ -187,6 +188,11 @@ class _AssetBodyState extends ConsumerState<_AssetBody> {
               ),
             ),
           ),
+          if (a.media != null)
+            Padding(
+              padding: const EdgeInsets.only(top: StudioSpacing.sm),
+              child: SaveFilesBar(files: [a.media!]),
+            ),
           if (a.hidden)
             Padding(
               padding: const EdgeInsets.only(top: StudioSpacing.sm),

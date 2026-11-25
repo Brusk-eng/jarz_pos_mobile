@@ -256,11 +256,11 @@ void main() {
   testWidgets('the Inbox tab carries the badge', (tester) async {
     usePhone(tester);
     await pumpStudio(tester);
-    // inbox.counts fixture: total 11 plus 4 unread notifications.
+    // inbox.counts fixture: the founder's tiles add up to 3 + 2 + 1 + 7 + 4.
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('inbox-badge')),
-        matching: find.text('15'),
+        matching: find.text('17'),
       ),
       findsOneWidget,
     );

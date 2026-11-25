@@ -1,5 +1,6 @@
 import '../../../core/l10n/studio_labels.dart';
 import 'package:flutter/material.dart';
+import '../../../shared/person_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -168,7 +169,7 @@ class CalendarBanner extends ConsumerWidget {
                         context,
                       ).problem(row.code, message: row.message),
                     ),
-                    subtitle: row.title == null ? null : Text(row.title!),
+                    subtitle: row.title == null ? null : PersonText(row.title!),
                     onTap: row.postId == null
                         ? null
                         : () {

@@ -24,7 +24,7 @@ Roles go by role, never by a person's name.
 | decision | قرار / قرارات | |
 | idea | فكرة / أفكار | |
 | reference | مرجع / مراجع | |
-| library item | ملف / ملفات | tab «الملفات» |
+| library item | ملف / ملفات | the screen and the More entry are both «Library» / «المكتبة» (not «Assets») |
 | task | مهمة | |
 | verdict | verdict | RUN / FIX / DROP stay as they are |
 | scorecard | scorecard | |
@@ -122,3 +122,14 @@ A status says what happens next and who has it, by role.
 - set it anyway (ad state against the rule): حطّها برضو
 - my ideas (the ideas I brought, any status): أفكاري; show more (load the next page, icon button name): اعرض أكتر; dismiss (close a notice): اقفل
 - check and gate lines come from the server already worded in the person's language (contract 1.3); the app keeps no wording per check code
+- team ratings: تقييمات الفريق; ready to run: جاهز للتشغيل; drop or rework: نشيلها أو نعيد شغلها; team is split: الفريق مختلف; team progress: تقدّم الفريق; latest comments: آخر التعليقات
+- competitor: منافس; add a competitor: ضيف منافس; remove: شيل; restore: رجّعه; undo: تراجع
+- verdict (feasibility): الرأي; change the verdict: غيّر الرأي; make an idea from this: اعمل فكرة من ده
+- see the day of...: شوف يوم...; back to today: ارجع للنهارده; tomorrow: بكرة; yesterday: امبارح; look only: للمشاهدة بس
+- what changed: إيه اللي اتغيّر; won't post (list): مش هيتنشر; put back: رجّعه; any status: أي حالة
+- moment: موعد; move this moment: انقل الموعد ده; new moment: موعد جديد
+- add a prep task: ضيف مهمة تحضير; days before the shoot: كام يوم قبل التصوير
+- save (a file): احفظ; save all: احفظ الكل; held / not held (a gate): متحقق / مش متحقق
+- more filters: فلاتر أكتر; batch: الدفعة; route: الطريقة; ready for ads: جاهز للإعلانات; needs a verdict: محتاج حكم; best rated first: الأعلى تقييم الأول
+- a person's own text (title, idea, caption, reason, name) keeps its own direction: `shared/person_text.dart` (`PersonText`)
+- short screen texts: `context.tr('English', 'عربي')` (`shared/studio_tr.dart`)

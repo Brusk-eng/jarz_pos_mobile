@@ -352,7 +352,7 @@ class StudioStringsEn extends StudioStrings {
       ],
     ),
     StudioScreen.assets => const ScreenCopy(
-      title: 'Assets',
+      title: 'Library',
       purpose: 'Raw clips, photos, templates and customer content.',
       firstStep:
           'No files yet. Upload a clip or a photo and tag it '
@@ -682,7 +682,7 @@ class StudioStringsAr extends StudioStrings {
       ],
     ),
     StudioScreen.assets => const ScreenCopy(
-      title: 'الملفات',
+      title: 'المكتبة',
       purpose: 'الكليبات الخام والصور والتمبلتس ومحتوى العملاء.',
       firstStep:
           'لسه مفيش ملفات. ارفع كليب أو صورة وحدّد التصنيف '

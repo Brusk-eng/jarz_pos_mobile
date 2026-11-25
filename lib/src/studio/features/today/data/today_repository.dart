@@ -8,7 +8,8 @@ class TodayRepository {
   TodayRepository(this._api);
   final StudioApi _api;
 
-  Future<TodayView> today({String? date}) => _api.todayGet(date: date);
+  Future<TodayView> today({String? date, String? asKey}) =>
+      _api.todayGet(date: date, asValue: asKey);
 
   Future<StudioTaskPage> tasks({
     String? assignee,
@@ -77,8 +78,23 @@ final todayRepositoryProvider = Provider<TodayRepository>(
 
 /// What waits on this person today (blocks already in the role's order).
 final todayProvider = FutureProvider.autoDispose<TodayView>(
-  (ref) => ref.watch(todayRepositoryProvider).today(),
+  (ref) => ref
+      .watch(todayRepositoryProvider)
+      .today(
+        date: ref.watch(todayDateProvider),
+        asKey: ref.watch(todayAsProvider),
+      ),
 );
+
+/// The day Today shows, `YYYY-MM-DD`; null is today.
+final todayDateProvider = StateProvider<String?>((ref) => null);
+
+/// The person whose Today is shown (Founder and Lead only); null is my own.
+final todayAsProvider = StateProvider<String?>((ref) => null);
+
+/// The server's own today, kept while the person looks at another day, so the
+/// arrows and the banner know which day is today.
+final todayAnchorProvider = StateProvider<String?>((ref) => null);
 
 /// `open` (default), `done` or `all`.
 final tasksStatusFilterProvider = StateProvider<String>((ref) => 'open');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/studio_strings.dart';
@@ -160,7 +161,7 @@ class _NotificationRow extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      PersonText(
                         item.title,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: unread

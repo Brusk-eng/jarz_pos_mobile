@@ -56,6 +56,26 @@ class SettingsRepository {
     String? kind,
   }) => _api.settingsMoments(from: from, to: to, kind: kind);
 
+  Future<MomentSetResult> momentSet({
+    String? momentId,
+    String? kind,
+    String? title,
+    String? date,
+    String? endDate,
+    String? note,
+    String? baseModified,
+    String? requestId,
+  }) => _api.settingsMomentSet(
+    momentId: momentId,
+    kind: kind,
+    title: title,
+    date: date,
+    endDate: endDate,
+    note: note,
+    baseModified: baseModified,
+    requestId: requestId,
+  );
+
   Future<List<StudioPerson>> people() => _api.settingsPeople();
 
   Future<StudioPerson> personSet(

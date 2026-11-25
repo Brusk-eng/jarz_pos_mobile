@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_tokens.dart';
@@ -11,7 +12,10 @@ import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../../shell/more_common.dart';
 import '../../shell/more_strings.dart';
+import '../../session/state/studio_session_notifier.dart';
+import '../../../shared/studio_tr.dart';
 import '../data/references_repository.dart';
+import 'competitor_actions.dart';
 import '../references_strings.dart';
 import '../state/references_state.dart';
 
@@ -24,10 +28,18 @@ class CompetitorsScreen extends ConsumerWidget {
     final t = ReferencesStrings.of(context);
     final list = ref.watch(competitorListProvider);
     final q = ref.watch(competitorSearchProvider);
+    final me = ref.watch(studioSessionProvider).valueOrNull;
     return ViewEditScaffold(
       title: t.competitorsTitle,
       parentRoute: '/more/references',
       actions: [
+        if (me != null && me.canAddReferences)
+          IconButton(
+            key: const ValueKey('competitor-add'),
+            tooltip: context.tr('Add a competitor', 'ضيف منافس'),
+            icon: const Icon(Icons.add),
+            onPressed: () => CompetitorActions.add(context, ref),
+          ),
         moreHelpAction(
           context,
           title: t.competitorsHelpTitle,
@@ -73,13 +85,13 @@ class CompetitorsScreen extends ConsumerWidget {
   }
 }
 
-class _CompetitorRow extends StatelessWidget {
+class _CompetitorRow extends ConsumerWidget {
   const _CompetitorRow({required this.c});
 
   final StudioCompetitor c;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = ReferencesStrings.of(context);
     final theme = Theme.of(context);
     return MoreCard(
@@ -93,7 +105,7 @@ class _CompetitorRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(c.name, style: theme.textTheme.titleSmall),
+                PersonText(c.name, style: theme.textTheme.titleSmall),
                 Text(
                   [
                     t.groupLabel(c.competitorGroup),
@@ -105,6 +117,12 @@ class _CompetitorRow extends StatelessWidget {
             ),
           ),
           if (c.status == CompStatus.removed) MorePill(t.removedBadge),
+          if (c.actions.contains('restore'))
+            TextButton(
+              key: ValueKey('competitor-restore-${c.key}'),
+              onPressed: () => CompetitorActions.restore(context, ref, c),
+              child: Text(context.tr('Restore', 'رجّعه')),
+            ),
         ],
       ),
     );
@@ -188,7 +206,7 @@ class _CompetitorBody extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(c.name, style: theme.textTheme.headlineSmall),
+                    PersonText(c.name, style: theme.textTheme.headlineSmall),
                     Text(
                       [
                         t.groupLabel(c.competitorGroup),
@@ -219,6 +237,28 @@ class _CompetitorBody extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(StudioSpacing.gutter),
             child: Text(c.summary!, style: theme.textTheme.bodyMedium),
+          ),
+        if (c.actions.contains('remove') || c.actions.contains('restore'))
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: StudioSpacing.gutter,
+            ),
+            child: Row(
+              children: [
+                if (c.actions.contains('remove'))
+                  OutlinedButton(
+                    key: const ValueKey('competitor-remove'),
+                    onPressed: () => CompetitorActions.remove(context, ref, c),
+                    child: Text(context.tr('Remove', 'شيل')),
+                  ),
+                if (c.actions.contains('restore'))
+                  FilledButton.tonal(
+                    key: const ValueKey('competitor-restore'),
+                    onPressed: () => CompetitorActions.restore(context, ref, c),
+                    child: Text(context.tr('Restore', 'رجّعه')),
+                  ),
+              ],
+            ),
           ),
         MoreCard(
           child: Column(
@@ -278,7 +318,7 @@ class _CompetitorBody extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(n.text),
+                  PersonText(n.text),
                   const SizedBox(height: StudioSpacing.xs),
                   Text(
                     '${n.author.fullName}, ${m.dateTime(n.at)}',

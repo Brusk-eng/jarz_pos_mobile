@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
@@ -23,6 +24,8 @@ import '../../ideas/presentation/my_ideas_screen.dart' show myIdeasPath;
 import '../../pieces/presentation/piece_widgets.dart' show askText;
 import '../../results/presentation/piece_results_screen.dart' show fileReadFlow;
 import '../data/today_repository.dart';
+import '../../../shared/studio_tr.dart';
+import 'day_bar.dart';
 import '../state/today_state.dart';
 import 'task_form.dart';
 import 'today_strings.dart';
@@ -61,12 +64,21 @@ class TodayBody extends ConsumerWidget {
         .whenData((v) => withDoneLines(v, ref.watch(todayDoneLinesProvider)));
     final tasks = ref.watch(todayTasksProvider);
     final hidden = ref.watch(todayHiddenLinesProvider);
+    final otherDate = ref.watch(todayDateProvider);
+    final otherPerson = ref.watch(todayAsProvider);
+    final other = otherDate != null || otherPerson != null;
+    ref.listen<AsyncValue<TodayView>>(todayProvider, (_, next) {
+      final v = next.valueOrNull;
+      if (v != null && ref.read(todayDateProvider) == null) {
+        ref.read(todayAnchorProvider.notifier).state = v.date;
+      }
+    });
     final labels = StudioLabels.of(context);
     final screenCopy = StudioStrings.of(context).screen(StudioScreen.today);
 
     bool nothing(TodayView v) =>
         v.blocks.every((b) => b.lines.every((l) => hidden.contains(l.id))) &&
-        (tasks.valueOrNull?.items.isEmpty ?? false);
+        (other || (tasks.valueOrNull?.items.isEmpty ?? false));
 
     return StudioAsyncView<TodayView>(
       value: value,
@@ -85,7 +97,8 @@ class TodayBody extends ConsumerWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(StudioSpacing.gutter),
           children: [
-            if (me != null && role != null) ...[
+            DayBar(view: view, role: role),
+            if (me != null && role != null && !other) ...[
               Text(
                 StudioStrings.of(context).helloUser(me.fullName),
                 key: const ValueKey('today-hello'),
@@ -106,7 +119,7 @@ class TodayBody extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: StudioSpacing.md),
                   child: _BlockCard(block: block, hidden: hidden),
                 ),
-            for (final key in _emptyBlocks(view, role))
+            for (final key in _emptyBlocks(view, other ? null : role))
               Padding(
                 padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
                 child: Text(
@@ -115,9 +128,10 @@ class TodayBody extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
-            if (role == StudioRole.creator || role == StudioRole.story)
+            if (!other &&
+                (role == StudioRole.creator || role == StudioRole.story))
               const _MyIdeasLink(),
-            _TasksSection(role: role),
+            if (!other) _TasksSection(role: role),
           ],
         ),
       ),
@@ -280,6 +294,11 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
     // Actions the line can do in place; the rest open the exact screen.
     final inline =
         action == 'tick' || action == 'approve' || action == 'wont_post';
+    // A "result to add" line opens the read form, by its button too.
+    if (action == 'open' && line.kind == LineKind.read) {
+      await _openRead();
+      return;
+    }
     if (!inline) {
       router?.push(line.route);
       return;
@@ -425,7 +444,7 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      PersonText(
                         line.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -664,13 +683,16 @@ class TaskTile extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (canTick)
-          Checkbox(
-            key: ValueKey('task-tick-${task.id}'),
-            value: task.done,
-            onChanged: (v) => act(
-              () => ref
-                  .read(todayTasksProvider.notifier)
-                  .tick(task.id, done: v ?? true),
+          Semantics(
+            label: context.tr('Done: ${task.text}', 'تم: ${task.text}'),
+            child: Checkbox(
+              key: ValueKey('task-tick-${task.id}'),
+              value: task.done,
+              onChanged: (v) => act(
+                () => ref
+                    .read(todayTasksProvider.notifier)
+                    .tick(task.id, done: v ?? true),
+              ),
             ),
           )
         else
@@ -691,7 +713,7 @@ class TaskTile extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  PersonText(
                     task.text,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       decoration: task.done ? TextDecoration.lineThrough : null,

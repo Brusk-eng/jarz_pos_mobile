@@ -26,7 +26,12 @@ String studioAppRoute(String route) {
     r'^/(references|paid|results|reports|settings)(?=$|[/?#])',
   ).firstMatch(route);
   if (m == null) return route;
-  return '/more/${m.group(1)}${route.substring(m.end)}';
+  final rest = route.substring(m.end);
+  // `/settings?section=rules` (the rules-changed line on Today) opens the Rules.
+  if (m.group(1) == 'settings' && rest == '?section=rules') {
+    return '/more/settings/rules';
+  }
+  return '/more/${m.group(1)}$rest';
 }
 
 String _contractRoute(Map<String, String?> payload) {

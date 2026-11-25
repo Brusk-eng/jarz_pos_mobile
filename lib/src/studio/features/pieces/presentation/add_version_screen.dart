@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_tokens.dart';
@@ -134,7 +135,7 @@ class _AddVersionState extends ConsumerState<AddVersionScreen> {
             key: const ValueKey('add-version-form'),
             padding: const EdgeInsets.all(StudioSpacing.gutter),
             children: [
-              Text(p.title, style: theme.textTheme.titleMedium),
+              PersonText(p.title, style: theme.textTheme.titleMedium),
               const SizedBox(height: StudioSpacing.xs),
               Text(
                 story

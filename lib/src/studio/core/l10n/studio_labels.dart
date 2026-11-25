@@ -75,6 +75,8 @@ class StudioLabels {
     'set_state': ('Set the state', 'حدّد الحالة'),
     'queue_remove': ('Take out of the queue', 'شيله من الطابور'),
     'remove': ('Remove', 'شيل'),
+    'restore': ('Restore', 'رجّعه'),
+    'set_feasibility': ('Change the verdict', 'غيّر الرأي'),
     'add_line': ('Add a number', 'ضيف رقم'),
     'mark_reviewed': ('Mark reviewed', 'علّم إنه اتراجع'),
     'answer': ('Answer', 'جاوب'),
@@ -126,6 +128,13 @@ class StudioLabels {
     BlockKey.shootTomorrow => tr('Shoot tomorrow', 'تصوير بكرة'),
     BlockKey.advice => tr('Advice from Claude', 'نصيحة من Claude'),
     BlockKey.warnings => tr('System warnings', 'تحذيرات السيستم'),
+    BlockKey.rulesChanged => tr(
+      'Rules changed this week',
+      'قواعد اتغيّرت الأسبوع ده',
+    ),
+    BlockKey.dayPosts => tr('Posts of the day', 'بوستات اليوم'),
+    BlockKey.dayTasks => tr('Tasks due that day', 'مهام اليوم'),
+    BlockKey.dayShoots => tr('Shoot of the day', 'تصوير اليوم'),
     BlockKey.unknown => fallback,
   };
 
@@ -323,6 +332,15 @@ class StudioLabels {
     MoveKind.forward => tr('Move forward', 'قدّمه'),
     MoveKind.back => tr('Move back', 'رجّعه'),
     MoveKind.unknown => '',
+  };
+
+  /// What happened to a post, for the "What changed" sheet.
+  String changeKind(ChangeKind k) => switch (k) {
+    ChangeKind.moved => tr('Moved', 'اتنقل'),
+    ChangeKind.wontPost => tr('Will not post', 'مش هيتنشر'),
+    ChangeKind.putBack => tr('Put back', 'اتحط تاني'),
+    ChangeKind.added => tr('Added', 'اتضاف'),
+    ChangeKind.unknown => '',
   };
 
   String readWindow(ReadWindow w) => switch (w) {

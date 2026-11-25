@@ -1,5 +1,6 @@
 import '../../../shared/person_name.dart';
 import 'package:flutter/material.dart';
+import '../../../shared/person_text.dart';
 import 'package:flutter/services.dart' show MaxLengthEnforcement;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -168,7 +169,7 @@ class _DecisionCardState extends ConsumerState<DecisionCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            PersonText(
               d.question,
               key: const ValueKey('decision-question'),
               style: theme.textTheme.titleMedium,

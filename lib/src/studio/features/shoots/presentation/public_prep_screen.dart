@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 
 import '../../../core/theme/studio_theme.dart';
 import '../../../core/theme/studio_tokens.dart';
@@ -92,7 +93,7 @@ class _Page extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.all(StudioSpacing.gutter),
             children: [
-              Text(
+              PersonText(
                 p.title,
                 key: const ValueKey('prep-title'),
                 style: theme.textTheme.headlineSmall,

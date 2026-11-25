@@ -47,6 +47,8 @@ class ResultsRepository {
   Future<ResultSummary> summary(String from, String to, String groupBy) =>
       _api.resultsSummary(from: from, to: to, groupBy: groupBy);
 
+  Future<RatingsRollup> ratings() => _api.resultsRatings();
+
   Future<PostRead> readSet(
     String postId, {
     String? bucket,
@@ -138,3 +140,8 @@ final resultsSummaryProvider = FutureProvider.autoDispose
       (ref, q) =>
           ref.watch(resultsRepositoryProvider).summary(q.from, q.to, q.groupBy),
     );
+
+/// The team's ratings roll-up (`results.ratings`; Founder and Lead).
+final ratingsRollupProvider = FutureProvider.autoDispose<RatingsRollup>(
+  (ref) => ref.watch(resultsRepositoryProvider).ratings(),
+);

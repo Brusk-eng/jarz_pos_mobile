@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../shared/how_this_works_sheet.dart';
+import '../../../shared/save_files.dart';
 import '../../../shared/stage_chip.dart';
 import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
@@ -196,6 +198,10 @@ class _VersionScreenState extends ConsumerState<VersionScreen> {
     );
     final details = <Widget>[
       _Header(version: v),
+      if (versionFiles(v).isNotEmpty) ...[
+        const SizedBox(height: StudioSpacing.md),
+        SaveFilesBar(files: versionFiles(v)),
+      ],
       const SizedBox(height: StudioSpacing.lg),
       VerdictSection(version: v),
       const SizedBox(height: StudioSpacing.lg),
@@ -271,7 +277,7 @@ class _Header extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        PersonText(
           v.piece.title,
           key: const ValueKey('piece-title'),
           style: theme.textTheme.headlineSmall,
@@ -279,7 +285,7 @@ class _Header extends StatelessWidget {
         if (v.title != null && v.title != v.piece.title)
           Padding(
             padding: const EdgeInsets.only(top: StudioSpacing.xs),
-            child: Text(v.title!, style: theme.textTheme.bodyMedium),
+            child: PersonText(v.title!, style: theme.textTheme.bodyMedium),
           ),
         const SizedBox(height: StudioSpacing.md),
         Wrap(

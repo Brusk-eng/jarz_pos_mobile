@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
@@ -130,7 +131,7 @@ class _ReportRow extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: StudioSpacing.sm),
-                Text(r.title, style: theme.textTheme.titleSmall),
+                PersonText(r.title, style: theme.textTheme.titleSmall),
                 if (r.summary != null && r.summary!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: StudioSpacing.xs),

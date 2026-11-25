@@ -31,6 +31,16 @@ mixin StudioApiCalendar on StudioApiCore {
     return CalendarRange.fromJson(Map<String, dynamic>.from(d as Map));
   }
 
+  /// `calendar.changes` (GET).
+  Future<CalendarChanges> calendarChanges({int? days}) async {
+    final d = await call(
+      'jarz_social.api.studio.calendar.changes',
+      params: {if (days != null) 'days': days},
+      get: true,
+    );
+    return CalendarChanges.fromJson(Map<String, dynamic>.from(d as Map));
+  }
+
   /// `calendar.post_get` (GET).
   Future<SocialPost> calendarPostGet({required String postId}) async {
     final d = await call(

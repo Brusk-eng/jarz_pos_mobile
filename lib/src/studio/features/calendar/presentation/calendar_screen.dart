@@ -21,6 +21,8 @@ import '../state/cairo_format.dart';
 import '../state/cairo_time.dart';
 import '../state/calendar_state.dart';
 import 'calendar_banner.dart';
+import 'calendar_extras.dart';
+import '../../../shared/studio_tr.dart';
 import 'calendar_widgets.dart';
 import 'post_slot_form.dart';
 
@@ -37,6 +39,7 @@ class CalendarScreen extends ConsumerWidget {
     final anchor = ref.watch(calendarAnchorProvider) ?? today;
     final mode = ref.watch(calendarModeProvider);
     final channel = ref.watch(calendarChannelFilterProvider);
+    final status = ref.watch(calendarStatusFilterProvider);
     final role = ref.watch(studioSessionProvider).valueOrNull?.primaryRole;
     final canSet =
         role == StudioRole.founder ||
@@ -57,6 +60,18 @@ class CalendarScreen extends ConsumerWidget {
       screen: StudioScreen.calendar,
       showLanguageSwitch: true,
       actions: [
+        IconButton(
+          key: const ValueKey('calendar-changes'),
+          tooltip: context.tr('What changed', 'إيه اللي اتغيّر'),
+          icon: const Icon(Icons.history),
+          onPressed: () => CalendarChangesSheet.show(context),
+        ),
+        IconButton(
+          key: const ValueKey('calendar-skipped'),
+          tooltip: context.tr('Won\'t post', 'مش هيتنشر'),
+          icon: const Icon(Icons.event_busy_outlined),
+          onPressed: () => SkippedPostsSheet.show(context, window),
+        ),
         if (canSet)
           IconButton(
             key: const ValueKey('add-post'),
@@ -69,6 +84,7 @@ class CalendarScreen extends ConsumerWidget {
         children: [
           _Toolbar(mode: mode, anchor: anchor, today: today),
           _ChannelFilter(selected: channel),
+          StatusFilter(selected: status),
           const CalendarBanner(),
           Expanded(
             child: StudioAsyncView<CalendarRange>(
@@ -86,7 +102,9 @@ class CalendarScreen extends ConsumerWidget {
               builder: (context, r) {
                 final posts = [
                   for (final p in r.posts)
-                    if (channel == null || p.channel == channel) p,
+                    if ((channel == null || p.channel == channel) &&
+                        (status == null || p.status == status))
+                      p,
                 ];
                 return RefreshIndicator(
                   onRefresh: () async =>
@@ -464,10 +482,12 @@ class _DayBlock extends StatelessWidget {
                 runSpacing: StudioSpacing.xs,
                 children: [
                   for (final m in moments)
-                    Chip(
+                    ActionChip(
+                      key: ValueKey('moment-chip-${m.id}'),
                       avatar: const Icon(Icons.star_outline, size: 16),
                       label: Text(m.title),
                       visualDensity: VisualDensity.compact,
+                      onPressed: () => MomentSheet.show(context, m),
                     ),
                   for (final s in shoots)
                     ActionChip(

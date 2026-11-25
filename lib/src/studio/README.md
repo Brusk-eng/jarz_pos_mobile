@@ -48,7 +48,7 @@ features/<f>/data/<f>_repository.dart   thin repository + Riverpod providers per
 core/push/studio_push_router.dart       push payload -> router location (pure)
 ```
 
-Contract: `systems/studio-rebuild/API_CONTRACT.md` (v1.2) and its `contract/` folder.
+Contract: `systems/studio-rebuild/API_CONTRACT.md` (v1.4) and its `contract/` folder.
 Naming: shapes that clash with Flutter/Dio/Dart get a prefix or suffix (`Round` is `PaidRound`, `Media` is `StudioMedia`,
 `Options` is `StudioOptions`, `Route` is `ProdRoute`...; the map is `SHAPE_RENAME` / `ENUM_RENAME` in the generator).
 Dates and times stay `String` (ISO, offset kept) so a model round-trips to the same JSON. Every enum has `unknown`;
@@ -191,6 +191,14 @@ roles gets the "You don't have Studio access" screen and cannot get past it by d
   reads an unloaded value.
 - The server may change typed text (angle brackets are stored as `‹ ›`). No screen compares what it sent with what came
   back; the returned object simply replaces the optimistic one.
+
+- A person's own text (a title, an idea, a caption, a reason, a name): `shared/person_text.dart` (`PersonText`) keeps its own
+  direction on an Arabic page. A short screen text in both languages: `context.tr('English', 'عربي')` (`shared/studio_tr.dart`).
+- A small form in a sheet (text fields, extra chips or dates, the server's refusal shown in words): `shared/form_sheet.dart`
+  (`StudioFormSheet`). Used by competitors, feasibility, moments and the prep task.
+- Save the files of a version or asset (each file, Save all, no zip): `shared/save_files.dart` (`SaveFilesBar`).
+- Today for another day or person: `todayDateProvider` / `todayAsProvider`, the bar is `features/today/presentation/day_bar.dart`.
+- The Inbox tab badge is the sum of the tiles the role has (`inboxBadgeProvider`), never the server's `total`.
 
 ## Tests
 

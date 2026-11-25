@@ -48,6 +48,7 @@ final Map<String, Future<Object?> Function(StudioApi)> endpointCalls = {
   'versions.clear_review': (api) => api.versionsClearReview(versionId: 'x'),
   'calendar.range': (api) =>
       api.calendarRange(from: '2026-11-25', to: '2026-11-25'),
+  'calendar.changes': (api) => api.calendarChanges(),
   'calendar.post_get': (api) => api.calendarPostGet(postId: 'x'),
   'calendar.post_set': (api) => api.calendarPostSet(),
   'calendar.post_move': (api) =>
@@ -104,6 +105,13 @@ final Map<String, Future<Object?> Function(StudioApi)> endpointCalls = {
   'references.note': (api) => api.referencesNote(referenceId: 'x', text: 'x'),
   'references.competitors': (api) => api.referencesCompetitors(),
   'references.competitor_get': (api) => api.referencesCompetitorGet(key: 'x'),
+  'references.competitor_add': (api) => api.referencesCompetitorAdd(name: 'x'),
+  'references.competitor_remove': (api) =>
+      api.referencesCompetitorRemove(key: 'x', reason: 'x'),
+  'references.competitor_restore': (api) =>
+      api.referencesCompetitorRestore(key: 'x'),
+  'references.set_feasibility': (api) =>
+      api.referencesSetFeasibility(referenceId: 'x', feasibility: 'x'),
   'paid.overview': (api) => api.paidOverview(),
   'paid.round_get': (api) => api.paidRoundGet(roundCode: 'x'),
   'paid.round_set': (api) =>
@@ -120,6 +128,7 @@ final Map<String, Future<Object?> Function(StudioApi)> endpointCalls = {
   'results.summary': (api) =>
       api.resultsSummary(from: '2026-11-25', to: '2026-11-25', groupBy: 'x'),
   'results.read_set': (api) => api.resultsReadSet(postId: 'x'),
+  'results.ratings': (api) => api.resultsRatings(),
   'reports.list': (api) => api.reportsList(),
   'reports.get': (api) => api.reportsGet(reportId: 'x'),
   'decisions.list': (api) => api.decisionsList(),

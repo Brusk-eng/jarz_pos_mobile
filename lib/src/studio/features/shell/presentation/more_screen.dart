@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../../core/config/studio_config.dart';
 import '../../../core/l10n/studio_locale.dart';
 import '../../../core/network/studio_api.dart';
 import '../../../core/roles/studio_role.dart';
@@ -98,7 +97,6 @@ class StudioMoreScreen extends ConsumerWidget {
     final t = MoreStrings.of(context);
     final role = ref.watch(studioSessionProvider).valueOrNull?.primaryRole;
     final nav = ref.watch(moreNavKeysProvider).valueOrNull;
-    final fake = ref.watch(studioFakeProvider);
     final version = ref.watch(moreAppVersionProvider).valueOrNull ?? '';
 
     final List<MoreItem> items;
@@ -183,14 +181,13 @@ class StudioMoreScreen extends ConsumerWidget {
                           : const Locale('ar');
                     },
                   ),
-                  if (!fake)
-                    ListTile(
-                      key: const ValueKey('more-sign-out'),
-                      leading: const Icon(Icons.logout),
-                      title: Text(t.signOutRow),
-                      onTap: () =>
-                          ref.read(studioSessionProvider.notifier).signOut(),
-                    ),
+                  ListTile(
+                    key: const ValueKey('more-sign-out'),
+                    leading: const Icon(Icons.logout),
+                    title: Text(t.signOutRow),
+                    onTap: () =>
+                        ref.read(studioSessionProvider.notifier).signOut(),
+                  ),
                   if (version.isNotEmpty)
                     Padding(
                       key: const ValueKey('more-version'),

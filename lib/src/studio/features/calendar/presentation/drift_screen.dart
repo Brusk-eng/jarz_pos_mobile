@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
@@ -251,7 +252,7 @@ class _UnplannedRowState extends ConsumerState<_UnplannedRow> {
               ListTile(
                 key: ValueKey('drift-match-${m.post.id}'),
                 contentPadding: EdgeInsets.zero,
-                title: Text(m.post.title),
+                title: PersonText(m.post.title),
                 subtitle: Text(
                   CairoFormat.stamp(m.post.slotTime, isArabic(sheet)),
                 ),

@@ -45,11 +45,25 @@ final inboxSectionsProvider = Provider<List<InboxSection>>((ref) {
   return role == null ? const [] : inboxSectionsByRole[role]!;
 });
 
-/// Number for the badge on the bottom bar's Inbox tab: what waits on the
-/// person (to approve + decisions + ideas, as the server sums it). The shell
-/// scaffold does not read it yet; wire `ref.watch(inboxBadgeProvider)` there.
+/// Number for the badge on the bottom bar's Inbox tab: exactly the sum of the
+/// tiles this person's Inbox shows (to approve, to rate, decisions, ideas and
+/// unread notifications, each only if their role has that tile). The server's
+/// `total` is not used: it leaves out to rate and unread, and a role without a
+/// tile would still be counted for it.
 final inboxBadgeProvider = Provider<int>((ref) {
-  return ref.watch(inboxCountsProvider).valueOrNull?.total ?? 0;
+  final c = ref.watch(inboxCountsProvider).valueOrNull;
+  if (c == null) return 0;
+  var sum = 0;
+  for (final s in ref.watch(inboxSectionsProvider)) {
+    sum += switch (s) {
+      InboxSection.approve => c.toApprove,
+      InboxSection.rate => c.toRate,
+      InboxSection.decisions => c.decisions,
+      InboxSection.ideas => c.ideas,
+      InboxSection.notifications => c.unreadNotifications,
+    };
+  }
+  return sum;
 });
 
 /// Number for a bell badge: unread notifications.

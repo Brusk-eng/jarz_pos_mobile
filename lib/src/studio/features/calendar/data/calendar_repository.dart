@@ -104,6 +104,9 @@ class CalendarRepository {
       _api.calendarActualIgnore(actualId: actualId);
 
   Future<PostChecks> checks({int? days}) => _api.calendarChecks(days: days);
+
+  Future<CalendarChanges> changes({int? days}) =>
+      _api.calendarChanges(days: days);
 }
 
 final calendarRepositoryProvider = Provider<CalendarRepository>(
@@ -116,6 +119,20 @@ typedef CalendarWindow = ({String from, String to});
 final calendarRangeProvider = FutureProvider.autoDispose
     .family<CalendarRange, CalendarWindow>(
       (ref, w) => ref.watch(calendarRepositoryProvider).range(w.from, w.to),
+    );
+
+/// What changed on the calendar in the last [days] days, newest first.
+final calendarChangesProvider = FutureProvider.autoDispose
+    .family<CalendarChanges, int>(
+      (ref, days) => ref.watch(calendarRepositoryProvider).changes(days: days),
+    );
+
+/// The skipped (won't post) posts of a window.
+final skippedPostsProvider = FutureProvider.autoDispose
+    .family<CalendarRange, CalendarWindow>(
+      (ref, w) => ref
+          .watch(calendarRepositoryProvider)
+          .range(w.from, w.to, status: 'Cancelled'),
     );
 
 final postDriftProvider = FutureProvider.autoDispose<PostDrift>(

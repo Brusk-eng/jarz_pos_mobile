@@ -430,8 +430,12 @@ abstract class GateCheckItem with _$GateCheckItem {
   const factory GateCheckItem({
     /// file read banned claims ad_copy caption arabic_first jarzegypt format sell voice_en voice_ar facts type
     required String key,
+
+    /// in the reader's language
     required String label,
     required bool ok,
+
+    /// in the reader's language
     String? detail,
   }) = _GateCheckItem;
 
@@ -982,6 +986,8 @@ abstract class CheckItem with _$CheckItem {
     required String code,
     @JsonKey(unknownEnumValue: CheckSeverity.unknown)
     required CheckSeverity severity,
+
+    /// in the reader's language
     required String message,
   }) = _CheckItem;
 
@@ -1031,6 +1037,8 @@ abstract class SocialPost with _$SocialPost {
     required List<StoryFrame> frames,
     VersionBrief? version,
     required List<CheckItem> checks,
+
+    /// message in the reader's language
     @JsonKey(name: 'caption_problems')
     required List<StudioProblem> captionProblems,
     required List<PostRead> reads,
@@ -1155,6 +1163,8 @@ abstract class CheckRow with _$CheckRow {
     required String code,
     @JsonKey(unknownEnumValue: CheckSeverity.unknown)
     required CheckSeverity severity,
+
+    /// in the reader's language
     required String message,
     @JsonKey(name: 'post_id') String? postId,
     @JsonKey(name: 'piece_id') String? pieceId,
@@ -1216,6 +1226,50 @@ abstract class RoundBrief with _$RoundBrief {
 
   factory RoundBrief.fromJson(Map<String, dynamic> json) =>
       _$RoundBriefFromJson(json);
+}
+
+/// Contract shape `CalendarChange`.
+@freezed
+abstract class CalendarChange with _$CalendarChange {
+  @JsonSerializable(explicitToJson: true)
+  const factory CalendarChange({
+    required String id,
+    @JsonKey(unknownEnumValue: ChangeKind.unknown) required ChangeKind kind,
+    required PostSummary post,
+
+    /// moved: where it was
+    @JsonKey(name: 'old_slot') String? oldSlot,
+
+    /// moved: where it is now; added: its slot
+    @JsonKey(name: 'new_slot') String? newSlot,
+
+    /// wont_post: why
+    String? reason,
+    PersonRef? by,
+    required String at,
+
+    /// one line in the reader's language (moved from X to Y, marked won't post: why ...)
+    required String text,
+  }) = _CalendarChange;
+
+  factory CalendarChange.fromJson(Map<String, dynamic> json) =>
+      _$CalendarChangeFromJson(json);
+}
+
+/// Contract shape `CalendarChanges`.
+@freezed
+abstract class CalendarChanges with _$CalendarChanges {
+  @JsonSerializable(explicitToJson: true)
+  const factory CalendarChanges({
+    required String since,
+
+    /// newest first, at most 200
+    required List<CalendarChange> items,
+    @JsonKey(name: 'server_time') required String serverTime,
+  }) = _CalendarChanges;
+
+  factory CalendarChanges.fromJson(Map<String, dynamic> json) =>
+      _$CalendarChangesFromJson(json);
 }
 
 /// Contract shape `CalendarRange`.
@@ -1756,7 +1810,7 @@ abstract class StudioReference with _$StudioReference {
     required String created,
     required String modified,
 
-    /// shortlist send_to_shoot drop note link edit
+    /// shortlist send_to_shoot drop note link edit set_feasibility
     required List<String> actions,
   }) = _StudioReference;
 
@@ -1790,10 +1844,149 @@ abstract class StudioCompetitor with _$StudioCompetitor {
     required List<Note> notes,
     @JsonKey(name: 'references_count') required int referencesCount,
     required String modified,
+
+    /// remove (an active competitor) or restore (a removed one); Founder and Lead only
+    required List<String> actions,
   }) = _StudioCompetitor;
 
   factory StudioCompetitor.fromJson(Map<String, dynamic> json) =>
       _$StudioCompetitorFromJson(json);
+}
+
+/// Contract shape `RatingsThresholds`.
+@freezed
+abstract class RatingsThresholds with _$RatingsThresholds {
+  @JsonSerializable(explicitToJson: true)
+  const factory RatingsThresholds({
+    /// Ready to run: average at least this (4)
+    @JsonKey(name: 'ready_avg') required double readyAvg,
+
+    /// Drop or rework: average under this (3)
+    @JsonKey(name: 'drop_avg') required double dropAvg,
+
+    /// Team is split: spread (population sd) at least this (1.2)
+    @JsonKey(name: 'split_sd') required double splitSd,
+
+    /// ... and at least this many ratings (2)
+    @JsonKey(name: 'split_min_n') required int splitMinN,
+
+    /// ratings a piece needs for Ready to run / Drop or rework: max(1, min(3, required people))
+    @JsonKey(name: 'min_ratings') required int minRatings,
+  }) = _RatingsThresholds;
+
+  factory RatingsThresholds.fromJson(Map<String, dynamic> json) =>
+      _$RatingsThresholdsFromJson(json);
+}
+
+/// Contract shape `RatingsCounts`.
+@freezed
+abstract class RatingsCounts with _$RatingsCounts {
+  @JsonSerializable(explicitToJson: true)
+  const factory RatingsCounts({
+    @JsonKey(name: 'ready_to_run') required int readyToRun,
+    @JsonKey(name: 'team_split') required int teamSplit,
+    @JsonKey(name: 'drop_or_rework') required int dropOrRework,
+  }) = _RatingsCounts;
+
+  factory RatingsCounts.fromJson(Map<String, dynamic> json) =>
+      _$RatingsCountsFromJson(json);
+}
+
+/// Contract shape `RatedPiece`.
+@freezed
+abstract class RatedPiece with _$RatedPiece {
+  @JsonSerializable(explicitToJson: true)
+  const factory RatedPiece({
+    required PieceSummary piece,
+
+    /// the current version the numbers are about
+    @JsonKey(name: 'version_id') required String versionId,
+    required int n,
+    required double avg,
+    required double sd,
+
+    /// required raters who have not rated it
+    required List<PersonRef> waiting,
+  }) = _RatedPiece;
+
+  factory RatedPiece.fromJson(Map<String, dynamic> json) =>
+      _$RatedPieceFromJson(json);
+}
+
+/// Contract shape `RaterProgress`.
+@freezed
+abstract class RaterProgress with _$RaterProgress {
+  @JsonSerializable(explicitToJson: true)
+  const factory RaterProgress({
+    required PersonRef person,
+
+    /// must_rate
+    @JsonKey(name: 'required') required bool requiredValue,
+
+    /// open pieces this person has rated
+    required int rated,
+
+    /// open pieces still to rate
+    required int left,
+
+    /// open pieces
+    required int total,
+  }) = _RaterProgress;
+
+  factory RaterProgress.fromJson(Map<String, dynamic> json) =>
+      _$RaterProgressFromJson(json);
+}
+
+/// Contract shape `RatingComment`.
+@freezed
+abstract class RatingComment with _$RatingComment {
+  @JsonSerializable(explicitToJson: true)
+  const factory RatingComment({
+    required PieceSummary piece,
+    @JsonKey(name: 'version_id') required String versionId,
+    required PersonRef person,
+    required int score,
+    required String comment,
+    required String at,
+  }) = _RatingComment;
+
+  factory RatingComment.fromJson(Map<String, dynamic> json) =>
+      _$RatingCommentFromJson(json);
+}
+
+/// Contract shape `RatingsRollup`.
+@freezed
+abstract class RatingsRollup with _$RatingsRollup {
+  @JsonSerializable(explicitToJson: true)
+  const factory RatingsRollup({
+    /// open pieces: current versions open to rate, piece past Script
+    @JsonKey(name: 'open_count') required int openCount,
+
+    /// open pieces rated by every required person
+    @JsonKey(name: 'fully_rated') required int fullyRated,
+    @JsonKey(name: 'required_count') required int requiredCount,
+
+    /// every version rating, open or not
+    @JsonKey(name: 'ratings_count') required int ratingsCount,
+    @JsonKey(name: 'comments_count') required int commentsCount,
+    required RatingsThresholds thresholds,
+
+    /// the full size of the three lists (each list shows at most 25)
+    required RatingsCounts counts,
+    @JsonKey(name: 'ready_to_run') required List<RatedPiece> readyToRun,
+    @JsonKey(name: 'team_split') required List<RatedPiece> teamSplit,
+    @JsonKey(name: 'drop_or_rework') required List<RatedPiece> dropOrRework,
+
+    /// required people first
+    required List<RaterProgress> progress,
+
+    /// newest first, at most 60
+    @JsonKey(name: 'latest_comments')
+    required List<RatingComment> latestComments,
+  }) = _RatingsRollup;
+
+  factory RatingsRollup.fromJson(Map<String, dynamic> json) =>
+      _$RatingsRollupFromJson(json);
 }
 
 /// Contract shape `AdNumbers`.
@@ -2440,6 +2633,9 @@ abstract class TodayView with _$TodayView {
 
     /// already in this role's order; empty blocks omitted
     required List<TodayBlock> blocks,
+
+    /// set when a Founder or Lead asked for another person's Today (as); every line then has no actions
+    @JsonKey(name: 'viewing_as') PersonRef? viewingAs,
   }) = _TodayView;
 
   factory TodayView.fromJson(Map<String, dynamic> json) =>

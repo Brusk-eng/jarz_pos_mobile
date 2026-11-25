@@ -91,7 +91,8 @@ void main() {
       final sub = c.listen(inboxCountsProvider, (_, _) {});
       addTearDown(sub.close);
       await tester.pumpAndSettle();
-      expect(c.read(inboxBadgeProvider), 11);
+      // to approve 3 + to rate 2 + decisions 1 + ideas 7 + unread 4
+      expect(c.read(inboxBadgeProvider), 17);
     });
 
     testWidgets('Arabic hub uses Arabic words and runs RTL', (tester) async {

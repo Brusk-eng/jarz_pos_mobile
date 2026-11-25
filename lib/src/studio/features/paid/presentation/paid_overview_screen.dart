@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_tokens.dart';
@@ -156,9 +157,9 @@ class _DueRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(d.title, style: theme.textTheme.titleSmall),
+                PersonText(d.title, style: theme.textTheme.titleSmall),
                 const SizedBox(height: StudioSpacing.xxs),
-                Text(d.why, style: theme.textTheme.bodyMedium),
+                PersonText(d.why, style: theme.textTheme.bodyMedium),
                 const SizedBox(height: StudioSpacing.xs),
                 Text(
                   '${t.dueKindLabel(d.kind)} · ${t.dueOn(m.date(d.dueDate))}',
@@ -249,7 +250,7 @@ class _QueueGlance extends StatelessWidget {
           ),
           const SizedBox(width: StudioSpacing.md),
           Expanded(
-            child: Text(
+            child: PersonText(
               q.piece.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,

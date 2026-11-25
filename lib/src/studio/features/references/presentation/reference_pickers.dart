@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 
 import '../../../core/theme/studio_tokens.dart';
 import '../../../shared/media/studio_media_widgets.dart';
@@ -236,7 +237,7 @@ class _PiecePickerState extends ConsumerState<_PiecePicker> {
                                   height: 44,
                                   child: StudioThumb(media: p.picture),
                                 ),
-                                title: Text(p.title),
+                                title: PersonText(p.title),
                                 subtitle: Text(p.id),
                                 onTap: () => Navigator.of(context).pop(p.id),
                               ),

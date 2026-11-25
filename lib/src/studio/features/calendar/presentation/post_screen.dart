@@ -19,6 +19,7 @@ import '../../../shared/view_edit_scaffold.dart';
 import '../../pieces/pieces_strings.dart';
 import '../../pieces/presentation/piece_widgets.dart';
 import '../../results/presentation/piece_results_screen.dart' show ReadRow;
+import '../../../shared/studio_tr.dart';
 import '../calendar_strings.dart';
 import '../data/calendar_repository.dart';
 import '../state/cairo_format.dart';
@@ -271,18 +272,30 @@ class _Creative extends StatelessWidget {
                         padding: const EdgeInsetsDirectional.only(
                           end: StudioSpacing.sm,
                         ),
-                        child: InkWell(
-                          key: ValueKey('creative-$i'),
-                          onTap: () => openStudioMediaViewer(
-                            context,
-                            items: media,
-                            initialIndex: i,
-                          ),
-                          child: StudioThumb(
-                            media: m,
-                            width: 165,
-                            height: 220,
-                            radius: BorderRadius.circular(StudioRadii.md),
+                        child: Semantics(
+                          button: true,
+                          label: media.length == 1
+                              ? context.tr(
+                                  'Preview the creative',
+                                  'شوف الصورة أو الفيديو',
+                                )
+                              : context.tr(
+                                  'Preview creative ${i + 1} of ${media.length}',
+                                  'شوف ${i + 1} من ${media.length}',
+                                ),
+                          child: InkWell(
+                            key: ValueKey('creative-$i'),
+                            onTap: () => openStudioMediaViewer(
+                              context,
+                              items: media,
+                              initialIndex: i,
+                            ),
+                            child: StudioThumb(
+                              media: m,
+                              width: 165,
+                              height: 220,
+                              radius: BorderRadius.circular(StudioRadii.md),
+                            ),
                           ),
                         ),
                       ),

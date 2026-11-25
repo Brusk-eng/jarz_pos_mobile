@@ -8,6 +8,7 @@ import '../references/presentation/reference_screen.dart';
 import '../references/presentation/references_screen.dart';
 import '../reports/presentation/reports_screen.dart';
 import '../results/presentation/piece_results_screen.dart';
+import '../results/presentation/ratings_screen.dart';
 import '../results/presentation/scorecard_screen.dart';
 import '../results/presentation/summary_screen.dart';
 import '../settings/presentation/claims_moments_options_screens.dart';
@@ -74,6 +75,7 @@ List<RouteBase> moreRoutes() => [
     routes: [
       GoRoute(path: 'pieces', builder: (_, _) => const PieceResultsScreen()),
       GoRoute(path: 'summary', builder: (_, _) => const SummaryScreen()),
+      GoRoute(path: 'ratings', builder: (_, _) => const RatingsScreen()),
     ],
   ),
   // Reports.

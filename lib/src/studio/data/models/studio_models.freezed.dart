@@ -6134,8 +6134,12 @@ GateCheckItem _$GateCheckItemFromJson(Map<String, dynamic> json) {
 mixin _$GateCheckItem {
   /// file read banned claims ad_copy caption arabic_first jarzegypt format sell voice_en voice_ar facts type
   String get key => throw _privateConstructorUsedError;
+
+  /// in the reader's language
   String get label => throw _privateConstructorUsedError;
   bool get ok => throw _privateConstructorUsedError;
+
+  /// in the reader's language
   String? get detail => throw _privateConstructorUsedError;
 
   /// Serializes this GateCheckItem to a JSON map.
@@ -6273,10 +6277,14 @@ class _$GateCheckItemImpl implements _GateCheckItem {
   /// file read banned claims ad_copy caption arabic_first jarzegypt format sell voice_en voice_ar facts type
   @override
   final String key;
+
+  /// in the reader's language
   @override
   final String label;
   @override
   final bool ok;
+
+  /// in the reader's language
   @override
   final String? detail;
 
@@ -6328,10 +6336,14 @@ abstract class _GateCheckItem implements GateCheckItem {
   /// file read banned claims ad_copy caption arabic_first jarzegypt format sell voice_en voice_ar facts type
   @override
   String get key;
+
+  /// in the reader's language
   @override
   String get label;
   @override
   bool get ok;
+
+  /// in the reader's language
   @override
   String? get detail;
 
@@ -15521,6 +15533,8 @@ mixin _$CheckItem {
   String get code => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: CheckSeverity.unknown)
   CheckSeverity get severity => throw _privateConstructorUsedError;
+
+  /// in the reader's language
   String get message => throw _privateConstructorUsedError;
 
   /// Serializes this CheckItem to a JSON map.
@@ -15656,6 +15670,8 @@ class _$CheckItemImpl implements _CheckItem {
   @override
   @JsonKey(unknownEnumValue: CheckSeverity.unknown)
   final CheckSeverity severity;
+
+  /// in the reader's language
   @override
   final String message;
 
@@ -15710,6 +15726,8 @@ abstract class _CheckItem implements CheckItem {
   @override
   @JsonKey(unknownEnumValue: CheckSeverity.unknown)
   CheckSeverity get severity;
+
+  /// in the reader's language
   @override
   String get message;
 
@@ -15777,6 +15795,8 @@ mixin _$SocialPost {
   List<StoryFrame> get frames => throw _privateConstructorUsedError;
   VersionBrief? get version => throw _privateConstructorUsedError;
   List<CheckItem> get checks => throw _privateConstructorUsedError;
+
+  /// message in the reader's language
   @JsonKey(name: 'caption_problems')
   List<StudioProblem> get captionProblems => throw _privateConstructorUsedError;
   List<PostRead> get reads => throw _privateConstructorUsedError;
@@ -16503,7 +16523,10 @@ class _$SocialPostImpl implements _SocialPost {
     return EqualUnmodifiableListView(_checks);
   }
 
+  /// message in the reader's language
   final List<StudioProblem> _captionProblems;
+
+  /// message in the reader's language
   @override
   @JsonKey(name: 'caption_problems')
   List<StudioProblem> get captionProblems {
@@ -16771,6 +16794,8 @@ abstract class _SocialPost implements SocialPost {
   VersionBrief? get version;
   @override
   List<CheckItem> get checks;
+
+  /// message in the reader's language
   @override
   @JsonKey(name: 'caption_problems')
   List<StudioProblem> get captionProblems;
@@ -18534,6 +18559,8 @@ mixin _$CheckRow {
   String get code => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: CheckSeverity.unknown)
   CheckSeverity get severity => throw _privateConstructorUsedError;
+
+  /// in the reader's language
   String get message => throw _privateConstructorUsedError;
   @JsonKey(name: 'post_id')
   String? get postId => throw _privateConstructorUsedError;
@@ -18755,6 +18782,8 @@ class _$CheckRowImpl implements _CheckRow {
   @override
   @JsonKey(unknownEnumValue: CheckSeverity.unknown)
   final CheckSeverity severity;
+
+  /// in the reader's language
   @override
   final String message;
   @override
@@ -18846,6 +18875,8 @@ abstract class _CheckRow implements CheckRow {
   @override
   @JsonKey(unknownEnumValue: CheckSeverity.unknown)
   CheckSeverity get severity;
+
+  /// in the reader's language
   @override
   String get message;
   @override
@@ -19683,6 +19714,640 @@ abstract class _RoundBrief implements RoundBrief {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RoundBriefImplCopyWith<_$RoundBriefImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+CalendarChange _$CalendarChangeFromJson(Map<String, dynamic> json) {
+  return _CalendarChange.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CalendarChange {
+  String get id => throw _privateConstructorUsedError;
+  @JsonKey(unknownEnumValue: ChangeKind.unknown)
+  ChangeKind get kind => throw _privateConstructorUsedError;
+  PostSummary get post => throw _privateConstructorUsedError;
+
+  /// moved: where it was
+  @JsonKey(name: 'old_slot')
+  String? get oldSlot => throw _privateConstructorUsedError;
+
+  /// moved: where it is now; added: its slot
+  @JsonKey(name: 'new_slot')
+  String? get newSlot => throw _privateConstructorUsedError;
+
+  /// wont_post: why
+  String? get reason => throw _privateConstructorUsedError;
+  PersonRef? get by => throw _privateConstructorUsedError;
+  String get at => throw _privateConstructorUsedError;
+
+  /// one line in the reader's language (moved from X to Y, marked won't post: why ...)
+  String get text => throw _privateConstructorUsedError;
+
+  /// Serializes this CalendarChange to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of CalendarChange
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CalendarChangeCopyWith<CalendarChange> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CalendarChangeCopyWith<$Res> {
+  factory $CalendarChangeCopyWith(
+    CalendarChange value,
+    $Res Function(CalendarChange) then,
+  ) = _$CalendarChangeCopyWithImpl<$Res, CalendarChange>;
+  @useResult
+  $Res call({
+    String id,
+    @JsonKey(unknownEnumValue: ChangeKind.unknown) ChangeKind kind,
+    PostSummary post,
+    @JsonKey(name: 'old_slot') String? oldSlot,
+    @JsonKey(name: 'new_slot') String? newSlot,
+    String? reason,
+    PersonRef? by,
+    String at,
+    String text,
+  });
+
+  $PostSummaryCopyWith<$Res> get post;
+  $PersonRefCopyWith<$Res>? get by;
+}
+
+/// @nodoc
+class _$CalendarChangeCopyWithImpl<$Res, $Val extends CalendarChange>
+    implements $CalendarChangeCopyWith<$Res> {
+  _$CalendarChangeCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CalendarChange
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? kind = null,
+    Object? post = null,
+    Object? oldSlot = freezed,
+    Object? newSlot = freezed,
+    Object? reason = freezed,
+    Object? by = freezed,
+    Object? at = null,
+    Object? text = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            kind: null == kind
+                ? _value.kind
+                : kind // ignore: cast_nullable_to_non_nullable
+                      as ChangeKind,
+            post: null == post
+                ? _value.post
+                : post // ignore: cast_nullable_to_non_nullable
+                      as PostSummary,
+            oldSlot: freezed == oldSlot
+                ? _value.oldSlot
+                : oldSlot // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            newSlot: freezed == newSlot
+                ? _value.newSlot
+                : newSlot // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            reason: freezed == reason
+                ? _value.reason
+                : reason // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            by: freezed == by
+                ? _value.by
+                : by // ignore: cast_nullable_to_non_nullable
+                      as PersonRef?,
+            at: null == at
+                ? _value.at
+                : at // ignore: cast_nullable_to_non_nullable
+                      as String,
+            text: null == text
+                ? _value.text
+                : text // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of CalendarChange
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PostSummaryCopyWith<$Res> get post {
+    return $PostSummaryCopyWith<$Res>(_value.post, (value) {
+      return _then(_value.copyWith(post: value) as $Val);
+    });
+  }
+
+  /// Create a copy of CalendarChange
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PersonRefCopyWith<$Res>? get by {
+    if (_value.by == null) {
+      return null;
+    }
+
+    return $PersonRefCopyWith<$Res>(_value.by!, (value) {
+      return _then(_value.copyWith(by: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$CalendarChangeImplCopyWith<$Res>
+    implements $CalendarChangeCopyWith<$Res> {
+  factory _$$CalendarChangeImplCopyWith(
+    _$CalendarChangeImpl value,
+    $Res Function(_$CalendarChangeImpl) then,
+  ) = __$$CalendarChangeImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    @JsonKey(unknownEnumValue: ChangeKind.unknown) ChangeKind kind,
+    PostSummary post,
+    @JsonKey(name: 'old_slot') String? oldSlot,
+    @JsonKey(name: 'new_slot') String? newSlot,
+    String? reason,
+    PersonRef? by,
+    String at,
+    String text,
+  });
+
+  @override
+  $PostSummaryCopyWith<$Res> get post;
+  @override
+  $PersonRefCopyWith<$Res>? get by;
+}
+
+/// @nodoc
+class __$$CalendarChangeImplCopyWithImpl<$Res>
+    extends _$CalendarChangeCopyWithImpl<$Res, _$CalendarChangeImpl>
+    implements _$$CalendarChangeImplCopyWith<$Res> {
+  __$$CalendarChangeImplCopyWithImpl(
+    _$CalendarChangeImpl _value,
+    $Res Function(_$CalendarChangeImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of CalendarChange
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? kind = null,
+    Object? post = null,
+    Object? oldSlot = freezed,
+    Object? newSlot = freezed,
+    Object? reason = freezed,
+    Object? by = freezed,
+    Object? at = null,
+    Object? text = null,
+  }) {
+    return _then(
+      _$CalendarChangeImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        kind: null == kind
+            ? _value.kind
+            : kind // ignore: cast_nullable_to_non_nullable
+                  as ChangeKind,
+        post: null == post
+            ? _value.post
+            : post // ignore: cast_nullable_to_non_nullable
+                  as PostSummary,
+        oldSlot: freezed == oldSlot
+            ? _value.oldSlot
+            : oldSlot // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        newSlot: freezed == newSlot
+            ? _value.newSlot
+            : newSlot // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        reason: freezed == reason
+            ? _value.reason
+            : reason // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        by: freezed == by
+            ? _value.by
+            : by // ignore: cast_nullable_to_non_nullable
+                  as PersonRef?,
+        at: null == at
+            ? _value.at
+            : at // ignore: cast_nullable_to_non_nullable
+                  as String,
+        text: null == text
+            ? _value.text
+            : text // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _$CalendarChangeImpl implements _CalendarChange {
+  const _$CalendarChangeImpl({
+    required this.id,
+    @JsonKey(unknownEnumValue: ChangeKind.unknown) required this.kind,
+    required this.post,
+    @JsonKey(name: 'old_slot') this.oldSlot,
+    @JsonKey(name: 'new_slot') this.newSlot,
+    this.reason,
+    this.by,
+    required this.at,
+    required this.text,
+  });
+
+  factory _$CalendarChangeImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CalendarChangeImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  @JsonKey(unknownEnumValue: ChangeKind.unknown)
+  final ChangeKind kind;
+  @override
+  final PostSummary post;
+
+  /// moved: where it was
+  @override
+  @JsonKey(name: 'old_slot')
+  final String? oldSlot;
+
+  /// moved: where it is now; added: its slot
+  @override
+  @JsonKey(name: 'new_slot')
+  final String? newSlot;
+
+  /// wont_post: why
+  @override
+  final String? reason;
+  @override
+  final PersonRef? by;
+  @override
+  final String at;
+
+  /// one line in the reader's language (moved from X to Y, marked won't post: why ...)
+  @override
+  final String text;
+
+  @override
+  String toString() {
+    return 'CalendarChange(id: $id, kind: $kind, post: $post, oldSlot: $oldSlot, newSlot: $newSlot, reason: $reason, by: $by, at: $at, text: $text)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CalendarChangeImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.kind, kind) || other.kind == kind) &&
+            (identical(other.post, post) || other.post == post) &&
+            (identical(other.oldSlot, oldSlot) || other.oldSlot == oldSlot) &&
+            (identical(other.newSlot, newSlot) || other.newSlot == newSlot) &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.by, by) || other.by == by) &&
+            (identical(other.at, at) || other.at == at) &&
+            (identical(other.text, text) || other.text == text));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    kind,
+    post,
+    oldSlot,
+    newSlot,
+    reason,
+    by,
+    at,
+    text,
+  );
+
+  /// Create a copy of CalendarChange
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CalendarChangeImplCopyWith<_$CalendarChangeImpl> get copyWith =>
+      __$$CalendarChangeImplCopyWithImpl<_$CalendarChangeImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CalendarChangeImplToJson(this);
+  }
+}
+
+abstract class _CalendarChange implements CalendarChange {
+  const factory _CalendarChange({
+    required final String id,
+    @JsonKey(unknownEnumValue: ChangeKind.unknown)
+    required final ChangeKind kind,
+    required final PostSummary post,
+    @JsonKey(name: 'old_slot') final String? oldSlot,
+    @JsonKey(name: 'new_slot') final String? newSlot,
+    final String? reason,
+    final PersonRef? by,
+    required final String at,
+    required final String text,
+  }) = _$CalendarChangeImpl;
+
+  factory _CalendarChange.fromJson(Map<String, dynamic> json) =
+      _$CalendarChangeImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  @JsonKey(unknownEnumValue: ChangeKind.unknown)
+  ChangeKind get kind;
+  @override
+  PostSummary get post;
+
+  /// moved: where it was
+  @override
+  @JsonKey(name: 'old_slot')
+  String? get oldSlot;
+
+  /// moved: where it is now; added: its slot
+  @override
+  @JsonKey(name: 'new_slot')
+  String? get newSlot;
+
+  /// wont_post: why
+  @override
+  String? get reason;
+  @override
+  PersonRef? get by;
+  @override
+  String get at;
+
+  /// one line in the reader's language (moved from X to Y, marked won't post: why ...)
+  @override
+  String get text;
+
+  /// Create a copy of CalendarChange
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CalendarChangeImplCopyWith<_$CalendarChangeImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+CalendarChanges _$CalendarChangesFromJson(Map<String, dynamic> json) {
+  return _CalendarChanges.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CalendarChanges {
+  String get since => throw _privateConstructorUsedError;
+
+  /// newest first, at most 200
+  List<CalendarChange> get items => throw _privateConstructorUsedError;
+  @JsonKey(name: 'server_time')
+  String get serverTime => throw _privateConstructorUsedError;
+
+  /// Serializes this CalendarChanges to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of CalendarChanges
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CalendarChangesCopyWith<CalendarChanges> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CalendarChangesCopyWith<$Res> {
+  factory $CalendarChangesCopyWith(
+    CalendarChanges value,
+    $Res Function(CalendarChanges) then,
+  ) = _$CalendarChangesCopyWithImpl<$Res, CalendarChanges>;
+  @useResult
+  $Res call({
+    String since,
+    List<CalendarChange> items,
+    @JsonKey(name: 'server_time') String serverTime,
+  });
+}
+
+/// @nodoc
+class _$CalendarChangesCopyWithImpl<$Res, $Val extends CalendarChanges>
+    implements $CalendarChangesCopyWith<$Res> {
+  _$CalendarChangesCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CalendarChanges
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? since = null,
+    Object? items = null,
+    Object? serverTime = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            since: null == since
+                ? _value.since
+                : since // ignore: cast_nullable_to_non_nullable
+                      as String,
+            items: null == items
+                ? _value.items
+                : items // ignore: cast_nullable_to_non_nullable
+                      as List<CalendarChange>,
+            serverTime: null == serverTime
+                ? _value.serverTime
+                : serverTime // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$CalendarChangesImplCopyWith<$Res>
+    implements $CalendarChangesCopyWith<$Res> {
+  factory _$$CalendarChangesImplCopyWith(
+    _$CalendarChangesImpl value,
+    $Res Function(_$CalendarChangesImpl) then,
+  ) = __$$CalendarChangesImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String since,
+    List<CalendarChange> items,
+    @JsonKey(name: 'server_time') String serverTime,
+  });
+}
+
+/// @nodoc
+class __$$CalendarChangesImplCopyWithImpl<$Res>
+    extends _$CalendarChangesCopyWithImpl<$Res, _$CalendarChangesImpl>
+    implements _$$CalendarChangesImplCopyWith<$Res> {
+  __$$CalendarChangesImplCopyWithImpl(
+    _$CalendarChangesImpl _value,
+    $Res Function(_$CalendarChangesImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of CalendarChanges
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? since = null,
+    Object? items = null,
+    Object? serverTime = null,
+  }) {
+    return _then(
+      _$CalendarChangesImpl(
+        since: null == since
+            ? _value.since
+            : since // ignore: cast_nullable_to_non_nullable
+                  as String,
+        items: null == items
+            ? _value._items
+            : items // ignore: cast_nullable_to_non_nullable
+                  as List<CalendarChange>,
+        serverTime: null == serverTime
+            ? _value.serverTime
+            : serverTime // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _$CalendarChangesImpl implements _CalendarChanges {
+  const _$CalendarChangesImpl({
+    required this.since,
+    required final List<CalendarChange> items,
+    @JsonKey(name: 'server_time') required this.serverTime,
+  }) : _items = items;
+
+  factory _$CalendarChangesImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CalendarChangesImplFromJson(json);
+
+  @override
+  final String since;
+
+  /// newest first, at most 200
+  final List<CalendarChange> _items;
+
+  /// newest first, at most 200
+  @override
+  List<CalendarChange> get items {
+    if (_items is EqualUnmodifiableListView) return _items;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_items);
+  }
+
+  @override
+  @JsonKey(name: 'server_time')
+  final String serverTime;
+
+  @override
+  String toString() {
+    return 'CalendarChanges(since: $since, items: $items, serverTime: $serverTime)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CalendarChangesImpl &&
+            (identical(other.since, since) || other.since == since) &&
+            const DeepCollectionEquality().equals(other._items, _items) &&
+            (identical(other.serverTime, serverTime) ||
+                other.serverTime == serverTime));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    since,
+    const DeepCollectionEquality().hash(_items),
+    serverTime,
+  );
+
+  /// Create a copy of CalendarChanges
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CalendarChangesImplCopyWith<_$CalendarChangesImpl> get copyWith =>
+      __$$CalendarChangesImplCopyWithImpl<_$CalendarChangesImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CalendarChangesImplToJson(this);
+  }
+}
+
+abstract class _CalendarChanges implements CalendarChanges {
+  const factory _CalendarChanges({
+    required final String since,
+    required final List<CalendarChange> items,
+    @JsonKey(name: 'server_time') required final String serverTime,
+  }) = _$CalendarChangesImpl;
+
+  factory _CalendarChanges.fromJson(Map<String, dynamic> json) =
+      _$CalendarChangesImpl.fromJson;
+
+  @override
+  String get since;
+
+  /// newest first, at most 200
+  @override
+  List<CalendarChange> get items;
+  @override
+  @JsonKey(name: 'server_time')
+  String get serverTime;
+
+  /// Create a copy of CalendarChanges
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CalendarChangesImplCopyWith<_$CalendarChangesImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -28008,7 +28673,7 @@ mixin _$StudioReference {
   String get created => throw _privateConstructorUsedError;
   String get modified => throw _privateConstructorUsedError;
 
-  /// shortlist send_to_shoot drop note link edit
+  /// shortlist send_to_shoot drop note link edit set_feasibility
   List<String> get actions => throw _privateConstructorUsedError;
 
   /// Serializes this StudioReference to a JSON map.
@@ -28734,10 +29399,10 @@ class _$StudioReferenceImpl implements _StudioReference {
   @override
   final String modified;
 
-  /// shortlist send_to_shoot drop note link edit
+  /// shortlist send_to_shoot drop note link edit set_feasibility
   final List<String> _actions;
 
-  /// shortlist send_to_shoot drop note link edit
+  /// shortlist send_to_shoot drop note link edit set_feasibility
   @override
   List<String> get actions {
     if (_actions is EqualUnmodifiableListView) return _actions;
@@ -29000,7 +29665,7 @@ abstract class _StudioReference implements StudioReference {
   @override
   String get modified;
 
-  /// shortlist send_to_shoot drop note link edit
+  /// shortlist send_to_shoot drop note link edit set_feasibility
   @override
   List<String> get actions;
 
@@ -29049,6 +29714,9 @@ mixin _$StudioCompetitor {
   int get referencesCount => throw _privateConstructorUsedError;
   String get modified => throw _privateConstructorUsedError;
 
+  /// remove (an active competitor) or restore (a removed one); Founder and Lead only
+  List<String> get actions => throw _privateConstructorUsedError;
+
   /// Serializes this StudioCompetitor to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -29088,6 +29756,7 @@ abstract class $StudioCompetitorCopyWith<$Res> {
     List<Note> notes,
     @JsonKey(name: 'references_count') int referencesCount,
     String modified,
+    List<String> actions,
   });
 
   $StudioMediaCopyWith<$Res>? get image;
@@ -29128,6 +29797,7 @@ class _$StudioCompetitorCopyWithImpl<$Res, $Val extends StudioCompetitor>
     Object? notes = null,
     Object? referencesCount = null,
     Object? modified = null,
+    Object? actions = null,
   }) {
     return _then(
       _value.copyWith(
@@ -29211,6 +29881,10 @@ class _$StudioCompetitorCopyWithImpl<$Res, $Val extends StudioCompetitor>
                 ? _value.modified
                 : modified // ignore: cast_nullable_to_non_nullable
                       as String,
+            actions: null == actions
+                ? _value.actions
+                : actions // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -29262,6 +29936,7 @@ abstract class _$$StudioCompetitorImplCopyWith<$Res>
     List<Note> notes,
     @JsonKey(name: 'references_count') int referencesCount,
     String modified,
+    List<String> actions,
   });
 
   @override
@@ -29302,6 +29977,7 @@ class __$$StudioCompetitorImplCopyWithImpl<$Res>
     Object? notes = null,
     Object? referencesCount = null,
     Object? modified = null,
+    Object? actions = null,
   }) {
     return _then(
       _$StudioCompetitorImpl(
@@ -29385,6 +30061,10 @@ class __$$StudioCompetitorImplCopyWithImpl<$Res>
             ? _value.modified
             : modified // ignore: cast_nullable_to_non_nullable
                   as String,
+        actions: null == actions
+            ? _value._actions
+            : actions // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -29416,7 +30096,9 @@ class _$StudioCompetitorImpl implements _StudioCompetitor {
     required final List<Note> notes,
     @JsonKey(name: 'references_count') required this.referencesCount,
     required this.modified,
-  }) : _notes = notes;
+    required final List<String> actions,
+  }) : _notes = notes,
+       _actions = actions;
 
   factory _$StudioCompetitorImpl.fromJson(Map<String, dynamic> json) =>
       _$$StudioCompetitorImplFromJson(json);
@@ -29478,9 +30160,20 @@ class _$StudioCompetitorImpl implements _StudioCompetitor {
   @override
   final String modified;
 
+  /// remove (an active competitor) or restore (a removed one); Founder and Lead only
+  final List<String> _actions;
+
+  /// remove (an active competitor) or restore (a removed one); Founder and Lead only
+  @override
+  List<String> get actions {
+    if (_actions is EqualUnmodifiableListView) return _actions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_actions);
+  }
+
   @override
   String toString() {
-    return 'StudioCompetitor(key: $key, name: $name, competitorGroup: $competitorGroup, market: $market, tier: $tier, igHandle: $igHandle, tiktokHandle: $tiktokHandle, site: $site, adlibUrl: $adlibUrl, summary: $summary, followers: $followers, liveAds: $liveAds, outliers: $outliers, survivors: $survivors, image: $image, status: $status, removedWhy: $removedWhy, notes: $notes, referencesCount: $referencesCount, modified: $modified)';
+    return 'StudioCompetitor(key: $key, name: $name, competitorGroup: $competitorGroup, market: $market, tier: $tier, igHandle: $igHandle, tiktokHandle: $tiktokHandle, site: $site, adlibUrl: $adlibUrl, summary: $summary, followers: $followers, liveAds: $liveAds, outliers: $outliers, survivors: $survivors, image: $image, status: $status, removedWhy: $removedWhy, notes: $notes, referencesCount: $referencesCount, modified: $modified, actions: $actions)';
   }
 
   @override
@@ -29517,7 +30210,8 @@ class _$StudioCompetitorImpl implements _StudioCompetitor {
             (identical(other.referencesCount, referencesCount) ||
                 other.referencesCount == referencesCount) &&
             (identical(other.modified, modified) ||
-                other.modified == modified));
+                other.modified == modified) &&
+            const DeepCollectionEquality().equals(other._actions, _actions));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29544,6 +30238,7 @@ class _$StudioCompetitorImpl implements _StudioCompetitor {
     const DeepCollectionEquality().hash(_notes),
     referencesCount,
     modified,
+    const DeepCollectionEquality().hash(_actions),
   ]);
 
   /// Create a copy of StudioCompetitor
@@ -29587,6 +30282,7 @@ abstract class _StudioCompetitor implements StudioCompetitor {
     required final List<Note> notes,
     @JsonKey(name: 'references_count') required final int referencesCount,
     required final String modified,
+    required final List<String> actions,
   }) = _$StudioCompetitorImpl;
 
   factory _StudioCompetitor.fromJson(Map<String, dynamic> json) =
@@ -29643,11 +30339,1969 @@ abstract class _StudioCompetitor implements StudioCompetitor {
   @override
   String get modified;
 
+  /// remove (an active competitor) or restore (a removed one); Founder and Lead only
+  @override
+  List<String> get actions;
+
   /// Create a copy of StudioCompetitor
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$StudioCompetitorImplCopyWith<_$StudioCompetitorImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+RatingsThresholds _$RatingsThresholdsFromJson(Map<String, dynamic> json) {
+  return _RatingsThresholds.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RatingsThresholds {
+  /// Ready to run: average at least this (4)
+  @JsonKey(name: 'ready_avg')
+  double get readyAvg => throw _privateConstructorUsedError;
+
+  /// Drop or rework: average under this (3)
+  @JsonKey(name: 'drop_avg')
+  double get dropAvg => throw _privateConstructorUsedError;
+
+  /// Team is split: spread (population sd) at least this (1.2)
+  @JsonKey(name: 'split_sd')
+  double get splitSd => throw _privateConstructorUsedError;
+
+  /// ... and at least this many ratings (2)
+  @JsonKey(name: 'split_min_n')
+  int get splitMinN => throw _privateConstructorUsedError;
+
+  /// ratings a piece needs for Ready to run / Drop or rework: max(1, min(3, required people))
+  @JsonKey(name: 'min_ratings')
+  int get minRatings => throw _privateConstructorUsedError;
+
+  /// Serializes this RatingsThresholds to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RatingsThresholds
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RatingsThresholdsCopyWith<RatingsThresholds> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RatingsThresholdsCopyWith<$Res> {
+  factory $RatingsThresholdsCopyWith(
+    RatingsThresholds value,
+    $Res Function(RatingsThresholds) then,
+  ) = _$RatingsThresholdsCopyWithImpl<$Res, RatingsThresholds>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'ready_avg') double readyAvg,
+    @JsonKey(name: 'drop_avg') double dropAvg,
+    @JsonKey(name: 'split_sd') double splitSd,
+    @JsonKey(name: 'split_min_n') int splitMinN,
+    @JsonKey(name: 'min_ratings') int minRatings,
+  });
+}
+
+/// @nodoc
+class _$RatingsThresholdsCopyWithImpl<$Res, $Val extends RatingsThresholds>
+    implements $RatingsThresholdsCopyWith<$Res> {
+  _$RatingsThresholdsCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RatingsThresholds
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? readyAvg = null,
+    Object? dropAvg = null,
+    Object? splitSd = null,
+    Object? splitMinN = null,
+    Object? minRatings = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            readyAvg: null == readyAvg
+                ? _value.readyAvg
+                : readyAvg // ignore: cast_nullable_to_non_nullable
+                      as double,
+            dropAvg: null == dropAvg
+                ? _value.dropAvg
+                : dropAvg // ignore: cast_nullable_to_non_nullable
+                      as double,
+            splitSd: null == splitSd
+                ? _value.splitSd
+                : splitSd // ignore: cast_nullable_to_non_nullable
+                      as double,
+            splitMinN: null == splitMinN
+                ? _value.splitMinN
+                : splitMinN // ignore: cast_nullable_to_non_nullable
+                      as int,
+            minRatings: null == minRatings
+                ? _value.minRatings
+                : minRatings // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$RatingsThresholdsImplCopyWith<$Res>
+    implements $RatingsThresholdsCopyWith<$Res> {
+  factory _$$RatingsThresholdsImplCopyWith(
+    _$RatingsThresholdsImpl value,
+    $Res Function(_$RatingsThresholdsImpl) then,
+  ) = __$$RatingsThresholdsImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'ready_avg') double readyAvg,
+    @JsonKey(name: 'drop_avg') double dropAvg,
+    @JsonKey(name: 'split_sd') double splitSd,
+    @JsonKey(name: 'split_min_n') int splitMinN,
+    @JsonKey(name: 'min_ratings') int minRatings,
+  });
+}
+
+/// @nodoc
+class __$$RatingsThresholdsImplCopyWithImpl<$Res>
+    extends _$RatingsThresholdsCopyWithImpl<$Res, _$RatingsThresholdsImpl>
+    implements _$$RatingsThresholdsImplCopyWith<$Res> {
+  __$$RatingsThresholdsImplCopyWithImpl(
+    _$RatingsThresholdsImpl _value,
+    $Res Function(_$RatingsThresholdsImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RatingsThresholds
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? readyAvg = null,
+    Object? dropAvg = null,
+    Object? splitSd = null,
+    Object? splitMinN = null,
+    Object? minRatings = null,
+  }) {
+    return _then(
+      _$RatingsThresholdsImpl(
+        readyAvg: null == readyAvg
+            ? _value.readyAvg
+            : readyAvg // ignore: cast_nullable_to_non_nullable
+                  as double,
+        dropAvg: null == dropAvg
+            ? _value.dropAvg
+            : dropAvg // ignore: cast_nullable_to_non_nullable
+                  as double,
+        splitSd: null == splitSd
+            ? _value.splitSd
+            : splitSd // ignore: cast_nullable_to_non_nullable
+                  as double,
+        splitMinN: null == splitMinN
+            ? _value.splitMinN
+            : splitMinN // ignore: cast_nullable_to_non_nullable
+                  as int,
+        minRatings: null == minRatings
+            ? _value.minRatings
+            : minRatings // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _$RatingsThresholdsImpl implements _RatingsThresholds {
+  const _$RatingsThresholdsImpl({
+    @JsonKey(name: 'ready_avg') required this.readyAvg,
+    @JsonKey(name: 'drop_avg') required this.dropAvg,
+    @JsonKey(name: 'split_sd') required this.splitSd,
+    @JsonKey(name: 'split_min_n') required this.splitMinN,
+    @JsonKey(name: 'min_ratings') required this.minRatings,
+  });
+
+  factory _$RatingsThresholdsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RatingsThresholdsImplFromJson(json);
+
+  /// Ready to run: average at least this (4)
+  @override
+  @JsonKey(name: 'ready_avg')
+  final double readyAvg;
+
+  /// Drop or rework: average under this (3)
+  @override
+  @JsonKey(name: 'drop_avg')
+  final double dropAvg;
+
+  /// Team is split: spread (population sd) at least this (1.2)
+  @override
+  @JsonKey(name: 'split_sd')
+  final double splitSd;
+
+  /// ... and at least this many ratings (2)
+  @override
+  @JsonKey(name: 'split_min_n')
+  final int splitMinN;
+
+  /// ratings a piece needs for Ready to run / Drop or rework: max(1, min(3, required people))
+  @override
+  @JsonKey(name: 'min_ratings')
+  final int minRatings;
+
+  @override
+  String toString() {
+    return 'RatingsThresholds(readyAvg: $readyAvg, dropAvg: $dropAvg, splitSd: $splitSd, splitMinN: $splitMinN, minRatings: $minRatings)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RatingsThresholdsImpl &&
+            (identical(other.readyAvg, readyAvg) ||
+                other.readyAvg == readyAvg) &&
+            (identical(other.dropAvg, dropAvg) || other.dropAvg == dropAvg) &&
+            (identical(other.splitSd, splitSd) || other.splitSd == splitSd) &&
+            (identical(other.splitMinN, splitMinN) ||
+                other.splitMinN == splitMinN) &&
+            (identical(other.minRatings, minRatings) ||
+                other.minRatings == minRatings));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    readyAvg,
+    dropAvg,
+    splitSd,
+    splitMinN,
+    minRatings,
+  );
+
+  /// Create a copy of RatingsThresholds
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RatingsThresholdsImplCopyWith<_$RatingsThresholdsImpl> get copyWith =>
+      __$$RatingsThresholdsImplCopyWithImpl<_$RatingsThresholdsImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RatingsThresholdsImplToJson(this);
+  }
+}
+
+abstract class _RatingsThresholds implements RatingsThresholds {
+  const factory _RatingsThresholds({
+    @JsonKey(name: 'ready_avg') required final double readyAvg,
+    @JsonKey(name: 'drop_avg') required final double dropAvg,
+    @JsonKey(name: 'split_sd') required final double splitSd,
+    @JsonKey(name: 'split_min_n') required final int splitMinN,
+    @JsonKey(name: 'min_ratings') required final int minRatings,
+  }) = _$RatingsThresholdsImpl;
+
+  factory _RatingsThresholds.fromJson(Map<String, dynamic> json) =
+      _$RatingsThresholdsImpl.fromJson;
+
+  /// Ready to run: average at least this (4)
+  @override
+  @JsonKey(name: 'ready_avg')
+  double get readyAvg;
+
+  /// Drop or rework: average under this (3)
+  @override
+  @JsonKey(name: 'drop_avg')
+  double get dropAvg;
+
+  /// Team is split: spread (population sd) at least this (1.2)
+  @override
+  @JsonKey(name: 'split_sd')
+  double get splitSd;
+
+  /// ... and at least this many ratings (2)
+  @override
+  @JsonKey(name: 'split_min_n')
+  int get splitMinN;
+
+  /// ratings a piece needs for Ready to run / Drop or rework: max(1, min(3, required people))
+  @override
+  @JsonKey(name: 'min_ratings')
+  int get minRatings;
+
+  /// Create a copy of RatingsThresholds
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RatingsThresholdsImplCopyWith<_$RatingsThresholdsImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+RatingsCounts _$RatingsCountsFromJson(Map<String, dynamic> json) {
+  return _RatingsCounts.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RatingsCounts {
+  @JsonKey(name: 'ready_to_run')
+  int get readyToRun => throw _privateConstructorUsedError;
+  @JsonKey(name: 'team_split')
+  int get teamSplit => throw _privateConstructorUsedError;
+  @JsonKey(name: 'drop_or_rework')
+  int get dropOrRework => throw _privateConstructorUsedError;
+
+  /// Serializes this RatingsCounts to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RatingsCounts
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RatingsCountsCopyWith<RatingsCounts> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RatingsCountsCopyWith<$Res> {
+  factory $RatingsCountsCopyWith(
+    RatingsCounts value,
+    $Res Function(RatingsCounts) then,
+  ) = _$RatingsCountsCopyWithImpl<$Res, RatingsCounts>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'ready_to_run') int readyToRun,
+    @JsonKey(name: 'team_split') int teamSplit,
+    @JsonKey(name: 'drop_or_rework') int dropOrRework,
+  });
+}
+
+/// @nodoc
+class _$RatingsCountsCopyWithImpl<$Res, $Val extends RatingsCounts>
+    implements $RatingsCountsCopyWith<$Res> {
+  _$RatingsCountsCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RatingsCounts
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? readyToRun = null,
+    Object? teamSplit = null,
+    Object? dropOrRework = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            readyToRun: null == readyToRun
+                ? _value.readyToRun
+                : readyToRun // ignore: cast_nullable_to_non_nullable
+                      as int,
+            teamSplit: null == teamSplit
+                ? _value.teamSplit
+                : teamSplit // ignore: cast_nullable_to_non_nullable
+                      as int,
+            dropOrRework: null == dropOrRework
+                ? _value.dropOrRework
+                : dropOrRework // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$RatingsCountsImplCopyWith<$Res>
+    implements $RatingsCountsCopyWith<$Res> {
+  factory _$$RatingsCountsImplCopyWith(
+    _$RatingsCountsImpl value,
+    $Res Function(_$RatingsCountsImpl) then,
+  ) = __$$RatingsCountsImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'ready_to_run') int readyToRun,
+    @JsonKey(name: 'team_split') int teamSplit,
+    @JsonKey(name: 'drop_or_rework') int dropOrRework,
+  });
+}
+
+/// @nodoc
+class __$$RatingsCountsImplCopyWithImpl<$Res>
+    extends _$RatingsCountsCopyWithImpl<$Res, _$RatingsCountsImpl>
+    implements _$$RatingsCountsImplCopyWith<$Res> {
+  __$$RatingsCountsImplCopyWithImpl(
+    _$RatingsCountsImpl _value,
+    $Res Function(_$RatingsCountsImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RatingsCounts
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? readyToRun = null,
+    Object? teamSplit = null,
+    Object? dropOrRework = null,
+  }) {
+    return _then(
+      _$RatingsCountsImpl(
+        readyToRun: null == readyToRun
+            ? _value.readyToRun
+            : readyToRun // ignore: cast_nullable_to_non_nullable
+                  as int,
+        teamSplit: null == teamSplit
+            ? _value.teamSplit
+            : teamSplit // ignore: cast_nullable_to_non_nullable
+                  as int,
+        dropOrRework: null == dropOrRework
+            ? _value.dropOrRework
+            : dropOrRework // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _$RatingsCountsImpl implements _RatingsCounts {
+  const _$RatingsCountsImpl({
+    @JsonKey(name: 'ready_to_run') required this.readyToRun,
+    @JsonKey(name: 'team_split') required this.teamSplit,
+    @JsonKey(name: 'drop_or_rework') required this.dropOrRework,
+  });
+
+  factory _$RatingsCountsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RatingsCountsImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'ready_to_run')
+  final int readyToRun;
+  @override
+  @JsonKey(name: 'team_split')
+  final int teamSplit;
+  @override
+  @JsonKey(name: 'drop_or_rework')
+  final int dropOrRework;
+
+  @override
+  String toString() {
+    return 'RatingsCounts(readyToRun: $readyToRun, teamSplit: $teamSplit, dropOrRework: $dropOrRework)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RatingsCountsImpl &&
+            (identical(other.readyToRun, readyToRun) ||
+                other.readyToRun == readyToRun) &&
+            (identical(other.teamSplit, teamSplit) ||
+                other.teamSplit == teamSplit) &&
+            (identical(other.dropOrRework, dropOrRework) ||
+                other.dropOrRework == dropOrRework));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, readyToRun, teamSplit, dropOrRework);
+
+  /// Create a copy of RatingsCounts
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RatingsCountsImplCopyWith<_$RatingsCountsImpl> get copyWith =>
+      __$$RatingsCountsImplCopyWithImpl<_$RatingsCountsImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RatingsCountsImplToJson(this);
+  }
+}
+
+abstract class _RatingsCounts implements RatingsCounts {
+  const factory _RatingsCounts({
+    @JsonKey(name: 'ready_to_run') required final int readyToRun,
+    @JsonKey(name: 'team_split') required final int teamSplit,
+    @JsonKey(name: 'drop_or_rework') required final int dropOrRework,
+  }) = _$RatingsCountsImpl;
+
+  factory _RatingsCounts.fromJson(Map<String, dynamic> json) =
+      _$RatingsCountsImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'ready_to_run')
+  int get readyToRun;
+  @override
+  @JsonKey(name: 'team_split')
+  int get teamSplit;
+  @override
+  @JsonKey(name: 'drop_or_rework')
+  int get dropOrRework;
+
+  /// Create a copy of RatingsCounts
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RatingsCountsImplCopyWith<_$RatingsCountsImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+RatedPiece _$RatedPieceFromJson(Map<String, dynamic> json) {
+  return _RatedPiece.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RatedPiece {
+  PieceSummary get piece => throw _privateConstructorUsedError;
+
+  /// the current version the numbers are about
+  @JsonKey(name: 'version_id')
+  String get versionId => throw _privateConstructorUsedError;
+  int get n => throw _privateConstructorUsedError;
+  double get avg => throw _privateConstructorUsedError;
+  double get sd => throw _privateConstructorUsedError;
+
+  /// required raters who have not rated it
+  List<PersonRef> get waiting => throw _privateConstructorUsedError;
+
+  /// Serializes this RatedPiece to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RatedPiece
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RatedPieceCopyWith<RatedPiece> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RatedPieceCopyWith<$Res> {
+  factory $RatedPieceCopyWith(
+    RatedPiece value,
+    $Res Function(RatedPiece) then,
+  ) = _$RatedPieceCopyWithImpl<$Res, RatedPiece>;
+  @useResult
+  $Res call({
+    PieceSummary piece,
+    @JsonKey(name: 'version_id') String versionId,
+    int n,
+    double avg,
+    double sd,
+    List<PersonRef> waiting,
+  });
+
+  $PieceSummaryCopyWith<$Res> get piece;
+}
+
+/// @nodoc
+class _$RatedPieceCopyWithImpl<$Res, $Val extends RatedPiece>
+    implements $RatedPieceCopyWith<$Res> {
+  _$RatedPieceCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RatedPiece
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? piece = null,
+    Object? versionId = null,
+    Object? n = null,
+    Object? avg = null,
+    Object? sd = null,
+    Object? waiting = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            piece: null == piece
+                ? _value.piece
+                : piece // ignore: cast_nullable_to_non_nullable
+                      as PieceSummary,
+            versionId: null == versionId
+                ? _value.versionId
+                : versionId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            n: null == n
+                ? _value.n
+                : n // ignore: cast_nullable_to_non_nullable
+                      as int,
+            avg: null == avg
+                ? _value.avg
+                : avg // ignore: cast_nullable_to_non_nullable
+                      as double,
+            sd: null == sd
+                ? _value.sd
+                : sd // ignore: cast_nullable_to_non_nullable
+                      as double,
+            waiting: null == waiting
+                ? _value.waiting
+                : waiting // ignore: cast_nullable_to_non_nullable
+                      as List<PersonRef>,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of RatedPiece
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PieceSummaryCopyWith<$Res> get piece {
+    return $PieceSummaryCopyWith<$Res>(_value.piece, (value) {
+      return _then(_value.copyWith(piece: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$RatedPieceImplCopyWith<$Res>
+    implements $RatedPieceCopyWith<$Res> {
+  factory _$$RatedPieceImplCopyWith(
+    _$RatedPieceImpl value,
+    $Res Function(_$RatedPieceImpl) then,
+  ) = __$$RatedPieceImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    PieceSummary piece,
+    @JsonKey(name: 'version_id') String versionId,
+    int n,
+    double avg,
+    double sd,
+    List<PersonRef> waiting,
+  });
+
+  @override
+  $PieceSummaryCopyWith<$Res> get piece;
+}
+
+/// @nodoc
+class __$$RatedPieceImplCopyWithImpl<$Res>
+    extends _$RatedPieceCopyWithImpl<$Res, _$RatedPieceImpl>
+    implements _$$RatedPieceImplCopyWith<$Res> {
+  __$$RatedPieceImplCopyWithImpl(
+    _$RatedPieceImpl _value,
+    $Res Function(_$RatedPieceImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RatedPiece
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? piece = null,
+    Object? versionId = null,
+    Object? n = null,
+    Object? avg = null,
+    Object? sd = null,
+    Object? waiting = null,
+  }) {
+    return _then(
+      _$RatedPieceImpl(
+        piece: null == piece
+            ? _value.piece
+            : piece // ignore: cast_nullable_to_non_nullable
+                  as PieceSummary,
+        versionId: null == versionId
+            ? _value.versionId
+            : versionId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        n: null == n
+            ? _value.n
+            : n // ignore: cast_nullable_to_non_nullable
+                  as int,
+        avg: null == avg
+            ? _value.avg
+            : avg // ignore: cast_nullable_to_non_nullable
+                  as double,
+        sd: null == sd
+            ? _value.sd
+            : sd // ignore: cast_nullable_to_non_nullable
+                  as double,
+        waiting: null == waiting
+            ? _value._waiting
+            : waiting // ignore: cast_nullable_to_non_nullable
+                  as List<PersonRef>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _$RatedPieceImpl implements _RatedPiece {
+  const _$RatedPieceImpl({
+    required this.piece,
+    @JsonKey(name: 'version_id') required this.versionId,
+    required this.n,
+    required this.avg,
+    required this.sd,
+    required final List<PersonRef> waiting,
+  }) : _waiting = waiting;
+
+  factory _$RatedPieceImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RatedPieceImplFromJson(json);
+
+  @override
+  final PieceSummary piece;
+
+  /// the current version the numbers are about
+  @override
+  @JsonKey(name: 'version_id')
+  final String versionId;
+  @override
+  final int n;
+  @override
+  final double avg;
+  @override
+  final double sd;
+
+  /// required raters who have not rated it
+  final List<PersonRef> _waiting;
+
+  /// required raters who have not rated it
+  @override
+  List<PersonRef> get waiting {
+    if (_waiting is EqualUnmodifiableListView) return _waiting;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_waiting);
+  }
+
+  @override
+  String toString() {
+    return 'RatedPiece(piece: $piece, versionId: $versionId, n: $n, avg: $avg, sd: $sd, waiting: $waiting)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RatedPieceImpl &&
+            (identical(other.piece, piece) || other.piece == piece) &&
+            (identical(other.versionId, versionId) ||
+                other.versionId == versionId) &&
+            (identical(other.n, n) || other.n == n) &&
+            (identical(other.avg, avg) || other.avg == avg) &&
+            (identical(other.sd, sd) || other.sd == sd) &&
+            const DeepCollectionEquality().equals(other._waiting, _waiting));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    piece,
+    versionId,
+    n,
+    avg,
+    sd,
+    const DeepCollectionEquality().hash(_waiting),
+  );
+
+  /// Create a copy of RatedPiece
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RatedPieceImplCopyWith<_$RatedPieceImpl> get copyWith =>
+      __$$RatedPieceImplCopyWithImpl<_$RatedPieceImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RatedPieceImplToJson(this);
+  }
+}
+
+abstract class _RatedPiece implements RatedPiece {
+  const factory _RatedPiece({
+    required final PieceSummary piece,
+    @JsonKey(name: 'version_id') required final String versionId,
+    required final int n,
+    required final double avg,
+    required final double sd,
+    required final List<PersonRef> waiting,
+  }) = _$RatedPieceImpl;
+
+  factory _RatedPiece.fromJson(Map<String, dynamic> json) =
+      _$RatedPieceImpl.fromJson;
+
+  @override
+  PieceSummary get piece;
+
+  /// the current version the numbers are about
+  @override
+  @JsonKey(name: 'version_id')
+  String get versionId;
+  @override
+  int get n;
+  @override
+  double get avg;
+  @override
+  double get sd;
+
+  /// required raters who have not rated it
+  @override
+  List<PersonRef> get waiting;
+
+  /// Create a copy of RatedPiece
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RatedPieceImplCopyWith<_$RatedPieceImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+RaterProgress _$RaterProgressFromJson(Map<String, dynamic> json) {
+  return _RaterProgress.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RaterProgress {
+  PersonRef get person => throw _privateConstructorUsedError;
+
+  /// must_rate
+  @JsonKey(name: 'required')
+  bool get requiredValue => throw _privateConstructorUsedError;
+
+  /// open pieces this person has rated
+  int get rated => throw _privateConstructorUsedError;
+
+  /// open pieces still to rate
+  int get left => throw _privateConstructorUsedError;
+
+  /// open pieces
+  int get total => throw _privateConstructorUsedError;
+
+  /// Serializes this RaterProgress to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RaterProgress
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RaterProgressCopyWith<RaterProgress> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RaterProgressCopyWith<$Res> {
+  factory $RaterProgressCopyWith(
+    RaterProgress value,
+    $Res Function(RaterProgress) then,
+  ) = _$RaterProgressCopyWithImpl<$Res, RaterProgress>;
+  @useResult
+  $Res call({
+    PersonRef person,
+    @JsonKey(name: 'required') bool requiredValue,
+    int rated,
+    int left,
+    int total,
+  });
+
+  $PersonRefCopyWith<$Res> get person;
+}
+
+/// @nodoc
+class _$RaterProgressCopyWithImpl<$Res, $Val extends RaterProgress>
+    implements $RaterProgressCopyWith<$Res> {
+  _$RaterProgressCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RaterProgress
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? person = null,
+    Object? requiredValue = null,
+    Object? rated = null,
+    Object? left = null,
+    Object? total = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            person: null == person
+                ? _value.person
+                : person // ignore: cast_nullable_to_non_nullable
+                      as PersonRef,
+            requiredValue: null == requiredValue
+                ? _value.requiredValue
+                : requiredValue // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            rated: null == rated
+                ? _value.rated
+                : rated // ignore: cast_nullable_to_non_nullable
+                      as int,
+            left: null == left
+                ? _value.left
+                : left // ignore: cast_nullable_to_non_nullable
+                      as int,
+            total: null == total
+                ? _value.total
+                : total // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of RaterProgress
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PersonRefCopyWith<$Res> get person {
+    return $PersonRefCopyWith<$Res>(_value.person, (value) {
+      return _then(_value.copyWith(person: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$RaterProgressImplCopyWith<$Res>
+    implements $RaterProgressCopyWith<$Res> {
+  factory _$$RaterProgressImplCopyWith(
+    _$RaterProgressImpl value,
+    $Res Function(_$RaterProgressImpl) then,
+  ) = __$$RaterProgressImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    PersonRef person,
+    @JsonKey(name: 'required') bool requiredValue,
+    int rated,
+    int left,
+    int total,
+  });
+
+  @override
+  $PersonRefCopyWith<$Res> get person;
+}
+
+/// @nodoc
+class __$$RaterProgressImplCopyWithImpl<$Res>
+    extends _$RaterProgressCopyWithImpl<$Res, _$RaterProgressImpl>
+    implements _$$RaterProgressImplCopyWith<$Res> {
+  __$$RaterProgressImplCopyWithImpl(
+    _$RaterProgressImpl _value,
+    $Res Function(_$RaterProgressImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RaterProgress
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? person = null,
+    Object? requiredValue = null,
+    Object? rated = null,
+    Object? left = null,
+    Object? total = null,
+  }) {
+    return _then(
+      _$RaterProgressImpl(
+        person: null == person
+            ? _value.person
+            : person // ignore: cast_nullable_to_non_nullable
+                  as PersonRef,
+        requiredValue: null == requiredValue
+            ? _value.requiredValue
+            : requiredValue // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        rated: null == rated
+            ? _value.rated
+            : rated // ignore: cast_nullable_to_non_nullable
+                  as int,
+        left: null == left
+            ? _value.left
+            : left // ignore: cast_nullable_to_non_nullable
+                  as int,
+        total: null == total
+            ? _value.total
+            : total // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _$RaterProgressImpl implements _RaterProgress {
+  const _$RaterProgressImpl({
+    required this.person,
+    @JsonKey(name: 'required') required this.requiredValue,
+    required this.rated,
+    required this.left,
+    required this.total,
+  });
+
+  factory _$RaterProgressImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RaterProgressImplFromJson(json);
+
+  @override
+  final PersonRef person;
+
+  /// must_rate
+  @override
+  @JsonKey(name: 'required')
+  final bool requiredValue;
+
+  /// open pieces this person has rated
+  @override
+  final int rated;
+
+  /// open pieces still to rate
+  @override
+  final int left;
+
+  /// open pieces
+  @override
+  final int total;
+
+  @override
+  String toString() {
+    return 'RaterProgress(person: $person, requiredValue: $requiredValue, rated: $rated, left: $left, total: $total)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RaterProgressImpl &&
+            (identical(other.person, person) || other.person == person) &&
+            (identical(other.requiredValue, requiredValue) ||
+                other.requiredValue == requiredValue) &&
+            (identical(other.rated, rated) || other.rated == rated) &&
+            (identical(other.left, left) || other.left == left) &&
+            (identical(other.total, total) || other.total == total));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, person, requiredValue, rated, left, total);
+
+  /// Create a copy of RaterProgress
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RaterProgressImplCopyWith<_$RaterProgressImpl> get copyWith =>
+      __$$RaterProgressImplCopyWithImpl<_$RaterProgressImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RaterProgressImplToJson(this);
+  }
+}
+
+abstract class _RaterProgress implements RaterProgress {
+  const factory _RaterProgress({
+    required final PersonRef person,
+    @JsonKey(name: 'required') required final bool requiredValue,
+    required final int rated,
+    required final int left,
+    required final int total,
+  }) = _$RaterProgressImpl;
+
+  factory _RaterProgress.fromJson(Map<String, dynamic> json) =
+      _$RaterProgressImpl.fromJson;
+
+  @override
+  PersonRef get person;
+
+  /// must_rate
+  @override
+  @JsonKey(name: 'required')
+  bool get requiredValue;
+
+  /// open pieces this person has rated
+  @override
+  int get rated;
+
+  /// open pieces still to rate
+  @override
+  int get left;
+
+  /// open pieces
+  @override
+  int get total;
+
+  /// Create a copy of RaterProgress
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RaterProgressImplCopyWith<_$RaterProgressImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+RatingComment _$RatingCommentFromJson(Map<String, dynamic> json) {
+  return _RatingComment.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RatingComment {
+  PieceSummary get piece => throw _privateConstructorUsedError;
+  @JsonKey(name: 'version_id')
+  String get versionId => throw _privateConstructorUsedError;
+  PersonRef get person => throw _privateConstructorUsedError;
+  int get score => throw _privateConstructorUsedError;
+  String get comment => throw _privateConstructorUsedError;
+  String get at => throw _privateConstructorUsedError;
+
+  /// Serializes this RatingComment to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RatingComment
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RatingCommentCopyWith<RatingComment> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RatingCommentCopyWith<$Res> {
+  factory $RatingCommentCopyWith(
+    RatingComment value,
+    $Res Function(RatingComment) then,
+  ) = _$RatingCommentCopyWithImpl<$Res, RatingComment>;
+  @useResult
+  $Res call({
+    PieceSummary piece,
+    @JsonKey(name: 'version_id') String versionId,
+    PersonRef person,
+    int score,
+    String comment,
+    String at,
+  });
+
+  $PieceSummaryCopyWith<$Res> get piece;
+  $PersonRefCopyWith<$Res> get person;
+}
+
+/// @nodoc
+class _$RatingCommentCopyWithImpl<$Res, $Val extends RatingComment>
+    implements $RatingCommentCopyWith<$Res> {
+  _$RatingCommentCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RatingComment
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? piece = null,
+    Object? versionId = null,
+    Object? person = null,
+    Object? score = null,
+    Object? comment = null,
+    Object? at = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            piece: null == piece
+                ? _value.piece
+                : piece // ignore: cast_nullable_to_non_nullable
+                      as PieceSummary,
+            versionId: null == versionId
+                ? _value.versionId
+                : versionId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            person: null == person
+                ? _value.person
+                : person // ignore: cast_nullable_to_non_nullable
+                      as PersonRef,
+            score: null == score
+                ? _value.score
+                : score // ignore: cast_nullable_to_non_nullable
+                      as int,
+            comment: null == comment
+                ? _value.comment
+                : comment // ignore: cast_nullable_to_non_nullable
+                      as String,
+            at: null == at
+                ? _value.at
+                : at // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of RatingComment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PieceSummaryCopyWith<$Res> get piece {
+    return $PieceSummaryCopyWith<$Res>(_value.piece, (value) {
+      return _then(_value.copyWith(piece: value) as $Val);
+    });
+  }
+
+  /// Create a copy of RatingComment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PersonRefCopyWith<$Res> get person {
+    return $PersonRefCopyWith<$Res>(_value.person, (value) {
+      return _then(_value.copyWith(person: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$RatingCommentImplCopyWith<$Res>
+    implements $RatingCommentCopyWith<$Res> {
+  factory _$$RatingCommentImplCopyWith(
+    _$RatingCommentImpl value,
+    $Res Function(_$RatingCommentImpl) then,
+  ) = __$$RatingCommentImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    PieceSummary piece,
+    @JsonKey(name: 'version_id') String versionId,
+    PersonRef person,
+    int score,
+    String comment,
+    String at,
+  });
+
+  @override
+  $PieceSummaryCopyWith<$Res> get piece;
+  @override
+  $PersonRefCopyWith<$Res> get person;
+}
+
+/// @nodoc
+class __$$RatingCommentImplCopyWithImpl<$Res>
+    extends _$RatingCommentCopyWithImpl<$Res, _$RatingCommentImpl>
+    implements _$$RatingCommentImplCopyWith<$Res> {
+  __$$RatingCommentImplCopyWithImpl(
+    _$RatingCommentImpl _value,
+    $Res Function(_$RatingCommentImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RatingComment
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? piece = null,
+    Object? versionId = null,
+    Object? person = null,
+    Object? score = null,
+    Object? comment = null,
+    Object? at = null,
+  }) {
+    return _then(
+      _$RatingCommentImpl(
+        piece: null == piece
+            ? _value.piece
+            : piece // ignore: cast_nullable_to_non_nullable
+                  as PieceSummary,
+        versionId: null == versionId
+            ? _value.versionId
+            : versionId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        person: null == person
+            ? _value.person
+            : person // ignore: cast_nullable_to_non_nullable
+                  as PersonRef,
+        score: null == score
+            ? _value.score
+            : score // ignore: cast_nullable_to_non_nullable
+                  as int,
+        comment: null == comment
+            ? _value.comment
+            : comment // ignore: cast_nullable_to_non_nullable
+                  as String,
+        at: null == at
+            ? _value.at
+            : at // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _$RatingCommentImpl implements _RatingComment {
+  const _$RatingCommentImpl({
+    required this.piece,
+    @JsonKey(name: 'version_id') required this.versionId,
+    required this.person,
+    required this.score,
+    required this.comment,
+    required this.at,
+  });
+
+  factory _$RatingCommentImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RatingCommentImplFromJson(json);
+
+  @override
+  final PieceSummary piece;
+  @override
+  @JsonKey(name: 'version_id')
+  final String versionId;
+  @override
+  final PersonRef person;
+  @override
+  final int score;
+  @override
+  final String comment;
+  @override
+  final String at;
+
+  @override
+  String toString() {
+    return 'RatingComment(piece: $piece, versionId: $versionId, person: $person, score: $score, comment: $comment, at: $at)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RatingCommentImpl &&
+            (identical(other.piece, piece) || other.piece == piece) &&
+            (identical(other.versionId, versionId) ||
+                other.versionId == versionId) &&
+            (identical(other.person, person) || other.person == person) &&
+            (identical(other.score, score) || other.score == score) &&
+            (identical(other.comment, comment) || other.comment == comment) &&
+            (identical(other.at, at) || other.at == at));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, piece, versionId, person, score, comment, at);
+
+  /// Create a copy of RatingComment
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RatingCommentImplCopyWith<_$RatingCommentImpl> get copyWith =>
+      __$$RatingCommentImplCopyWithImpl<_$RatingCommentImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RatingCommentImplToJson(this);
+  }
+}
+
+abstract class _RatingComment implements RatingComment {
+  const factory _RatingComment({
+    required final PieceSummary piece,
+    @JsonKey(name: 'version_id') required final String versionId,
+    required final PersonRef person,
+    required final int score,
+    required final String comment,
+    required final String at,
+  }) = _$RatingCommentImpl;
+
+  factory _RatingComment.fromJson(Map<String, dynamic> json) =
+      _$RatingCommentImpl.fromJson;
+
+  @override
+  PieceSummary get piece;
+  @override
+  @JsonKey(name: 'version_id')
+  String get versionId;
+  @override
+  PersonRef get person;
+  @override
+  int get score;
+  @override
+  String get comment;
+  @override
+  String get at;
+
+  /// Create a copy of RatingComment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RatingCommentImplCopyWith<_$RatingCommentImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+RatingsRollup _$RatingsRollupFromJson(Map<String, dynamic> json) {
+  return _RatingsRollup.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RatingsRollup {
+  /// open pieces: current versions open to rate, piece past Script
+  @JsonKey(name: 'open_count')
+  int get openCount => throw _privateConstructorUsedError;
+
+  /// open pieces rated by every required person
+  @JsonKey(name: 'fully_rated')
+  int get fullyRated => throw _privateConstructorUsedError;
+  @JsonKey(name: 'required_count')
+  int get requiredCount => throw _privateConstructorUsedError;
+
+  /// every version rating, open or not
+  @JsonKey(name: 'ratings_count')
+  int get ratingsCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'comments_count')
+  int get commentsCount => throw _privateConstructorUsedError;
+  RatingsThresholds get thresholds => throw _privateConstructorUsedError;
+
+  /// the full size of the three lists (each list shows at most 25)
+  RatingsCounts get counts => throw _privateConstructorUsedError;
+  @JsonKey(name: 'ready_to_run')
+  List<RatedPiece> get readyToRun => throw _privateConstructorUsedError;
+  @JsonKey(name: 'team_split')
+  List<RatedPiece> get teamSplit => throw _privateConstructorUsedError;
+  @JsonKey(name: 'drop_or_rework')
+  List<RatedPiece> get dropOrRework => throw _privateConstructorUsedError;
+
+  /// required people first
+  List<RaterProgress> get progress => throw _privateConstructorUsedError;
+
+  /// newest first, at most 60
+  @JsonKey(name: 'latest_comments')
+  List<RatingComment> get latestComments => throw _privateConstructorUsedError;
+
+  /// Serializes this RatingsRollup to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RatingsRollup
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RatingsRollupCopyWith<RatingsRollup> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RatingsRollupCopyWith<$Res> {
+  factory $RatingsRollupCopyWith(
+    RatingsRollup value,
+    $Res Function(RatingsRollup) then,
+  ) = _$RatingsRollupCopyWithImpl<$Res, RatingsRollup>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'open_count') int openCount,
+    @JsonKey(name: 'fully_rated') int fullyRated,
+    @JsonKey(name: 'required_count') int requiredCount,
+    @JsonKey(name: 'ratings_count') int ratingsCount,
+    @JsonKey(name: 'comments_count') int commentsCount,
+    RatingsThresholds thresholds,
+    RatingsCounts counts,
+    @JsonKey(name: 'ready_to_run') List<RatedPiece> readyToRun,
+    @JsonKey(name: 'team_split') List<RatedPiece> teamSplit,
+    @JsonKey(name: 'drop_or_rework') List<RatedPiece> dropOrRework,
+    List<RaterProgress> progress,
+    @JsonKey(name: 'latest_comments') List<RatingComment> latestComments,
+  });
+
+  $RatingsThresholdsCopyWith<$Res> get thresholds;
+  $RatingsCountsCopyWith<$Res> get counts;
+}
+
+/// @nodoc
+class _$RatingsRollupCopyWithImpl<$Res, $Val extends RatingsRollup>
+    implements $RatingsRollupCopyWith<$Res> {
+  _$RatingsRollupCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RatingsRollup
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? openCount = null,
+    Object? fullyRated = null,
+    Object? requiredCount = null,
+    Object? ratingsCount = null,
+    Object? commentsCount = null,
+    Object? thresholds = null,
+    Object? counts = null,
+    Object? readyToRun = null,
+    Object? teamSplit = null,
+    Object? dropOrRework = null,
+    Object? progress = null,
+    Object? latestComments = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            openCount: null == openCount
+                ? _value.openCount
+                : openCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            fullyRated: null == fullyRated
+                ? _value.fullyRated
+                : fullyRated // ignore: cast_nullable_to_non_nullable
+                      as int,
+            requiredCount: null == requiredCount
+                ? _value.requiredCount
+                : requiredCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            ratingsCount: null == ratingsCount
+                ? _value.ratingsCount
+                : ratingsCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            commentsCount: null == commentsCount
+                ? _value.commentsCount
+                : commentsCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            thresholds: null == thresholds
+                ? _value.thresholds
+                : thresholds // ignore: cast_nullable_to_non_nullable
+                      as RatingsThresholds,
+            counts: null == counts
+                ? _value.counts
+                : counts // ignore: cast_nullable_to_non_nullable
+                      as RatingsCounts,
+            readyToRun: null == readyToRun
+                ? _value.readyToRun
+                : readyToRun // ignore: cast_nullable_to_non_nullable
+                      as List<RatedPiece>,
+            teamSplit: null == teamSplit
+                ? _value.teamSplit
+                : teamSplit // ignore: cast_nullable_to_non_nullable
+                      as List<RatedPiece>,
+            dropOrRework: null == dropOrRework
+                ? _value.dropOrRework
+                : dropOrRework // ignore: cast_nullable_to_non_nullable
+                      as List<RatedPiece>,
+            progress: null == progress
+                ? _value.progress
+                : progress // ignore: cast_nullable_to_non_nullable
+                      as List<RaterProgress>,
+            latestComments: null == latestComments
+                ? _value.latestComments
+                : latestComments // ignore: cast_nullable_to_non_nullable
+                      as List<RatingComment>,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of RatingsRollup
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $RatingsThresholdsCopyWith<$Res> get thresholds {
+    return $RatingsThresholdsCopyWith<$Res>(_value.thresholds, (value) {
+      return _then(_value.copyWith(thresholds: value) as $Val);
+    });
+  }
+
+  /// Create a copy of RatingsRollup
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $RatingsCountsCopyWith<$Res> get counts {
+    return $RatingsCountsCopyWith<$Res>(_value.counts, (value) {
+      return _then(_value.copyWith(counts: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$RatingsRollupImplCopyWith<$Res>
+    implements $RatingsRollupCopyWith<$Res> {
+  factory _$$RatingsRollupImplCopyWith(
+    _$RatingsRollupImpl value,
+    $Res Function(_$RatingsRollupImpl) then,
+  ) = __$$RatingsRollupImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'open_count') int openCount,
+    @JsonKey(name: 'fully_rated') int fullyRated,
+    @JsonKey(name: 'required_count') int requiredCount,
+    @JsonKey(name: 'ratings_count') int ratingsCount,
+    @JsonKey(name: 'comments_count') int commentsCount,
+    RatingsThresholds thresholds,
+    RatingsCounts counts,
+    @JsonKey(name: 'ready_to_run') List<RatedPiece> readyToRun,
+    @JsonKey(name: 'team_split') List<RatedPiece> teamSplit,
+    @JsonKey(name: 'drop_or_rework') List<RatedPiece> dropOrRework,
+    List<RaterProgress> progress,
+    @JsonKey(name: 'latest_comments') List<RatingComment> latestComments,
+  });
+
+  @override
+  $RatingsThresholdsCopyWith<$Res> get thresholds;
+  @override
+  $RatingsCountsCopyWith<$Res> get counts;
+}
+
+/// @nodoc
+class __$$RatingsRollupImplCopyWithImpl<$Res>
+    extends _$RatingsRollupCopyWithImpl<$Res, _$RatingsRollupImpl>
+    implements _$$RatingsRollupImplCopyWith<$Res> {
+  __$$RatingsRollupImplCopyWithImpl(
+    _$RatingsRollupImpl _value,
+    $Res Function(_$RatingsRollupImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RatingsRollup
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? openCount = null,
+    Object? fullyRated = null,
+    Object? requiredCount = null,
+    Object? ratingsCount = null,
+    Object? commentsCount = null,
+    Object? thresholds = null,
+    Object? counts = null,
+    Object? readyToRun = null,
+    Object? teamSplit = null,
+    Object? dropOrRework = null,
+    Object? progress = null,
+    Object? latestComments = null,
+  }) {
+    return _then(
+      _$RatingsRollupImpl(
+        openCount: null == openCount
+            ? _value.openCount
+            : openCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        fullyRated: null == fullyRated
+            ? _value.fullyRated
+            : fullyRated // ignore: cast_nullable_to_non_nullable
+                  as int,
+        requiredCount: null == requiredCount
+            ? _value.requiredCount
+            : requiredCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        ratingsCount: null == ratingsCount
+            ? _value.ratingsCount
+            : ratingsCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        commentsCount: null == commentsCount
+            ? _value.commentsCount
+            : commentsCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        thresholds: null == thresholds
+            ? _value.thresholds
+            : thresholds // ignore: cast_nullable_to_non_nullable
+                  as RatingsThresholds,
+        counts: null == counts
+            ? _value.counts
+            : counts // ignore: cast_nullable_to_non_nullable
+                  as RatingsCounts,
+        readyToRun: null == readyToRun
+            ? _value._readyToRun
+            : readyToRun // ignore: cast_nullable_to_non_nullable
+                  as List<RatedPiece>,
+        teamSplit: null == teamSplit
+            ? _value._teamSplit
+            : teamSplit // ignore: cast_nullable_to_non_nullable
+                  as List<RatedPiece>,
+        dropOrRework: null == dropOrRework
+            ? _value._dropOrRework
+            : dropOrRework // ignore: cast_nullable_to_non_nullable
+                  as List<RatedPiece>,
+        progress: null == progress
+            ? _value._progress
+            : progress // ignore: cast_nullable_to_non_nullable
+                  as List<RaterProgress>,
+        latestComments: null == latestComments
+            ? _value._latestComments
+            : latestComments // ignore: cast_nullable_to_non_nullable
+                  as List<RatingComment>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _$RatingsRollupImpl implements _RatingsRollup {
+  const _$RatingsRollupImpl({
+    @JsonKey(name: 'open_count') required this.openCount,
+    @JsonKey(name: 'fully_rated') required this.fullyRated,
+    @JsonKey(name: 'required_count') required this.requiredCount,
+    @JsonKey(name: 'ratings_count') required this.ratingsCount,
+    @JsonKey(name: 'comments_count') required this.commentsCount,
+    required this.thresholds,
+    required this.counts,
+    @JsonKey(name: 'ready_to_run') required final List<RatedPiece> readyToRun,
+    @JsonKey(name: 'team_split') required final List<RatedPiece> teamSplit,
+    @JsonKey(name: 'drop_or_rework')
+    required final List<RatedPiece> dropOrRework,
+    required final List<RaterProgress> progress,
+    @JsonKey(name: 'latest_comments')
+    required final List<RatingComment> latestComments,
+  }) : _readyToRun = readyToRun,
+       _teamSplit = teamSplit,
+       _dropOrRework = dropOrRework,
+       _progress = progress,
+       _latestComments = latestComments;
+
+  factory _$RatingsRollupImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RatingsRollupImplFromJson(json);
+
+  /// open pieces: current versions open to rate, piece past Script
+  @override
+  @JsonKey(name: 'open_count')
+  final int openCount;
+
+  /// open pieces rated by every required person
+  @override
+  @JsonKey(name: 'fully_rated')
+  final int fullyRated;
+  @override
+  @JsonKey(name: 'required_count')
+  final int requiredCount;
+
+  /// every version rating, open or not
+  @override
+  @JsonKey(name: 'ratings_count')
+  final int ratingsCount;
+  @override
+  @JsonKey(name: 'comments_count')
+  final int commentsCount;
+  @override
+  final RatingsThresholds thresholds;
+
+  /// the full size of the three lists (each list shows at most 25)
+  @override
+  final RatingsCounts counts;
+  final List<RatedPiece> _readyToRun;
+  @override
+  @JsonKey(name: 'ready_to_run')
+  List<RatedPiece> get readyToRun {
+    if (_readyToRun is EqualUnmodifiableListView) return _readyToRun;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_readyToRun);
+  }
+
+  final List<RatedPiece> _teamSplit;
+  @override
+  @JsonKey(name: 'team_split')
+  List<RatedPiece> get teamSplit {
+    if (_teamSplit is EqualUnmodifiableListView) return _teamSplit;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_teamSplit);
+  }
+
+  final List<RatedPiece> _dropOrRework;
+  @override
+  @JsonKey(name: 'drop_or_rework')
+  List<RatedPiece> get dropOrRework {
+    if (_dropOrRework is EqualUnmodifiableListView) return _dropOrRework;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_dropOrRework);
+  }
+
+  /// required people first
+  final List<RaterProgress> _progress;
+
+  /// required people first
+  @override
+  List<RaterProgress> get progress {
+    if (_progress is EqualUnmodifiableListView) return _progress;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_progress);
+  }
+
+  /// newest first, at most 60
+  final List<RatingComment> _latestComments;
+
+  /// newest first, at most 60
+  @override
+  @JsonKey(name: 'latest_comments')
+  List<RatingComment> get latestComments {
+    if (_latestComments is EqualUnmodifiableListView) return _latestComments;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_latestComments);
+  }
+
+  @override
+  String toString() {
+    return 'RatingsRollup(openCount: $openCount, fullyRated: $fullyRated, requiredCount: $requiredCount, ratingsCount: $ratingsCount, commentsCount: $commentsCount, thresholds: $thresholds, counts: $counts, readyToRun: $readyToRun, teamSplit: $teamSplit, dropOrRework: $dropOrRework, progress: $progress, latestComments: $latestComments)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RatingsRollupImpl &&
+            (identical(other.openCount, openCount) ||
+                other.openCount == openCount) &&
+            (identical(other.fullyRated, fullyRated) ||
+                other.fullyRated == fullyRated) &&
+            (identical(other.requiredCount, requiredCount) ||
+                other.requiredCount == requiredCount) &&
+            (identical(other.ratingsCount, ratingsCount) ||
+                other.ratingsCount == ratingsCount) &&
+            (identical(other.commentsCount, commentsCount) ||
+                other.commentsCount == commentsCount) &&
+            (identical(other.thresholds, thresholds) ||
+                other.thresholds == thresholds) &&
+            (identical(other.counts, counts) || other.counts == counts) &&
+            const DeepCollectionEquality().equals(
+              other._readyToRun,
+              _readyToRun,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._teamSplit,
+              _teamSplit,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._dropOrRework,
+              _dropOrRework,
+            ) &&
+            const DeepCollectionEquality().equals(other._progress, _progress) &&
+            const DeepCollectionEquality().equals(
+              other._latestComments,
+              _latestComments,
+            ));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    openCount,
+    fullyRated,
+    requiredCount,
+    ratingsCount,
+    commentsCount,
+    thresholds,
+    counts,
+    const DeepCollectionEquality().hash(_readyToRun),
+    const DeepCollectionEquality().hash(_teamSplit),
+    const DeepCollectionEquality().hash(_dropOrRework),
+    const DeepCollectionEquality().hash(_progress),
+    const DeepCollectionEquality().hash(_latestComments),
+  );
+
+  /// Create a copy of RatingsRollup
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RatingsRollupImplCopyWith<_$RatingsRollupImpl> get copyWith =>
+      __$$RatingsRollupImplCopyWithImpl<_$RatingsRollupImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RatingsRollupImplToJson(this);
+  }
+}
+
+abstract class _RatingsRollup implements RatingsRollup {
+  const factory _RatingsRollup({
+    @JsonKey(name: 'open_count') required final int openCount,
+    @JsonKey(name: 'fully_rated') required final int fullyRated,
+    @JsonKey(name: 'required_count') required final int requiredCount,
+    @JsonKey(name: 'ratings_count') required final int ratingsCount,
+    @JsonKey(name: 'comments_count') required final int commentsCount,
+    required final RatingsThresholds thresholds,
+    required final RatingsCounts counts,
+    @JsonKey(name: 'ready_to_run') required final List<RatedPiece> readyToRun,
+    @JsonKey(name: 'team_split') required final List<RatedPiece> teamSplit,
+    @JsonKey(name: 'drop_or_rework')
+    required final List<RatedPiece> dropOrRework,
+    required final List<RaterProgress> progress,
+    @JsonKey(name: 'latest_comments')
+    required final List<RatingComment> latestComments,
+  }) = _$RatingsRollupImpl;
+
+  factory _RatingsRollup.fromJson(Map<String, dynamic> json) =
+      _$RatingsRollupImpl.fromJson;
+
+  /// open pieces: current versions open to rate, piece past Script
+  @override
+  @JsonKey(name: 'open_count')
+  int get openCount;
+
+  /// open pieces rated by every required person
+  @override
+  @JsonKey(name: 'fully_rated')
+  int get fullyRated;
+  @override
+  @JsonKey(name: 'required_count')
+  int get requiredCount;
+
+  /// every version rating, open or not
+  @override
+  @JsonKey(name: 'ratings_count')
+  int get ratingsCount;
+  @override
+  @JsonKey(name: 'comments_count')
+  int get commentsCount;
+  @override
+  RatingsThresholds get thresholds;
+
+  /// the full size of the three lists (each list shows at most 25)
+  @override
+  RatingsCounts get counts;
+  @override
+  @JsonKey(name: 'ready_to_run')
+  List<RatedPiece> get readyToRun;
+  @override
+  @JsonKey(name: 'team_split')
+  List<RatedPiece> get teamSplit;
+  @override
+  @JsonKey(name: 'drop_or_rework')
+  List<RatedPiece> get dropOrRework;
+
+  /// required people first
+  @override
+  List<RaterProgress> get progress;
+
+  /// newest first, at most 60
+  @override
+  @JsonKey(name: 'latest_comments')
+  List<RatingComment> get latestComments;
+
+  /// Create a copy of RatingsRollup
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RatingsRollupImplCopyWith<_$RatingsRollupImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -39988,6 +42642,10 @@ mixin _$TodayView {
   /// already in this role's order; empty blocks omitted
   List<TodayBlock> get blocks => throw _privateConstructorUsedError;
 
+  /// set when a Founder or Lead asked for another person's Today (as); every line then has no actions
+  @JsonKey(name: 'viewing_as')
+  PersonRef? get viewingAs => throw _privateConstructorUsedError;
+
   /// Serializes this TodayView to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -40009,9 +42667,11 @@ abstract class $TodayViewCopyWith<$Res> {
     @JsonKey(name: 'generated_at') String generatedAt,
     InboxCounts counts,
     List<TodayBlock> blocks,
+    @JsonKey(name: 'viewing_as') PersonRef? viewingAs,
   });
 
   $InboxCountsCopyWith<$Res> get counts;
+  $PersonRefCopyWith<$Res>? get viewingAs;
 }
 
 /// @nodoc
@@ -40034,6 +42694,7 @@ class _$TodayViewCopyWithImpl<$Res, $Val extends TodayView>
     Object? generatedAt = null,
     Object? counts = null,
     Object? blocks = null,
+    Object? viewingAs = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -40057,6 +42718,10 @@ class _$TodayViewCopyWithImpl<$Res, $Val extends TodayView>
                 ? _value.blocks
                 : blocks // ignore: cast_nullable_to_non_nullable
                       as List<TodayBlock>,
+            viewingAs: freezed == viewingAs
+                ? _value.viewingAs
+                : viewingAs // ignore: cast_nullable_to_non_nullable
+                      as PersonRef?,
           )
           as $Val,
     );
@@ -40069,6 +42734,20 @@ class _$TodayViewCopyWithImpl<$Res, $Val extends TodayView>
   $InboxCountsCopyWith<$Res> get counts {
     return $InboxCountsCopyWith<$Res>(_value.counts, (value) {
       return _then(_value.copyWith(counts: value) as $Val);
+    });
+  }
+
+  /// Create a copy of TodayView
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PersonRefCopyWith<$Res>? get viewingAs {
+    if (_value.viewingAs == null) {
+      return null;
+    }
+
+    return $PersonRefCopyWith<$Res>(_value.viewingAs!, (value) {
+      return _then(_value.copyWith(viewingAs: value) as $Val);
     });
   }
 }
@@ -40088,10 +42767,13 @@ abstract class _$$TodayViewImplCopyWith<$Res>
     @JsonKey(name: 'generated_at') String generatedAt,
     InboxCounts counts,
     List<TodayBlock> blocks,
+    @JsonKey(name: 'viewing_as') PersonRef? viewingAs,
   });
 
   @override
   $InboxCountsCopyWith<$Res> get counts;
+  @override
+  $PersonRefCopyWith<$Res>? get viewingAs;
 }
 
 /// @nodoc
@@ -40113,6 +42795,7 @@ class __$$TodayViewImplCopyWithImpl<$Res>
     Object? generatedAt = null,
     Object? counts = null,
     Object? blocks = null,
+    Object? viewingAs = freezed,
   }) {
     return _then(
       _$TodayViewImpl(
@@ -40136,6 +42819,10 @@ class __$$TodayViewImplCopyWithImpl<$Res>
             ? _value._blocks
             : blocks // ignore: cast_nullable_to_non_nullable
                   as List<TodayBlock>,
+        viewingAs: freezed == viewingAs
+            ? _value.viewingAs
+            : viewingAs // ignore: cast_nullable_to_non_nullable
+                  as PersonRef?,
       ),
     );
   }
@@ -40151,6 +42838,7 @@ class _$TodayViewImpl implements _TodayView {
     @JsonKey(name: 'generated_at') required this.generatedAt,
     required this.counts,
     required final List<TodayBlock> blocks,
+    @JsonKey(name: 'viewing_as') this.viewingAs,
   }) : _blocks = blocks;
 
   factory _$TodayViewImpl.fromJson(Map<String, dynamic> json) =>
@@ -40178,9 +42866,14 @@ class _$TodayViewImpl implements _TodayView {
     return EqualUnmodifiableListView(_blocks);
   }
 
+  /// set when a Founder or Lead asked for another person's Today (as); every line then has no actions
+  @override
+  @JsonKey(name: 'viewing_as')
+  final PersonRef? viewingAs;
+
   @override
   String toString() {
-    return 'TodayView(date: $date, role: $role, generatedAt: $generatedAt, counts: $counts, blocks: $blocks)';
+    return 'TodayView(date: $date, role: $role, generatedAt: $generatedAt, counts: $counts, blocks: $blocks, viewingAs: $viewingAs)';
   }
 
   @override
@@ -40193,7 +42886,9 @@ class _$TodayViewImpl implements _TodayView {
             (identical(other.generatedAt, generatedAt) ||
                 other.generatedAt == generatedAt) &&
             (identical(other.counts, counts) || other.counts == counts) &&
-            const DeepCollectionEquality().equals(other._blocks, _blocks));
+            const DeepCollectionEquality().equals(other._blocks, _blocks) &&
+            (identical(other.viewingAs, viewingAs) ||
+                other.viewingAs == viewingAs));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -40205,6 +42900,7 @@ class _$TodayViewImpl implements _TodayView {
     generatedAt,
     counts,
     const DeepCollectionEquality().hash(_blocks),
+    viewingAs,
   );
 
   /// Create a copy of TodayView
@@ -40229,6 +42925,7 @@ abstract class _TodayView implements TodayView {
     @JsonKey(name: 'generated_at') required final String generatedAt,
     required final InboxCounts counts,
     required final List<TodayBlock> blocks,
+    @JsonKey(name: 'viewing_as') final PersonRef? viewingAs,
   }) = _$TodayViewImpl;
 
   factory _TodayView.fromJson(Map<String, dynamic> json) =
@@ -40248,6 +42945,11 @@ abstract class _TodayView implements TodayView {
   /// already in this role's order; empty blocks omitted
   @override
   List<TodayBlock> get blocks;
+
+  /// set when a Founder or Lead asked for another person's Today (as); every line then has no actions
+  @override
+  @JsonKey(name: 'viewing_as')
+  PersonRef? get viewingAs;
 
   /// Create a copy of TodayView
   /// with the given fields replaced by the non-null parameter values.

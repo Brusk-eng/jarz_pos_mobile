@@ -55,13 +55,22 @@ Future<String?> showDropReasonDialog(BuildContext context) {
 }
 
 /// The short "bring an idea" form. Returns true when the idea was sent.
-Future<bool> showProposeSheet(BuildContext context, WidgetRef ref) async {
+Future<bool> showProposeSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  String? sourceReferenceId,
+  String? initialTitle,
+}) async {
   final done = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
     backgroundColor: Colors.white,
-    builder: (_) => const _IdeaFormSheet(idea: null),
+    builder: (_) => _IdeaFormSheet(
+      idea: null,
+      sourceReferenceId: sourceReferenceId,
+      initialTitle: initialTitle,
+    ),
   );
   return done ?? false;
 }
@@ -83,15 +92,25 @@ Future<bool> showEditIdeaSheet(
 }
 
 class _IdeaFormSheet extends ConsumerStatefulWidget {
-  const _IdeaFormSheet({required this.idea});
+  const _IdeaFormSheet({
+    required this.idea,
+    this.sourceReferenceId,
+    this.initialTitle,
+  });
   final StudioIdea? idea;
+
+  /// Set when the idea is made from a reference (`source_reference_id`).
+  final String? sourceReferenceId;
+  final String? initialTitle;
 
   @override
   ConsumerState<_IdeaFormSheet> createState() => _IdeaFormSheetState();
 }
 
 class _IdeaFormSheetState extends ConsumerState<_IdeaFormSheet> {
-  late final _title = TextEditingController(text: widget.idea?.title ?? '');
+  late final _title = TextEditingController(
+    text: widget.idea?.title ?? widget.initialTitle ?? '',
+  );
   late final _titleAr = TextEditingController(text: widget.idea?.titleAr ?? '');
   late final _hook = TextEditingController(text: widget.idea?.hook ?? '');
   late String? _format = widget.idea?.format == null
@@ -131,6 +150,7 @@ class _IdeaFormSheetState extends ConsumerState<_IdeaFormSheet> {
           titleAr: text(_titleAr.text),
           hook: text(_hook.text),
           format: _format,
+          sourceReferenceId: widget.sourceReferenceId,
           requestId: _requestId,
         );
       } else {

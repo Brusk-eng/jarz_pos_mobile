@@ -103,6 +103,51 @@ class ReferencesRepository {
 
   Future<StudioCompetitor> competitor(String key) =>
       _api.referencesCompetitorGet(key: key);
+
+  Future<StudioCompetitor> competitorAdd({
+    required String name,
+    String? igHandle,
+    String? adlibUrl,
+    String? market,
+    String? note,
+    String? requestId,
+  }) => _api.referencesCompetitorAdd(
+    name: name,
+    igHandle: igHandle,
+    adlibUrl: adlibUrl,
+    market: market,
+    note: note,
+    requestId: requestId,
+  );
+
+  Future<StudioCompetitor> competitorRemove(
+    String key,
+    String reason, {
+    String? requestId,
+  }) => _api.referencesCompetitorRemove(
+    key: key,
+    reason: reason,
+    requestId: requestId,
+  );
+
+  Future<StudioCompetitor> competitorRestore(String key, {String? requestId}) =>
+      _api.referencesCompetitorRestore(key: key, requestId: requestId);
+
+  Future<StudioReference> setFeasibility(
+    String id,
+    String feasibility, {
+    String? make,
+    String? block,
+    String? baseModified,
+    String? requestId,
+  }) => _api.referencesSetFeasibility(
+    referenceId: id,
+    feasibility: feasibility,
+    make: make,
+    block: block,
+    baseModified: baseModified,
+    requestId: requestId,
+  );
 }
 
 final referencesRepositoryProvider = Provider<ReferencesRepository>(
@@ -152,6 +197,22 @@ class ReferenceNotifier extends EntityNotifier<StudioReference> {
           requestId: requestId,
         ),
       );
+
+  Future<void> setFeasibility(
+    String feasibility, {
+    String? make,
+    String? block,
+    String? requestId,
+  }) => mutate(
+    call: () => _repo.setFeasibility(
+      arg,
+      feasibility,
+      make: make,
+      block: block,
+      baseModified: baseModified,
+      requestId: requestId,
+    ),
+  );
 
   Future<void> addNote(String text, {String? requestId}) =>
       mutate(call: () => _repo.note(arg, text, requestId: requestId));

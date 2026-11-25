@@ -267,6 +267,14 @@ enum BlockKey {
   advice,
   @JsonValue('warnings')
   warnings,
+  @JsonValue('rules_changed')
+  rulesChanged,
+  @JsonValue('day_posts')
+  dayPosts,
+  @JsonValue('day_tasks')
+  dayTasks,
+  @JsonValue('day_shoots')
+  dayShoots,
   @JsonValue('__unknown__')
   unknown;
 
@@ -288,6 +296,10 @@ enum BlockKey {
     BlockKey.shootTomorrow => 'shoot_tomorrow',
     BlockKey.advice => 'advice',
     BlockKey.warnings => 'warnings',
+    BlockKey.rulesChanged => 'rules_changed',
+    BlockKey.dayPosts => 'day_posts',
+    BlockKey.dayTasks => 'day_tasks',
+    BlockKey.dayShoots => 'day_shoots',
     BlockKey.unknown => '__unknown__',
   };
 
@@ -295,6 +307,35 @@ enum BlockKey {
   static BlockKey parse(String? value) => BlockKey.values.firstWhere(
     (e) => e.wire == value,
     orElse: () => BlockKey.unknown,
+  );
+}
+
+/// Contract enum `ChangeKind`. `unknown` stands in for a value this app does not know yet.
+enum ChangeKind {
+  @JsonValue('moved')
+  moved,
+  @JsonValue('wont_post')
+  wontPost,
+  @JsonValue('put_back')
+  putBack,
+  @JsonValue('added')
+  added,
+  @JsonValue('__unknown__')
+  unknown;
+
+  /// The exact string on the wire.
+  String get wire => switch (this) {
+    ChangeKind.moved => 'moved',
+    ChangeKind.wontPost => 'wont_post',
+    ChangeKind.putBack => 'put_back',
+    ChangeKind.added => 'added',
+    ChangeKind.unknown => '__unknown__',
+  };
+
+  /// Parses a wire string; anything not listed becomes `unknown`.
+  static ChangeKind parse(String? value) => ChangeKind.values.firstWhere(
+    (e) => e.wire == value,
+    orElse: () => ChangeKind.unknown,
   );
 }
 

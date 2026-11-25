@@ -117,9 +117,9 @@ void main() {
       expect(find.text('Library'), findsOneWidget);
     });
 
-    testWidgets('sign out shows only outside the fake build', (tester) async {
+    testWidgets('sign out shows in the fake build too', (tester) async {
       await pumpMoreRouter(tester);
-      expect(find.byKey(const ValueKey('more-sign-out')), findsNothing);
+      expect(find.byKey(const ValueKey('more-sign-out')), findsOneWidget);
     });
 
     testWidgets('sign out shows in a real build', (tester) async {

@@ -238,6 +238,10 @@ final _shown = <String, ({List<Enum> values, _Label label})>{
     values: ReadWindow.values,
     label: (c, e) => StudioLabels.of(c).readWindow(e as ReadWindow),
   ),
+  'ChangeKind': (
+    values: ChangeKind.values,
+    label: (c, e) => StudioLabels.of(c).changeKind(e as ChangeKind),
+  ),
 };
 
 /// Enums no person reads as a word: wire values for the API, the upload

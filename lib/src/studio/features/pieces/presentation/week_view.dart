@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_tokens.dart';
@@ -112,7 +113,7 @@ class _WeekGroupBlock extends StatelessWidget {
               task.done ? Icons.check_circle_outline : Icons.task_alt_outlined,
               size: 20,
             ),
-            title: Text(task.text),
+            title: PersonText(task.text),
             subtitle: task.due == null
                 ? null
                 : Text(s.dueOn(CairoFormat.stamp(task.due, ar))),

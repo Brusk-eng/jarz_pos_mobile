@@ -1,5 +1,6 @@
 import '../../../shared/person_name.dart';
 import 'package:flutter/material.dart';
+import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_status_colors.dart' as theme;
@@ -111,7 +112,7 @@ class PostTile extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: StudioSpacing.xxs),
-                    Text(
+                    PersonText(
                       post.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

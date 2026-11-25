@@ -2052,6 +2052,65 @@ Map<String, dynamic> _$$RoundBriefImplToJson(_$RoundBriefImpl instance) =>
       'n_ads': instance.nAds,
     };
 
+_$CalendarChangeImpl _$$CalendarChangeImplFromJson(Map<String, dynamic> json) =>
+    _$CalendarChangeImpl(
+      id: json['id'] as String,
+      kind: $enumDecode(
+        _$ChangeKindEnumMap,
+        json['kind'],
+        unknownValue: ChangeKind.unknown,
+      ),
+      post: PostSummary.fromJson(json['post'] as Map<String, dynamic>),
+      oldSlot: json['old_slot'] as String?,
+      newSlot: json['new_slot'] as String?,
+      reason: json['reason'] as String?,
+      by: json['by'] == null
+          ? null
+          : PersonRef.fromJson(json['by'] as Map<String, dynamic>),
+      at: json['at'] as String,
+      text: json['text'] as String,
+    );
+
+Map<String, dynamic> _$$CalendarChangeImplToJson(
+  _$CalendarChangeImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'kind': _$ChangeKindEnumMap[instance.kind]!,
+  'post': instance.post.toJson(),
+  'old_slot': instance.oldSlot,
+  'new_slot': instance.newSlot,
+  'reason': instance.reason,
+  'by': instance.by?.toJson(),
+  'at': instance.at,
+  'text': instance.text,
+};
+
+const _$ChangeKindEnumMap = {
+  ChangeKind.moved: 'moved',
+  ChangeKind.wontPost: 'wont_post',
+  ChangeKind.putBack: 'put_back',
+  ChangeKind.added: 'added',
+  ChangeKind.unknown: '__unknown__',
+};
+
+_$CalendarChangesImpl _$$CalendarChangesImplFromJson(
+  Map<String, dynamic> json,
+) => _$CalendarChangesImpl(
+  since: json['since'] as String,
+  items: (json['items'] as List<dynamic>)
+      .map((e) => CalendarChange.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  serverTime: json['server_time'] as String,
+);
+
+Map<String, dynamic> _$$CalendarChangesImplToJson(
+  _$CalendarChangesImpl instance,
+) => <String, dynamic>{
+  'since': instance.since,
+  'items': instance.items.map((e) => e.toJson()).toList(),
+  'server_time': instance.serverTime,
+};
+
 _$CalendarRangeImpl _$$CalendarRangeImplFromJson(Map<String, dynamic> json) =>
     _$CalendarRangeImpl(
       from: json['from'] as String,
@@ -3076,6 +3135,7 @@ _$StudioCompetitorImpl _$$StudioCompetitorImplFromJson(
       .toList(),
   referencesCount: (json['references_count'] as num).toInt(),
   modified: json['modified'] as String,
+  actions: (json['actions'] as List<dynamic>).map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$$StudioCompetitorImplToJson(
@@ -3101,6 +3161,7 @@ Map<String, dynamic> _$$StudioCompetitorImplToJson(
   'notes': instance.notes.map((e) => e.toJson()).toList(),
   'references_count': instance.referencesCount,
   'modified': instance.modified,
+  'actions': instance.actions,
 };
 
 const _$CompGroupEnumMap = {
@@ -3120,6 +3181,145 @@ const _$CompStatusEnumMap = {
   CompStatus.active: 'Active',
   CompStatus.removed: 'Removed',
   CompStatus.unknown: '__unknown__',
+};
+
+_$RatingsThresholdsImpl _$$RatingsThresholdsImplFromJson(
+  Map<String, dynamic> json,
+) => _$RatingsThresholdsImpl(
+  readyAvg: (json['ready_avg'] as num).toDouble(),
+  dropAvg: (json['drop_avg'] as num).toDouble(),
+  splitSd: (json['split_sd'] as num).toDouble(),
+  splitMinN: (json['split_min_n'] as num).toInt(),
+  minRatings: (json['min_ratings'] as num).toInt(),
+);
+
+Map<String, dynamic> _$$RatingsThresholdsImplToJson(
+  _$RatingsThresholdsImpl instance,
+) => <String, dynamic>{
+  'ready_avg': instance.readyAvg,
+  'drop_avg': instance.dropAvg,
+  'split_sd': instance.splitSd,
+  'split_min_n': instance.splitMinN,
+  'min_ratings': instance.minRatings,
+};
+
+_$RatingsCountsImpl _$$RatingsCountsImplFromJson(Map<String, dynamic> json) =>
+    _$RatingsCountsImpl(
+      readyToRun: (json['ready_to_run'] as num).toInt(),
+      teamSplit: (json['team_split'] as num).toInt(),
+      dropOrRework: (json['drop_or_rework'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$$RatingsCountsImplToJson(_$RatingsCountsImpl instance) =>
+    <String, dynamic>{
+      'ready_to_run': instance.readyToRun,
+      'team_split': instance.teamSplit,
+      'drop_or_rework': instance.dropOrRework,
+    };
+
+_$RatedPieceImpl _$$RatedPieceImplFromJson(Map<String, dynamic> json) =>
+    _$RatedPieceImpl(
+      piece: PieceSummary.fromJson(json['piece'] as Map<String, dynamic>),
+      versionId: json['version_id'] as String,
+      n: (json['n'] as num).toInt(),
+      avg: (json['avg'] as num).toDouble(),
+      sd: (json['sd'] as num).toDouble(),
+      waiting: (json['waiting'] as List<dynamic>)
+          .map((e) => PersonRef.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$$RatedPieceImplToJson(_$RatedPieceImpl instance) =>
+    <String, dynamic>{
+      'piece': instance.piece.toJson(),
+      'version_id': instance.versionId,
+      'n': instance.n,
+      'avg': instance.avg,
+      'sd': instance.sd,
+      'waiting': instance.waiting.map((e) => e.toJson()).toList(),
+    };
+
+_$RaterProgressImpl _$$RaterProgressImplFromJson(Map<String, dynamic> json) =>
+    _$RaterProgressImpl(
+      person: PersonRef.fromJson(json['person'] as Map<String, dynamic>),
+      requiredValue: json['required'] as bool,
+      rated: (json['rated'] as num).toInt(),
+      left: (json['left'] as num).toInt(),
+      total: (json['total'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$$RaterProgressImplToJson(_$RaterProgressImpl instance) =>
+    <String, dynamic>{
+      'person': instance.person.toJson(),
+      'required': instance.requiredValue,
+      'rated': instance.rated,
+      'left': instance.left,
+      'total': instance.total,
+    };
+
+_$RatingCommentImpl _$$RatingCommentImplFromJson(Map<String, dynamic> json) =>
+    _$RatingCommentImpl(
+      piece: PieceSummary.fromJson(json['piece'] as Map<String, dynamic>),
+      versionId: json['version_id'] as String,
+      person: PersonRef.fromJson(json['person'] as Map<String, dynamic>),
+      score: (json['score'] as num).toInt(),
+      comment: json['comment'] as String,
+      at: json['at'] as String,
+    );
+
+Map<String, dynamic> _$$RatingCommentImplToJson(_$RatingCommentImpl instance) =>
+    <String, dynamic>{
+      'piece': instance.piece.toJson(),
+      'version_id': instance.versionId,
+      'person': instance.person.toJson(),
+      'score': instance.score,
+      'comment': instance.comment,
+      'at': instance.at,
+    };
+
+_$RatingsRollupImpl _$$RatingsRollupImplFromJson(Map<String, dynamic> json) =>
+    _$RatingsRollupImpl(
+      openCount: (json['open_count'] as num).toInt(),
+      fullyRated: (json['fully_rated'] as num).toInt(),
+      requiredCount: (json['required_count'] as num).toInt(),
+      ratingsCount: (json['ratings_count'] as num).toInt(),
+      commentsCount: (json['comments_count'] as num).toInt(),
+      thresholds: RatingsThresholds.fromJson(
+        json['thresholds'] as Map<String, dynamic>,
+      ),
+      counts: RatingsCounts.fromJson(json['counts'] as Map<String, dynamic>),
+      readyToRun: (json['ready_to_run'] as List<dynamic>)
+          .map((e) => RatedPiece.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      teamSplit: (json['team_split'] as List<dynamic>)
+          .map((e) => RatedPiece.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      dropOrRework: (json['drop_or_rework'] as List<dynamic>)
+          .map((e) => RatedPiece.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      progress: (json['progress'] as List<dynamic>)
+          .map((e) => RaterProgress.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      latestComments: (json['latest_comments'] as List<dynamic>)
+          .map((e) => RatingComment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$$RatingsRollupImplToJson(
+  _$RatingsRollupImpl instance,
+) => <String, dynamic>{
+  'open_count': instance.openCount,
+  'fully_rated': instance.fullyRated,
+  'required_count': instance.requiredCount,
+  'ratings_count': instance.ratingsCount,
+  'comments_count': instance.commentsCount,
+  'thresholds': instance.thresholds.toJson(),
+  'counts': instance.counts.toJson(),
+  'ready_to_run': instance.readyToRun.map((e) => e.toJson()).toList(),
+  'team_split': instance.teamSplit.map((e) => e.toJson()).toList(),
+  'drop_or_rework': instance.dropOrRework.map((e) => e.toJson()).toList(),
+  'progress': instance.progress.map((e) => e.toJson()).toList(),
+  'latest_comments': instance.latestComments.map((e) => e.toJson()).toList(),
 };
 
 _$AdNumbersImpl _$$AdNumbersImplFromJson(Map<String, dynamic> json) =>
@@ -4135,6 +4335,10 @@ const _$BlockKeyEnumMap = {
   BlockKey.shootTomorrow: 'shoot_tomorrow',
   BlockKey.advice: 'advice',
   BlockKey.warnings: 'warnings',
+  BlockKey.rulesChanged: 'rules_changed',
+  BlockKey.dayPosts: 'day_posts',
+  BlockKey.dayTasks: 'day_tasks',
+  BlockKey.dayShoots: 'day_shoots',
   BlockKey.unknown: '__unknown__',
 };
 
@@ -4151,6 +4355,9 @@ _$TodayViewImpl _$$TodayViewImplFromJson(Map<String, dynamic> json) =>
       blocks: (json['blocks'] as List<dynamic>)
           .map((e) => TodayBlock.fromJson(e as Map<String, dynamic>))
           .toList(),
+      viewingAs: json['viewing_as'] == null
+          ? null
+          : PersonRef.fromJson(json['viewing_as'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$TodayViewImplToJson(_$TodayViewImpl instance) =>
@@ -4160,6 +4367,7 @@ Map<String, dynamic> _$$TodayViewImplToJson(_$TodayViewImpl instance) =>
       'generated_at': instance.generatedAt,
       'counts': instance.counts.toJson(),
       'blocks': instance.blocks.map((e) => e.toJson()).toList(),
+      'viewing_as': instance.viewingAs?.toJson(),
     };
 
 _$RuleValueImpl _$$RuleValueImplFromJson(Map<String, dynamic> json) =>

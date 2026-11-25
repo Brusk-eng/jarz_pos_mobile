@@ -443,6 +443,21 @@ class OnSetController extends Notifier<OnSetState> {
   /// Puts a shoot the screen just created into the stored set.
   Future<void> remember(StudioShoot s) => _setServer(s);
 
+  /// A prep task a person just added shows in the shoot's prep list at once.
+  Future<void> addPrep(String shootId, StudioTask task) async {
+    await ensureLoaded();
+    final cur = state.shoots[shootId];
+    if (cur == null || cur.prep.any((p) => p.id == task.id)) return;
+    final prep = [...cur.prep, task];
+    await _setServer(
+      cur.copyWith(
+        prep: prep,
+        prepTotal: prep.length,
+        prepDone: prep.where((p) => p.done).length,
+      ),
+    );
+  }
+
   void clearNotices() =>
       state = state.copyWith(moved: const [], refused: const []);
 

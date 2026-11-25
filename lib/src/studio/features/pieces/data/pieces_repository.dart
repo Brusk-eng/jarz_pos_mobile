@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/studio_api.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
+import '../state/piece_filters.dart';
 
 class PiecesRepository {
   PiecesRepository(this._api);
@@ -17,7 +18,21 @@ class PiecesRepository {
     String? flavourId,
     String? q,
     bool? includeParked,
+    String? batch,
+    String? week,
+    String? verdict,
+    String? route,
+    bool? readyForAds,
+    bool? needsVerdict,
+    String? sort,
   }) => _api.piecesBoard(
+    batch: batch,
+    week: week,
+    verdict: verdict,
+    route: route,
+    readyForAds: readyForAds,
+    needsVerdict: needsVerdict,
+    sort: sort,
     assignee: assignee,
     format: format,
     persona: persona,
@@ -34,8 +49,24 @@ class PiecesRepository {
     String? format,
     String? q,
     bool? parked,
+    String? situation,
+    String? batch,
+    String? week,
+    String? verdict,
+    String? route,
+    bool? readyForAds,
+    bool? needsVerdict,
+    String? sort,
     String? after,
   }) => _api.piecesList(
+    situation: situation,
+    batch: batch,
+    week: week,
+    verdict: verdict,
+    route: route,
+    readyForAds: readyForAds,
+    needsVerdict: needsVerdict,
+    sort: sort,
     stage: stage,
     assignee: assignee,
     format: format,
@@ -148,9 +179,26 @@ final piecesRepositoryProvider = Provider<PiecesRepository>(
 );
 
 /// The stage board. Invalidate after a move.
-final pieceBoardProvider = FutureProvider.autoDispose<PieceBoard>(
-  (ref) => ref.watch(piecesRepositoryProvider).board(),
-);
+final pieceBoardProvider = FutureProvider.autoDispose<PieceBoard>((ref) {
+  final f = ref.watch(pieceFiltersProvider);
+  return ref
+      .watch(piecesRepositoryProvider)
+      .board(
+        assignee: f.assignee,
+        format: f.format,
+        persona: f.persona,
+        situation: f.situation,
+        flavourId: f.flavourId,
+        q: f.q.isEmpty ? null : f.q,
+        batch: f.batch,
+        week: f.week,
+        verdict: f.verdict,
+        route: f.route,
+        readyForAds: f.readyForAds,
+        needsVerdict: f.needsVerdict,
+        sort: f.sort,
+      );
+});
 
 final thisWeekProvider = FutureProvider.autoDispose<ThisWeek>(
   (ref) => ref.watch(piecesRepositoryProvider).thisWeek(),

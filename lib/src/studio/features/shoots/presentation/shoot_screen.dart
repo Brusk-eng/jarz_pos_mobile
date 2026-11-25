@@ -1,5 +1,6 @@
 import '../../../shared/bidi_text.dart';
 import 'package:flutter/material.dart';
+import '../../../shared/person_text.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,7 +15,10 @@ import '../../../shared/media/studio_media_widgets.dart';
 import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../data/shoots_repository.dart';
+import '../../../shared/studio_tr.dart';
+import '../../session/state/studio_session_notifier.dart';
 import '../shoots_strings.dart';
+import 'prep_task_sheet.dart';
 import '../state/on_set_state.dart';
 import '../state/shoot_list_state.dart';
 import 'shoot_widgets.dart';
@@ -147,7 +151,21 @@ class _ShootBody extends ConsumerWidget {
           const SizedBox(height: StudioSpacing.lg),
           _PlanCard(shoot: shoot),
           const SizedBox(height: StudioSpacing.lg),
-          Text(t.sectionPrep, style: theme.textTheme.titleMedium),
+          Row(
+            children: [
+              Expanded(
+                child: Text(t.sectionPrep, style: theme.textTheme.titleMedium),
+              ),
+              if (ref.watch(studioSessionProvider).valueOrNull?.canPlanShoots ??
+                  false)
+                TextButton.icon(
+                  key: const ValueKey('add-prep'),
+                  onPressed: () => showPrepTaskSheet(context, ref, shoot),
+                  icon: const Icon(Icons.add),
+                  label: Text(context.tr('Add a prep task', 'ضيف مهمة تحضير')),
+                ),
+            ],
+          ),
           const SizedBox(height: StudioSpacing.xs),
           if (shoot.prep.isEmpty)
             Text(t.noPrep, style: theme.textTheme.bodySmall)
@@ -295,7 +313,7 @@ class _PrepRow extends ConsumerWidget {
       key: ValueKey('prep-${task.id}'),
       value: task.done,
       controlAffinity: ListTileControlAffinity.leading,
-      title: Text(task.text),
+      title: PersonText(task.text),
       onChanged: canTick
           ? (v) async {
               try {

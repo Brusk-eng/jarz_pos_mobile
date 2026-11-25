@@ -49,6 +49,10 @@ fixtureCodecs = {
     parse: (d) => ActualPost.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
   ),
+  'calendar.changes': (
+    parse: (d) => CalendarChanges.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
   'calendar.checks': (
     parse: (d) => PostChecks.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
@@ -294,7 +298,22 @@ fixtureCodecs = {
     toJson: (v) =>
         (v as List).map((e) => ((v) => (v as dynamic).toJson())(e)).toList(),
   ),
+  'references.competitor_add': (
+    parse: (d) =>
+        StudioCompetitor.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
   'references.competitor_get': (
+    parse: (d) =>
+        StudioCompetitor.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
+  'references.competitor_remove': (
+    parse: (d) =>
+        StudioCompetitor.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
+  'references.competitor_restore': (
     parse: (d) =>
         StudioCompetitor.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
@@ -325,6 +344,10 @@ fixtureCodecs = {
     parse: (d) => StudioReference.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
   ),
+  'references.set_feasibility': (
+    parse: (d) => StudioReference.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
   'references.update_status': (
     parse: (d) => StudioReference.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
@@ -340,6 +363,10 @@ fixtureCodecs = {
   ),
   'results.by_piece': (
     parse: (d) => PieceResultPage.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
+  'results.ratings': (
+    parse: (d) => RatingsRollup.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
   ),
   'results.read_set': (
@@ -567,7 +594,15 @@ fixtureCodecs = {
     parse: (d) => StudioShoot.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
   ),
+  'today.get.as': (
+    parse: (d) => TodayView.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
   'today.get.creator': (
+    parse: (d) => TodayView.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
+  'today.get.day': (
     parse: (d) => TodayView.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
   ),

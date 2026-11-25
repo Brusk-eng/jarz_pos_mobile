@@ -9,9 +9,12 @@ import '../features/paid/data/paid_repository.dart';
 import '../features/paid/state/paid_state.dart';
 import '../features/pieces/data/pieces_repository.dart';
 import '../features/pieces/state/piece_filters.dart';
+import '../features/references/data/references_repository.dart';
+import '../features/references/state/references_state.dart';
 import '../features/results/data/results_repository.dart';
 import '../features/results/state/results_state.dart';
 import '../features/review/data/review_repository.dart';
+import '../features/settings/data/settings_repository.dart';
 import '../features/shoots/data/shoots_repository.dart';
 import '../features/shoots/state/on_set_state.dart';
 import '../features/today/data/today_repository.dart';
@@ -93,7 +96,28 @@ final Map<String, List<ProviderOrFamily>> studioWriteRefreshes = () {
     pieceHistoryProvider,
     scorecardProvider,
   ];
+  final competitors = <ProviderOrFamily>[
+    competitorListProvider,
+    competitorsProvider,
+    competitorProvider,
+  ];
+  final reference = <ProviderOrFamily>[
+    referenceProvider,
+    referenceGridProvider,
+    referencesProvider,
+  ];
   return {
+    // A moved moment moves the posts pinned to it.
+    'settings.moment_set': [
+      momentsProvider,
+      ...posts,
+      ...pieces,
+      todayProvider,
+    ],
+    'references.competitor_add': competitors,
+    'references.competitor_remove': competitors,
+    'references.competitor_restore': competitors,
+    'references.set_feasibility': reference,
     'versions.approve': reviewed,
     'versions.fix': reviewed,
     'versions.clear_review': reviewed,

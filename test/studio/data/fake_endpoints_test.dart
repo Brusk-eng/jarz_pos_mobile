@@ -9,8 +9,8 @@ void main() {
   FakeStudioApi fake({String role = 'founder'}) =>
       FakeStudioApi(role: role, delay: Duration.zero);
 
-  test('113 app endpoints are wired (the service group is not)', () {
-    expect(endpointCalls, hasLength(113));
+  test('119 app endpoints are wired (the service group is not)', () {
+    expect(endpointCalls, hasLength(119));
     expect(endpointCalls.keys.where((k) => k.startsWith('service.')), isEmpty);
   });
 

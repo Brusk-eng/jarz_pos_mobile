@@ -23,6 +23,9 @@ final calendarChannelFilterProvider = StateProvider<PostChannel?>(
   (ref) => null,
 );
 
+/// Show only the posts in this status (null: every status).
+final calendarStatusFilterProvider = StateProvider<PostStatus?>((ref) => null);
+
 /// The window to fetch for [mode] around [anchor], as dates.
 CalendarWindow calendarWindowFor(CalendarMode mode, DateTime anchor) {
   if (mode == CalendarMode.week) {

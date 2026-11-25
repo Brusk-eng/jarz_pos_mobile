@@ -273,6 +273,7 @@ class FakeStudioApi extends StudioApi {
 
   dynamic _read(String key, Map<String, dynamic> p) {
     var data = _fixture(key);
+    if (key == 'today.get' && data is Map) data = _todayFor(data, p);
     if (key == 'inbox.to_approve' && data is Map) {
       final items = [
         for (final c in data['items'] as List)
@@ -328,7 +329,7 @@ class FakeStudioApi extends StudioApi {
                 ...Map<String, dynamic>.from(b),
                 'lines': [
                   for (final l in b['lines'] as List)
-                    if (!gone(l as Map)) l,
+                    if (!gone(l as Map)) _storyLine(l),
                 ],
                 'count':
                     ((b['count'] as int) -
@@ -522,6 +523,23 @@ class FakeStudioApi extends StudioApi {
     return _overlay(post) as Map<String, dynamic>;
   }
 
+  /// The Today card of the story slot counts the same four frames as the slot
+  /// page, and moves as frames are decided (the contract sample says three).
+  dynamic _storyLine(Map line) {
+    if (!storyFrames || line['id'] != _storyId) return line;
+    final posted = _frames.values.where((f) => f['status'] == 'posted').length;
+    final decided = _frames.values.where((f) => f['status'] != null).length;
+    final left = 4 - decided;
+    final ar = _lang == 'ar';
+    return {
+      ...Map<String, dynamic>.from(line),
+      'subtitle': ar
+          ? '4 فريمات · $posted اتنشر · $left فاضل'
+          : '4 frames · $posted posted · $left to go',
+      'badge': '$decided/4',
+    };
+  }
+
   Map<String, dynamic> _storyPost() {
     final base = Map<String, dynamic>.from(
       _fixture('calendar.frame_set') as Map,
@@ -705,6 +723,36 @@ class FakeStudioApi extends StudioApi {
   }
 
   // ------------------------------------------------------------------ writes
+
+  /// Today for another person (`as`, Founder and Lead only) or another day
+  /// (`date`): the contract's `today.get.as` and `today.get.day` samples, with
+  /// the person and the day asked for, and no action on any line.
+  Map _todayFor(Map data, Map<String, dynamic> p) {
+    final asKey = '${p['as'] ?? ''}';
+    final date = '${p['date'] ?? ''}';
+    if (asKey.isEmpty && (date.isEmpty || date == data['date'])) return data;
+    if (asKey.isNotEmpty && role != 'founder' && role != 'lead') {
+      throw const StudioNotPermitted('Only the founder and the lead.');
+    }
+    final sample =
+        jsonDecode(
+              _fixtures[asKey.isNotEmpty ? 'today.get.as' : 'today.get.day']!,
+            )
+            as Map<String, dynamic>;
+    if (asKey.isNotEmpty) {
+      final people = _fixture('settings.people');
+      final name = [
+        for (final x in people is List ? people : const [])
+          if ((x as Map)['key'] == asKey) '${x['full_name']}',
+      ].firstOrNull;
+      if (name == null) {
+        throw const StudioNotFound('No such person.', statusCode: 404);
+      }
+      sample['viewing_as'] = {'key': asKey, 'full_name': name};
+    }
+    if (date.isNotEmpty) sample['date'] = date;
+    return sample;
+  }
 
   /// Returns the updated object for a simulated write, or null when [key] is
   /// not one (the fixture is then served as it is).
@@ -1039,7 +1087,32 @@ class FakeStudioApi extends StudioApi {
     final base = _fixture(key) as Map<String, dynamic>..['id'] = id;
     if (leavesFeed && _gone.add(id)) _approveDelta--;
     _patches[id] = {...?_patches[id], ...patch, 'modified': _stamp()};
+    // The piece moves with its version, as the server moves it: an approved
+    // version schedules its post (Scheduled), a fix sends the piece back (To
+    // edit), a cleared review waits in review again.
+    final stage = switch (key) {
+      'versions.approve' => 'Scheduled',
+      'versions.fix' => 'To edit',
+      'versions.clear_review' => 'In review',
+      _ => null,
+    };
+    if (stage != null) {
+      final pieceId =
+          _pieceOfVersion(id) ?? '${(base['piece'] as Map?)?['id']}';
+      _patches[pieceId] = {...?_patches[pieceId], 'stage': stage};
+    }
     return _overlay(base);
+  }
+
+  /// The piece a version belongs to (the to-approve sample names it).
+  String? _pieceOfVersion(String versionId) {
+    final feed = _fixture('inbox.to_approve');
+    for (final c in (feed is Map ? feed['items'] as List? : null) ?? const []) {
+      final v = (c as Map)['version'] as Map?;
+      if (v?['id'] == versionId) return (c['piece'] as Map?)?['id'] as String?;
+    }
+    final i = versionId.lastIndexOf('-v');
+    return i > 0 ? versionId.substring(0, i) : null;
   }
 
   Map<String, dynamic> _meRef() {
@@ -1101,6 +1174,7 @@ String? fakeObjectKind(Map<String, dynamic> m) {
   if (has('item_code')) return 'flavour';
   if (has('launch_stage')) return 'moment';
   if (has('studio_role') && has('full_name')) return 'person';
+  if (has('competitor_group') && has('references_count')) return 'competitor';
   return null;
 }
 
@@ -1115,6 +1189,10 @@ const Map<String, Map<String, String>> fakeActionEndpoints = {
     'edit_meta': 'versions.set_meta',
   },
   'idea': {'keep': 'ideas.keep', 'drop': 'ideas.drop'},
+  'competitor': {
+    'remove': 'references.competitor_remove',
+    'restore': 'references.competitor_restore',
+  },
   'piece': {
     'assign': 'pieces.assign',
     'park': 'pieces.park',
@@ -1140,7 +1218,11 @@ const Map<String, Map<String, String>> fakeActionEndpoints = {
     'share': 'shoots.share_link',
     'add_shot': 'shoots.shot_set',
   },
-  'reference': {'link': 'references.link', 'edit': 'references.update_status'},
+  'reference': {
+    'link': 'references.link',
+    'edit': 'references.update_status',
+    'set_feasibility': 'references.set_feasibility',
+  },
   'ad': {'set_state': 'paid.ad_set_state', 'queue_remove': 'paid.queue_remove'},
   'round': {'edit': 'paid.round_set'},
   'queue_item': {'remove': 'paid.queue_remove', 'move': 'paid.queue_reorder'},
