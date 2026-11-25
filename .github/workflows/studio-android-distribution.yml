@@ -135,7 +135,8 @@ jobs:
             --dart-define=SENTRY_DIST="$build_number" \
             --dart-define-from-file=${{ steps.target.outputs.env_file }} \
             --build-number="$build_number"
-          apk="build/app/outputs/flutter-apk/app-${{ steps.target.outputs.flavor }}-release.apk"
+          flavor_lc=$(echo "${{ steps.target.outputs.flavor }}" | tr '[:upper:]' '[:lower:]')
+          apk="build/app/outputs/flutter-apk/app-${flavor_lc}-release.apk"
           test -f "$apk"
           echo "apk_path=$apk" >> "$GITHUB_OUTPUT"
 
