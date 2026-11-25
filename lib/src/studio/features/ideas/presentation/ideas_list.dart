@@ -44,7 +44,8 @@ class IdeasList extends ConsumerWidget {
                   key: const ValueKey('ideas-filter'),
                   showSelectedIcon: false,
                   segments: [
-                    ButtonSegment(value: 'Open', label: Text(t.tabOpen)),
+                    ButtonSegment(value: 'Open', label: Text(hasMine ? t.tabOpenWaiting : t.tabOpen),
+                    ),
                     ButtonSegment(value: 'Kept', label: Text(t.tabKept)),
                     ButtonSegment(value: 'Dropped', label: Text(t.tabDropped)),
                   ],

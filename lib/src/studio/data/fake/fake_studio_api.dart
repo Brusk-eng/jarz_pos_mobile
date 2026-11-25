@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../core/l10n/plural.dart';
 import '../../core/network/studio_api.dart';
 import 'studio_endpoint_roles.g.dart';
 import 'studio_fixtures.g.dart';
@@ -197,6 +198,14 @@ class FakeStudioApi extends StudioApi {
         m['actions'] = [
           for (final a in m['actions'] as List)
             if (a != 'drop') a,
+        ];
+      }
+      // A reference already on the shortlist is not offered Add to shortlist
+      // (the server offers it only to a reference that is not there yet).
+      if (kind == 'reference' && m['status'] == 'Shortlisted') {
+        m['actions'] = [
+          for (final a in m['actions'] as List)
+            if (a != 'shortlist') a,
         ];
       }
       // A creator may add a line to the scorecard and nothing else on it.
@@ -567,7 +576,7 @@ class FakeStudioApi extends StudioApi {
       return [
         for (final part in parts)
           if (RegExp(r'^waiting (\d+) days?$').firstMatch(part) case final m?)
-            'مستني من ${m.group(1)} يوم'
+            'مستني من ${arDay.of(int.parse(m.group(1)!))}'
           else if (part == parts.first)
             part
           else

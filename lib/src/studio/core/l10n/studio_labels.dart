@@ -124,7 +124,7 @@ class StudioLabels {
     BlockKey.didntGoOut => tr('Didn\'t go out', 'ما نزلش'),
     BlockKey.unplanned => tr('Posted without a plan', 'اتنشر من غير خطة'),
     BlockKey.unconfirmed => tr('Waiting to be confirmed', 'مستني التأكيد'),
-    BlockKey.blocked => tr('Blocked', 'واقف'),
+    BlockKey.blocked => tr('Blocked', 'متعطّل'),
     BlockKey.shootTomorrow => tr('Shoot tomorrow', 'تصوير بكرة'),
     BlockKey.advice => tr('Advice from Claude', 'نصيحة من Claude'),
     BlockKey.warnings => tr('System warnings', 'تحذيرات السيستم'),
@@ -146,7 +146,7 @@ class StudioLabels {
       'اللي اترجعلك: مفيش.',
     ),
     BlockKey.dueToday => tr('Due today: nothing.', 'ميعاده النهارده: مفيش.'),
-    BlockKey.blocked => tr('Blocked: nothing.', 'واقف: مفيش.'),
+    BlockKey.blocked => tr('Blocked: nothing.', 'متعطّل: مفيش.'),
     BlockKey.didntGoOut => tr('Didn\'t go out: nothing.', 'ما نزلش: مفيش.'),
     _ => null,
   };

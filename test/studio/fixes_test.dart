@@ -164,7 +164,7 @@ void main() {
       usePhone(tester, height: 2400);
       final api = fakeApi(role: 'lead');
       await pumpStudioWith(tester, api, locale: 'ar');
-      expect(find.text('واقف'), findsOneWidget); // blocked
+      expect(find.text('متعطّل'), findsOneWidget); // blocked
       expect(find.text("Didn't go out"), findsNothing);
       expect(find.text('ما نزلش'), findsWidgets);
       expect(find.textContaining('Blocked: who is waiting'), findsNothing);

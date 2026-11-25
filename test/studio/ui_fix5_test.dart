@@ -275,7 +275,10 @@ void main() {
       final cr = await pumpStudio(tester, role: 'creator');
       await goTo(tester, cr, '/more/references/ad-1114412864248331');
       expect(find.byKey(const ValueKey('ref-drop')), findsNothing);
-      expect(find.byKey(const ValueKey('ref-shortlist')), findsOneWidget);
+      // This reference is already shortlisted: no Add to shortlist (round 7);
+      // a creator still gets the actions that are theirs.
+      expect(find.byKey(const ValueKey('ref-shortlist')), findsNothing);
+      expect(find.byKey(const ValueKey('ref-note')), findsOneWidget);
     });
   });
 

@@ -9,6 +9,7 @@ abstract class IdeasStrings {
       : const IdeasStringsEn();
 
   String get tabOpen;
+  String get tabOpenWaiting;
   String get tabKept;
   String get tabDropped;
   String get emptyPurpose;
@@ -57,6 +58,8 @@ class IdeasStringsEn extends IdeasStrings {
   const IdeasStringsEn();
   @override
   String get tabOpen => 'To decide';
+  @override
+  String get tabOpenWaiting => 'Waiting for the founder';
   @override
   String get tabKept => 'Kept';
   @override
@@ -169,7 +172,9 @@ class IdeasStringsAr extends IdeasStrings {
   @override
   String get tabOpen => 'للقرار';
   @override
-  String get tabKept => 'محتفظ بيها';
+  String get tabOpenWaiting => 'مستنية المؤسس';
+  @override
+  String get tabKept => 'اتحفظت';
   @override
   String get tabDropped => 'اتسابت';
   @override

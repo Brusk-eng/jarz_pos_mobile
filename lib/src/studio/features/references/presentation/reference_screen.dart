@@ -509,7 +509,7 @@ class _Buttons extends ConsumerWidget {
         ),
         child: Text(context.tr('Make an idea from this', 'اعمل فكرة من ده')),
       ),
-      if (a.contains('shortlist'))
+      if (a.contains('shortlist') && r.status != RefStatus.shortlisted)
         FilledButton(
           key: const ValueKey('ref-shortlist'),
           onPressed: shortlist,

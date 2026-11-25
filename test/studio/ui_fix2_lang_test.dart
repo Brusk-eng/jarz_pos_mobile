@@ -89,7 +89,7 @@ void main() {
       expect(sent.params['lang'], 'ar');
       expect(api.serverLang, 'ar');
       expect(find.textContaining('waiting 2 days'), findsNothing);
-      expect(find.textContaining('مستني من 2 يوم'), findsWidgets);
+      expect(find.textContaining('مستني من يومين'), findsWidgets);
     });
 
     testWidgets('nothing stored anywhere: the app language is sent once', (

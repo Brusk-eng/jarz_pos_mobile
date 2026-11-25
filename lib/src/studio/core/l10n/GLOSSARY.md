@@ -144,10 +144,19 @@ A status says what happens next and who has it, by role.
 - a date that arrives as text is written by `CairoFormat.isoDay` (Wed 25 Nov), never as 2026-11-25
 - idea made from a reference: sheet line From: <name> / من: <name>; the founder's own idea toast: Idea added / الفكرة اتضافت
 
-- Any creator / أي واحد من صنّاع المحتوى: the owner choice for the creators team; "With the creators" / عند صنّاع المحتوى on a piece
+- Creators / صنّاع المحتوى: the owner choice for the creators team (list and Edit); "With the creators" / مع صنّاع المحتوى on a piece
 - No due date / مفيش ميعاد; Task / مهمة and Shot / شوت: a task or a shot in the week list is labelled, never shown as a piece
 - Page not found / الصفحة مش موجودة; Back to Today / ارجع للنهارده
 - OK / Cancel on every date and time picker: تمام / إلغاء (one helper, shared/studio_pickers.dart)
 - Required input: label ends with " *" and the line "Required" / «مطلوب»; a required date reads "(required)" / «(مطلوب)»
 - Story frame buttons: "Mark frame N posted" / «علّم فريم N إنه اتنشر», "Skip frame N" / «تخطّى فريم N»
 - No removed competitors. / مفيش منافسين اتشالوا.
+
+- Self-treater / بتدلّع نفسها (persona label on a piece)
+- Blocked / متعطّل (never «واقف»); below the line: ماوصلش الهدف
+- No due date / مفيش ميعاد تسليم; Due 26 Nov / التسليم 26 نوفمبر; With the creators / مع صنّاع المحتوى
+- Tasks and shots / مهام وشوتات (own group under the pieces in the week list)
+- Creator idea tab: Waiting for the founder / مستنية المؤسس; Kept / اتحفظت; Dropped / اتسابت
+- Frame N posted / فريم N اتنشر (the button); the accessible name stays the full sentence
+- Flutter's own Arabic words (core/l10n/studio_material_localizations.dart): Dismiss إغلاق, Scrim الخلفية, OK تمام
+- Day counts in Arabic: arDay (يوم / يومين / أيام / يوم) everywhere

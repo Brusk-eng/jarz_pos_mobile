@@ -365,7 +365,7 @@ class ResultsStringsAr extends ResultsStrings {
   @override
   String get aboveLine => 'حقق الهدف';
   @override
-  String get belowLine => 'ماوصلش للهدف';
+  String get belowLine => 'ماوصلش الهدف';
   @override
   String get noLineToJudge => 'مفيش هدف نقيس عليه';
   @override
@@ -508,7 +508,7 @@ class ResultsStringsAr extends ResultsStrings {
   };
   @override
   String lastDays(int n) =>
-      'آخر ${arCount(n, one: 'يوم', two: 'يومين', few: 'أيام', many: 'يوم')}';
+      'آخر ${arDay.of(n)}';
   @override
   String get avgViews => 'متوسط المشاهدات';
   @override

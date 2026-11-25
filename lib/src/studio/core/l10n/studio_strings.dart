@@ -525,7 +525,7 @@ class StudioStringsAr extends StudioStrings {
   String todayBlock(TodayBlock block) => switch (block) {
     TodayBlock.sentBack => 'اترجعت',
     TodayBlock.dueToday => 'ميعادها النهارده',
-    TodayBlock.blocked => 'واقفة',
+    TodayBlock.blocked => 'متعطّلة',
     TodayBlock.readyToPost => 'جاهزة للنشر',
     TodayBlock.stories => 'الـ Stories',
     TodayBlock.readsMissing => 'نتايج ناقصة',

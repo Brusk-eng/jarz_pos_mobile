@@ -90,6 +90,10 @@ class _LanguageSync {
       _signedInDone = false;
       return;
     }
+    // The person may have switched the language while the server answered: that
+    // switch already stored and sent its own choice, and this older one must not
+    // overwrite it (the Today lines would come back in the old language).
+    if (_ref.read(studioLocaleProvider).languageCode != mine) return;
     final serverCode = server == null || server == StudioLang.unknown
         ? null
         : server.wire;

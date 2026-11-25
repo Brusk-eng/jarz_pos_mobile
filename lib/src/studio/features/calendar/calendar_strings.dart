@@ -192,6 +192,8 @@ class CalendarStrings {
   String get actionEditSlot => tr('Edit the slot', 'تعديل الميعاد');
   String actionFramePosted(int n) =>
       tr('Mark frame $n posted', 'علّم فريم $n إنه اتنشر');
+  /// The words on the button; the full sentence above is its accessible name.
+  String frameShortPosted(int n) => tr('Frame $n posted', 'فريم $n اتنشر');
   String actionFrameSkipped(int n) => tr('Skip frame $n', 'تخطّى فريم $n');
   String get frameDone => tr('Posted', 'اتنشر');
   String get frameSkipped => tr('Skipped', 'اتخطّى');

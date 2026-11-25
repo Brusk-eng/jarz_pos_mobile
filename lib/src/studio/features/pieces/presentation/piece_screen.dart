@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -496,7 +497,7 @@ class _Labels extends StatelessWidget {
           key: const ValueKey('piece-labels'),
           spacing: StudioSpacing.sm,
           runSpacing: StudioSpacing.sm,
-          children: [for (final c in chips) Chip(label: Text(c))],
+          children: [for (final c in chips) StudioLabelChip(c)],
         ),
       ],
     );

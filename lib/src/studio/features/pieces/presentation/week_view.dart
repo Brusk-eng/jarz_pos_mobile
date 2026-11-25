@@ -87,6 +87,16 @@ class _WeekGroupBlock extends StatelessWidget {
         for (final p in group.pieces)
           PieceCard(piece: p, onTap: () => context.push('/pieces/${p.id}')),
         for (final p in group.posts) PostTile(post: p, showDate: true),
+        // Tasks and shots are not pieces: their own group below the pieces.
+        if (group.shots.isNotEmpty || group.tasks.isNotEmpty)
+          Padding(
+            key: ValueKey('week-extras-$index'),
+            padding: const EdgeInsets.only(top: StudioSpacing.md),
+            child: Text(
+              s.tasksAndShots,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+          ),
         for (final shot in group.shots)
           ListTile(
             dense: true,

@@ -398,12 +398,21 @@ class _Frames extends StatelessWidget {
                           Wrap(
                             spacing: StudioSpacing.sm,
                             children: [
-                              TextButton(
-                                key: ValueKey('frame-posted-${f.position}'),
-                                onPressed: busy
+                              Semantics(
+                                container: true,
+                                button: true,
+                                label: c.actionFramePosted(f.position),
+                                excludeSemantics: true,
+                                onTap: busy
                                     ? null
                                     : () => onFrame(f, FrameStatus.posted),
-                                child: Text(c.actionFramePosted(f.position)),
+                                child: TextButton(
+                                  key: ValueKey('frame-posted-${f.position}'),
+                                  onPressed: busy
+                                      ? null
+                                      : () => onFrame(f, FrameStatus.posted),
+                                  child: Text(c.frameShortPosted(f.position)),
+                                ),
                               ),
                               TextButton(
                                 key: ValueKey('frame-skip-${f.position}'),

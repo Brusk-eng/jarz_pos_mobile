@@ -344,7 +344,7 @@ class MoreStringsAr extends MoreStrings {
   @override
   String get diagnosticsOnly => 'للمتابعة بس. مش هي اللي بتحسم.';
   @override
-  String get howThisWorks => 'إزاي ده بيشتغل';
+  String get howThisWorks => 'الشاشة دي بتشتغل إزاي';
 
   @override
   String get errShadow => 'الـ Studio لسه مش شغّال، فمفيش حاجة اتغيّرت.';

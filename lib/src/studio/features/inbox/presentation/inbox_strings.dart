@@ -229,8 +229,7 @@ class InboxStringsAr extends InboxStrings {
   String hours(int n) =>
       arCount(n, one: 'ساعة', two: 'ساعتين', few: 'ساعات', many: 'ساعة');
   @override
-  String days(int n) =>
-      arCount(n, one: 'يوم', two: 'يومين', few: 'أيام', many: 'يوم');
+  String days(int n) => arDay.of(n);
   @override
   List<String> get weekdays => const [
     'الاثنين',

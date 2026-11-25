@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/l10n/studio_language_sync.dart';
 import 'core/l10n/studio_locale.dart';
+import 'core/l10n/studio_material_localizations.dart';
 import 'core/l10n/studio_strings.dart';
 import 'core/router/studio_router.dart';
 import 'core/theme/studio_theme.dart';
@@ -56,7 +57,7 @@ class _StudioAppState extends ConsumerState<StudioApp> {
       supportedLocales: StudioStrings.supportedLocales,
       localizationsDelegates: const [
         StudioStrings.delegate,
-        GlobalMaterialLocalizations.delegate,
+        StudioMaterialLocalizationsDelegate(),
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],

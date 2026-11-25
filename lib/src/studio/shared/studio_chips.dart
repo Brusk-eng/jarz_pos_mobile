@@ -66,3 +66,18 @@ class StudioActionChip extends StatelessWidget {
     ),
   );
 }
+
+/// A chip that only names something (a format, a level, a flavour): plain
+/// text to a screen reader, not a checkbox and not a button.
+class StudioLabelChip extends StatelessWidget {
+  const StudioLabelChip(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: text,
+    excludeSemantics: true,
+    child: Chip(label: Text(text)),
+  );
+}

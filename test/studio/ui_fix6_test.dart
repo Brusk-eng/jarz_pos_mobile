@@ -313,8 +313,8 @@ void main() {
         ),
       );
       await goTo(tester, c, '/calendar/post/SP-2026-00310');
-      await reveal(tester, find.text('Mark frame 3 posted'));
-      expect(find.text('Mark frame 3 posted'), findsOneWidget);
+      await reveal(tester, find.text('Frame 3 posted'));
+      expect(find.text('Frame 3 posted'), findsOneWidget);
       expect(find.text('Skip frame 3'), findsOneWidget);
     });
   });

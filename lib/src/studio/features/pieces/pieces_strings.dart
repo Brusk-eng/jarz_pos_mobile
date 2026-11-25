@@ -31,10 +31,11 @@ class PiecesStrings {
       tr('No piece in this stage yet.', 'مفيش قطعة في المرحلة دي لسه.');
   String get showMore => tr('Show more', 'اعرض أكتر');
   String get nobodyYet => tr('Nobody yet', 'لسه مفيش حد');
-  String get noDue => tr('No due date', 'مفيش ميعاد');
+  String get tasksAndShots => tr('Tasks and shots', 'مهام وشوتات');
+  String get noDue => tr('No due date', 'مفيش ميعاد تسليم');
   String get taskLabel => tr('Task', 'مهمة');
   String get shotLabel => tr('Shot', 'شوت');
-  String dueOn(String d) => tr('Due $d', 'الموعد $d');
+  String dueOn(String d) => tr('Due $d', 'التسليم $d');
   String waitingOn(String r) => tr('Waiting: $r', 'مستني: $r');
   String parkedWhy(String r) => tr('Parked: $r', 'مؤجّلة: $r');
   String nextPostAt(String c, String when) =>
@@ -59,15 +60,15 @@ class PiecesStrings {
     'مفيش قطعة مطابقة. امسح فلتر أو دوّر على حاجة تانية.',
   );
   String get ownerClaude => 'Claude';
-  String get ownerCreators => tr('Any creator', 'أي واحد من صنّاع المحتوى');
+  String get ownerCreators => tr('Creators', 'صنّاع المحتوى');
 
   // Piece screen.
   String get pieceNext => tr('What happens next', 'الخطوة الجاية');
   String withTeam(OwnerTeam t) => switch (t) {
-    OwnerTeam.creators => tr('With the creators', 'عند صنّاع المحتوى'),
+    OwnerTeam.creators => tr('With the creators', 'مع صنّاع المحتوى'),
     _ => withPerson(team(t)),
   };
-  String withPerson(String n) => tr('With $n', 'عند $n');
+  String withPerson(String n) => tr('With $n', 'مع $n');
   String get withNobody => tr('Nobody has it yet', 'لسه مفيش حد ماسكها');
 
   /// What happens next, stage by stage (SYSTEM_DESIGN section 3): who has the
@@ -300,7 +301,7 @@ class PiecesStrings {
   // Plain names of the contract's enums.
   String persona(Persona p) => switch (p) {
     Persona.household => tr('Household', 'البيت'),
-    Persona.selfTreater => tr('Self-treater', 'نفسها'),
+    Persona.selfTreater => tr('Self-treater', 'بتدلّع نفسها'),
     Persona.unknown => '',
   };
   String situation(Situation s) => switch (s) {

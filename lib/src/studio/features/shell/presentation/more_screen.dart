@@ -96,12 +96,17 @@ class StudioMoreScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = MoreStrings.of(context);
     final role = ref.watch(studioSessionProvider).valueOrNull?.primaryRole;
-    final nav = ref.watch(moreNavKeysProvider).valueOrNull;
+    final navState = ref.watch(moreNavKeysProvider);
+    final nav = navState.valueOrNull;
     final version = ref.watch(moreAppVersionProvider).valueOrNull ?? '';
 
     final List<MoreItem> items;
     if (nav != null) {
       items = [for (final k in nav) ?_itemOfNavKey(k)];
+    } else if (navState.isLoading) {
+      // session.me is not in yet: no role-specific entry is shown (a role's
+      // list could list a page the server does not give this person).
+      items = const <MoreItem>[];
     } else {
       items = role == null ? const <MoreItem>[] : moreOrder[role]!;
     }
@@ -114,7 +119,7 @@ class StudioMoreScreen extends ConsumerWidget {
         moreHelpAction(context, title: t.moreHelpTitle, lines: t.moreHelp),
       ],
       body: MoreBody(
-        child: items.isEmpty
+        child: items.isEmpty && !navState.isLoading
             ? StudioEmptyState(
                 config: StudioEmptyConfig(
                   purpose: t.moreEmpty,
