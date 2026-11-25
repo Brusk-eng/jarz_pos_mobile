@@ -1,0 +1,154 @@
+name: Studio Android Distribution
+
+run-name: Studio Android / ${{ inputs.environment }} / ${{ github.ref_name }}
+
+# Builds Jarz Studio (lib/main_studio.dart) as its own Android app and sends it to the
+# Firebase App Distribution group "studio". Separate from the POS workflow: different
+# applicationIds (com.orderjarz.studio[.staging]), no Shorebird, never reaches POS testers.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Studio environment (staging = erpstg.orderjarz.com, production = erp.orderjarz.com)
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      release_notes:
+        description: Release notes shown to testers
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.44.6"
+
+concurrency:
+  group: studio-android-${{ inputs.environment }}
+  cancel-in-progress: true
+
+jobs:
+  studio-android:
+    name: Studio Android (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source revision
+        uses: actions/checkout@v6
+
+      - name: Resolve Studio target
+        id: target
+        shell: bash
+        env:
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          if [ "$INPUT_ENVIRONMENT" = "production" ]; then
+            {
+              echo "flavor=studioProduction"
+              echo "env_define=prod"
+              echo "env_file=.env.prod"
+              echo "sentry_environment=production"
+              echo "firebase_app_id=1:91050591321:android:bb8b5d3f8414f3a5bd1d48"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "flavor=studioStaging"
+              echo "env_define=staging"
+              echo "env_file=.env.staging"
+              echo "sentry_environment=staging"
+              echo "firebase_app_id=1:91050591321:android:f88167ce4c589c5abd1d48"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Same pattern as the Courier app: one saved google-services.json (from the Firebase console, holding both
+      # Studio apps) restored into the flavour's source set.
+      - name: Restore google-services.json
+        shell: bash
+        env:
+          CFG: ${{ secrets.STUDIO_GOOGLE_SERVICES_JSON_BASE64 }}
+          FLAVOR: ${{ steps.target.outputs.flavor }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CFG" ]; then
+            echo "::error::STUDIO_GOOGLE_SERVICES_JSON_BASE64 is not set"
+            exit 1
+          fi
+          mkdir -p "android/app/src/$FLAVOR"
+          echo "$CFG" | base64 -d > "android/app/src/$FLAVOR/google-services.json"
+          test -s "android/app/src/$FLAVOR/google-services.json"
+
+      - name: Restore Android release keystore
+        id: signing
+        shell: bash
+        env:
+          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          keystore_path="$RUNNER_TEMP/jarz-studio-upload.jks"
+          echo "$ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          echo "keystore_path=$keystore_path" >> "$GITHUB_OUTPUT"
+
+      - name: Build Studio APK
+        id: build
+        env:
+          ANDROID_UPLOAD_KEYSTORE_PATH: ${{ steps.signing.outputs.keystore_path }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          build_number="${{ github.run_number }}"
+          release_id="studio-${{ steps.target.outputs.env_define }}-${GITHUB_SHA::8}"
+          flutter build apk --release \
+            --flavor ${{ steps.target.outputs.flavor }} \
+            -t lib/main_studio.dart \
+            --dart-define=ENV=${{ steps.target.outputs.env_define }} \
+            --dart-define=SENTRY_ENVIRONMENT=${{ steps.target.outputs.sentry_environment }} \
+            --dart-define=SENTRY_RELEASE="$release_id" \
+            --dart-define=SENTRY_DIST="$build_number" \
+            --dart-define-from-file=${{ steps.target.outputs.env_file }} \
+            --build-number="$build_number"
+          apk="build/app/outputs/flutter-apk/app-${{ steps.target.outputs.flavor }}-release.apk"
+          test -f "$apk"
+          echo "apk_path=$apk" >> "$GITHUB_OUTPUT"
+
+      - name: Distribute Studio APK
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ steps.target.outputs.firebase_app_id }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          groups: studio
+          file: ${{ steps.build.outputs.apk_path }}
+          releaseNotes: ${{ inputs.release_notes }}
+
+      - name: Remove signing material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/jarz-studio-upload.jks"

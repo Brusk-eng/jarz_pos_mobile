@@ -66,6 +66,22 @@ android {
             dimension = "environment"
             manifestPlaceholders["appLabel"] = "Jarz POS"
         }
+
+        // Jarz Studio ships as its own app (lib/main_studio.dart) with its own package, so it
+        // installs next to the POS app. The server comes from --dart-define=ENV=staging|prod,
+        // exactly as for the POS flavours; the flavour only sets identity and label.
+        create("studioStaging") {
+            dimension = "environment"
+            applicationId = "com.orderjarz.studio.staging"
+            versionNameSuffix = "-staging"
+            manifestPlaceholders["appLabel"] = "Jarz Studio Staging"
+        }
+
+        create("studioProduction") {
+            dimension = "environment"
+            applicationId = "com.orderjarz.studio"
+            manifestPlaceholders["appLabel"] = "Jarz Studio"
+        }
     }
 
     signingConfigs {
