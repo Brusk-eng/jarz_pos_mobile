@@ -9,6 +9,8 @@ import '../data/models/production_policy.dart';
 import '../data/models/production_suggestion.dart';
 import '../data/models/material_options.dart';
 import '../data/models/batch_line.dart';
+import '../../../core/widgets/posting_date_confirmation_dialog.dart';
+import '../presentation/production_timestamp.dart';
 import 'production_basket_notifier.dart';
 
 /// Which status buckets the Plan tab is showing.
@@ -231,7 +233,26 @@ final basketRollupProvider = FutureProvider.autoDispose<BasketRollup?>((
   ref,
 ) async {
   final basket = await ref.watch(settledBasketProvider.future);
-  final lines = basket.toApiLines();
+  final policy = ref.read(productionPolicyOrFallbackProvider);
+  // Check stock as of the date the batch will be posted, the same moment
+  // Start batches sends. Without it a backdated plan was checked against
+  // today's stock, showed no shortage, and was refused only on Start
+  // (2026-11-26, Remas cheese: 45 kg today, 3.067 kg on 11-23 16:00).
+  final posting = basket.postingDate;
+  final explicitTime = hasExplicitPostingTime(posting);
+  final today = policy.today();
+  final isPastDay =
+      posting != null &&
+      DateTime(
+        posting.year,
+        posting.month,
+        posting.day,
+      ).isBefore(DateTime(today.year, today.month, today.day));
+  // Today with no chosen time: today's stock is the right snapshot.
+  final scheduledAt = (posting != null && (explicitTime || isPastDay))
+      ? startScheduledAt(posting, explicitTime: explicitTime)
+      : null;
+  final lines = basket.toApiLines(scheduledAt: scheduledAt);
   if (lines.isEmpty) return null;
 
   return ref.read(manufacturingServiceProvider).getBasketMaterialRollup(lines);
