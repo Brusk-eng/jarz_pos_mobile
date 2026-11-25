@@ -226,9 +226,6 @@ class _PostSlotFormState extends ConsumerState<PostSlotForm> {
           requestId: _requestId,
         );
       }
-      ref.invalidate(calendarRangeProvider);
-      ref.invalidate(postDriftProvider);
-      ref.invalidate(postChecksProvider);
       if (!mounted) return;
       final warn = result.warnings.map((w) => w.message).join('\n');
       showSnack(context, warn.isEmpty ? c.slotSaved : '${c.slotSaved}\n$warn');

@@ -1,3 +1,4 @@
+import '../../../core/l10n/studio_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -201,7 +202,11 @@ class ProblemChecklist extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.message),
+                      Text(
+                        StudioLabels.of(
+                          context,
+                        ).problem(p.code, message: p.message),
+                      ),
                       if (fixFor?.call(p) case final VoidCallback go)
                         TextButton(
                           key: ValueKey('problem-fix-${p.code}'),

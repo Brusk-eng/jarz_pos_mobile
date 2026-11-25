@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/studio/core/offline/kv_store.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -48,6 +49,7 @@ Future<void> _mount(WidgetTester tester, FakeStudioApi api, Widget home) async {
       overrides: [
         studioFakeProvider.overrideWithValue(true),
         studioApiProvider.overrideWithValue(api),
+        studioKvStoreProvider.overrideWithValue(MemoryKvStore()),
         studioFakeRoleProvider.overrideWithValue(api.role),
       ],
       child: MaterialApp(
@@ -345,13 +347,13 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('state-Winner')));
       await tester.pumpAndSettle();
       expect(
-        find.textContaining('Winner needs 7 purchases and this ad has 6'),
+        find.textContaining('does not meet the rule for Winner: the rule asks for 7 purchases and it has 6'),
         findsOneWidget,
       );
       await tester.tap(find.byKey(const ValueKey('state-save')));
       await tester.pumpAndSettle();
       expect(api.calls, isNot(contains('paid.ad_set_state')));
-      expect(find.text('Save anyway'), findsOneWidget);
+      expect(find.text('Set it anyway'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('state-save')));
       await tester.pumpAndSettle();
       expect(api.calls, contains('paid.ad_set_state'));

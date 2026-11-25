@@ -1,3 +1,4 @@
+import '../../../shared/person_name.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -134,7 +135,7 @@ class PostTile extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: StudioSpacing.xs),
                         child: Text(
-                          s.waitingOn(post.waitsOn!),
+                          s.waitingOn(personName(post.waitsOn)),
                           style: textTheme.bodySmall?.copyWith(
                             color: stop
                                 ? StudioColors.danger

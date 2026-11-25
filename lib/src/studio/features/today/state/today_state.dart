@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
 import '../data/today_repository.dart';
@@ -10,6 +11,62 @@ import '../data/today_repository.dart';
 final todayDoneNotesProvider = StateProvider<Map<String, String>>(
   (ref) => const {},
 );
+
+/// The line itself, kept next to its note: the write refreshes Today at once
+/// (`data/write_refresh.dart`), the server then no longer lists the line, and
+/// the note still has to show where the line was. Cleared with the notes.
+final todayDoneLinesProvider =
+    StateProvider<Map<String, ({BlockKey block, TodayLine line})>>(
+      (ref) => const {},
+    );
+
+/// Puts the lines the person just acted on back into [view], at the end of
+/// their block (or as a block of their own when the server dropped the whole
+/// block), so each still shows what happens next.
+TodayView withDoneLines(
+  TodayView view,
+  Map<String, ({BlockKey block, TodayLine line})> done,
+) {
+  if (done.isEmpty) return view;
+  final shown = {
+    for (final b in view.blocks)
+      for (final l in b.lines) l.id,
+  };
+  final missing = [
+    for (final e in done.entries)
+      if (!shown.contains(e.key)) e.value,
+  ];
+  if (missing.isEmpty) return view;
+  final blocks = <TodayBlock>[];
+  for (final b in view.blocks) {
+    final extra = [
+      for (final m in missing)
+        if (m.block == b.key) m.line,
+    ];
+    blocks.add(extra.isEmpty ? b : b.copyWith(lines: [...b.lines, ...extra]));
+  }
+  final present = {for (final b in view.blocks) b.key};
+  final orphans = {
+    for (final m in missing)
+      if (!present.contains(m.block)) m.block,
+  };
+  for (final key in orphans) {
+    final lines = [
+      for (final m in missing)
+        if (m.block == key) m.line,
+    ];
+    blocks.add(
+      TodayBlock(
+        key: key,
+        title: '',
+        count: 0,
+        level: NoteLevel.info,
+        lines: lines,
+      ),
+    );
+  }
+  return view.copyWith(blocks: blocks);
+}
 
 /// Today lines the person has just acted on (ticked, approved). They vanish at
 /// once; if the call fails the id is removed again and the line comes back.

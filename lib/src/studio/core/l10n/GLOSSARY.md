@@ -56,7 +56,7 @@ Roles go by role, never by a person's name.
 |---|---|
 | founder | المؤسس |
 | marketing lead | مسؤول التسويق |
-| creator | كرييتور |
+| creator | صانع محتوى (plural: صنّاع المحتوى) |
 | story lead | مسؤول الـ Stories |
 
 ## Actions
@@ -118,3 +118,5 @@ A status says what happens next and who has it, by role.
 - paid persona label: الجمهور / Audience; target line: الهدف / Target
 - gate header (all screens): الفحص مانجحش. صلّح اللي تحت وجرّب تاني:
 - Arabic counts use arCount in plural.dart (1, 2, 3-10, 11+)
+- help (More entry, first-login tour): مساعدة; walkthrough: جولة
+- set it anyway (ad state against the rule): حطّها برضو

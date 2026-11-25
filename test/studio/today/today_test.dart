@@ -152,7 +152,7 @@ void main() {
       await pumpStudioWith(tester, api);
       await tester.tap(find.byKey(const ValueKey('line-PC-00163-v2-approve')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('It needs a final verdict.'), findsOneWidget);
+      expect(find.textContaining('The sell judge has not given a verdict yet.'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('today-line-PC-00163-v2')),
         findsOneWidget,

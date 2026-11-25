@@ -46,7 +46,6 @@ class NotificationsNotifier extends PagedNotifier<NotificationItem> {
       optimistic: (n) => n.copyWith(read: true),
       call: () => _repo.markRead(ids: [id]),
     );
-    ref.invalidate(unreadCountProvider);
   }
 
   Future<void> markAllRead() async {
@@ -65,6 +64,5 @@ class NotificationsNotifier extends PagedNotifier<NotificationItem> {
       state = before;
       rethrow;
     }
-    ref.invalidate(unreadCountProvider);
   }
 }

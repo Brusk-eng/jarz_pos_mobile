@@ -9,7 +9,6 @@ import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../inbox/presentation/inbox_strings.dart';
 import '../../inbox/presentation/ui_helpers.dart';
-import '../../review/data/review_repository.dart';
 import '../data/ideas_repository.dart';
 import 'idea_forms.dart';
 import 'ideas_strings.dart';
@@ -60,7 +59,6 @@ class _IdeaCardState extends ConsumerState<IdeaCard> {
           .read(ideasProvider.notifier)
           .keep(widget.idea.id, requestId: _keepRid);
       _keepRid = const Uuid().v4();
-      ref.invalidate(inboxCountsProvider);
       messenger
         ?..hideCurrentSnackBar()
         ..showSnackBar(
@@ -91,7 +89,6 @@ class _IdeaCardState extends ConsumerState<IdeaCard> {
           .read(ideasProvider.notifier)
           .drop(widget.idea.id, reason, requestId: _dropRid);
       _dropRid = const Uuid().v4();
-      ref.invalidate(inboxCountsProvider);
       if (mounted) showStudioNote(context, t.ideaDropped);
     } catch (e) {
       if (mounted) showStudioError(context, e);

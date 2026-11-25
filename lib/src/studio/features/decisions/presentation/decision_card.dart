@@ -1,3 +1,4 @@
+import '../../../shared/person_name.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show MaxLengthEnforcement;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -175,7 +176,7 @@ class _DecisionCardState extends ConsumerState<DecisionCard> {
             const SizedBox(height: StudioSpacing.xs),
             Text(
               [
-                t.raisedBy(d.raisedBy),
+                t.raisedBy(personName(d.raisedBy)),
                 if (d.status == DecisionStatus.open)
                   t.waiting(waitedText(s, d.waitingSince, now)),
               ].join(' · '),

@@ -1,3 +1,4 @@
+import '../../../shared/bidi_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -615,7 +616,7 @@ class _ShareSheetState extends ConsumerState<_ShareSheet> {
                     icon: Icon(copied ? Icons.check : Icons.copy),
                     label: Text(copied ? t.linkCopied : t.copyLink),
                     onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: l.url));
+                      await Clipboard.setData(ClipboardData(text: withoutBidiIsolates(l.url)));
                       if (mounted) setState(() => copied = true);
                     },
                   ),

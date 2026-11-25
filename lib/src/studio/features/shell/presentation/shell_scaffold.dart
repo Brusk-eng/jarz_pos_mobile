@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/studio_strings.dart';
 import '../../inbox/state/inbox_state.dart';
+import '../../walkthrough/walkthrough_sheet.dart';
 
 /// The five-tab frame: a bottom bar on a phone, a rail from tablet width up.
 class StudioShellScaffold extends ConsumerWidget {
@@ -55,7 +56,8 @@ class StudioShellScaffold extends ConsumerWidget {
     final wide = MediaQuery.sizeOf(context).width >= 840;
 
     if (wide) {
-      return Scaffold(
+      return FirstLoginWalkthrough(
+        child: Scaffold(
         body: Row(
           children: [
             NavigationRail(
@@ -76,10 +78,12 @@ class StudioShellScaffold extends ConsumerWidget {
             Expanded(child: navigationShell),
           ],
         ),
+        ),
       );
     }
 
-    return Scaffold(
+    return FirstLoginWalkthrough(
+      child: Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         key: const ValueKey('shell-bar'),
@@ -93,6 +97,7 @@ class StudioShellScaffold extends ConsumerWidget {
               label: labels[i],
             ),
         ],
+      ),
       ),
     );
   }

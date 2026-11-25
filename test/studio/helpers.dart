@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/studio/core/offline/kv_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +30,10 @@ Future<ProviderContainer> pumpStudio(
       overrides: [
         studioFakeProvider.overrideWithValue(true),
         studioApiProvider.overrideWithValue(
-          FakeStudioApi(role: role, delay: Duration.zero),
+          FakeStudioApi(role: role, delay: Duration.zero, serverLang: 'en'),
+        ),
+        studioKvStoreProvider.overrideWithValue(
+          MemoryKvStore({'studio.lang.device': locale}),
         ),
         studioFakeRoleProvider.overrideWithValue(role),
         studioLocaleProvider.overrideWith((ref) => Locale(locale)),

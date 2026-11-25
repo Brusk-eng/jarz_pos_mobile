@@ -216,17 +216,20 @@ class FlavourChips extends ConsumerWidget {
           Wrap(
             spacing: StudioSpacing.sm,
             children: [
+              // A paused flavor is not offered for a new piece; a piece that
+              // already has it keeps it.
               for (final f in flavours)
-                FilterChip(
-                  key: ValueKey('flavour-${f.id}'),
-                  label: Text(f.name),
-                  selected: selected.contains(f.id),
-                  onSelected: (on) {
-                    final next = {...selected};
-                    on ? next.add(f.id) : next.remove(f.id);
-                    onChanged(next);
-                  },
-                ),
+                if (f.status != FlavourStatus.paused || selected.contains(f.id))
+                  FilterChip(
+                    key: ValueKey('flavour-${f.id}'),
+                    label: Text(f.name),
+                    selected: selected.contains(f.id),
+                    onSelected: (on) {
+                      final next = {...selected};
+                      on ? next.add(f.id) : next.remove(f.id);
+                      onChanged(next);
+                    },
+                  ),
             ],
           ),
         ],

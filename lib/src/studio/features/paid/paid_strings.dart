@@ -90,8 +90,8 @@ abstract class PaidStrings {
   String stateLabel(AdState? s);
   String stateExplain(AdState? s);
   String get rulesForThisAd;
-  String againstWinnerPurchases(int have, int need);
-  String againstCostLine(int cpa, int line);
+  String againstWinnerPurchases(String state, int have, int need);
+  String againstCostLine(String state, int cpa, int line);
   String get tapAgainToSet;
   String get setAnyway;
   String stateSaved(String label);
@@ -304,15 +304,16 @@ class PaidStringsEn extends PaidStrings {
   @override
   String get rulesForThisAd => 'The rules for this ad';
   @override
-  String againstWinnerPurchases(int have, int need) =>
-      'This goes against the rule: Winner needs $need purchases and this ad has $have.';
+  String againstWinnerPurchases(String state, int have, int need) =>
+      'This ad does not meet the rule for $state: the rule asks for $need purchases and it has $have.';
   @override
-  String againstCostLine(int cpa, int line) =>
-      'This goes against the rule: the cost per purchase is $cpa EGP and the line is $line EGP.';
+  String againstCostLine(String state, int cpa, int line) =>
+      'This ad does not meet the rule for $state: the rule asks for $line EGP a purchase or less and it is at $cpa EGP.';
   @override
-  String get tapAgainToSet => 'Tap Save again to set it anyway.';
+  String get tapAgainToSet =>
+      'You run paid, so you can still set it: tap the button again.';
   @override
-  String get setAnyway => 'Save anyway';
+  String get setAnyway => 'Set it anyway';
   @override
   String stateSaved(String label) => 'Now: $label';
   @override
@@ -533,15 +534,16 @@ class PaidStringsAr extends PaidStrings {
   @override
   String get rulesForThisAd => 'القواعد لـ الإعلان ده';
   @override
-  String againstWinnerPurchases(int have, int need) =>
-      'ده عكس القاعدة: «كاسب» محتاج $need مشتريات والإعلان ده عنده $have.';
+  String againstWinnerPurchases(String state, int have, int need) =>
+      'الإعلان ده مش مطابق لقاعدة «$state»: القاعدة عايزة $need مشتريات وهو عنده $have.';
   @override
-  String againstCostLine(int cpa, int line) =>
-      'ده عكس القاعدة: تكلفة الشراء $cpa جنيه والخط $line جنيه.';
+  String againstCostLine(String state, int cpa, int line) =>
+      'الإعلان ده مش مطابق لقاعدة «$state»: القاعدة عايزة تكلفة شراء $line جنيه أو أقل وهو على $cpa جنيه.';
   @override
-  String get tapAgainToSet => 'اضغط احفظ تاني لو عايز تحفظه برضو.';
+  String get tapAgainToSet =>
+      'إنت اللي بتدير الإعلانات، فتقدر تحطها برضو: اضغط الزرار تاني.';
   @override
-  String get setAnyway => 'احفظ برضو';
+  String get setAnyway => 'حطّها برضو';
   @override
   String stateSaved(String label) => 'دلوقتي: $label';
   @override

@@ -56,12 +56,87 @@ class PiecesStrings {
     'مفيش قطعة مطابقة. امسح فلتر أو دوّر على حاجة تانية.',
   );
   String get ownerClaude => 'Claude';
-  String get ownerCreators => tr('The creators', 'الكرييتورز');
+  String get ownerCreators => tr('The creators', 'صنّاع المحتوى');
 
   // Piece screen.
   String get pieceNext => tr('What happens next', 'الخطوة الجاية');
   String withPerson(String n) => tr('With $n', 'عند $n');
   String get withNobody => tr('Nobody has it yet', 'لسه مفيش حد ماسكها');
+
+  /// What happens next, stage by stage (SYSTEM_DESIGN section 3): who has the
+  /// piece and what they must do. [who] is the owner's name or team (null when
+  /// nobody owns it), [reason] the founder's reason when the current version was
+  /// sent back, [slot] the next post's day and time, [byHand] whether that post
+  /// is put out by hand.
+  String stageNext(
+    PieceStage stage, {
+    String? who,
+    String? parkedReason,
+    bool sentBack = false,
+    String? reason,
+    String? slot,
+    bool byHand = false,
+  }) {
+    final owner = who ?? tr('The owner', 'صاحب القطعة');
+    if (parkedReason != null) {
+      return tr(
+        'Parked: $parkedReason. Nobody works on it until it is unparked.',
+        'مؤجّلة: $parkedReason. محدش بيشتغل عليها لحد ما تتفعّل تاني.',
+      );
+    }
+    return switch (stage) {
+      PieceStage.idea => tr(
+        '$owner writes the script. It moves on when the script passes the checks.',
+        'عند $owner كتابة السكريبت. بتتحرّك لما السكريبت يعدّي الفحوصات.',
+      ),
+      PieceStage.script => tr(
+        'The script is written. The marketing lead or the founder puts it on a shoot, or sends it straight to edit if it needs no shoot.',
+        'السكريبت اتكتب. مسؤول التسويق أو المؤسس بيحطها على تصوير، أو على المونتاج على طول لو مش محتاجة تصوير.',
+      ),
+      PieceStage.toShoot => tr(
+        '$owner films the shots. Ticking the last shot moves it on by itself.',
+        'عند $owner تصوير الشوتس. أول ما آخر شوت يتعلّم، بتتحرّك لوحدها.',
+      ),
+      PieceStage.toEdit =>
+        sentBack
+            ? tr(
+                'The founder sent it back${reason == null ? '' : ': $reason'}. $owner fixes it and uploads a new version.',
+                'المؤسس رجّعها${reason == null ? '' : ': $reason'}. عند $owner التصليح ورفع نسخة جديدة.',
+              )
+            : tr(
+                'Filmed. $owner cuts it and uploads a version; it moves on by itself.',
+                'اتصوّرت. عند $owner المونتاج ورفع نسخة، وبعدها بتتحرّك لوحدها.',
+              ),
+      PieceStage.inReview => tr(
+        'Waiting for the founder to approve or send back.',
+        'مستنية المؤسس يوافق أو يرجّعها.',
+      ),
+      PieceStage.approved => tr(
+        'Approved, no date yet. The marketing lead gives it a slot; it moves on by itself.',
+        'معتمدة ومالهاش ميعاد لسه. مسؤول التسويق بيدّيها ميعاد، وبعدها بتتحرّك لوحدها.',
+      ),
+      PieceStage.scheduled =>
+        byHand
+            ? tr(
+                'Has a post${slot == null ? '' : ' on $slot'}. Whoever posts by hand puts it out and taps "I posted it".',
+                'ليها بوست${slot == null ? '' : ' يوم $slot'}. اللي بينشر بإيده بينشره ويدوس «علّم إنه اتنشر».',
+              )
+            : tr(
+                'Has a post${slot == null ? '' : ' on $slot'}. The system puts it out.',
+                'ليها بوست${slot == null ? '' : ' يوم $slot'}. السيستم بينشره.',
+              ),
+      PieceStage.posted => tr(
+        'Live. The 72-hour read is filed by the system, or by the founder or the marketing lead if a number is missing; then it moves on by itself.',
+        'نازلة. نتيجة الـ 72 ساعة بيسجّلها السيستم، أو المؤسس أو مسؤول التسويق لو رقم ناقص، وبعدها بتتحرّك لوحدها.',
+      ),
+      PieceStage.read => tr(
+        'Results are in. The founder decides whether it goes to paid.',
+        'النتايج جاهزة. المؤسس بيقرّر لو هتروح للإعلانات.',
+      ),
+      PieceStage.unknown => '',
+    };
+  }
+
   String get nextNothing =>
       tr('No move is open right now.', 'مفيش خطوة مفتوحة دلوقتي.');
   String get whyNotYet => tr('Not yet, because:', 'لسه، لأن:');

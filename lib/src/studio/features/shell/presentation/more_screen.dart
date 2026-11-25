@@ -11,6 +11,8 @@ import '../../../core/theme/studio_tokens.dart';
 import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../../session/state/studio_session_notifier.dart';
+import '../../walkthrough/walkthrough_sheet.dart';
+import '../../walkthrough/walkthrough_strings.dart';
 import '../more_common.dart';
 import '../more_strings.dart';
 
@@ -145,6 +147,20 @@ class StudioMoreScreen extends ConsumerWidget {
                     trailing: const _Chevron(),
                     onTap: () => context.go(notificationSettingsRoute),
                   ),
+                  if (role != null)
+                    ListTile(
+                      key: const ValueKey('more-help'),
+                      leading: const Icon(
+                        Icons.help_outline,
+                        color: StudioColors.deepPlum,
+                      ),
+                      title: Text(WalkthroughStrings.of(context).helpEntry),
+                      subtitle: Text(
+                        WalkthroughStrings.of(context).helpEntryHint,
+                      ),
+                      trailing: const _Chevron(),
+                      onTap: () => showWalkthrough(context, role),
+                    ),
                   const Divider(),
                   ListTile(
                     key: const ValueKey('more-language'),

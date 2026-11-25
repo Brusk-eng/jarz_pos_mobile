@@ -32,6 +32,7 @@ class StudioTodayScreen extends ConsumerWidget {
             ref.invalidate(inboxCountsProvider);
             ref.read(todayHiddenLinesProvider.notifier).state = const {};
             ref.read(todayDoneNotesProvider.notifier).state = const {};
+            ref.read(todayDoneLinesProvider.notifier).state = const {};
             ref.invalidate(todayTasksProvider);
           },
         ),

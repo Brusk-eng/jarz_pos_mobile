@@ -136,6 +136,16 @@ children. The contract's `/references`, `/paid`, `/results`, `/reports`, `/setti
 
 ## One place for each shared thing
 
+- What a write makes stale: `data/write_refresh.dart` (`studioWriteRefreshes`, one map from `group.fn` to the providers to
+  refresh). The API announces every successful call (`StudioApi.writes`); `StudioApp` watches
+  `studioWriteRefreshProvider`. No screen invalidates another feature's provider after a write.
+- The language and the lines the server words (contract v1.3): `core/l10n/studio_language_sync.dart` (device choice, send
+  to `settings.set_my_notifications(lang)`, adopt on first sign-in). Text that goes to the clipboard passes
+  `shared/bidi_text.dart` (`withoutBidiIsolates`).
+- A raw person id from the server (`posted_by`, `waits_on`, `raised_by`): `shared/person_name.dart`.
+- A problem or calendar check by `code`: `StudioLabels.problem` (the server message is the fallback).
+- The first-login walkthrough per role: `features/walkthrough/` (key `walkthrough_<role>` in `session.help_seen`).
+
 - Error text: `shared/studio_error_text.dart` (`studioErrorText`, `showStudioError`, `studioErrorMessage`). No screen words
   SHADOW_MODE, GATE_FAILED, STALE, NOT_PERMITTED or ALREADY_DONE its own way.
 - `base_modified`: `EntityNotifier.baseModified` (from `modifiedOf`, which every notifier must implement). Pass it to every

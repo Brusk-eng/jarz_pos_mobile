@@ -15,6 +15,8 @@ import '../../inbox/presentation/inbox_strings.dart';
 import '../../inbox/presentation/ui_helpers.dart';
 import '../../review/data/review_repository.dart';
 import '../../session/state/studio_session_notifier.dart';
+import '../../calendar/data/calendar_repository.dart';
+import '../../results/presentation/piece_results_screen.dart' show fileReadFlow;
 import '../data/today_repository.dart';
 import '../state/today_state.dart';
 import 'task_form.dart';
@@ -37,6 +39,7 @@ class TodayBody extends ConsumerWidget {
     ref.invalidate(inboxCountsProvider);
     ref.read(todayHiddenLinesProvider.notifier).state = const {};
     ref.read(todayDoneNotesProvider.notifier).state = const {};
+    ref.read(todayDoneLinesProvider.notifier).state = const {};
     await ref.read(todayTasksProvider.notifier).refresh();
     try {
       await ref.read(todayProvider.future);
@@ -48,7 +51,9 @@ class TodayBody extends ConsumerWidget {
     final t = TodayStrings.of(context);
     final me = ref.watch(studioSessionProvider).valueOrNull;
     final role = me?.primaryRole;
-    final value = ref.watch(todayProvider);
+    final value = ref
+        .watch(todayProvider)
+        .whenData((v) => withDoneLines(v, ref.watch(todayDoneLinesProvider)));
     final tasks = ref.watch(todayTasksProvider);
     final hidden = ref.watch(todayHiddenLinesProvider);
     final labels = StudioLabels.of(context);
@@ -252,6 +257,13 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
     }
     final notes = ref.read(todayDoneNotesProvider.notifier);
     final id = line.ref?.name ?? line.id;
+    // Taken before the write: the write refreshes Today at once.
+    final block = ref
+        .read(todayProvider)
+        .valueOrNull
+        ?.blocks
+        .where((b) => b.lines.any((l) => l.id == line.id))
+        .firstOrNull;
     setState(() => _busy = true);
     try {
       String next;
@@ -270,8 +282,10 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
       // The line stays with what happens next and who has it; the next
       // refresh drops it (the server no longer lists it).
       notes.state = {...notes.state, line.id: next};
-      ref.invalidate(inboxCountsProvider);
-      ref.invalidate(todayTasksProvider);
+      if (block != null) {
+        final kept = ref.read(todayDoneLinesProvider.notifier);
+        kept.state = {...kept.state, line.id: (block: block.key, line: line)};
+      }
     } catch (e) {
       if (mounted) {
         // ALREADY_DONE is a quiet success: refresh and move on.
@@ -281,6 +295,37 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  void _open() => context.push(widget.line.route);
+
+  /// A "result to add" line (`SP-2026-00190:72h`): opens the form that files
+  /// that read, not the post. The line says which post and which read; the
+  /// post says what is still missing. When the read is not due (or the post
+  /// cannot be read) the line's own route opens instead.
+  Future<void> _openRead() async {
+    final line = widget.line;
+    final bucket = line.id.contains(':') ? line.id.split(':').last : '72h';
+    final postId = line.ref?.name ?? line.id.split(':').first;
+    final router = GoRouter.maybeOf(context);
+    setState(() => _busy = true);
+    PostRead? read;
+    try {
+      final post = await ref.read(calendarRepositoryProvider).post(postId);
+      read = post.reads
+          .where((r) => r.bucket.wire == bucket && r.due && !r.filed)
+          .firstOrNull;
+    } catch (_) {
+      read = null;
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (!mounted) return;
+    if (read == null) {
+      router?.push(line.route);
+      return;
+    }
+    await fileReadFlow(context, ref, read);
   }
 
   @override
@@ -300,7 +345,7 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
     final bar = levelColor(line.level);
     return InkWell(
       key: ValueKey('today-line-${line.id}'),
-      onTap: () => context.push(line.route),
+      onTap: line.kind == LineKind.read ? _openRead : _open,
       child: Container(
         decoration: BoxDecoration(
           border: BorderDirectional(

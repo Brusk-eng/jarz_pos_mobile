@@ -8,7 +8,6 @@ import '../../../data/studio_error.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../data/pieces_repository.dart';
 import '../pieces_strings.dart';
-import '../state/piece_filters.dart';
 import 'piece_form_widgets.dart';
 import 'piece_widgets.dart';
 
@@ -71,8 +70,6 @@ class _PieceCreateScreenState extends ConsumerState<PieceCreateScreen> {
             note: _note.text.trim().isEmpty ? null : _note.text.trim(),
             requestId: _requestId,
           );
-      ref.invalidate(pieceBoardProvider);
-      ref.invalidate(pieceListProvider);
       if (!mounted) return;
       showSnack(context, s.createdDone);
       Navigator.of(context).pop(piece.id);

@@ -4007,6 +4007,11 @@ _$NotificationPrefsImpl _$$NotificationPrefsImplFromJson(
   quietTo: json['quiet_to'] as String?,
   digestEnabled: json['digest_enabled'] as bool,
   digestTime: json['digest_time'] as String?,
+  lang: $enumDecodeNullable(
+    _$StudioLangEnumMap,
+    json['lang'],
+    unknownValue: StudioLang.unknown,
+  ),
   events: (json['events'] as List<dynamic>)
       .map((e) => EventInfo.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -4019,6 +4024,7 @@ Map<String, dynamic> _$$NotificationPrefsImplToJson(
   'quiet_to': instance.quietTo,
   'digest_enabled': instance.digestEnabled,
   'digest_time': instance.digestTime,
+  'lang': _$StudioLangEnumMap[instance.lang],
   'events': instance.events.map((e) => e.toJson()).toList(),
 };
 

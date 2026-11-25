@@ -268,7 +268,7 @@ def gen_api(eps):
                     sig.append("String? requestId")
                     put.append("      'request_id': requestId ?? newRequestId(),")
                     continue
-                dt = "Object" if ptype == "json" else {"str": "String", "int": "int", "float": "double", "bool": "bool", "date": "String", "datetime": "String", "time": "String"}[ptype]
+                dt = "Object" if ptype == "json" else {"str": "String", "int": "int", "float": "double", "bool": "bool", "date": "String", "datetime": "String", "time": "String", "Lang": "String"}[ptype]
                 if req:
                     sig.append("required %s %s" % (dt, dn))
                     put.append("      %s: %s," % (str_lit(pname), dn))

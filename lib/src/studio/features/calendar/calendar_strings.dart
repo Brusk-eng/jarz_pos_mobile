@@ -69,8 +69,8 @@ class CalendarStrings {
   // Posts that did not go out and posts nobody planned.
   String get driftTitle => tr('Didn\'t go out', 'اللي ما نزلش');
   String get driftIntro => tr(
-    'Clear each one: try it again, move it, say it will not post, or match a live post to its slot.',
-    'نضّف كل واحد: جرّبه تاني، أو انقله، أو قول إنه مش هينزل، أو اربط بوست نازل بميعاده.',
+    'Clear each one: move it, say it will not post, or match a live post to its slot. A post the system can send again shows a Try again button.',
+    'نضّف كل واحد: انقله، أو قول إنه مش هينزل، أو اربط بوست نازل بميعاده. البوست اللي السيستم يقدر يبعته تاني بيظهر عليه زرار «جرّب تاني».',
   );
   String get driftEmptyPurpose => tr(
     'Posts that did not go out, and posts that went out without a plan, show here.',

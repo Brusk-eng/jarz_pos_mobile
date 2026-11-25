@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/studio/core/offline/kv_store.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -43,6 +44,7 @@ FakeStudioApi fakeApi({
     delay: delay,
     fixtures: fx,
     textDecisions: textDecisions,
+    serverLang: 'en', // the person's language is already saved: no first-open send
   );
 }
 
@@ -59,6 +61,9 @@ Future<ProviderContainer> pumpStudioWith(
       overrides: [
         studioFakeProvider.overrideWithValue(true),
         studioApiProvider.overrideWithValue(api),
+        studioKvStoreProvider.overrideWithValue(
+          MemoryKvStore({'studio.lang.device': locale}),
+        ),
         studioFakeRoleProvider.overrideWithValue(api.role),
         studioLocaleProvider.overrideWith((ref) => Locale(locale)),
         if (now != null) studioNowProvider.overrideWithValue(() => now),

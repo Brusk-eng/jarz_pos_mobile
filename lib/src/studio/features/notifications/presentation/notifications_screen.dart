@@ -14,7 +14,6 @@ import '../../../shared/view_edit_scaffold.dart';
 import '../../inbox/presentation/inbox_hub.dart';
 import '../../inbox/presentation/inbox_strings.dart';
 import '../../inbox/presentation/ui_helpers.dart';
-import '../../review/data/review_repository.dart';
 import '../data/notifications_repository.dart';
 import 'notifications_strings.dart';
 import '../../../shared/studio_error_text.dart';
@@ -48,7 +47,6 @@ class NotificationsScreen extends ConsumerWidget {
     Future<void> markAll() async {
       try {
         await ref.read(notificationsProvider.notifier).markAllRead();
-        ref.invalidate(inboxCountsProvider);
       } catch (e) {
         if (context.mounted) showStudioError(context, e);
       }
@@ -95,7 +93,6 @@ class NotificationsScreen extends ConsumerWidget {
         builder: (context, d) => RefreshIndicator(
           onRefresh: () async {
             await ref.read(notificationsProvider.notifier).refresh();
-            ref.invalidate(unreadCountProvider);
           },
           child: ListView(
             key: const ValueKey('notifications-list'),

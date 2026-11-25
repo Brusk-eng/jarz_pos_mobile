@@ -6,7 +6,6 @@ import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/studio_error.dart';
 import '../../inbox/presentation/inbox_strings.dart';
-import '../../review/data/review_repository.dart';
 import '../data/ideas_repository.dart';
 import 'ideas_strings.dart';
 import '../../../shared/studio_error_text.dart';
@@ -142,8 +141,6 @@ class _IdeaFormSheetState extends ConsumerState<_IdeaFormSheet> {
           if (_format != null) 'format': _format,
         }, baseModified: idea.modified);
       }
-      ref.invalidate(ideasProvider);
-      ref.invalidate(inboxCountsProvider);
       if (idea == null) {
         messenger
           ?..hideCurrentSnackBar()

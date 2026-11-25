@@ -502,7 +502,7 @@ class StudioStringsAr extends StudioStrings {
   String role(StudioRole role) => switch (role) {
     StudioRole.founder => 'المؤسس',
     StudioRole.lead => 'مسؤول التسويق',
-    StudioRole.creator => 'كرييتور',
+    StudioRole.creator => 'صانع محتوى',
     StudioRole.story => 'مسؤول الـ Stories',
   };
 

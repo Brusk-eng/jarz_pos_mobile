@@ -578,7 +578,7 @@ class ReviewStringsAr extends ReviewStrings {
   String get sendBackHint => 'إيه اللي لازم يتغيّر؟';
   @override
   String get sendBackReasonRequired =>
-      'اكتب إيه اللي لازم يتغيّر عشان الكرييتور يعرف يصلّحه.';
+      'اكتب إيه اللي لازم يتغيّر عشان صانع المحتوى يعرف يصلّحه.';
   @override
   String get sendBackConfirm => 'رجّع';
   @override
@@ -600,7 +600,7 @@ class ReviewStringsAr extends ReviewStrings {
   @override
   String sentBackTo(String name) => 'اترجّعت لـ $name مع السبب اللي كتبته.';
   @override
-  String get sentBackToCreator => 'اترجّعت للكرييتور مع السبب اللي كتبته.';
+  String get sentBackToCreator => 'اترجّعت لصانع المحتوى مع السبب اللي كتبته.';
   @override
   String get decisionCleared => 'رجعت في الموافقة. النسخة مستنية موافقتك تاني.';
   @override

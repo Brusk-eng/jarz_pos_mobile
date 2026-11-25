@@ -345,7 +345,7 @@ void main() {
         expect(find.byKey(const ValueKey('gate-sheet')), findsOneWidget);
         expect(find.text('This move is not possible yet'), findsOneWidget);
         expect(
-          find.text('Pick a persona and a situation first'),
+          find.text('Set the layer and the awareness level first.'),
           findsOneWidget,
         );
         expect(find.text('The finished file is missing'), findsOneWidget);

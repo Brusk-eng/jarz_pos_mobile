@@ -76,8 +76,6 @@ void registerVersionFollowUp(ProviderContainer container) {
           requestId: addRequestId,
         );
       }
-      container.invalidate(pieceProvider(pieceId));
-      container.invalidate(pieceBoardProvider);
     },
   );
 }

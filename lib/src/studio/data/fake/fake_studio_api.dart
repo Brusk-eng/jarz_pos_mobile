@@ -34,7 +34,11 @@ class FakeStudioApi extends StudioApi {
     this.delay = const Duration(milliseconds: 150),
     Map<String, String>? fixtures,
     this.textDecisions = false,
-  }) : _fixtures = fixtures ?? studioFixtures;
+    this.firstLogin = false,
+    this.storyFrames = false,
+    String? serverLang,
+  }) : _lang = serverLang,
+       _fixtures = fixtures ?? studioFixtures;
 
   /// founder, lead, creator, story, or none (signed in with no Studio role).
   final String role;
@@ -44,6 +48,24 @@ class FakeStudioApi extends StudioApi {
   /// Adds the two decisions answered in words (one open, one answered) to
   /// the decisions list and to the Inbox count. They are served by id either way.
   final bool textDecisions;
+
+  /// A person opening the app for the first time: `session.me` does not list
+  /// the role's walkthrough as seen until `session.help_seen` is called with
+  /// it. Off in tests (they open the app already walked through); the running
+  /// fake app turns it on.
+  final bool firstLogin;
+
+  /// Serves the story slot `SP-2026-00310` as four frames (photos and a clip)
+  /// that [calendar.frame_set] decides one by one, instead of the contract's
+  /// sample slot. The running fake app turns it on.
+  final bool storyFrames;
+  final _seenHelp = <String>{};
+
+  /// The language the server holds for this person (`NotificationPrefs.lang`);
+  /// null until the app sends one. Lines the server words (Today, the
+  /// notifications) come back in it.
+  String? _lang;
+  String? get serverLang => _lang;
 
   final _failures = <_Failure>[];
   final _patches = <String, Map<String, dynamic>>{};
@@ -113,6 +135,7 @@ class FakeStudioApi extends StudioApi {
     final p = params ?? const <String, dynamic>{};
     final written = _write(key, p);
     final result = written ?? _read(key, p);
+    if (!get) announceCall(key);
     return _forRole(_copy(result));
   }
 
@@ -142,6 +165,20 @@ class FakeStudioApi extends StudioApi {
         m['actions'] = [
           for (final a in acts)
             if (_allowed(table[a], letter)) a,
+        ];
+      }
+      // The sample shots offer only `tick`; the server also offers `note` to
+      // whoever may call shoots.shot_note.
+      if (kind == 'shot' &&
+          _allowed('shoots.shot_note', letter) &&
+          !(m['actions'] as List).contains('note')) {
+        m['actions'] = [...(m['actions'] as List), 'note'];
+      }
+      // A creator may add a line to the scorecard and nothing else on it.
+      if (kind == 'scorecard' && role == 'creator') {
+        m['actions'] = [
+          for (final a in m['actions'] as List)
+            if (a == 'add_line') a,
         ];
       }
     }
@@ -191,6 +228,7 @@ class FakeStudioApi extends StudioApi {
       if (raw != null) {
         final data = jsonDecode(raw);
         if (key == 'session.me' && role == 'none') return _meWithoutRole(data);
+        if (key == 'session.me') return _meSeen(data as Map<String, dynamic>);
         return data;
       }
     }
@@ -198,6 +236,31 @@ class FakeStudioApi extends StudioApi {
       return _meWithoutRole(jsonDecode(_fixtures['me.founder']!));
     }
     throw StudioNotFound('No fake fixture for $key', statusCode: 404);
+  }
+
+  /// The help this person has seen: every walkthrough when the app is not
+  /// on a first login, none of them (but what was marked in this run) when it
+  /// is. A creator also gets Results (the contract lets the role read the
+  /// scorecard and add a line).
+  Map<String, dynamic> _meSeen(Map<String, dynamic> me) {
+    final seen = <String>{
+      for (final k in (me['seen_help'] as List? ?? const []))
+        if (!'$k'.startsWith('walkthrough')) '$k',
+      ..._seenHelp,
+      if (!firstLogin) 'walkthrough_$role',
+    };
+    final nav = [...(me['nav'] as List)];
+    if (role == 'creator' && !nav.any((n) => (n as Map)['key'] == 'results')) {
+      final refs = nav.indexWhere((n) => (n as Map)['key'] == 'references');
+      nav.insert(refs + 1, {
+        'key': 'results',
+        'label': 'Results',
+        'route': '/results',
+        'in_bar': false,
+        'badge': null,
+      });
+    }
+    return {...me, 'seen_help': seen.toList(), 'nav': nav};
   }
 
   Map<String, dynamic> _meWithoutRole(dynamic me) => {
@@ -232,11 +295,32 @@ class FakeStudioApi extends StudioApi {
       // like the real server: its block loses it, an empty block disappears.
       bool gone(Map line) {
         final id = line['id'];
-        return _gone.contains(id) || _patches[id]?['done'] == true;
+        final p = _patches[id];
+        return _gone.contains(id) ||
+            p?['done'] == true ||
+            p?['skipped'] == true ||
+            const {
+              'Answered',
+              'Kept',
+              'Dropped',
+              'Published',
+              'Skipped',
+            }.contains(p?['status']);
       }
 
+      final counts = Map<String, dynamic>.from(data['counts'] as Map);
+      void adj(String k, int delta) =>
+          counts[k] = ((counts[k] as int) + delta).clamp(0, 1 << 30);
+      adj('to_approve', _approveDelta);
+      adj('decisions', _decisionDelta);
+      adj('ideas', _ideaDelta);
+      counts['total'] =
+          (counts['to_approve'] as int) +
+          (counts['decisions'] as int) +
+          (counts['ideas'] as int);
       data = {
         ...data,
+        'counts': counts,
         'blocks': [
           for (final b in data['blocks'] as List)
             if (((b as Map)['lines'] as List).any((l) => !gone(l as Map)))
@@ -255,6 +339,69 @@ class FakeStudioApi extends StudioApi {
               },
         ],
       };
+    }
+    if (key == 'paid.round_get' && data is Map) {
+      // An ad whose state was set moves between the round's counters.
+      final counts = Map<String, dynamic>.from(data['state_counts'] as Map);
+      for (final a in data['ads'] as List) {
+        final was = '${(a as Map)['state_label']}';
+        final now = '${_patches[a['id']]?['state_label'] ?? was}';
+        if (was == now) continue;
+        counts[was] = ((counts[was] as int? ?? 1) - 1).clamp(0, 1 << 30);
+        if (counts[was] == 0) counts.remove(was);
+        counts[now] = (counts[now] as int? ?? 0) + 1;
+      }
+      data = {...data, 'state_counts': counts};
+    }
+    if (key == 'today.tasks' && data is Map) data = _tasks(data, p);
+    if (key == 'today.get' && data is Map && _lang == 'ar') {
+      data = _todayAr(data);
+    }
+    if (key == 'notifications.list' && data is Map && _lang == 'ar') {
+      data = {
+        ...data,
+        'items': [
+          for (final n in data['items'] as List)
+            {
+              ...Map<String, dynamic>.from(n as Map),
+              'title': 'جاهز لموافقتك',
+              // The piece title is wrapped, as the server wraps text that runs
+              // the other way than its sentence.
+              'body': '\u2068${n["body"]}\u2069',
+            },
+        ],
+      };
+    }
+    if (key == 'settings.my_notifications' && data is Map) {
+      data = {...data, 'lang': _lang};
+    }
+    if (key == 'calendar.post_get' && data is Map) data = _post(data, p);
+    if (key == 'calendar.ready_to_post' && data is Map) {
+      data = {
+        ...data,
+        'items': [
+          for (final i in data['items'] as List)
+            if (_patches[((i as Map)['post'] as Map)['id']]?['status'] == null)
+              i,
+        ],
+      };
+    }
+    if (key == 'calendar.drift' && data is Map) {
+      bool handled(Map m) {
+        final s = _patches[(m['post'] as Map)['id']];
+        return s?['status'] != null || s?['retried'] == true;
+      }
+
+      data = {
+        ...data,
+        'missing': [
+          for (final m in data['missing'] as List)
+            if (!handled(m as Map)) m,
+        ],
+      };
+    }
+    if (key == 'shoots.get' || key == 'shoots.sync' || key == 'shoots.list') {
+      data = _shootsNow(data);
     }
     if (key == 'decisions.get' && data is Map) {
       // The two decisions answered in words are served by id.
@@ -308,6 +455,253 @@ class FakeStudioApi extends StudioApi {
       };
     }
     return _overlay(data);
+  }
+
+  /// Today in Arabic, as the server words it for a person whose language is
+  /// Arabic: the waiting time of a line, with the flavour in isolate marks.
+  Map _todayAr(Map data) {
+    String word(String s) {
+      final parts = s.split(' \u00b7 ');
+      return [
+        for (final part in parts)
+          if (RegExp(r'^waiting (\d+) days?$').firstMatch(part) case final m?)
+            'مستني من ${m.group(1)} يوم'
+          else if (part == parts.first)
+            part
+          else
+            '\u2068$part\u2069',
+      ].join(' \u00b7 ');
+    }
+
+    return {
+      ...data,
+      'blocks': [
+        for (final b in data['blocks'] as List)
+          {
+            ...Map<String, dynamic>.from(b as Map),
+            'lines': [
+              for (final l in b['lines'] as List)
+                {
+                  ...Map<String, dynamic>.from(l as Map),
+                  if (l['subtitle'] is String)
+                    'subtitle': word(l['subtitle'] as String),
+                },
+            ],
+          },
+      ],
+    };
+  }
+
+  // ------------------------------------------------------------------- posts
+
+  static const _storyId = 'SP-2026-00310';
+  final _frames = <int, Map<String, dynamic>>{};
+
+  /// A post by id: the contract's sample, with the id asked for. The story slot
+  /// has four frames (photos and a clip) that [calendar.frame_set] decides one
+  /// by one; the post is Published once every frame is decided and one was
+  /// posted. The trial reel read for 72 hours is Published and has its read to
+  /// file.
+  Map<String, dynamic> _post(Map data, Map<String, dynamic> p) {
+    final id = '${p['post_id']}';
+    if (id == _storyId && storyFrames) return _storyPost();
+    final post = <String, dynamic>{
+      ...Map<String, dynamic>.from(data),
+      'id': id,
+    };
+    if (id == 'SP-2026-00190') {
+      final byPiece = _fixture('results.by_piece') as Map;
+      final item = (byPiece['items'] as List).first as Map;
+      post
+        ..['status'] = 'Published'
+        ..['posted_at'] = '2026-11-21T20:02:00+02:00'
+        ..['permalink'] = 'https://social.example.test/reel/EXAMPLE190/'
+        ..['actions'] = <String>[]
+        ..['reads'] = item['reads'];
+    }
+    return _overlay(post) as Map<String, dynamic>;
+  }
+
+  Map<String, dynamic> _storyPost() {
+    final base = Map<String, dynamic>.from(
+      _fixture('calendar.frame_set') as Map,
+    )..['id'] = _storyId;
+    Map<String, dynamic> media(int n, bool video) => {
+      'id': 'MED-0000003${n}0',
+      'kind': video ? 'video' : 'image',
+      'thumb_url': 'https://cdn.example.test/review/MED-0000003${n}0/thumb.jpg',
+      'poster_url': video
+          ? 'https://cdn.example.test/review/MED-0000003${n}0/poster.jpg'
+          : null,
+      'feed_url':
+          'https://cdn.example.test/review/MED-0000003${n}0/feed.${video ? 'mp4' : 'jpg'}',
+      'url':
+          'https://cdn.example.test/review/MED-0000003${n}0/main.${video ? 'mp4' : 'jpg'}',
+      'width': 1080,
+      'height': 1920,
+      'duration_s': video ? 9.0 : null,
+    };
+    const titles = [
+      'Hands hold a jar and lift a spoon of dark crumb cake',
+      'The lid goes on, label facing the camera (clip)',
+      'Kitchen counter, jars lined up before delivery',
+      'The courier closes the bag',
+    ];
+    final frames = [
+      for (var i = 0; i < 4; i++)
+        {
+          'position': i + 1,
+          'asset': {
+            'id': 'AST-00003${i + 1}3',
+            'title': titles[i],
+            'kind': i == 1 ? 'Story clip' : 'Story photo',
+            'media': media(i + 1, i == 1),
+          },
+          'status': _frames[i + 1]?['status'],
+          'reason': _frames[i + 1]?['reason'],
+          'set_by': _frames[i + 1]?['set_by'],
+          'set_at': _frames[i + 1]?['set_at'],
+          'comments_count': 0,
+        },
+    ];
+    final decided = frames.every((f) => f['status'] != null);
+    final anyPosted = frames.any((f) => f['status'] == 'posted');
+    final published = decided && anyPosted;
+    return {
+      ...base,
+      'frames': frames,
+      'status': published ? 'Published' : base['status'],
+      'posted_at': published ? _stamp() : null,
+      'posted_by': published ? _meRef()['key'] : null,
+      'posted_how': published ? 'hand' : null,
+      'actions': published ? <String>[] : ['wont_post', 'frame_set'],
+    };
+  }
+
+  // ------------------------------------------------------------------ shoots
+
+  /// A shot as the contract's samples show it (`shoots.sync` holds all three
+  /// shots of the shoot being filmed), by id.
+  Map<String, dynamic>? _shotBase(String id) {
+    for (final k in ['shoots.sync', 'shoots.get']) {
+      final d = _fixture(k);
+      final shoots = d is Map && d['items'] is List ? d['items'] as List : [d];
+      for (final s in shoots) {
+        for (final shot in ((s as Map)['shots'] as List? ?? const [])) {
+          if ((shot as Map)['id'] == id) {
+            return Map<String, dynamic>.from(shot);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Shoots as the server counts them now: `n_done` follows the ticked shots
+  /// and the shoot is Shot once every shot is filmed.
+  dynamic _shootsNow(dynamic v) {
+    if (v is List) return [for (final e in v) _shootsNow(e)];
+    if (v is! Map) return v;
+    final m = <String, dynamic>{
+      for (final e in v.entries) e.key as String: _shootsNow(e.value),
+    };
+    if (m.containsKey('n_shots') && m.containsKey('n_done')) {
+      final shots = m['shots'];
+      var done = m['n_done'] as int;
+      if (shots is List) {
+        done = shots.where((s) => (s as Map)['done'] == true).length;
+      } else {
+        for (final e in _patches.entries) {
+          final base = _shotBase(e.key);
+          if (base == null || base['shoot_id'] != m['id']) continue;
+          final was = base['done'] == true;
+          final now = e.value['done'] == true;
+          done += (now ? 1 : 0) - (was ? 1 : 0);
+        }
+      }
+      m['n_done'] = done.clamp(0, m['n_shots'] as int);
+      if (done >= (m['n_shots'] as int) && m['status'] == 'Prep') {
+        m['status'] = 'Shot';
+      }
+    }
+    return m;
+  }
+
+  // ------------------------------------------------------------------- tasks
+
+  final _createdTasks = <Map<String, dynamic>>[];
+
+  /// The task list as the server serves it to this role: my own tasks by
+  /// default, everyone's with `assignee: all` (founder and lead only), the
+  /// open ones unless `status` says otherwise. Done and skipped follow the
+  /// ticks; a task made in the app is in the list.
+  Map<String, dynamic> _tasks(Map data, Map<String, dynamic> p) {
+    final me = _meRef()['key'];
+    final all = p['assignee'] == 'all' && (role == 'founder' || role == 'lead');
+    final status = '${p['status'] ?? 'open'}';
+    final fixtureTasks = [
+      for (final t in data['items'] as List)
+        Map<String, dynamic>.from(t as Map),
+      // A creator has no task in the contract's sample: one of their own.
+      if (role == 'creator' && (data['items'] as List).isNotEmpty)
+        {
+          ...Map<String, dynamic>.from((data['items'] as List).first as Map),
+          'id': 'TASK-000191',
+          'text': 'Charge the camera and clear the card before the shoot',
+          'assignee': {'key': me, 'full_name': 'Kareem'},
+          'sort_order': 191.0,
+        },
+    ];
+    final items = <Map<String, dynamic>>[];
+    for (final raw in [..._createdTasks.reversed, ...fixtureTasks]) {
+      final t = _overlay(raw) as Map<String, dynamic>;
+      final mine = (t['assignee'] as Map?)?['key'] == me;
+      if (!all && !mine) continue;
+      final closed = t['done'] == true || t['skipped'] == true;
+      if (status == 'open' && closed) continue;
+      if (status == 'done' && !closed) continue;
+      items.add({
+        ...t,
+        // Only the person's own task can be ticked or skipped; editing is
+        // for the roles that may call today.task_update (cut by _forRole).
+        'actions': [
+          for (final a in (t['actions'] as List))
+            if ((a != 'tick' && a != 'skip') || mine) a,
+        ],
+      });
+    }
+    return {...data, 'items': items};
+  }
+
+  Map<String, dynamic> _newTask(Map<String, dynamic> p) {
+    final base = Map<String, dynamic>.from(
+      (_fixture('today.tasks') as Map)['items'].first as Map,
+    );
+    final key = '${p['assignee'] ?? _meRef()['key']}';
+    final n = (_createdTasks.length + 1).toString().padLeft(5, '0');
+    return {
+      ...base,
+      'id': 'TASK-9$n',
+      'kind': p['kind'] ?? 'todo',
+      'text': '${p['text'] ?? ''}'.trim(),
+      'assignee': {
+        'key': key,
+        'full_name': '${key[0].toUpperCase()}${key.substring(1)}',
+      },
+      'assignee_team': p['assignee_team'],
+      'due': p['due'] ?? _stamp().substring(0, 10),
+      'due_time': p['due_time'],
+      'done': false,
+      'skipped': false,
+      'done_by': null,
+      'done_at': null,
+      'shoot_id': p['shoot_id'],
+      'piece_id': p['piece_id'],
+      'post_id': p['post_id'],
+      'note': p['note'],
+      'sort_order': 900.0 + _createdTasks.length,
+      'modified': _stamp(),
+    };
   }
 
   // ------------------------------------------------------------------ writes
@@ -367,6 +761,141 @@ class FakeStudioApi extends StudioApi {
           ..['body'] = p['body'] ?? '';
         final n = (r['comments_count'] as int) + 1;
         return {...r, 'comment': c, 'comments_count': n};
+      case 'settings.set_my_notifications':
+        if (p.containsKey('lang')) {
+          final l = p['lang'];
+          if (l != null && l != 'en' && l != 'ar') {
+            throw const StudioValidation(
+              'The language is en or ar.',
+              field: 'lang',
+              statusCode: 422,
+            );
+          }
+          _lang = l as String?;
+        }
+        return null;
+      case 'session.help_seen':
+        final k = '${p['key'] ?? ''}'.trim();
+        if (k.isEmpty) {
+          throw const StudioValidation(
+            'Say which help was seen.',
+            field: 'key',
+            statusCode: 422,
+          );
+        }
+        _seenHelp.add(k);
+        return {
+          'seen_help': (_meSeen(
+            _fixture('session.me') as Map<String, dynamic>,
+          )['seen_help']),
+        };
+      case 'calendar.frame_set':
+        final pos = (p['position'] as num?)?.toInt() ?? 0;
+        final status = '${p['status'] ?? ''}';
+        final reason = '${p['reason'] ?? ''}'.trim();
+        if (!storyFrames || p['post_id'] != _storyId) return null;
+        if (pos < 1 || pos > 4) {
+          throw const StudioNotFound('No such frame.', statusCode: 404);
+        }
+        if (status != 'posted' && status != 'skipped') {
+          throw const StudioValidation(
+            'A frame is posted or skipped.',
+            field: 'status',
+            statusCode: 422,
+          );
+        }
+        if (status == 'skipped' && reason.isEmpty) {
+          throw const StudioValidation(
+            'Say why the frame is skipped.',
+            field: 'reason',
+            statusCode: 422,
+          );
+        }
+        _frames[pos] = {
+          'status': status,
+          'reason': status == 'skipped' ? reason : null,
+          'set_by': _meRef(),
+          'set_at': _stamp(),
+        };
+        final story = _storyPost();
+        if (story['status'] == 'Published') {
+          _patches[_storyId] = {'status': 'Published'};
+        }
+        return story;
+      case 'calendar.post_mark_posted':
+        final id = '${p['post_id']}';
+        final base = _post(_fixture(key) as Map, {'post_id': id});
+        _patches[id] = {
+          ...?_patches[id],
+          'status': 'Published',
+          'posted_at': _stamp(),
+          'posted_by': _meRef()['key'],
+          'posted_how': 'hand',
+          'permalink': p['link'],
+          'actions': <String>[],
+        };
+        return _overlay(base);
+      case 'calendar.post_wont_post':
+        final id = '${p['post_id']}';
+        final base = _post(_fixture(key) as Map, {'post_id': id});
+        _patches[id] = {
+          ...?_patches[id],
+          'status': 'Skipped',
+          'skip_reason': p['reason'],
+          'actions': <String>[],
+        };
+        return _overlay(base);
+      case 'calendar.post_retry':
+        final id = '${p['post_id']}';
+        final base = _post(_fixture(key) as Map, {'post_id': id});
+        _patches[id] = {...?_patches[id], 'retried': true, 'waits_on': null};
+        return _overlay(base);
+      case 'shoots.shot_tick':
+        final results = <Map<String, dynamic>>[];
+        final shots = <Map<String, dynamic>>[];
+        final ticks = p['ticks'];
+        for (final t in ticks is List ? ticks : [if (ticks is Map) ticks]) {
+          final tick = Map<String, dynamic>.from(t as Map);
+          final id = '${tick['shot_id']}';
+          final base = _shotBase(id);
+          if (base == null) return null; // the contract's sample answer
+          final done = tick['done'] != false;
+          _patches[id] = {
+            ...?_patches[id],
+            'done': done,
+            'done_by': done ? _meRef() : null,
+            'done_at': done ? (tick['at'] ?? _stamp()) : null,
+          };
+          results.add({'shot_id': id, 'ok': true, 'error': null});
+          shots.add(_overlay(base) as Map<String, dynamic>);
+        }
+        return {
+          'results': results,
+          'shots': shots,
+          'pieces_moved': <dynamic>[],
+        };
+      case 'shoots.shot_note':
+        final id = '${p['shot_id']}';
+        final base = _shotBase(id);
+        if (base == null) return null; // the contract's sample answer
+        _patches[id] = {
+          ...?_patches[id],
+          'note': p['note'],
+          'modified': _stamp(),
+        };
+        return _overlay(base);
+      case 'today.task_create':
+        final text = '${p['text'] ?? ''}'.trim();
+        if (text.isEmpty) {
+          throw const StudioValidation(
+            'Write what needs doing.',
+            field: 'text',
+            statusCode: 422,
+          );
+        }
+        final t = _newTask(p);
+        _createdTasks.add(t);
+        return _overlay(t);
       case 'today.task_tick':
         final id = p['task_id'] as String;
         final skipped = p['skipped'] == true;
@@ -605,7 +1134,7 @@ const Map<String, Map<String, String>> fakeActionEndpoints = {
     'frame_set': 'calendar.frame_set',
   },
   'task': {'edit': 'today.task_update'},
-  'shot': {'edit': 'shoots.shot_set'},
+  'shot': {'edit': 'shoots.shot_set', 'note': 'shoots.shot_note'},
   'shoot': {
     'edit': 'shoots.update',
     'share': 'shoots.share_link',

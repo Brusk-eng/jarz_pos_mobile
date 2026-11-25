@@ -233,7 +233,7 @@ class TodayStringsAr extends TodayStrings {
   @override
   String get me => 'أنا';
   @override
-  String get creatorsTeam => 'الكرييتورز';
+  String get creatorsTeam => 'صنّاع المحتوى';
   @override
   String get claudeTeam => 'Claude';
   @override

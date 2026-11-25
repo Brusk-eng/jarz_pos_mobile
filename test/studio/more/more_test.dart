@@ -56,7 +56,7 @@ void main() {
       expect(lead.first, 'more-shoots');
     });
 
-    testWidgets('creator sees shoots, library and references only', (
+    testWidgets('creator sees shoots, library, references and results only', (
       tester,
     ) async {
       await pumpMoreRouter(
@@ -67,6 +67,7 @@ void main() {
         'more-shoots',
         'more-assets',
         'more-references',
+        'more-results',
       ]);
     });
 

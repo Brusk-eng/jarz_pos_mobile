@@ -21,7 +21,6 @@ import '../../calendar/state/cairo_format.dart';
 import '../../calendar/state/cairo_time.dart';
 import '../data/pieces_repository.dart';
 import '../pieces_strings.dart';
-import '../state/piece_filters.dart';
 import 'add_version_screen.dart';
 import 'piece_edit_screen.dart';
 import 'piece_widgets.dart';
@@ -45,13 +44,6 @@ class _PieceScreenState extends ConsumerState<PieceScreen> {
   PieceNotifier get _notifier =>
       ref.read(pieceProvider(widget.pieceId).notifier);
 
-  void _refreshLists() {
-    ref.invalidate(pieceBoardProvider);
-    ref.invalidate(pieceListProvider);
-    ref.invalidate(parkedPiecesProvider);
-    ref.invalidate(thisWeekProvider);
-  }
-
   /// Runs a write, then says what happened in plain words.
   Future<void> _run(
     Future<void> Function() op, {
@@ -62,7 +54,6 @@ class _PieceScreenState extends ConsumerState<PieceScreen> {
     setState(() => _busy = true);
     try {
       await op();
-      _refreshLists();
       if (mounted) showSnack(context, done);
     } on StudioGateFailed catch (e) {
       if (!mounted) return;
@@ -75,7 +66,6 @@ class _PieceScreenState extends ConsumerState<PieceScreen> {
     } on StudioNotFound {
       if (mounted) {
         showSnack(context, s.gone);
-        _refreshLists();
         context.go('/pieces');
       }
     } on StudioNotPermitted catch (e) {
@@ -312,6 +302,11 @@ class _Header extends StatelessWidget {
   }
 }
 
+String? _slotDay(String? iso, bool ar) {
+  final day = CairoTime.parse(iso);
+  return day == null ? null : CairoFormat.dayMonth(day, ar);
+}
+
 class _NextCard extends StatelessWidget {
   const _NextCard({
     required this.piece,
@@ -358,6 +353,30 @@ class _NextCard extends StatelessWidget {
                 if (due != null) s.dueOn(CairoFormat.dayMonth(due, ar)),
               ].join(' · '),
               key: const ValueKey('next-who'),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: StudioSpacing.xs),
+              child: Text(
+                s.stageNext(
+                  piece.stage,
+                  who: piece.assignee?.fullName ??
+                      (piece.assigneeTeam != null &&
+                              piece.assigneeTeam != OwnerTeam.unknown
+                          ? s.team(piece.assigneeTeam!)
+                          : null),
+                  parkedReason: piece.parked,
+                  sentBack:
+                      piece.currentVersion?.reviewOutcome ==
+                      ReviewOutcome.fix,
+                  reason: piece.versions
+                      .where((v) => v.isCurrent)
+                      .map((v) => v.reviewReason)
+                      .firstOrNull,
+                  slot: _slotDay(piece.nextPost?.slotTime, ar),
+                  byHand: piece.nextPost?.postingMode == PostingMode.byHand,
+                ),
+                key: const ValueKey('next-stage'),
+              ),
             ),
             if (piece.blocked != null)
               Padding(

@@ -697,7 +697,7 @@ class SettingsStringsAr extends SettingsStrings {
   String roleLabel(PersonRole r) => switch (r) {
     PersonRole.founder => 'المؤسس',
     PersonRole.marketingLead => 'مسؤول التسويق',
-    PersonRole.creator => 'كرييتور',
+    PersonRole.creator => 'صانع محتوى',
     PersonRole.storyLead => 'مسؤول الـ Stories',
     PersonRole.moderator => 'مودريتور (لسه من غير صلاحية)',
     PersonRole.unknown => 'غير معروف',

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../calendar/data/calendar_repository.dart' show postProvider;
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
@@ -204,39 +203,47 @@ class ReadRow extends ConsumerWidget {
     );
   }
 
-  Future<void> _file(BuildContext context, WidgetRef ref) async {
-    final t = ResultsStrings.of(context);
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    final m = MoreStrings.of(context);
-    final values = await showDialog<Map<String, num>>(
-      context: context,
-      builder: (_) => _FileReadDialog(read: read),
+  Future<void> _file(BuildContext context, WidgetRef ref) =>
+      fileReadFlow(context, ref, read);
+}
+
+/// The form to file one read (the numbers the platform did not give), then the
+/// write. Used by the read row (Results by piece, the post screen) and by the
+/// Today line "Results to add".
+Future<void> fileReadFlow(
+  BuildContext context,
+  WidgetRef ref,
+  PostRead read,
+) async {
+  final t = ResultsStrings.of(context);
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final m = MoreStrings.of(context);
+  final values = await showDialog<Map<String, num>>(
+    context: context,
+    builder: (_) => _FileReadDialog(read: read),
+  );
+  if (values == null) return;
+  final notifier = ref.read(pieceResultsProvider.notifier);
+  try {
+    await notifier.fileRead(
+      read.postId,
+      hold3Pct: values['hold3_pct']?.toDouble(),
+      views: values['views']?.toInt(),
+      reach: values['reach']?.toInt(),
+      sends: values['sends']?.toInt(),
+      shares: values['shares']?.toInt(),
+      likes: values['likes']?.toInt(),
+      commentsCount: values['comments_count']?.toInt(),
+      saves: values['saves']?.toInt(),
+      avgWatchS: values['avg_watch_s']?.toDouble(),
+      reelLenS: values['reel_len_s']?.toDouble(),
     );
-    if (values == null) return;
-    final notifier = ref.read(pieceResultsProvider.notifier);
-    try {
-      await notifier.fileRead(
-        read.postId,
-        hold3Pct: values['hold3_pct']?.toDouble(),
-        views: values['views']?.toInt(),
-        reach: values['reach']?.toInt(),
-        sends: values['sends']?.toInt(),
-        shares: values['shares']?.toInt(),
-        likes: values['likes']?.toInt(),
-        commentsCount: values['comments_count']?.toInt(),
-        saves: values['saves']?.toInt(),
-        avgWatchS: values['avg_watch_s']?.toDouble(),
-        reelLenS: values['reel_len_s']?.toDouble(),
-      );
-      ref.invalidate(postProvider(read.postId));
-      showMoreSnack(messenger, t.readFiledOk);
-    } on StudioAlreadyDone {
-      ref.invalidate(postProvider(read.postId));
-      notifier.markFiled(read.postId);
-      showMoreSnack(messenger, t.readAlreadyFiled);
-    } catch (e) {
-      showMoreSnack(messenger, moreErrorText(m, e));
-    }
+    showMoreSnack(messenger, t.readFiledOk);
+  } on StudioAlreadyDone {
+    notifier.markFiled(read.postId);
+    showMoreSnack(messenger, t.readAlreadyFiled);
+  } catch (e) {
+    showMoreSnack(messenger, moreErrorText(m, e));
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/l10n/studio_labels.dart';
 import '../data/studio_error.dart';
 
 /// The one mapping from a failed Studio call to plain words, in English and
@@ -24,7 +25,7 @@ String studioErrorMessage(Object error, {required bool ar}) {
     StudioGateFailed(:final problems) =>
       problems.isEmpty
           ? studioGateHeader(ar: ar)
-          : '${studioGateHeader(ar: ar)}\n${[for (final p in problems) '- ${p.message}'].join('\n')}',
+          : '${studioGateHeader(ar: ar)}\n${[for (final p in problems) '- ${StudioLabels.forLanguage(ar ? 'ar' : 'en').problem(p.code, message: p.message)}'].join('\n')}',
     StudioStale() => tr(
       'This changed since you opened it. Refresh the page and try again.',
       'اتغيّر من ساعة ما فتحته. حدّث الصفحة وجرّب تاني.',

@@ -2370,6 +2370,9 @@ abstract class NotificationPrefs with _$NotificationPrefs {
     @JsonKey(name: 'digest_enabled') required bool digestEnabled,
     @JsonKey(name: 'digest_time') String? digestTime,
 
+    /// v1.3: the language of the lines the server words for this person (null: English)
+    @JsonKey(unknownEnumValue: StudioLang.unknown) StudioLang? lang,
+
     /// what this person is told about, read-only
     required List<EventInfo> events,
   }) = _NotificationPrefs;

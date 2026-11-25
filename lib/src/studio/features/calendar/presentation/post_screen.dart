@@ -1,3 +1,6 @@
+import '../../../core/l10n/studio_labels.dart';
+import '../../../shared/bidi_text.dart';
+import '../../../shared/person_name.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -40,18 +43,11 @@ class _PostScreenState extends ConsumerState<PostScreen> {
 
   PostNotifier get _notifier => ref.read(postProvider(widget.postId).notifier);
 
-  void _refreshCalendar() {
-    ref.invalidate(calendarRangeProvider);
-    ref.invalidate(readyToPostProvider);
-    ref.invalidate(postDriftProvider);
-  }
-
   Future<void> _run(Future<void> Function() op, {required String done}) async {
     final c = CalendarStrings.of(context);
     setState(() => _busy = true);
     try {
       await op();
-      _refreshCalendar();
       if (mounted) showSnack(context, done);
     } on StudioGateFailed catch (e) {
       if (!mounted) return;
@@ -63,7 +59,6 @@ class _PostScreenState extends ConsumerState<PostScreen> {
     } on StudioNotFound {
       if (mounted) {
         showSnack(context, c.gone);
-        _refreshCalendar();
         context.go('/calendar');
       }
     } on StudioNotPermitted catch (e) {
@@ -586,7 +581,7 @@ class _SlotBlock extends StatelessWidget {
                     start: StudioSpacing.sm,
                   ),
                   child: Text(
-                    names.waitingOn(post.waitsOn!),
+                    names.waitingOn(personName(post.waitsOn)),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: StudioColors.warning,
                     ),
@@ -684,7 +679,9 @@ class _Checks extends StatelessWidget {
                   ? StudioColors.danger
                   : StudioColors.warning,
             ),
-            title: Text(k.message),
+            title: Text(
+              StudioLabels.of(context).problem(k.code, message: k.message),
+            ),
             subtitle: Text(
               k.severity == CheckSeverity.block ? c.blockLevel : c.warnLevel,
             ),
@@ -712,7 +709,7 @@ class _Log extends StatelessWidget {
           PostedHow.hand => c.postedByHand,
           PostedHow.matched => c.postedMatched,
           PostedHow.unknown => '',
-        }, post.postedBy ?? c.whoSystem),
+        }, post.postedBy == null ? c.whoSystem : personName(post.postedBy)),
       if (post.lastError != null && post.lastError!.isNotEmpty)
         c.lastError(post.lastError!),
       if (post.skipReason != null && post.skipReason!.isNotEmpty)
@@ -925,7 +922,7 @@ class _HandPostState extends ConsumerState<_HandPost> {
       showSnack(context, c.nothingToCopy);
       return;
     }
-    await Clipboard.setData(ClipboardData(text: text));
+    await Clipboard.setData(ClipboardData(text: withoutBidiIsolates(text)));
     if (mounted) showSnack(context, c.captionCopied);
   }
 

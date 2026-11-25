@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -22,7 +23,22 @@ const studioMethodPrefix = 'jarz_social.api.studio.';
 /// The one door every Studio repository calls through: one typed method per
 /// endpoint (generated, see `data/api/`), all built on [call]. Implemented by
 /// [DioStudioApi] and the fake.
-abstract class StudioApi extends StudioApiEndpoints {}
+abstract class StudioApi extends StudioApiEndpoints {
+  final _writes = StreamController<String>.broadcast();
+
+  /// `group.fn` of every call that went through without an error, in order.
+  /// The app listens in one place (`studioWriteRefreshProvider`) and refreshes
+  /// what that write changes; no screen does it itself.
+  Stream<String> get writes => _writes.stream;
+
+  /// Called by an implementation after a call succeeded.
+  void announceCall(String method) {
+    final key = method.startsWith(studioMethodPrefix)
+        ? method.substring(studioMethodPrefix.length)
+        : method;
+    if (!_writes.isClosed) _writes.add(key);
+  }
+}
 
 /// Real client: whitelisted Frappe methods go to `/api/method/<method>`
 /// (POST, or GET for pure reads), the `message` envelope is unwrapped and every
@@ -50,6 +66,7 @@ class DioStudioApi extends StudioApi {
           ? await _dio.get('/api/method/$method', queryParameters: wire)
           : await _dio.post('/api/method/$method', data: wire);
       final data = response.data;
+      if (!get) announceCall(method);
       if (data is Map && data.containsKey('message')) return data['message'];
       return data;
     } on DioException catch (e) {
@@ -104,7 +121,12 @@ final studioDioProvider = Provider<Dio>((ref) {
 /// this provider with a [FakeStudioApi].
 final studioApiProvider = Provider<StudioApi>((ref) {
   if (StudioConfig.fake) {
-    return FakeStudioApi(role: StudioConfig.fakeRole, textDecisions: true);
+    return FakeStudioApi(
+      role: StudioConfig.fakeRole,
+      textDecisions: true,
+      firstLogin: true,
+      storyFrames: true,
+    );
   }
   return DioStudioApi(ref.watch(studioDioProvider));
 });

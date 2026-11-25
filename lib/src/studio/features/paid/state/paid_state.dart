@@ -43,42 +43,34 @@ class PaidRoundNotifier extends EntityNotifier<PaidRound> {
 
   /// [state] null clears the state ("Not set").
   Future<void> setAdState(String adId, AdState? state, {String? note}) async {
-    try {
-      await mutate(
-        optimistic: (round) => round.copyWith(
-          ads: [
-            for (final a in round.ads)
-              if (a.id == adId) a.copyWith(state: state) else a,
-          ],
-        ),
-        call: () async {
-          final ad = this.state.valueOrNull?.ads
-              .where((a) => a.id == adId)
-              .firstOrNull;
-          await _repo.adSetState(
-            adId,
-            roundCode: ad?.roundCode == null ? arg : null,
-            state: state?.wire ?? '',
-            note: note,
-            baseModified: ad?.modified,
-          );
-          return _repo.round(arg);
-        },
-      );
-    } finally {
-      ref.invalidate(paidOverviewProvider);
-    }
+    await mutate(
+      optimistic: (round) => round.copyWith(
+        ads: [
+          for (final a in round.ads)
+            if (a.id == adId) a.copyWith(state: state) else a,
+        ],
+      ),
+      call: () async {
+        final ad = this.state.valueOrNull?.ads
+            .where((a) => a.id == adId)
+            .firstOrNull;
+        await _repo.adSetState(
+          adId,
+          roundCode: ad?.roundCode == null ? arg : null,
+          state: state?.wire ?? '',
+          note: note,
+          baseModified: ad?.modified,
+        );
+        return _repo.round(arg);
+      },
+    );
   }
 
   /// Moves the round's launch date, title or note.
   Future<void> edit(String launchDate, {String? title, String? note}) async {
-    try {
-      await mutate(
-        call: () => _repo.roundSet(arg, launchDate, title: title, note: note),
-      );
-    } finally {
-      ref.invalidate(paidOverviewProvider);
-    }
+    await mutate(
+      call: () => _repo.roundSet(arg, launchDate, title: title, note: note),
+    );
   }
 }
 

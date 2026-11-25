@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/studio/core/offline/kv_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -227,6 +228,7 @@ void main() {
           overrides: [
             studioFakeProvider.overrideWithValue(true),
             studioApiProvider.overrideWithValue(api),
+            studioKvStoreProvider.overrideWithValue(MemoryKvStore()),
             studioFakeRoleProvider.overrideWithValue('founder'),
           ],
           child: const StudioApp(),

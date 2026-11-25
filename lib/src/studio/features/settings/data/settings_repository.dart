@@ -75,11 +75,13 @@ class SettingsRepository {
     String? quietTo,
     bool? digestEnabled,
     String? digestTime,
+    String? lang,
   }) => _api.settingsSetMyNotifications(
     quietFrom: quietFrom,
     quietTo: quietTo,
     digestEnabled: digestEnabled,
     digestTime: digestTime,
+    lang: lang,
   );
 
   Future<HelpSeen> helpSeen(String key) => _api.sessionHelpSeen(key: key);

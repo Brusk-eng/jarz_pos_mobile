@@ -4,8 +4,6 @@ import '../../../core/network/studio_api.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
-import '../../review/data/review_repository.dart' show inboxCountsProvider;
-import '../../today/data/today_repository.dart' show todayProvider;
 
 class DecisionsRepository {
   DecisionsRepository(this._api);
@@ -91,10 +89,6 @@ class DecisionsNotifier extends PagedNotifier<StudioDecision> {
       toItem: (d) => d,
       fromCurrent: (c) => c == null ? null : _parse(c),
     );
-    ref.invalidate(decisionProvider(id));
-    // The answered decision leaves Today and the Inbox count.
-    ref.invalidate(todayProvider);
-    ref.invalidate(inboxCountsProvider);
     if (result == null) {
       throw const StudioAlreadyDone('Already answered.', null);
     }

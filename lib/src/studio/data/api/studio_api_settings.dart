@@ -208,6 +208,7 @@ mixin StudioApiSettings on StudioApiCore {
     String? quietTo,
     bool? digestEnabled,
     String? digestTime,
+    String? lang,
   }) async {
     final d = await call(
       'jarz_social.api.studio.settings.set_my_notifications',
@@ -218,6 +219,7 @@ mixin StudioApiSettings on StudioApiCore {
           'quiet_to': quietTo == studioClear ? null : quietTo,
         if (digestEnabled != null) 'digest_enabled': digestEnabled,
         if (digestTime != null) 'digest_time': digestTime,
+        if (lang != null) 'lang': lang == studioClear ? null : lang,
       },
     );
     return NotificationPrefs.fromJson(Map<String, dynamic>.from(d as Map));

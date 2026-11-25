@@ -206,7 +206,6 @@ class PieceNotifier extends EntityNotifier<StudioPiece> {
         requestId: requestId,
       ),
     );
-    ref.invalidate(pieceBoardProvider);
   }
 
   Future<void> park(String reason, {String? requestId}) =>

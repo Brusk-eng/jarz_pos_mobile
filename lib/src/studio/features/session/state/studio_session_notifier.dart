@@ -38,6 +38,14 @@ class StudioSessionNotifier extends AsyncNotifier<MeProfile?> {
     state = await AsyncValue.guard(_load);
   }
 
+  /// Remembers on this device that [key] was seen (the server was told by the
+  /// caller), without reloading the session: the screens stay where they are.
+  void markHelpSeen(String key) {
+    final me = state.valueOrNull;
+    if (me == null || me.seenHelp.contains(key)) return;
+    state = AsyncData(me.copyWith(seenHelp: [...me.seenHelp, key]));
+  }
+
   Future<void> signOut() async {
     await ref.read(studioSessionRepositoryProvider).logout();
     state = const AsyncData(null);

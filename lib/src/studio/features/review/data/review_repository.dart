@@ -139,7 +139,6 @@ class ToApproveNotifier extends PagedNotifier<ApproveCard> {
           _repo.approve(versionId, baseModified: base, requestId: requestId),
       fromCurrent: (_) => null,
     );
-    ref.invalidate(inboxCountsProvider);
   }
 
   /// Send back with a [reason] (required by the server).
@@ -156,7 +155,6 @@ class ToApproveNotifier extends PagedNotifier<ApproveCard> {
       ),
       fromCurrent: (_) => null,
     );
-    ref.invalidate(inboxCountsProvider);
   }
 }
 
@@ -198,7 +196,7 @@ class VersionNotifier extends EntityNotifier<PieceVersion> {
     ),
     call: () =>
         _repo.approve(arg, baseModified: baseModified, requestId: requestId),
-  ).whenComplete(() => ref.invalidate(inboxCountsProvider));
+  );
 
   Future<void> fix(String reason, {String? requestId}) => mutate(
     optimistic: (v) => v.copyWith(
@@ -212,7 +210,7 @@ class VersionNotifier extends EntityNotifier<PieceVersion> {
       baseModified: baseModified,
       requestId: requestId,
     ),
-  ).whenComplete(() => ref.invalidate(inboxCountsProvider));
+  );
 
   Future<void> clearReview({String? requestId}) => mutate(
     optimistic: (v) => v.copyWith(

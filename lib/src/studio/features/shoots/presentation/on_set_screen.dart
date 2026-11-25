@@ -135,10 +135,22 @@ class _OnSetScreenState extends ConsumerState<OnSetScreen> {
       key: const ValueKey('on-set'),
       appBar: AppBar(
         leading: _CloseButton(shootId: widget.shootId),
-        title: Text(
-          total == 0 ? t.onSetTitle : t.shotOf(_index + 1, total),
-          key: const ValueKey('onset-position'),
-        ),
+        title: total == 0
+            ? Text(t.onSetTitle, key: const ValueKey('onset-position'))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    t.shotOf(_index + 1, total),
+                    key: const ValueKey('onset-position'),
+                  ),
+                  Text(
+                    done == total ? t.allFilmed : t.shotsOf(done, total),
+                    key: const ValueKey('onset-count'),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
         actions: [
           IconButton(
             key: const ValueKey('help'),

@@ -1,3 +1,4 @@
+import '../../../core/l10n/studio_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -162,7 +163,11 @@ class CalendarBanner extends ConsumerWidget {
                           ? StudioColors.danger
                           : StudioColors.warning,
                     ),
-                    title: Text(row.message),
+                    title: Text(
+                      StudioLabels.of(
+                        context,
+                      ).problem(row.code, message: row.message),
+                    ),
                     subtitle: row.title == null ? null : Text(row.title!),
                     onTap: row.postId == null
                         ? null

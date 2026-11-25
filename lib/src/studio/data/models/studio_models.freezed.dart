@@ -38937,6 +38937,10 @@ mixin _$NotificationPrefs {
   @JsonKey(name: 'digest_time')
   String? get digestTime => throw _privateConstructorUsedError;
 
+  /// v1.3: the language of the lines the server words for this person (null: English)
+  @JsonKey(unknownEnumValue: StudioLang.unknown)
+  StudioLang? get lang => throw _privateConstructorUsedError;
+
   /// what this person is told about, read-only
   List<EventInfo> get events => throw _privateConstructorUsedError;
 
@@ -38962,6 +38966,7 @@ abstract class $NotificationPrefsCopyWith<$Res> {
     @JsonKey(name: 'quiet_to') String? quietTo,
     @JsonKey(name: 'digest_enabled') bool digestEnabled,
     @JsonKey(name: 'digest_time') String? digestTime,
+    @JsonKey(unknownEnumValue: StudioLang.unknown) StudioLang? lang,
     List<EventInfo> events,
   });
 }
@@ -38985,6 +38990,7 @@ class _$NotificationPrefsCopyWithImpl<$Res, $Val extends NotificationPrefs>
     Object? quietTo = freezed,
     Object? digestEnabled = null,
     Object? digestTime = freezed,
+    Object? lang = freezed,
     Object? events = null,
   }) {
     return _then(
@@ -39005,6 +39011,10 @@ class _$NotificationPrefsCopyWithImpl<$Res, $Val extends NotificationPrefs>
                 ? _value.digestTime
                 : digestTime // ignore: cast_nullable_to_non_nullable
                       as String?,
+            lang: freezed == lang
+                ? _value.lang
+                : lang // ignore: cast_nullable_to_non_nullable
+                      as StudioLang?,
             events: null == events
                 ? _value.events
                 : events // ignore: cast_nullable_to_non_nullable
@@ -39029,6 +39039,7 @@ abstract class _$$NotificationPrefsImplCopyWith<$Res>
     @JsonKey(name: 'quiet_to') String? quietTo,
     @JsonKey(name: 'digest_enabled') bool digestEnabled,
     @JsonKey(name: 'digest_time') String? digestTime,
+    @JsonKey(unknownEnumValue: StudioLang.unknown) StudioLang? lang,
     List<EventInfo> events,
   });
 }
@@ -39051,6 +39062,7 @@ class __$$NotificationPrefsImplCopyWithImpl<$Res>
     Object? quietTo = freezed,
     Object? digestEnabled = null,
     Object? digestTime = freezed,
+    Object? lang = freezed,
     Object? events = null,
   }) {
     return _then(
@@ -39071,6 +39083,10 @@ class __$$NotificationPrefsImplCopyWithImpl<$Res>
             ? _value.digestTime
             : digestTime // ignore: cast_nullable_to_non_nullable
                   as String?,
+        lang: freezed == lang
+            ? _value.lang
+            : lang // ignore: cast_nullable_to_non_nullable
+                  as StudioLang?,
         events: null == events
             ? _value._events
             : events // ignore: cast_nullable_to_non_nullable
@@ -39089,6 +39105,7 @@ class _$NotificationPrefsImpl implements _NotificationPrefs {
     @JsonKey(name: 'quiet_to') this.quietTo,
     @JsonKey(name: 'digest_enabled') required this.digestEnabled,
     @JsonKey(name: 'digest_time') this.digestTime,
+    @JsonKey(unknownEnumValue: StudioLang.unknown) this.lang,
     required final List<EventInfo> events,
   }) : _events = events;
 
@@ -39108,6 +39125,11 @@ class _$NotificationPrefsImpl implements _NotificationPrefs {
   @JsonKey(name: 'digest_time')
   final String? digestTime;
 
+  /// v1.3: the language of the lines the server words for this person (null: English)
+  @override
+  @JsonKey(unknownEnumValue: StudioLang.unknown)
+  final StudioLang? lang;
+
   /// what this person is told about, read-only
   final List<EventInfo> _events;
 
@@ -39121,7 +39143,7 @@ class _$NotificationPrefsImpl implements _NotificationPrefs {
 
   @override
   String toString() {
-    return 'NotificationPrefs(quietFrom: $quietFrom, quietTo: $quietTo, digestEnabled: $digestEnabled, digestTime: $digestTime, events: $events)';
+    return 'NotificationPrefs(quietFrom: $quietFrom, quietTo: $quietTo, digestEnabled: $digestEnabled, digestTime: $digestTime, lang: $lang, events: $events)';
   }
 
   @override
@@ -39136,6 +39158,7 @@ class _$NotificationPrefsImpl implements _NotificationPrefs {
                 other.digestEnabled == digestEnabled) &&
             (identical(other.digestTime, digestTime) ||
                 other.digestTime == digestTime) &&
+            (identical(other.lang, lang) || other.lang == lang) &&
             const DeepCollectionEquality().equals(other._events, _events));
   }
 
@@ -39147,6 +39170,7 @@ class _$NotificationPrefsImpl implements _NotificationPrefs {
     quietTo,
     digestEnabled,
     digestTime,
+    lang,
     const DeepCollectionEquality().hash(_events),
   );
 
@@ -39173,6 +39197,7 @@ abstract class _NotificationPrefs implements NotificationPrefs {
     @JsonKey(name: 'quiet_to') final String? quietTo,
     @JsonKey(name: 'digest_enabled') required final bool digestEnabled,
     @JsonKey(name: 'digest_time') final String? digestTime,
+    @JsonKey(unknownEnumValue: StudioLang.unknown) final StudioLang? lang,
     required final List<EventInfo> events,
   }) = _$NotificationPrefsImpl;
 
@@ -39191,6 +39216,11 @@ abstract class _NotificationPrefs implements NotificationPrefs {
   @override
   @JsonKey(name: 'digest_time')
   String? get digestTime;
+
+  /// v1.3: the language of the lines the server words for this person (null: English)
+  @override
+  @JsonKey(unknownEnumValue: StudioLang.unknown)
+  StudioLang? get lang;
 
   /// what this person is told about, read-only
   @override

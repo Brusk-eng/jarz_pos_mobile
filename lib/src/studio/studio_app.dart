@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/l10n/studio_language_sync.dart';
 import 'core/l10n/studio_locale.dart';
 import 'core/l10n/studio_strings.dart';
 import 'core/router/studio_router.dart';
 import 'core/theme/studio_theme.dart';
 import 'core/upload/upload_engine.dart';
 import 'core/upload/upload_tray.dart';
+import 'data/write_refresh.dart';
 import 'features/assets/state/library_state.dart';
 import 'features/pieces/state/add_version_state.dart';
 
@@ -41,6 +43,8 @@ class _StudioAppState extends ConsumerState<StudioApp> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(studioWriteRefreshProvider); // one place: data/write_refresh.dart
+    ref.watch(studioLanguageSyncProvider); // the language, kept with the server
     final locale = ref.watch(studioLocaleProvider);
     final router = ref.watch(studioRouterProvider);
     return MaterialApp.router(
