@@ -162,6 +162,10 @@ $config = switch ($Environment) {
     }
 }
 
+if ($OnlyApps -and $Environment -eq 'production') {
+    throw '-OnlyApps is staging-only: production must always run every app so it stays in parity with staging.'
+}
+
 $sshTarget = "ubuntu@$($config.ServerIp)"
 
 function Write-Info([string]$Message) {
@@ -924,6 +928,7 @@ if ($OnlyApps) {
     if ($Commit -and $onlyList -notcontains 'jarz_pos') {
         throw '-Commit pins jarz_pos, which -OnlyApps excludes; drop -Commit or add jarz_pos to -OnlyApps.'
     }
+    $skippedApps = @($config.CustomApps | Where-Object { $onlyList -notcontains $_ })
     $config.CustomApps = @($config.CustomApps | Where-Object { $onlyList -contains $_ })
     Write-Info "-OnlyApps: this run touches only $($config.CustomApps -join ', '); every other app stays at the server's current commit"
     Write-Host ''
@@ -984,6 +989,11 @@ if ($PlanOnly) {
         Write-Info "$($gitTarget.AppName): $status"
         Write-Host "        current: $($gitTarget.HeadBefore)"
         Write-Host "        target : $($gitTarget.RemoteHead)"
+    }
+    foreach ($skipped in @($skippedApps)) {
+        $skippedHead = (Invoke-Remote "sudo git -c safe.directory=$remoteAppsDir/$skipped -C $remoteAppsDir/$skipped rev-parse HEAD" -IgnoreExitCode)
+        Write-Info "${skipped}: skipped (OnlyApps)"
+        Write-Host "        deployed: $(([string]$skippedHead).Trim()) (left as is)"
     }
     if ($socialPlannedInstall -and -not ($gitTargets | Where-Object { $_.AppName -eq $socialApp })) {
         # Not on disk yet, so there is no git state to compare: show the first-install plan.
