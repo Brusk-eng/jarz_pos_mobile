@@ -4,6 +4,8 @@ import '../../../core/network/studio_api.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
+import '../../review/data/review_repository.dart' show inboxCountsProvider;
+import '../../today/data/today_repository.dart' show todayProvider;
 
 class DecisionsRepository {
   DecisionsRepository(this._api);
@@ -19,13 +21,15 @@ class DecisionsRepository {
 
   Future<StudioDecision> answer(
     String id,
-    int optionIndex, {
+    int? optionIndex, {
     String? note,
+    String? text,
     String? requestId,
   }) => _api.decisionsAnswer(
     decisionId: id,
     optionIndex: optionIndex,
     note: note,
+    text: text,
     requestId: requestId,
   );
 }
@@ -54,7 +58,8 @@ class DecisionsNotifier extends PagedNotifier<StudioDecision> {
   StudioDecision _parse(Object? j) =>
       StudioDecision.fromJson(Map<String, dynamic>.from(j as Map));
 
-  /// Pick option [optionIndex]. The decision shows as answered at once.
+  /// Pick option [optionIndex], or (a text decision) answer in words with
+  /// [text]. The decision shows as answered at once.
   ///
   /// A decision is answered once and kept (contract: `decisions.answer`): a
   /// second answer, with the same pick or another, answers ALREADY_DONE and the
@@ -62,8 +67,9 @@ class DecisionsNotifier extends PagedNotifier<StudioDecision> {
   /// [StudioAlreadyDone] so the card can say "This was already done".
   Future<void> answer(
     String id,
-    int optionIndex, {
+    int? optionIndex, {
     String? note,
+    String? text,
     String? requestId,
   }) async {
     final result = await mutate<StudioDecision>(
@@ -72,14 +78,23 @@ class DecisionsNotifier extends PagedNotifier<StudioDecision> {
         status: DecisionStatus.answered,
         pickedIndex: optionIndex,
         pickNote: note,
+        answerText: text,
         actions: const [],
       ),
-      call: () =>
-          _repo.answer(id, optionIndex, note: note, requestId: requestId),
+      call: () => _repo.answer(
+        id,
+        optionIndex,
+        note: note,
+        text: text,
+        requestId: requestId,
+      ),
       toItem: (d) => d,
       fromCurrent: (c) => c == null ? null : _parse(c),
     );
     ref.invalidate(decisionProvider(id));
+    // The answered decision leaves Today and the Inbox count.
+    ref.invalidate(todayProvider);
+    ref.invalidate(inboxCountsProvider);
     if (result == null) {
       throw const StudioAlreadyDone('Already answered.', null);
     }

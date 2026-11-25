@@ -343,7 +343,7 @@ void main() {
         await tester.pumpAndSettle();
         await _askAndConfirm(tester, 'x');
         expect(find.byKey(const ValueKey('gate-sheet')), findsOneWidget);
-        expect(find.text('This move is not allowed yet'), findsOneWidget);
+        expect(find.text('This move is not possible yet'), findsOneWidget);
         expect(
           find.text('Pick a persona and a situation first'),
           findsOneWidget,
@@ -370,7 +370,7 @@ void main() {
 
     for (final c in [
       ('SHADOW_MODE', 'The Studio is not switched on yet'),
-      ('NOT_PERMITTED', 'You are not allowed to do this.'),
+      ('NOT_PERMITTED', 'Your role cannot do that.'),
       ('SERVER_ERROR', 'Something went wrong on our side'),
       ('VALIDATION', 'Say what changed'),
     ]) {
@@ -397,7 +397,7 @@ void main() {
       await _askAndConfirm(tester, 'x');
       expect(
         find.text(
-          'Someone changed this a moment ago. Showing the latest, try again.',
+          'This changed since you opened it. Refresh the page and try again.',
         ),
         findsOneWidget,
       );
@@ -412,7 +412,7 @@ void main() {
       await tester.pumpAndSettle();
       await _askAndConfirm(tester, 'x');
       expect(
-        find.text('This was already done. Showing how it stands now.'),
+        find.text('Already done. This is how it stands now.'),
         findsOneWidget,
       );
     });
@@ -430,7 +430,10 @@ void main() {
       await tester.pumpAndSettle();
       await _askAndConfirm(tester, 'x');
       expect(locationOf(h), '/pieces');
-      expect(find.text('This piece is no longer there.'), findsOneWidget);
+      expect(
+        find.text('This piece is gone. Go back to the list.'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -564,7 +567,10 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('edit-save')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Someone changed this'), findsOneWidget);
+      expect(
+        find.textContaining('This changed since you opened it'),
+        findsOneWidget,
+      );
       expect(find.byKey(const ValueKey('edit-form')), findsOneWidget);
     });
 

@@ -222,6 +222,15 @@ class _AddVersionState extends ConsumerState<AddVersionScreen> {
                   ),
                 ),
               const SizedBox(height: StudioSpacing.lg),
+              if (_files.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
+                  child: Text(
+                    t.pickFirst,
+                    key: const ValueKey('add-version-pick-first'),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
               FilledButton(
                 key: const ValueKey('add-version-save'),
                 onPressed: _files.isEmpty || _busy
@@ -279,40 +288,51 @@ class AddVersionStrings {
 
   String get title => tr('Add a version', 'ضيف نسخة');
   String get button => tr('Add a version', 'ضيف نسخة');
+  String get buttonFrames => tr('Add the frames', 'ضيف الفريمات');
+  String get pickFirst => tr(
+    'Pick at least one file first. The upload button wakes up once you have.',
+    'اختار ملف واحد على الأقل الأول. زرار الرفع بيشتغل أول ما تختار.',
+  );
   String get notAllowed => tr(
-    'You cannot add a version to this piece.',
-    'مش مسموح لك تضيف نسخة للقطعة دي.',
+    'Your role cannot add a version to this piece.',
+    'مش مسموح لدورك تضيف نسخة للقطعة دي.',
   );
   String get singleIntro => tr(
-    'Pick the finished cut. It goes up in the background.',
+    'Pick the finished cut. It uploads in the background.',
     'اختار النسخة الجاهزة. هتترفع في الخلفية.',
   );
   String get carouselIntro => tr(
     'Pick the slides, then drag them into the order people swipe through.',
-    'اختار الشرايح، وبعدين اسحبها بالترتيب اللي الناس هتقلّبه.',
+    'اختار الشرايح، وبعدين اسحبها بالترتيب اللي الناس هتقلّب بيه.',
   );
   String get storyIntro => tr(
-    'Pick the pictures and clips for the story frames, then drag them into the order they post.',
-    'اختار الصور والكليبات لفريمات الستوري، وبعدين اسحبها بترتيب النشر.',
+    'Pick the pictures and clips for the Story frames, then drag them into the order they post.',
+    'اختار الصور والكليبات لفريمات الـ Story، وبعدين اسحبها بترتيب النشر.',
   );
   String get fromGallery => tr('From the gallery', 'من المعرض');
   String get fromFiles => tr('From files', 'من الملفات');
-  String get nothingPicked => tr('Nothing picked yet.', 'لسه ما اخترتش حاجة.');
-  String get dragToOrder =>
-      tr('Hold and drag to change the order.', 'اسحب عشان تغيّر الترتيب.');
+  String get nothingPicked => tr('Nothing picked yet.', 'لسه ما اتختارش حاجة.');
+  String get dragToOrder => tr(
+    'Hold and drag to change the order.',
+    'امسك واسحب عشان تغيّر الترتيب.',
+  );
   String get video => tr('Video', 'فيديو');
   String get picture => tr('Picture', 'صورة');
-  String get remove => tr('Remove', 'شيل');
+  String get remove => tr('Remove', 'امسح');
   String get titleLabel => tr('Title (optional)', 'العنوان (اختياري)');
   String get save => tr('Upload the version', 'ارفع النسخة');
   String get saveFrames => tr('Upload the frames', 'ارفع الفريمات');
   String started(int n) => tr(
-    n == 1 ? '1 file is on its way.' : '$n files are on their way.',
-    n == 1 ? 'ملف واحد في الطريق.' : '$n ملفات في الطريق.',
+    n == 1 ? '1 file is uploading.' : '$n files are uploading.',
+    n == 1
+        ? 'ملف واحد بيترفع.'
+        : (n == 2
+              ? 'ملفين بيترفعوا.'
+              : (n <= 10 ? '$n ملفات بيترفعوا.' : '$n ملف بيترفعوا.')),
   );
   String get whatNext => tr(
-    'When the files are stored the version is added to the piece. It goes to review once it has its sell verdict, passes the checks and has a post slot; then the founder approves it or sends it back with a reason. You can leave this page: the uploads keep going.',
-    'أول ما الملفات تتخزن النسخة بتتضاف للقطعة. بتروح للمراجعة لما يبقى ليها حكم البيع وتعدّي الفحوصات وليها ميعاد نشر؛ وبعدين المؤسس بيوافق عليها أو بيرجّعها بسبب. تقدر تسيب الصفحة: الرفع بيكمّل.',
+    'When the files are stored, the version is added to the piece. It goes to review once it has its verdict, passes the checks and has a slot. Then the founder approves it or sends it back with a reason. You can leave this page; the uploads keep going.',
+    'أول ما الملفات تتخزن، النسخة بتتضاف للقطعة. وبتروح للريفيو لما يبقى ليها verdict وتعدّي الفحوصات وليها ميعاد. بعدها المؤسس بيوافق عليها أو بيرجّعها بسبب. ممكن تسيب الصفحة؛ الرفع بيكمّل.',
   );
-  String get backToPiece => tr('Back to the piece', 'ارجع للقطعة');
+  String get backToPiece => tr('Back to the piece', 'رجوع للقطعة');
 }

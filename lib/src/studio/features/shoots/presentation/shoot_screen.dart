@@ -103,8 +103,9 @@ class _ShootBody extends ConsumerWidget {
     // Shots grouped by the first piece they serve.
     final groups = <String, List<ShootShot>>{};
     final titles = <String, String>{};
-    for (final shot in [...shoot.shots]
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder))) {
+    for (final shot in [
+      ...shoot.shots,
+    ]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder))) {
       final key = shot.pieces.isEmpty ? '' : shot.pieces.first.id;
       if (shot.pieces.isNotEmpty) titles[key] = shot.pieces.first.title;
       (groups[key] ??= []).add(shot);
@@ -152,8 +153,9 @@ class _ShootBody extends ConsumerWidget {
             Card(
               child: Column(
                 children: [
-                  for (final task in [...shoot.prep]
-                    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
+                  for (final task in [
+                    ...shoot.prep,
+                  ]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
                     _PrepRow(shoot: shoot, task: task),
                 ],
               ),
@@ -214,7 +216,8 @@ class _PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = ShootStrings.of(context);
     final theme = Theme.of(context);
-    Widget line(IconData icon, String? text, {Key? key}) => text == null || text.isEmpty
+    Widget line(IconData icon, String? text, {Key? key}) =>
+        text == null || text.isEmpty
         ? const SizedBox.shrink()
         : Padding(
             padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
@@ -243,7 +246,12 @@ class _PlanCard extends StatelessWidget {
               key: const ValueKey('plan-when'),
             ),
             line(Icons.place_outlined, shoot.place),
-            line(Icons.person_outline, shoot.assignee == null ? null : t.assignedTo(shoot.assignee!.fullName)),
+            line(
+              Icons.person_outline,
+              shoot.assignee == null
+                  ? null
+                  : t.assignedTo(shoot.assignee!.fullName),
+            ),
             line(Icons.groups_outlined, shoot.people),
             line(Icons.inventory_2_outlined, shoot.kit),
             line(Icons.notes_outlined, shoot.notes),
@@ -259,7 +267,9 @@ class _PlanCard extends StatelessWidget {
                       color: StudioColors.warning,
                     ),
                     const SizedBox(width: StudioSpacing.sm),
-                    Expanded(child: Text(need, style: theme.textTheme.bodySmall)),
+                    Expanded(
+                      child: Text(need, style: theme.textTheme.bodySmall),
+                    ),
                   ],
                 ),
               ),
@@ -343,7 +353,9 @@ class _ShotTile extends ConsumerWidget {
             children: [
               Icon(
                 shot.done ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: shot.done ? StudioColors.success : StudioColors.plumMuted,
+                color: shot.done
+                    ? StudioColors.success
+                    : StudioColors.plumMuted,
                 semanticLabel: shot.done ? t.filmedMark : t.notFilmedMark,
               ),
               const SizedBox(width: StudioSpacing.md),
@@ -367,7 +379,11 @@ class _ShotTile extends ConsumerWidget {
                   padding: const EdgeInsetsDirectional.only(
                     start: StudioSpacing.sm,
                   ),
-                  child: StudioThumb(media: images.first, width: 44, height: 56),
+                  child: StudioThumb(
+                    media: images.first,
+                    width: 44,
+                    height: 56,
+                  ),
                 ),
               if (shot.actions.contains('edit'))
                 IconButton(
@@ -611,9 +627,9 @@ class _ShareSheetState extends ConsumerState<_ShareSheet> {
                     icon: const Icon(Icons.send_outlined),
                     label: Text(t.sendWhatsApp),
                     onPressed: () async {
-                      final ok = await ref.read(
-                        studioLinkOpenerProvider,
-                      )(Uri.parse(l.whatsappUrl));
+                      final ok = await ref.read(studioLinkOpenerProvider)(
+                        Uri.parse(l.whatsappUrl),
+                      );
                       if (!ok && mounted) setState(() => failed = true);
                     },
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/l10n/plural.dart';
 import '../../data/models/studio_enums.dart';
 
 /// Texts of the References screens, English and Arabic, same pattern as
@@ -249,7 +250,7 @@ class ReferencesStringsEn extends ReferencesStrings {
   @override
   String get addedBy => 'Added by';
   @override
-  String get lockedNote => 'Locked: this one is part of a finished piece.';
+  String get lockedNote => 'Locked, because it is part of a finished piece.';
   @override
   String get canWeMakeIt => 'Can we make it';
   @override
@@ -290,7 +291,7 @@ class ReferencesStringsEn extends ReferencesStrings {
   };
 
   @override
-  String get shortlist => 'Shortlist';
+  String get shortlist => 'Add to shortlist';
   @override
   String get sendToShoot => 'Send to a shoot';
   @override
@@ -328,7 +329,7 @@ class ReferencesStringsEn extends ReferencesStrings {
   @override
   String get searchPieces => 'Search pieces';
   @override
-  String get noPieces => 'No pieces match.';
+  String get noPieces => 'No pieces match your search.';
   @override
   String get backToShoots => 'Back to shoots';
   @override
@@ -406,18 +407,18 @@ class ReferencesStringsAr extends ReferencesStrings {
   @override
   List<String> get help => const [
     'إعلانات وبوستات تستاهل نتعلم منها، كارت لكل واحد.',
-    'افتح أي واحد تشوف ليه شغّال وإيه اللي ممكن نعمله منه.',
-    'حط الحلو في القائمة القصيرة، ابعته لتصوير، أو سيبه بسبب.',
-    'المنافسين على بعد ضغطة، ولكل واحد صفحته.',
+    'افتح أي مرجع تشوف ليه شغّال وإيه اللي ممكن نعمله منه.',
+    'ضيف المفيد للقائمة القصيرة، ابعته لتصوير، أو سيبه مع السبب.',
+    'المنافسين على بعد ضغطة، ولكل منافس صفحته.',
   ];
   @override
   String get emptyPurpose => 'إعلانات وبوستات نتعلم منها، والمنافسين.';
   @override
   String get emptyFirstStep =>
-      'مفيش مراجع لسه. Claude بيضيف جديد كل يوم، ارجع بعد شوية.';
+      'مفيش مراجع لسه. Claude بيضيف مراجع جديدة كل يوم، جرّب بعد شوية.';
   @override
   String get emptyFiltered =>
-      'مفيش حاجة بتطابق الفلاتر دي. امسح فلتر تشوف أكتر.';
+      'مفيش مرجع بيطابق الفلاتر دي. امسح فلتر يظهر أكتر.';
   @override
   String get searchHint => 'دوّر في المراجع';
   @override
@@ -427,7 +428,7 @@ class ReferencesStringsAr extends ReferencesStrings {
   @override
   String get format => 'النوع';
   @override
-  String get source => 'نزل فين';
+  String get source => 'اتنشر فين';
   @override
   String get remakeFit => 'نقدر نعيده؟';
   @override
@@ -447,17 +448,17 @@ class ReferencesStringsAr extends ReferencesStrings {
   String statusLabel(RefStatus s) => switch (s) {
     RefStatus.newValue => 'جديد',
     RefStatus.shortlisted => 'في القائمة القصيرة',
-    RefStatus.forAShoot => 'لتصوير',
+    RefStatus.forAShoot => 'للتصوير',
     RefStatus.remade => 'اتستخدم',
-    RefStatus.dropped => 'اتسابت',
-    RefStatus.unknown => 'تاني',
+    RefStatus.dropped => 'اتسيب',
+    RefStatus.unknown => 'غير ذلك',
   };
   @override
   String formatLabel(RefMedia m) => switch (m) {
     RefMedia.staticValue => 'صورة ثابتة',
     RefMedia.reel => 'Reel',
     RefMedia.carousel => 'Carousel',
-    RefMedia.unknown => 'تاني',
+    RefMedia.unknown => 'غير ذلك',
   };
   @override
   String sourceLabel(RefSrcType s) => switch (s) {
@@ -465,8 +466,8 @@ class ReferencesStringsAr extends ReferencesStrings {
     RefSrcType.tiktokAd => 'إعلان TikTok',
     RefSrcType.igPost => 'بوست Instagram',
     RefSrcType.igReel => 'Reel على Instagram',
-    RefSrcType.other => 'تاني',
-    RefSrcType.unknown => 'تاني',
+    RefSrcType.other => 'غير ذلك',
+    RefSrcType.unknown => 'غير ذلك',
   };
   @override
   String remakeLabel(String wire) => switch (wire) {
@@ -502,23 +503,23 @@ class ReferencesStringsAr extends ReferencesStrings {
   @override
   String get usedFor => 'مربوط بـ';
   @override
-  String get nothingLinked => 'مش مربوط بلقطة أو قطعة لسه.';
+  String get nothingLinked => 'مش مربوط بشوت أو قطعة لسه.';
   @override
   String get madeFromIt => 'اللي عملناه منه';
   @override
   String get details => 'تفاصيل';
   @override
-  String get addedBy => 'أضافه';
+  String get addedBy => 'اتضاف من';
   @override
-  String get lockedNote => 'مقفول: ده جزء من قطعة خلصت.';
+  String get lockedNote => 'مقفول لأنه جزء من قطعة خلصت.';
   @override
   String get canWeMakeIt => 'نقدر نعمله؟';
   @override
   String get whatToMake => 'اللي هنعمله';
   @override
-  String get whatBlocks => 'اللي مانعنا';
+  String get whatBlocks => 'اللي بيمنعنا';
   @override
-  String get linkedShot => 'لقطة';
+  String get linkedShot => 'شوت';
   @override
   String get linkedPiece => 'قطعة';
   @override
@@ -552,7 +553,7 @@ class ReferencesStringsAr extends ReferencesStrings {
   };
 
   @override
-  String get shortlist => 'حطه في القائمة القصيرة';
+  String get shortlist => 'ضيفه للقائمة';
   @override
   String get sendToShoot => 'ابعته لتصوير';
   @override
@@ -566,9 +567,9 @@ class ReferencesStringsAr extends ReferencesStrings {
   @override
   String get unlink => 'فك الربط';
   @override
-  String get dropTitle => 'ليه هتسيب ده؟';
+  String get dropTitle => 'ليه هتسيب المرجع ده؟';
   @override
-  String get dropHint => 'سطر يفهّم الفريق';
+  String get dropHint => 'اكتب سطر يفهّم الفريق';
   @override
   String get dropConfirm => 'سيبه';
   @override
@@ -578,21 +579,21 @@ class ReferencesStringsAr extends ReferencesStrings {
   @override
   String get noteConfirm => 'ضيف الملاحظة';
   @override
-  String get pickShootTitle => 'اختار تصوير';
+  String get pickShootTitle => 'اختار التصوير';
   @override
-  String get pickShotTitle => 'اختار اللقطة';
+  String get pickShotTitle => 'اختار الشوت';
   @override
-  String get noShoots => 'مفيش تصوير متخطط لسه. خطط لتصوير الأول.';
+  String get noShoots => 'مفيش تصوير متخطط لسه. اعمل خطة تصوير الأول.';
   @override
-  String get noShots => 'التصوير ده مفيهوش لقطات لسه.';
+  String get noShots => 'التصوير ده مفيهوش شوتس لسه.';
   @override
   String get pickPieceTitle => 'اختار قطعة';
   @override
   String get searchPieces => 'دوّر في القطع';
   @override
-  String get noPieces => 'مفيش قطع بتطابق.';
+  String get noPieces => 'مفيش قطع بتطابق البحث.';
   @override
-  String get backToShoots => 'ارجع للتصوير';
+  String get backToShoots => 'رجوع للتصوير';
   @override
   String movedTo(String status) => 'دلوقتي: $status';
   @override
@@ -602,7 +603,8 @@ class ReferencesStringsAr extends ReferencesStrings {
   @override
   String get unlinked => 'اتفك الربط';
   @override
-  String shotsInShoot(int n) => n == 1 ? 'لقطة واحدة' : '$n لقطات';
+  String shotsInShoot(int n) =>
+      arCount(n, one: 'شوت واحد', two: 'شوتين', few: 'شوتس', many: 'شوت');
 
   @override
   String get competitorsTitle => 'المنافسين';
@@ -644,7 +646,7 @@ class ReferencesStringsAr extends ReferencesStrings {
   @override
   String get adLibrary => 'مكتبة الإعلانات';
   @override
-  String get removedBecause => 'اتشال عشان';
+  String get removedBecause => 'اتشال بسبب';
   @override
   String get removedBadge => 'اتشال';
   @override
@@ -652,7 +654,7 @@ class ReferencesStringsAr extends ReferencesStrings {
     CompGroup.egDessert => 'مصر، desserts',
     CompGroup.egCafe => 'مصر، كافيهات',
     CompGroup.oom => 'برّه السوق',
-    CompGroup.unknown => 'تاني',
+    CompGroup.unknown => 'غير ذلك',
   };
   @override
   String get market => 'السوق';

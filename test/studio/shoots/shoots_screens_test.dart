@@ -167,7 +167,10 @@ void main() {
         const ShootScreen(shootId: 'SHOOT-0006'),
         api: api,
       );
-      expect(find.text('This shoot is no longer there.'), findsOneWidget);
+      expect(
+        find.text('This shoot is not there. Go back to the shoot list.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('prep tick is saved; offline it says it needs a connection', (
@@ -253,6 +256,23 @@ void main() {
   });
 
   group('edit', () {
+    testWidgets('a shoot that cannot load shows an error with a retry', (
+      tester,
+    ) async {
+      api.offline = true;
+      await pumpShoot(
+        tester,
+        const ShootEditScreen(shootId: 'SHOOT-9999'),
+        api: api,
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const ValueKey('error-text')), findsOneWidget);
+      api.offline = false;
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('f-title')), findsOneWidget);
+    });
+
     testWidgets('plan a new shoot needs a name, then creates it', (
       tester,
     ) async {
@@ -323,7 +343,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('f-save')));
       await tester.pumpAndSettle();
       expect(
-        find.text('The Studio is not switched on yet. Nothing was changed.'),
+        find.text('The Studio is not switched on yet, so nothing was changed.'),
         findsOneWidget,
       );
     });

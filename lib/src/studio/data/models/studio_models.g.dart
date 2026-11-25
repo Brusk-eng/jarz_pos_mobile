@@ -71,6 +71,7 @@ Map<String, dynamic> _$$StudioMediaImplToJson(_$StudioMediaImpl instance) =>
 const _$MediaKindEnumMap = {
   MediaKind.image: 'image',
   MediaKind.video: 'video',
+  MediaKind.audio: 'audio',
   MediaKind.unknown: '__unknown__',
 };
 
@@ -3832,6 +3833,13 @@ _$StudioDecisionImpl _$$StudioDecisionImplFromJson(Map<String, dynamic> json) =>
         json['status'],
         unknownValue: DecisionStatus.unknown,
       ),
+      answerKind:
+          $enumDecodeNullable(
+            _$DecisionKindEnumMap,
+            json['answer_kind'],
+            unknownValue: DecisionKind.unknown,
+          ) ??
+          DecisionKind.option,
       options: (json['options'] as List<dynamic>)
           .map((e) => DecisionOption.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -3842,6 +3850,7 @@ _$StudioDecisionImpl _$$StudioDecisionImplFromJson(Map<String, dynamic> json) =>
           : ReportBrief.fromJson(json['report'] as Map<String, dynamic>),
       pickedIndex: (json['picked_index'] as num?)?.toInt(),
       pickNote: json['pick_note'] as String?,
+      answerText: json['answer_text'] as String?,
       answeredBy: json['answered_by'] == null
           ? null
           : PersonRef.fromJson(json['answered_by'] as Map<String, dynamic>),
@@ -3863,18 +3872,26 @@ Map<String, dynamic> _$$StudioDecisionImplToJson(
   'question': instance.question,
   'context': instance.context,
   'status': _$DecisionStatusEnumMap[instance.status]!,
+  'answer_kind': _$DecisionKindEnumMap[instance.answerKind]!,
   'options': instance.options.map((e) => e.toJson()).toList(),
   'recommended_index': instance.recommendedIndex,
   'raised_by': instance.raisedBy,
   'report': instance.report?.toJson(),
   'picked_index': instance.pickedIndex,
   'pick_note': instance.pickNote,
+  'answer_text': instance.answerText,
   'answered_by': instance.answeredBy?.toJson(),
   'answered_at': instance.answeredAt,
   'changed': instance.changed?.toJson(),
   'waiting_since': instance.waitingSince,
   'modified': instance.modified,
   'actions': instance.actions,
+};
+
+const _$DecisionKindEnumMap = {
+  DecisionKind.option: 'option',
+  DecisionKind.text: 'text',
+  DecisionKind.unknown: '__unknown__',
 };
 
 _$SignalImpl _$$SignalImplFromJson(Map<String, dynamic> json) => _$SignalImpl(

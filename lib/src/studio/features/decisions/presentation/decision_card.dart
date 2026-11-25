@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show MaxLengthEnforcement;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -6,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
+import '../../../data/studio_error.dart';
 import '../../inbox/presentation/inbox_strings.dart';
 import '../../inbox/presentation/ui_helpers.dart';
 import '../../inbox/state/inbox_state.dart';
@@ -14,7 +16,15 @@ import '../../../shared/studio_error_text.dart';
 
 /// Sends the pick. [requestId] stays the same across retries of one pick.
 typedef AnswerDecision =
-    Future<void> Function(int optionIndex, String? note, String requestId);
+    Future<void> Function(
+      int? optionIndex,
+      String? note,
+      String requestId, {
+      String? text,
+    });
+
+/// The longest answer in words the server keeps (contract `decisions.answer`).
+const decisionTextMax = 2000;
 
 /// One decision: the question, 2 to 4 options with pros, cons, main risk and
 /// when each is right, the recommended one marked, the report link. The
@@ -36,12 +46,15 @@ class DecisionCard extends ConsumerStatefulWidget {
 class _DecisionCardState extends ConsumerState<DecisionCard> {
   int? _selected;
   final _note = TextEditingController();
+  final _text = TextEditingController();
+  String? _textError;
   String _requestId = const Uuid().v4();
   bool _busy = false;
 
   @override
   void dispose() {
     _note.dispose();
+    _text.dispose();
     super.dispose();
   }
 
@@ -62,9 +75,83 @@ class _DecisionCardState extends ConsumerState<DecisionCard> {
     }
   }
 
+  Future<void> _send() async {
+    final text = _text.text.trim();
+    if (text.isEmpty || _busy) return;
+    final t = DecisionsStrings.of(context);
+    setState(() {
+      _busy = true;
+      _textError = null;
+    });
+    try {
+      await widget.onAnswer(null, null, _requestId, text: text);
+      _requestId = const Uuid().v4();
+      if (mounted) showStudioNote(context, t.answerSaved);
+    } on StudioValidation catch (e) {
+      // A server error on the answer box shows under it; any other field is
+      // shown as the plain message.
+      if (mounted) {
+        if (e.field == 'text') {
+          setState(() => _textError = e.message);
+        } else {
+          showStudioError(context, e);
+        }
+      }
+    } catch (e) {
+      if (mounted) showStudioError(context, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Widget _textBox(DecisionsStrings t) {
+    final empty = _text.text.trim().isEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          key: const ValueKey('decision-text'),
+          controller: _text,
+          minLines: 4,
+          maxLines: 8,
+          maxLength: decisionTextMax,
+          maxLengthEnforcement: MaxLengthEnforcement.enforced,
+          keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.newline,
+          onChanged: (_) => setState(() => _textError = null),
+          buildCounter:
+              (
+                context, {
+                required currentLength,
+                required isFocused,
+                required maxLength,
+              }) => Text(
+                t.answerCount(currentLength, maxLength ?? decisionTextMax),
+                key: const ValueKey('decision-text-count'),
+              ),
+          decoration: InputDecoration(
+            labelText: t.answerLabel,
+            hintText: t.answerHint,
+            errorText: _textError,
+          ),
+        ),
+        const SizedBox(height: StudioSpacing.md),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            key: const ValueKey('decision-send'),
+            onPressed: empty || _busy ? null : _send,
+            child: Text(empty ? t.writeFirst : t.sendAnswer),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final d = widget.decision;
+    final inWords = d.answerKind == DecisionKind.text;
     final t = DecisionsStrings.of(context);
     final s = InboxStrings.of(context);
     final theme = Theme.of(context);
@@ -130,7 +217,11 @@ class _DecisionCardState extends ConsumerState<DecisionCard> {
                     : null,
               ),
             const SizedBox(height: StudioSpacing.sm),
-            if (canAnswer) ...[
+            if (canAnswer && inWords) ...[
+              _textBox(t),
+              const SizedBox(height: StudioSpacing.sm),
+              NextStepLine(t.nextOpenFounderText),
+            ] else if (canAnswer) ...[
               TextField(
                 key: const ValueKey('decision-note'),
                 controller: _note,
@@ -154,7 +245,7 @@ class _DecisionCardState extends ConsumerState<DecisionCard> {
             ] else if (answered) ...[
               _answeredSummary(context, d, t),
               const SizedBox(height: StudioSpacing.sm),
-              NextStepLine(t.nextAnswered),
+              NextStepLine(inWords ? t.nextAnsweredText : t.nextAnswered),
             ] else if (d.status == DecisionStatus.open)
               NextStepLine(t.nextOpenOthers)
             else
@@ -181,6 +272,7 @@ class _DecisionCardState extends ConsumerState<DecisionCard> {
         .map((o) => o.label)
         .firstOrNull;
     final who = d.answeredBy?.fullName;
+    final inWords = d.answerKind == DecisionKind.text;
     return Container(
       key: const ValueKey('decision-answered'),
       width: double.infinity,
@@ -192,10 +284,19 @@ class _DecisionCardState extends ConsumerState<DecisionCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            t.picked(label ?? '#${d.pickedIndex}'),
-            style: theme.textTheme.titleSmall,
-          ),
+          if (inWords) ...[
+            Text(t.yourAnswer, style: theme.textTheme.titleSmall),
+            const SizedBox(height: StudioSpacing.xs),
+            Text(
+              d.answerText ?? '',
+              key: const ValueKey('decision-answer-text'),
+              style: theme.textTheme.bodyMedium,
+            ),
+          ] else
+            Text(
+              t.picked(label ?? '#${d.pickedIndex}'),
+              style: theme.textTheme.titleSmall,
+            ),
           if (who != null)
             Text(
               t.pickedBy(who, slotText(s, d.answeredAt)),

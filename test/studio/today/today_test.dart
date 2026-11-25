@@ -106,15 +106,31 @@ void main() {
       );
     });
 
-    testWidgets('approve inline hides the line and calls the server', (
-      tester,
-    ) async {
+    testWidgets('approve inline says what happens next, then the line leaves '
+        'on the next refresh', (tester) async {
       usePhone(tester, height: 1600);
       final api = fakeApi();
       await pumpStudioWith(tester, api);
       await tester.tap(find.byKey(const ValueKey('line-PC-00163-v2-approve')));
       await tester.pumpAndSettle();
       expect(api.calls, contains('versions.approve'));
+      // The row stays with a sentence: what happens next and who has it.
+      final done = find.byKey(const ValueKey('line-PC-00163-v2-done'));
+      expect(done, findsOneWidget);
+      expect(
+        (tester.widget<Text>(done).data ?? ''),
+        anyOf(
+          contains('posts by itself'),
+          contains('Ready to post'),
+          contains('picks its slot'),
+        ),
+      );
+      expect(
+        find.byKey(const ValueKey('line-PC-00163-v2-approve')),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const ValueKey('today-refresh')));
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const ValueKey('today-line-PC-00163-v2')),
         findsNothing,
@@ -168,15 +184,20 @@ void main() {
   });
 
   group('Today tasks', () {
-    testWidgets('creator ticks a task from a line: it leaves at once', (
-      tester,
-    ) async {
+    testWidgets('creator ticks a task from a line: it says what is next, then '
+        'leaves on the next refresh', (tester) async {
       usePhone(tester, height: 1000);
       final api = fakeApi(role: 'creator');
       await pumpStudioWith(tester, api);
       await tester.tap(find.byKey(const ValueKey('line-TASK-000191-tick')));
       await tester.pumpAndSettle();
       expect(api.calls, contains('today.task_tick'));
+      expect(
+        find.byKey(const ValueKey('line-TASK-000191-done')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('today-refresh')));
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const ValueKey('today-line-TASK-000191')),
         findsNothing,
@@ -192,7 +213,7 @@ void main() {
       await pumpStudioWith(tester, api);
       await tester.tap(find.byKey(const ValueKey('line-TASK-000191-tick')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('not allowed'), findsOneWidget);
+      expect(find.textContaining('Your role cannot do that'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('today-line-TASK-000191')),
         findsOneWidget,
@@ -206,7 +227,7 @@ void main() {
       await pumpStudioWith(tester, api);
       await tester.tap(find.byKey(const ValueKey('line-TASK-000191-tick')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('already done'), findsOneWidget);
+      expect(find.textContaining('Already done'), findsOneWidget);
     });
 
     testWidgets('tick box on a task row ticks it', (tester) async {
@@ -331,7 +352,10 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('task-submit')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Someone changed this'), findsOneWidget);
+      expect(
+        find.textContaining('This changed since you opened it'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('edit a task saves', (tester) async {

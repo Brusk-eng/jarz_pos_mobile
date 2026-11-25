@@ -283,9 +283,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('create-save')));
       await tester.pumpAndSettle();
       expect(
-        find.text(
-          'The Studio is not switched on yet, so nothing can be changed.',
-        ),
+        find.text('The Studio is not switched on yet, so nothing was changed.'),
         findsOneWidget,
       );
       expect(find.byKey(const ValueKey('create-form')), findsOneWidget);

@@ -99,11 +99,7 @@ class CalendarScreen extends ConsumerWidget {
                           canAdd: canSet,
                           onAdd: addPost,
                         )
-                      : _MonthView(
-                          anchor: anchor,
-                          today: today,
-                          posts: posts,
-                        ),
+                      : _MonthView(anchor: anchor, today: today, posts: posts),
                 );
               },
             ),
@@ -179,9 +175,8 @@ class _Toolbar extends ConsumerWidget {
               const SizedBox(width: StudioSpacing.sm),
               TextButton(
                 key: const ValueKey('calendar-today'),
-                onPressed: () => ref
-                    .read(calendarAnchorProvider.notifier)
-                    .state = null,
+                onPressed: () =>
+                    ref.read(calendarAnchorProvider.notifier).state = null,
                 child: Text(c.today),
               ),
             ],
@@ -272,7 +267,7 @@ DateTime? _slotDay(PostSummary p) {
   return d == null ? null : DateTime(d.year, d.month, d.day);
 }
 
-class _WeekView extends StatelessWidget {
+class _WeekView extends StatefulWidget {
   const _WeekView({
     required this.start,
     required this.today,
@@ -290,7 +285,41 @@ class _WeekView extends StatelessWidget {
   final Future<void> Function(DateTime day) onAdd;
 
   @override
+  State<_WeekView> createState() => _WeekViewState();
+}
+
+class _WeekViewState extends State<_WeekView> {
+  final _todayKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _showToday();
+  }
+
+  @override
+  void didUpdateWidget(_WeekView old) {
+    super.didUpdateWidget(old);
+    if (old.start != widget.start) _showToday();
+  }
+
+  /// Opens the week with today in view, not at the top of Saturday.
+  void _showToday() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _todayKey.currentContext;
+      if (!mounted || ctx == null) return;
+      Scrollable.ensureVisible(ctx, duration: Duration.zero);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final start = widget.start;
+    final today = widget.today;
+    final range = widget.range;
+    final posts = widget.posts;
+    final canAdd = widget.canAdd;
+    final onAdd = widget.onAdd;
     final days = [for (var i = 0; i < 7; i++) CairoTime.addDays(start, i)];
     Widget block(DateTime day) {
       final dayPosts = [
@@ -337,10 +366,20 @@ class _WeekView extends StatelessWidget {
             ],
           );
         }
-        return ListView(
+        // Seven blocks, all built at once, so today's block always exists to
+        // be scrolled into view.
+        return SingleChildScrollView(
           key: const ValueKey('week-days'),
           padding: const EdgeInsets.all(StudioSpacing.gutter),
-          children: [for (final d in days) block(d)],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final d in days)
+                CairoTime.sameDay(d, today)
+                    ? KeyedSubtree(key: _todayKey, child: block(d))
+                    : block(d),
+            ],
+          ),
         );
       },
     );
@@ -442,10 +481,7 @@ class _DayBlock extends StatelessWidget {
           if (posts.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: StudioSpacing.xs),
-              child: Text(
-                c.nothingPlanned,
-                style: textTheme.bodySmall,
-              ),
+              child: Text(c.nothingPlanned, style: textTheme.bodySmall),
             ),
           for (final p in posts) PostTile(post: p),
         ],

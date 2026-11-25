@@ -75,7 +75,9 @@ class _Page extends ConsumerWidget {
       body: value.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _Message(
-          title: e is StudioRateLimited ? t.prepTryAgainLater : t.prepBadLinkTitle,
+          title: e is StudioRateLimited
+              ? t.prepTryAgainLater
+              : t.prepBadLinkTitle,
           body: e is StudioRateLimited
               ? null
               : e is StudioNetworkError
@@ -97,7 +99,8 @@ class _Page extends ConsumerWidget {
               const SizedBox(height: StudioSpacing.xs),
               Text(
                 [
-                  if (p.shootDate != null) t.dateLabel(p.shootDate, p.shootTime),
+                  if (p.shootDate != null)
+                    t.dateLabel(p.shootDate, p.shootTime),
                   if (p.place != null) p.place!,
                 ].join(' · '),
                 style: theme.textTheme.bodyMedium,
@@ -172,7 +175,10 @@ class _Message extends StatelessWidget {
             ],
             if (onRetry != null) ...[
               const SizedBox(height: StudioSpacing.lg),
-              OutlinedButton(onPressed: onRetry, child: const Icon(Icons.refresh)),
+              OutlinedButton(
+                onPressed: onRetry,
+                child: const Icon(Icons.refresh),
+              ),
             ],
           ],
         ),

@@ -33,8 +33,11 @@ class _AssetAddScreenState extends ConsumerState<AssetAddScreen> {
   final note = TextEditingController();
   AssetKind? kind;
   String? flavourId;
+  bool flavourChosen = false;
   AssetCategory? category;
   String? kindError;
+  String? flavourError;
+  String? categoryError;
   final problems = <String>[];
   var busy = false;
 
@@ -63,14 +66,21 @@ class _AssetAddScreenState extends ConsumerState<AssetAddScreen> {
     final t = AssetStrings.of(context);
     final u = UploadStrings.of(context);
     if (files.isEmpty) return;
-    if (kind == null) {
-      setState(() => kindError = t.chooseKind);
+    if (kind == null || !flavourChosen || category == null) {
+      // Every file is tagged on the way in: no "Any" by default.
+      setState(() {
+        kindError = kind == null ? t.chooseKind : null;
+        flavourError = flavourChosen ? null : t.chooseFlavour;
+        categoryError = category == null ? t.chooseCategory : null;
+      });
       return;
     }
     setState(() {
       busy = true;
       problems.clear();
       kindError = null;
+      flavourError = null;
+      categoryError = null;
     });
     final container = ProviderScope.containerOf(context, listen: false);
     registerAssetFollowUp(container);
@@ -215,28 +225,40 @@ class _AssetAddScreenState extends ConsumerState<AssetAddScreen> {
             DropdownButtonFormField<String?>(
               key: const ValueKey('add-flavour'),
               isExpanded: true,
-              initialValue: flavourId,
-              decoration: InputDecoration(labelText: t.fieldFlavour),
+              initialValue: flavourChosen ? (flavourId ?? '') : null,
+              decoration: InputDecoration(
+                labelText: t.fieldFlavour,
+                errorText: flavourError,
+              ),
               items: [
-                DropdownMenuItem(value: null, child: Text(t.any)),
+                DropdownMenuItem(value: '', child: Text(t.noFlavour)),
                 for (final f in flavours)
                   DropdownMenuItem(value: f.id, child: Text(f.name)),
               ],
-              onChanged: (v) => setState(() => flavourId = v),
+              onChanged: (v) => setState(() {
+                flavourChosen = v != null;
+                flavourId = (v == null || v.isEmpty) ? null : v;
+                flavourError = null;
+              }),
             ),
             const SizedBox(height: StudioSpacing.md),
             DropdownButtonFormField<AssetCategory?>(
               key: const ValueKey('add-category'),
               isExpanded: true,
               initialValue: category,
-              decoration: InputDecoration(labelText: t.fieldCategory),
+              decoration: InputDecoration(
+                labelText: t.fieldCategory,
+                errorText: categoryError,
+              ),
               items: [
-                DropdownMenuItem(value: null, child: Text(t.any)),
                 for (final c in AssetCategory.values)
                   if (c != AssetCategory.unknown)
                     DropdownMenuItem(value: c, child: Text(t.category(c))),
               ],
-              onChanged: (v) => setState(() => category = v),
+              onChanged: (v) => setState(() {
+                category = v;
+                categoryError = null;
+              }),
             ),
             if (files.length <= 1) ...[
               const SizedBox(height: StudioSpacing.md),
@@ -378,9 +400,8 @@ class _AssetEditScreenState extends ConsumerState<AssetEditScreen> {
     final t = AssetStrings.of(context);
     final value = ref.watch(assetProvider(widget.assetId));
     final flavours = ref.watch(flavoursProvider).valueOrNull ?? const [];
-    if (original == null && value.valueOrNull != null) {
-      _fill(value.value!);
-    }
+    final loaded = value.valueOrNull;
+    if (original == null && loaded != null) _fill(loaded);
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(

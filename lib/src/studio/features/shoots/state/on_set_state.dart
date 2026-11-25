@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/studio_api.dart';
 import '../../../core/offline/kv_store.dart';
 import '../../../core/offline/reachability.dart';
+import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../data/shoots_repository.dart';
 
@@ -170,7 +171,20 @@ StudioShoot applyOutbox(StudioShoot s, List<OutboxItem> outbox) {
     if (note != null) out = out.copyWith(note: note.note);
     shots.add(out);
   }
-  return s.copyWith(shots: shots, nDone: shots.where((x) => x.done).length);
+  return _withDerivedStatus(
+    s.copyWith(shots: shots, nDone: shots.where((x) => x.done).length),
+  );
+}
+
+/// A shoot whose every shot is ticked reads "Filmed", not "Preparing" (the
+/// server derives the same; the screen need not wait for it).
+StudioShoot _withDerivedStatus(StudioShoot s) {
+  final all = s.shots.isNotEmpty && s.shots.every((x) => x.done);
+  final early =
+      s.status == ShootStatus.prep ||
+      s.status == ShootStatus.ready ||
+      s.status == ShootStatus.idea;
+  return all && early ? s.copyWith(status: ShootStatus.shot) : s;
 }
 
 /// What On set needs, kept on the device: the shoots, and every tick and note
@@ -591,9 +605,8 @@ class OnSetController extends Notifier<OnSetState> {
         for (final x in s.shots)
           if (x.id == shot.id) shot else x,
       ];
-      map[s.id] = s.copyWith(
-        shots: shots,
-        nDone: shots.where((x) => x.done).length,
+      map[s.id] = _withDerivedStatus(
+        s.copyWith(shots: shots, nDone: shots.where((x) => x.done).length),
       );
     }
     state = state.copyWith(shoots: map);

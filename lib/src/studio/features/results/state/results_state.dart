@@ -21,7 +21,6 @@ class ScorecardActions {
   ResultsRepository get _repo => _ref.read(resultsRepositoryProvider);
   ScorecardNotifier get _notifier =>
       _ref.read(scorecardProvider(week).notifier);
-  WeekScorecard get _current => _ref.read(scorecardProvider(week)).requireValue;
 
   Future<void> saveNotes({String? reviewNotes, String? actionsAgreed}) =>
       _notifier.saveNotes(
@@ -32,13 +31,17 @@ class ScorecardActions {
   Future<void> markReviewed() => _notifier.markReviewed();
 
   /// A number the system cannot read, added by hand.
-  Future<void> addLine(String label, String value) => _notifier.mutate(
-    call: () => _repo.scorecardNote(
-      _current.weekStart,
-      line: {'label': label, 'value': value},
-      baseModified: _current.modified,
-    ),
-  );
+  Future<void> addLine(String label, String value) async {
+    // Waits for the card instead of assuming it is already loaded.
+    final current = await _ref.read(scorecardProvider(week).future);
+    await _notifier.mutate(
+      call: () => _repo.scorecardNote(
+        current.weekStart,
+        line: {'label': label, 'value': value},
+        baseModified: current.modified,
+      ),
+    );
+  }
 }
 
 final scorecardActionsProvider = Provider.family<ScorecardActions, String>(

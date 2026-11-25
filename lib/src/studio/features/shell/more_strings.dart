@@ -6,8 +6,7 @@ import 'package:flutter/widgets.dart';
 /// a text missing in Arabic fails the build.
 ///
 /// Brand and product words people say in English (Jarz, Studio, flavor, size,
-/// dessert, order, costly) stay in English inside Arabic. The Arabic gets a
-/// language review later.
+/// dessert, order, costly) stay in English inside Arabic.
 abstract class MoreStrings {
   const MoreStrings();
 
@@ -233,20 +232,18 @@ class MoreStringsEn extends MoreStrings {
 
   @override
   String get errShadow =>
-      'The Studio is not switched on yet. You can look, but not change '
-      'anything.';
+      'The Studio is not switched on yet, so nothing was changed.';
   @override
   String get errStale =>
-      'Someone changed this a moment ago. We loaded the latest, check it and '
-      'try again.';
+      'This changed since you opened it. Refresh the page and try again.';
   @override
-  String get errNotPermitted => 'You cannot do that.';
+  String get errNotPermitted => 'Your role cannot do that.';
   @override
-  String get errAlreadyDone => 'Already done. Showing how it stands now.';
+  String get errAlreadyDone => 'Already done. This is how it stands now.';
   @override
   String get errNetwork => 'No connection. Check the internet and try again.';
   @override
-  String get errNotFound => 'That is no longer there.';
+  String get errNotFound => 'This is no longer there. Go back and refresh.';
   @override
   String get errGeneric => 'Something went wrong. Try again.';
 
@@ -274,13 +271,13 @@ class MoreStringsAr extends MoreStrings {
   List<String> get moreHelp => const [
     'هنا كل اللي برّه التابات الخمسة.',
     'بتشوف بس اللي دورك محتاجه.',
-    'تغيّر اللغة أو تسجّل خروج من تحت.',
+    'غيّر اللغة أو سجّل خروج من تحت.',
   ];
   @override
   String get moreEmpty => 'مفيش حاجة هنا لدورك لسه.';
   @override
   String get moreEmptyFirstStep =>
-      'اطلب من المؤسس يديك دور في الـ Studio وبعدين ادخل تاني.';
+      'اطلب من المؤسس يديك دور في الـ Studio، وبعدها سجّل دخول تاني.';
   @override
   String get entryLibrary => 'المكتبة';
   @override
@@ -302,28 +299,28 @@ class MoreStringsAr extends MoreStrings {
   @override
   String get languageName => 'العربية';
   @override
-  String get signOutRow => 'تسجيل خروج';
+  String get signOutRow => 'سجّل خروج';
   @override
   String appVersion(String v) => 'الإصدار $v';
 
   @override
   String get cancel => 'إلغاء';
   @override
-  String get save => 'حفظ';
+  String get save => 'احفظ';
   @override
   String get saved => 'اتحفظ';
   @override
-  String get add => 'إضافة';
+  String get add => 'ضيف';
   @override
   String get remove => 'شيل';
   @override
-  String get close => 'قفل';
+  String get close => 'اقفل';
   @override
   String get retry => 'جرّب تاني';
   @override
-  String get search => 'بحث';
+  String get search => 'دوّر';
   @override
-  String get clear => 'مسح';
+  String get clear => 'امسح';
   @override
   String get all => 'الكل';
   @override
@@ -350,18 +347,17 @@ class MoreStringsAr extends MoreStrings {
   String get howThisWorks => 'إزاي ده بيشتغل';
 
   @override
-  String get errShadow => 'الـ Studio لسه مش شغّال. تقدر تشوف بس، مش تغيّر.';
+  String get errShadow => 'الـ Studio لسه مش شغّال، فمفيش حاجة اتغيّرت.';
   @override
-  String get errStale =>
-      'حد غيّر ده من لحظة. حمّلنا آخر نسخة، راجعها وجرّب تاني.';
+  String get errStale => 'اتغيّر من ساعة ما فتحته. حدّث الصفحة وجرّب تاني.';
   @override
-  String get errNotPermitted => 'مش مسموح لك بده.';
+  String get errNotPermitted => 'مش مسموح لدورك.';
   @override
-  String get errAlreadyDone => 'اتعمل قبل كده. بنعرض الحالة دلوقتي.';
+  String get errAlreadyDone => 'اتعمل قبل كده. دي الحالة دلوقتي.';
   @override
-  String get errNetwork => 'مفيش اتصال. اتأكد من النت وجرّب تاني.';
+  String get errNetwork => 'مفيش نت. اتأكد من الاتصال وجرّب تاني.';
   @override
-  String get errNotFound => 'ده مبقاش موجود.';
+  String get errNotFound => 'ده مبقاش موجود. ارجع وحدّث الصفحة.';
   @override
   String get errGeneric => 'حصلت مشكلة. جرّب تاني.';
 

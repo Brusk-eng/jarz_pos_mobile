@@ -104,7 +104,7 @@ final studioDioProvider = Provider<Dio>((ref) {
 /// this provider with a [FakeStudioApi].
 final studioApiProvider = Provider<StudioApi>((ref) {
   if (StudioConfig.fake) {
-    return FakeStudioApi(role: StudioConfig.fakeRole);
+    return FakeStudioApi(role: StudioConfig.fakeRole, textDecisions: true);
   }
   return DioStudioApi(ref.watch(studioDioProvider));
 });

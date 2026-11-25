@@ -40,6 +40,15 @@ abstract class DecisionsStrings {
   String raisedBy(String who);
   String waiting(String d);
   String get saved;
+  String get answerSaved;
+  String get answerLabel;
+  String get answerHint;
+  String get sendAnswer;
+  String get writeFirst;
+  String get nextOpenFounderText;
+  String get nextAnsweredText;
+  String get yourAnswer;
+  String answerCount(int n, int max);
   String get decisionGone;
 }
 
@@ -75,9 +84,9 @@ class DecisionsStringsEn extends DecisionsStrings {
   @override
   String get raisedByClaude => 'Claude\'s view';
   @override
-  String get raisedByNeon => 'Neon\'s view';
+  String get raisedByNeon => 'Second opinion';
   @override
-  String get raisedByBoth => 'Both views';
+  String get raisedByBoth => 'Both agree';
   @override
   String get noteLabel => 'Note (optional)';
   @override
@@ -90,17 +99,17 @@ class DecisionsStringsEn extends DecisionsStrings {
   String get openReport => 'Open the report';
   @override
   String get nextOpenFounder =>
-      'Next: pick one option and confirm. Any option is fine, not only the recommended one.';
+      'Pick one option and confirm. Any option is fine, not only the recommended one.';
   @override
   String get nextOpenOthers =>
-      'Waiting for the founder to pick. You will see the pick here once he does.';
+      'Only the founder answers this. You will see the pick here once it is made.';
   @override
   String get nextAnswered =>
       'Done. The pick is kept and the work that waited on it can go ahead.';
   @override
   String get superseded => 'Replaced by a newer decision';
   @override
-  String get withdrawn => 'Withdrawn: no answer needed any more';
+  String get withdrawn => 'Withdrawn. No answer needed any more.';
   @override
   String youPicked(String l) => 'You picked: $l';
   @override
@@ -116,7 +125,28 @@ class DecisionsStringsEn extends DecisionsStrings {
   @override
   String get saved => 'Pick saved';
   @override
-  String get decisionGone => 'This decision is no longer there.';
+  String get answerSaved => 'Answer saved';
+  @override
+  String get answerLabel => 'Your answer';
+  @override
+  String get answerHint => 'Write the answer in your own words';
+  @override
+  String get sendAnswer => 'Send the answer';
+  @override
+  String get writeFirst => 'Write the answer first';
+  @override
+  String get nextOpenFounderText =>
+      'Write your answer and send it. It is kept as you wrote it and the work that waited on it can go ahead.';
+  @override
+  String get nextAnsweredText =>
+      'Done. The answer is kept and the work that waited on it can go ahead.';
+  @override
+  String get yourAnswer => 'Answer';
+  @override
+  String answerCount(int n, int max) => '\u202A$n / $max\u202C';
+  @override
+  String get decisionGone =>
+      'This decision is no longer there. Go back to the list.';
 }
 
 class DecisionsStringsAr extends DecisionsStrings {
@@ -124,7 +154,7 @@ class DecisionsStringsAr extends DecisionsStrings {
   @override
   String get tabOpen => 'مفتوحة';
   @override
-  String get tabAnswered => 'اتجاوبت';
+  String get tabAnswered => 'اتحسمت';
   @override
   String get emptyOpenPurpose =>
       'أسئلة محتاجة قرار المؤسس، وكل سؤال بخياراته ومميزاته وعيوبه.';
@@ -132,14 +162,14 @@ class DecisionsStringsAr extends DecisionsStrings {
   String get emptyOpenFirstStep =>
       'مفيش قرارات مفتوحة. أي تقرير بيطلع بسؤال هيظهر هنا.';
   @override
-  String get emptyAnsweredPurpose => 'كل قرار اتجاوب بيفضل هنا.';
+  String get emptyAnsweredPurpose => 'كل قرار اتحسم بيفضل هنا.';
   @override
   String get emptyAnsweredFirstStep =>
-      'لسه مفيش قرار اتجاوب. جاوب على قرار مفتوح وهينتقل هنا.';
+      'لسه مفيش قرار اتحسم. احسم قرار مفتوح وهينتقل هنا.';
   @override
   String get title => 'قرار';
   @override
-  String get recommended => 'الموصى بيه';
+  String get recommended => 'المرشّح';
   @override
   String get pros => 'المميزات';
   @override
@@ -151,9 +181,9 @@ class DecisionsStringsAr extends DecisionsStrings {
   @override
   String get raisedByClaude => 'رأي Claude';
   @override
-  String get raisedByNeon => 'رأي Neon';
+  String get raisedByNeon => 'رأي تاني';
   @override
-  String get raisedByBoth => 'الرأيين';
+  String get raisedByBoth => 'الاتنين متفقين';
   @override
   String get noteLabel => 'ملاحظة (اختياري)';
   @override
@@ -166,24 +196,23 @@ class DecisionsStringsAr extends DecisionsStrings {
   String get openReport => 'افتح التقرير';
   @override
   String get nextOpenFounder =>
-      'الخطوة الجاية: اختار خيار واحد وأكّده. أي خيار مسموح، مش الموصى بيه بس.';
+      'اختار خيار واحد وأكّده. تقدر تختار أي خيار، مش المرشّح بس.';
   @override
   String get nextOpenOthers =>
-      'مستنيين المؤسس يختار. هتشوف اختياره هنا أول ما يختار.';
+      'المؤسس بس هو اللي بيجاوب على ده. هتشوف اختياره هنا أول ما يختار.';
   @override
   String get nextAnswered =>
       'تمام. الاختيار اتسجّل والشغل اللي كان مستنيه يقدر يكمّل.';
   @override
-  String get superseded => 'اتحل مكانه قرار أحدث';
+  String get superseded => 'اتغيّر بقرار أحدث';
   @override
-  String get withdrawn => 'اتسحب: مفيش حاجة مطلوبة تاني';
+  String get withdrawn => 'اتسحب. مش محتاج إجابة تاني.';
   @override
   String youPicked(String l) => 'اخترت: $l';
   @override
   String picked(String l) => 'الاختيار: $l';
   @override
-  String pickedBy(String n, String w) =>
-      w.isEmpty ? 'بواسطة $n' : 'بواسطة $n، $w';
+  String pickedBy(String n, String w) => w.isEmpty ? 'من $n' : 'من $n، $w';
   @override
   String get yourNote => 'ملاحظة';
   @override
@@ -193,5 +222,25 @@ class DecisionsStringsAr extends DecisionsStrings {
   @override
   String get saved => 'الاختيار اتحفظ';
   @override
-  String get decisionGone => 'القرار ده مبقاش موجود.';
+  String get answerSaved => 'الإجابة اتحفظت';
+  @override
+  String get answerLabel => 'إجابتك';
+  @override
+  String get answerHint => 'اكتب الإجابة بكلامك';
+  @override
+  String get sendAnswer => 'ابعت الإجابة';
+  @override
+  String get writeFirst => 'اكتب الإجابة الأول';
+  @override
+  String get nextOpenFounderText =>
+      'اكتب إجابتك وابعتها. بتتسجّل زي ما كتبتها، والشغل اللي كان مستنيها يقدر يكمّل.';
+  @override
+  String get nextAnsweredText =>
+      'تمام. الإجابة اتسجّلت والشغل اللي كان مستنيها يقدر يكمّل.';
+  @override
+  String get yourAnswer => 'الإجابة';
+  @override
+  String answerCount(int n, int max) => '\u202A$n / $max\u202C';
+  @override
+  String get decisionGone => 'القرار ده مبقاش موجود. ارجع للقايمة.';
 }

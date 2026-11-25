@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/l10n/plural.dart';
 import '../../data/models/studio_enums.dart';
 
 /// Texts of the Paid screens (overview, queue, round), English and Arabic,
@@ -87,6 +88,12 @@ abstract class PaidStrings {
   String get setStateNoteHint;
   String get clearState;
   String stateLabel(AdState? s);
+  String stateExplain(AdState? s);
+  String get rulesForThisAd;
+  String againstWinnerPurchases(int have, int need);
+  String againstCostLine(int cpa, int line);
+  String get tapAgainToSet;
+  String get setAnyway;
   String stateSaved(String label);
   String get editRound;
   String get roundTitleField;
@@ -108,7 +115,7 @@ class PaidStringsEn extends PaidStrings {
   List<String> get help => const [
     'Shows what is due now and why, the live rounds and the stop signs.',
     'The numbers come from Meta by themselves. Nobody types them.',
-    'The rules say what each ad should do; you set its state.',
+    'The rules say what each ad should do. You set its state.',
     'The queue holds what goes into the next round.',
     'The action itself (budget, launch) still happens in Ads Manager.',
   ];
@@ -127,7 +134,8 @@ class PaidStringsEn extends PaidStrings {
   @override
   String get liveRounds => 'Rounds';
   @override
-  String get noRounds => 'No round yet.';
+  String get noRounds =>
+      'No round yet. Add a version to the queue to start one.';
   @override
   String get stopSigns => 'Stop signs';
   @override
@@ -139,7 +147,8 @@ class PaidStringsEn extends PaidStrings {
   @override
   String get seeQueue => 'Open the queue';
   @override
-  String get readOnlyNote => 'You can read this page. The founder changes it.';
+  String get readOnlyNote =>
+      'You can read this page. Only the founder changes it.';
   @override
   String launches(String date) => 'Launches $date';
   @override
@@ -165,7 +174,7 @@ class PaidStringsEn extends PaidStrings {
   List<String> get queueHelp => const [
     'These versions are lined up for the next round, first in line on top.',
     'Hold the handle and drag to change the order.',
-    'Add a version once it is ready for ads. If one is refused, the reason shows.',
+    'Add a version once it is ready for ads. If it is refused, the reason shows.',
     'Remove a version only while it is still waiting here.',
   ];
   @override
@@ -204,11 +213,11 @@ class PaidStringsEn extends PaidStrings {
   @override
   String get addConfirm => 'Add to queue';
   @override
-  String get added => 'Added to the queue';
+  String get added => 'Added to the queue.';
   @override
-  String get removedOk => 'Taken out of the queue';
+  String get removedOk => 'Taken out of the queue.';
   @override
-  String get reorderedOk => 'New order saved';
+  String get reorderedOk => 'New order saved.';
   @override
   String versionNo(int n) => 'Version $n';
 
@@ -227,7 +236,7 @@ class PaidStringsEn extends PaidStrings {
   String get roundEmptyPurpose => 'A test round and the ads in it.';
   @override
   String get roundEmptyFirstStep =>
-      'This round has no ads yet. Give a queued ad to this round to start.';
+      'This round has no ads yet. Give an ad from the queue to this round.';
   @override
   String get launchDate => 'Launch date';
   @override
@@ -259,7 +268,8 @@ class PaidStringsEn extends PaidStrings {
   @override
   String get rulesSay => 'What the rules say';
   @override
-  String get noNumbersYet => 'No numbers yet. They arrive with the next sync.';
+  String get noNumbersYet =>
+      'No numbers yet. They arrive with the next sync from Meta.';
   @override
   String get setState => 'Set state';
   @override
@@ -280,6 +290,30 @@ class PaidStringsEn extends PaidStrings {
     AdState.unknown => 'Other',
   };
   @override
+  String stateExplain(AdState? s) => switch (s) {
+    null => 'Takes the state off. Use it to fix a mistake.',
+    AdState.queued => 'Waiting in the queue for a round.',
+    AdState.testing => 'Still running its test. No decision yet.',
+    AdState.winner =>
+      'It met the rule: enough purchases at a cost inside the line.',
+    AdState.oneMoreRound => 'Not clear yet. It gets one more test round.',
+    AdState.off => 'Stopped. No budget goes to it any more.',
+    AdState.inScale => 'A winner that gets more budget, step by step.',
+    AdState.unknown => '',
+  };
+  @override
+  String get rulesForThisAd => 'The rules for this ad';
+  @override
+  String againstWinnerPurchases(int have, int need) =>
+      'This goes against the rule: Winner needs $need purchases and this ad has $have.';
+  @override
+  String againstCostLine(int cpa, int line) =>
+      'This goes against the rule: the cost per purchase is $cpa EGP and the line is $line EGP.';
+  @override
+  String get tapAgainToSet => 'Tap Save again to set it anyway.';
+  @override
+  String get setAnyway => 'Save anyway';
+  @override
   String stateSaved(String label) => 'Now: $label';
   @override
   String get editRound => 'Edit the round';
@@ -288,9 +322,9 @@ class PaidStringsEn extends PaidStrings {
   @override
   String get roundNoteField => 'Note';
   @override
-  String get roundSaved => 'Round saved';
+  String get roundSaved => 'Round saved.';
   @override
-  String get noAds => 'No ads in this round yet.';
+  String get noAds => 'No ads in this round yet. Give one from the queue.';
   @override
   String readDueLabel(String window) => 'Read due: $window';
   @override
@@ -308,7 +342,7 @@ class PaidStringsAr extends PaidStrings {
   List<String> get help => const [
     'بيعرض إيه المطلوب دلوقتي وليه، والجولات الشغّالة وعلامات الوقف.',
     'الأرقام بتيجي من Meta لوحدها. محدش بيكتبها.',
-    'القواعد بتقول كل إعلان المفروض يعمل إيه؛ وانت اللي بتحدد حالته.',
+    'القواعد بتقول كل إعلان المفروض يعمل إيه، والحالة بتتحدد منك.',
     'الطابور فيه اللي داخل الجولة الجاية.',
     'التنفيذ نفسه (الميزانية، الإطلاق) لسه في Ads Manager.',
   ];
@@ -317,7 +351,7 @@ class PaidStringsAr extends PaidStrings {
       'الجولات، وكل إعلان بأرقامه، وإيه المطلوب النهارده.';
   @override
   String get emptyFirstStep =>
-      'مفيش جولة شغّالة. ضيف نسخة للطابور تبدأ الجولة الجاية.';
+      'مفيش جولة شغّالة. ضيف نسخة للطابور عشان تبدأ الجولة الجاية.';
   @override
   String asOf(String when) => 'الأرقام لحد $when';
   @override
@@ -327,11 +361,11 @@ class PaidStringsAr extends PaidStrings {
   @override
   String get liveRounds => 'الجولات';
   @override
-  String get noRounds => 'مفيش جولة لسه.';
+  String get noRounds => 'مفيش جولة لسه. ضيف نسخة للطابور عشان تبدأ واحدة.';
   @override
   String get stopSigns => 'علامات الوقف';
   @override
-  String get noStopSigns => 'مفيش علامات وقف. مفيش حاجة تتوقف.';
+  String get noStopSigns => 'مفيش علامات وقف. مفيش حاجة محتاجة تتوقف.';
   @override
   String get queueSection => 'الجاي في الطابور';
   @override
@@ -339,18 +373,24 @@ class PaidStringsAr extends PaidStrings {
   @override
   String get seeQueue => 'افتح الطابور';
   @override
-  String get readOnlyNote => 'تقدر تقرا الصفحة دي. المؤسس هو اللي بيغيّر.';
+  String get readOnlyNote => 'الصفحة دي للقراءة بس. المؤسس هو اللي بيغيّر.';
   @override
   String launches(String date) => 'بتبدأ $date';
   @override
-  String adsCount(int n) => n == 1 ? 'إعلان واحد' : '$n إعلانات';
+  String adsCount(int n) => arCount(
+    n,
+    one: 'إعلان واحد',
+    two: 'إعلانين',
+    few: 'إعلانات',
+    many: 'إعلان',
+  );
   @override
   String dueKindLabel(PaidDueKind k) => switch (k) {
     PaidDueKind.readD4 => 'قراءة اليوم 4',
     PaidDueKind.readD7 => 'قراءة اليوم 7',
     PaidDueKind.roundLaunch => 'إطلاق جولة',
     PaidDueKind.budgetStep => 'خطوة ميزانية',
-    PaidDueKind.retire => 'مراجعة إيقاف',
+    PaidDueKind.retire => 'مراجعة الإيقاف',
     PaidDueKind.stepGate => 'مراجعة شروط زيادة الصرف',
     PaidDueKind.unknown => 'مطلوب',
   };
@@ -364,9 +404,9 @@ class PaidStringsAr extends PaidStrings {
   @override
   List<String> get queueHelp => const [
     'النسخ دي مستنية الجولة الجاية، الأول في الطابور فوق.',
-    'اضغط على المقبض واسحب تغيّر الترتيب.',
-    'ضيف نسخة لما تبقى جاهزة للإعلانات. لو اترفضت هيظهر السبب.',
-    'شيل النسخة وهي لسه مستنية هنا بس.',
+    'امسك المقبض واسحب عشان تغيّر الترتيب.',
+    'ضيف النسخة لما تبقى جاهزة للإعلانات. لو اترفضت هيظهر السبب.',
+    'ممكن تشيل النسخة طول ما هي لسه مستنية هنا.',
   ];
   @override
   String get queueEmptyPurpose => 'اللي داخل الجولة الجاية، بالترتيب.';
@@ -381,7 +421,7 @@ class PaidStringsAr extends PaidStrings {
   @override
   String get notReadyForAds => 'مش جاهزة للإعلانات';
   @override
-  String get dragToReorder => 'اضغط واسحب تغيّر الترتيب';
+  String get dragToReorder => 'امسك واسحب عشان تغيّر الترتيب';
   @override
   String get removeTitle => 'تشيلها من الطابور؟';
   @override
@@ -396,18 +436,18 @@ class PaidStringsAr extends PaidStrings {
   String get addSheetHelp => 'بنعرض بس النسخ الجاهزة للإعلانات.';
   @override
   String get noCandidates =>
-      'مفيش نسخة جاهزة للإعلانات دلوقتي. النسخة بتبقى جاهزة لما تتوافق '
+      'مفيش نسخة جاهزة للإعلانات دلوقتي. النسخة بتبقى جاهزة لما تتعتمد '
       'ويبقى لها مسار إعلان.';
   @override
-  String get addNoteHint => 'ملاحظة للجولة (اختياري)';
+  String get addNoteHint => 'ملاحظة للجولة (اختيارية)';
   @override
   String get addConfirm => 'ضيف للطابور';
   @override
-  String get added => 'اتضافت للطابور';
+  String get added => 'اتضافت للطابور.';
   @override
-  String get removedOk => 'اتشالت من الطابور';
+  String get removedOk => 'اتشالت من الطابور.';
   @override
-  String get reorderedOk => 'الترتيب الجديد اتحفظ';
+  String get reorderedOk => 'الترتيب الجديد اتحفظ.';
   @override
   String versionNo(int n) => 'نسخة $n';
 
@@ -417,16 +457,16 @@ class PaidStringsAr extends PaidStrings {
   String get roundHelpTitle => 'الجولة';
   @override
   List<String> get roundHelp => const [
-    'كل إعلان بيعرض الصرف والمشتريات وتكلفة المشتريات. المشتريات هي اللي بتحسم.',
+    'كل إعلان بيعرض الصرف والمشتريات وتكلفة الشراء. المشتريات هي اللي بتحسم.',
     'الـ hold والـ CTR للمتابعة بس.',
     'سطر القواعد بيقول الإعلان المفروض يعمل إيه وليه.',
-    'انت اللي بتحدد حالة الإعلان. التطبيق مبيحددهاش لوحده.',
+    'حالة الإعلان بتتحدد منك. التطبيق مبيحددهاش لوحده.',
   ];
   @override
   String get roundEmptyPurpose => 'جولة اختبار والإعلانات اللي فيها.';
   @override
   String get roundEmptyFirstStep =>
-      'الجولة دي مفيهاش إعلانات لسه. ادّي إعلان من الطابور للجولة دي.';
+      'الجولة دي مفيهاش إعلانات لسه. اربط إعلان من الطابور بالجولة دي.';
   @override
   String get launchDate => 'تاريخ الإطلاق';
   @override
@@ -440,7 +480,7 @@ class PaidStringsAr extends PaidStrings {
   @override
   String get purchases => 'المشتريات';
   @override
-  String get costPerPurchase => 'تكلفة المشترى';
+  String get costPerPurchase => 'تكلفة الشراء';
   @override
   String get noPurchasesYet => 'مفيش مشتريات لسه';
   @override
@@ -458,26 +498,50 @@ class PaidStringsAr extends PaidStrings {
   @override
   String get rulesSay => 'القواعد بتقول إيه';
   @override
-  String get noNumbersYet => 'مفيش أرقام لسه. هتيجي مع المزامنة الجاية.';
+  String get noNumbersYet =>
+      'مفيش أرقام لسه. هتيجي مع المزامنة الجاية من Meta.';
   @override
   String get setState => 'حدد الحالة';
   @override
   String get setStateTitle => 'هيحصل إيه للإعلان ده؟';
   @override
-  String get setStateNoteHint => 'ملاحظة (اختياري)';
+  String get setStateNoteHint => 'ملاحظة (اختيارية)';
   @override
   String get clearState => 'امسح الحالة';
   @override
   String stateLabel(AdState? s) => switch (s) {
     null => 'مش محددة',
     AdState.queued => 'في الطابور',
-    AdState.testing => 'بيتجرّب',
-    AdState.winner => 'كسبان',
+    AdState.testing => 'تحت الاختبار',
+    AdState.winner => 'كاسب',
     AdState.oneMoreRound => 'جولة كمان',
-    AdState.off => 'واقف',
-    AdState.inScale => 'بيكبر',
-    AdState.unknown => 'تاني',
+    AdState.off => 'متوقف',
+    AdState.inScale => 'بيتوسّع',
+    AdState.unknown => 'حالة تانية',
   };
+  @override
+  String stateExplain(AdState? s) => switch (s) {
+    null => 'بتشيل الحالة. استخدمها لو غلطت.',
+    AdState.queued => 'مستني في الطابور لجولة.',
+    AdState.testing => 'لسه في الاختبار. مفيش قرار.',
+    AdState.winner => 'حقق القاعدة: عدد مشتريات كفاية بتكلفة جوه الخط.',
+    AdState.oneMoreRound => 'لسه مش واضح. هياخد جولة اختبار كمان.',
+    AdState.off => 'اتوقف. مفيش ميزانية بتروحله.',
+    AdState.inScale => 'كاسب بياخد ميزانية أكتر، خطوة خطوة.',
+    AdState.unknown => '',
+  };
+  @override
+  String get rulesForThisAd => 'القواعد لـ الإعلان ده';
+  @override
+  String againstWinnerPurchases(int have, int need) =>
+      'ده عكس القاعدة: «كاسب» محتاج $need مشتريات والإعلان ده عنده $have.';
+  @override
+  String againstCostLine(int cpa, int line) =>
+      'ده عكس القاعدة: تكلفة الشراء $cpa جنيه والخط $line جنيه.';
+  @override
+  String get tapAgainToSet => 'اضغط احفظ تاني لو عايز تحفظه برضو.';
+  @override
+  String get setAnyway => 'احفظ برضو';
   @override
   String stateSaved(String label) => 'دلوقتي: $label';
   @override
@@ -487,9 +551,9 @@ class PaidStringsAr extends PaidStrings {
   @override
   String get roundNoteField => 'ملاحظة';
   @override
-  String get roundSaved => 'الجولة اتحفظت';
+  String get roundSaved => 'الجولة اتحفظت.';
   @override
-  String get noAds => 'مفيش إعلانات في الجولة دي لسه.';
+  String get noAds => 'مفيش إعلانات في الجولة دي لسه. اربط واحد من الطابور.';
   @override
   String readDueLabel(String window) => 'قراءة مطلوبة: $window';
   @override

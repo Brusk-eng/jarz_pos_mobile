@@ -40,23 +40,23 @@ class NotificationsStringsEn extends NotificationsStrings {
     purpose: 'Everything the Studio told you, newest first.',
     firstStep:
         'Nothing yet. When something needs you (a version to approve, a piece '
-        'sent back, a shoot tomorrow) it shows here and as a push.',
+        'sent back, a shoot tomorrow) it shows here and arrives on your phone.',
     help: [
       'Each row opens the exact thing it is about.',
       'Opening a row marks it read.',
       'Mark all read clears the badge.',
-      'Quiet hours hold pushes; they still wait here.',
+      'Quiet hours hold notifications; they still wait here.',
     ],
   );
   @override
   ScreenCopy get prefsCopy => const ScreenCopy(
     title: 'My notifications',
-    purpose: 'When the Studio may push you, and the daily digest.',
+    purpose: 'When the Studio may notify you, and the daily digest.',
     firstStep: 'Set quiet hours and choose if you want a daily digest.',
     help: [
-      'Quiet hours hold pushes until they end.',
+      'Quiet hours hold notifications until they end.',
       'Held notifications still wait in the list.',
-      'The digest is one push a day with what waits on you.',
+      'The digest is one notification a day with what waits on you.',
       'What you are told about depends on your role.',
     ],
   );
@@ -69,7 +69,7 @@ class NotificationsStringsEn extends NotificationsStrings {
   @override
   String get allRead => 'All caught up.';
   @override
-  String get nextList => 'Next: tap a row to open it.';
+  String get nextList => 'Tap a row to open what it is about.';
   @override
   String get quietHours => 'Quiet hours';
   @override
@@ -90,9 +90,10 @@ class NotificationsStringsEn extends NotificationsStrings {
   String get eventsTitle => 'What you are told about';
   @override
   String get eventsNote =>
-      'Set by your role. This list cannot be switched off one by one yet.';
+      'Set by your role. You cannot switch these off one by one yet.';
   @override
-  String get quietNote => 'Pushes held in quiet hours arrive when they end.';
+  String get quietNote =>
+      'Notifications held in quiet hours arrive when they end.';
   @override
   String get saved => 'Saved';
   @override
@@ -107,28 +108,28 @@ class NotificationsStringsAr extends NotificationsStrings {
     purpose: 'كل اللي الـ Studio قالهولك، الأحدث الأول.',
     firstStep:
         'لسه مفيش حاجة. لما حاجة تحتاجك (نسخة للموافقة، قطعة اترجعت، '
-        'تصوير بكرة) هتظهر هنا وكإشعار.',
+        'تصوير بكرة) هتظهر هنا وهتوصلك إشعار على موبايلك.',
     help: [
       'كل سطر بيفتح الحاجة اللي بيتكلم عنها.',
       'لما تفتح سطر بيتعلّم إنه اتقرا.',
-      'اقرا الكل بيشيل العدّاد.',
+      'علّم الكل اتقرا بيشيل العدّاد.',
       'ساعات الهدوء بتأجّل الإشعارات، وبتفضل مستنية هنا.',
     ],
   );
   @override
   ScreenCopy get prefsCopy => const ScreenCopy(
     title: 'إشعاراتي',
-    purpose: 'امتى الـ Studio يبعتلك إشعار، والملخص اليومي.',
-    firstStep: 'حدد ساعات الهدوء واختار لو عايز ملخص يومي.',
+    purpose: 'امتى الـ Studio يبعت لك إشعارات، والملخص اليومي.',
+    firstStep: 'حدّد ساعات الهدوء واختار تاخد ملخص يومي ولا لأ.',
     help: [
       'ساعات الهدوء بتأجّل الإشعارات لحد ما تخلص.',
       'الإشعارات المتأجلة بتفضل مستنية في القايمة.',
-      'الملخص إشعار واحد في اليوم بالمستنيك.',
+      'الملخص إشعار واحد في اليوم فيه اللي مستني منك.',
       'اللي بيوصلك بيتحدد حسب دورك.',
     ],
   );
   @override
-  String get markAllRead => 'اقرا الكل';
+  String get markAllRead => 'علّم الكل اتقرا';
   @override
   String get settings => 'إعدادات الإشعارات';
   @override
@@ -136,7 +137,7 @@ class NotificationsStringsAr extends NotificationsStrings {
   @override
   String get allRead => 'مفيش جديد.';
   @override
-  String get nextList => 'الخطوة الجاية: اضغط على سطر يفتح.';
+  String get nextList => 'اضغط على أي سطر يفتح الحاجة نفسها.';
   @override
   String get quietHours => 'ساعات الهدوء';
   @override
@@ -144,7 +145,7 @@ class NotificationsStringsAr extends NotificationsStrings {
   @override
   String get quietTo => 'لحد';
   @override
-  String get notSet => 'مش محددة';
+  String get notSet => 'مش متحدد';
   @override
   String get clearQuiet => 'امسح ساعات الهدوء';
   @override
@@ -156,7 +157,7 @@ class NotificationsStringsAr extends NotificationsStrings {
   @override
   String get eventsTitle => 'اللي بيوصلك';
   @override
-  String get eventsNote => 'بيتحدد بدورك. مش ممكن تقفل كل واحد لوحده دلوقتي.';
+  String get eventsNote => 'بيتحدد حسب دورك. لسه مينفعش تقفل كل إشعار لوحده.';
   @override
   String get quietNote => 'الإشعارات المتأجلة بتوصل لما ساعات الهدوء تخلص.';
   @override

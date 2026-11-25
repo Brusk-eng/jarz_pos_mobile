@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../core/l10n/studio_labels.dart';
 import '../core/l10n/studio_strings.dart';
 import '../core/theme/studio_tokens.dart';
 
@@ -10,22 +12,29 @@ class HowThisWorksSheet extends StatelessWidget {
     super.key,
     required this.title,
     required this.lines,
+    this.detail = false,
   });
 
   final String title;
   final List<String> lines;
+
+  /// True on a screen opened from a list: it has a Back arrow instead of the
+  /// tabs, and the sheet says so.
+  final bool detail;
 
   static Future<void> show(
     BuildContext context, {
     required String title,
     required List<String> lines,
   }) {
+    final detail = GoRouter.maybeOf(context)?.canPop() ?? false;
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       backgroundColor: Colors.white,
-      builder: (_) => HowThisWorksSheet(title: title, lines: lines),
+      builder: (_) =>
+          HowThisWorksSheet(title: title, lines: lines, detail: detail),
     );
   }
 
@@ -49,7 +58,10 @@ class HowThisWorksSheet extends StatelessWidget {
             const SizedBox(height: StudioSpacing.xs),
             Text(title, style: theme.textTheme.headlineSmall),
             const SizedBox(height: StudioSpacing.md),
-            for (final line in lines)
+            for (final line in [
+              ...lines,
+              if (detail) StudioLabels.of(context).backBarNote,
+            ])
               Padding(
                 padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
                 child: Row(

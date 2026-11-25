@@ -202,7 +202,10 @@ class ShootCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(shoot.title, style: theme.textTheme.titleMedium),
+                    child: Text(
+                      shoot.title,
+                      style: theme.textTheme.titleMedium,
+                    ),
                   ),
                   const SizedBox(width: StudioSpacing.sm),
                   ShootStatusPill(status: shoot.status),

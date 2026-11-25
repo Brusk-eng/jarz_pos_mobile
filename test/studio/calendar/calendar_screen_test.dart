@@ -200,7 +200,8 @@ void main() {
       expect(find.text('1 must fix, 3 to check'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('calendar-banner')));
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('banner-sheet')), findsOneWidget);
+      // Posts to clear open the clearing screen, not a read-only sheet.
+      expect(find.byKey(const ValueKey('drift-body')), findsOneWidget);
     });
 
     testWidgets('no banner when all is clear', (tester) async {
@@ -292,7 +293,10 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('slot-save')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('slot-problems')), findsOneWidget);
-      expect(find.text('Fix these first:'), findsOneWidget);
+      expect(
+        find.text('The check failed. Fix these and try again:'),
+        findsOneWidget,
+      );
       expect(
         find.text('Mango is not live on 27 Nov, so it cannot go out then'),
         findsOneWidget,
@@ -323,9 +327,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('slot-save')));
       await tester.pumpAndSettle();
       expect(
-        find.text(
-          'The Studio is not switched on yet, so nothing can be changed.',
-        ),
+        find.text('The Studio is not switched on yet, so nothing was changed.'),
         findsOneWidget,
       );
     });

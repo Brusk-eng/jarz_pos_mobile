@@ -4,6 +4,13 @@ import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
 import '../data/today_repository.dart';
 
+/// What each acted-on Today line says now (line id to the sentence: what
+/// happens next and who has it). The line stays, with that sentence in place of
+/// its buttons, until the next refresh drops it.
+final todayDoneNotesProvider = StateProvider<Map<String, String>>(
+  (ref) => const {},
+);
+
 /// Today lines the person has just acted on (ticked, approved). They vanish at
 /// once; if the call fails the id is removed again and the line comes back.
 final todayHiddenLinesProvider = StateProvider<Set<String>>((ref) => const {});

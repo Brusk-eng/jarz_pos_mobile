@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/studio_strings.dart';
+import '../../../core/router/studio_screen.dart';
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/studio_error.dart';
+import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../data/pieces_repository.dart';
 import '../pieces_strings.dart';
@@ -16,13 +19,45 @@ import 'piece_widgets.dart';
 /// piece's `actions`: `edit` for title, labels and script, `assign` for owner
 /// and due date. On STALE the fresh copy is already in the notifier; the
 /// person's changes are put on top of it and sent once more.
-class PieceEditScreen extends ConsumerStatefulWidget {
+///
+/// The form is built only once the piece has arrived: before that (or when the
+/// load failed) the screen shows the loading or error state, never a blank page.
+class PieceEditScreen extends ConsumerWidget {
   const PieceEditScreen({super.key, required this.pieceId});
 
   final String pieceId;
 
   @override
-  ConsumerState<PieceEditScreen> createState() => _PieceEditScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final value = ref.watch(pieceProvider(pieceId));
+    final t = StudioStrings.of(context);
+    final copy = t.screen(StudioScreen.piece);
+    final piece = value.valueOrNull;
+    if (piece != null) return _PieceEditForm(pieceId: pieceId, piece: piece);
+    return ViewEditScaffold(
+      title: PiecesStrings.of(context).editTitle,
+      body: StudioAsyncView<StudioPiece>(
+        value: value,
+        onRetry: () => ref.invalidate(pieceProvider(pieceId)),
+        isEmpty: (_) => false,
+        empty: StudioEmptyConfig(
+          purpose: copy.purpose,
+          firstStep: copy.firstStep,
+        ),
+        builder: (context, p) => const SizedBox.shrink(),
+      ),
+    );
+  }
+}
+
+class _PieceEditForm extends ConsumerStatefulWidget {
+  const _PieceEditForm({required this.pieceId, required this.piece});
+
+  final String pieceId;
+  final StudioPiece piece;
+
+  @override
+  ConsumerState<_PieceEditForm> createState() => _PieceEditScreenState();
 }
 
 class _LineEdit {
@@ -38,7 +73,7 @@ class _LineEdit {
   }
 }
 
-class _PieceEditScreenState extends ConsumerState<PieceEditScreen> {
+class _PieceEditScreenState extends ConsumerState<_PieceEditForm> {
   late final StudioPiece _orig;
   late final TextEditingController _title;
   late final TextEditingController _titleAr;
@@ -67,7 +102,7 @@ class _PieceEditScreenState extends ConsumerState<PieceEditScreen> {
   @override
   void initState() {
     super.initState();
-    final p = ref.read(pieceProvider(widget.pieceId)).requireValue;
+    final p = widget.piece;
     _orig = p;
     _title = TextEditingController(text: p.title);
     _titleAr = TextEditingController(text: p.titleAr ?? '');

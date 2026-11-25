@@ -51,7 +51,9 @@ class CalendarBanner extends ConsumerWidget {
         child: InkWell(
           key: const ValueKey('calendar-banner'),
           borderRadius: BorderRadius.circular(StudioRadii.md),
-          onTap: () => _showDetails(context, drift, checks),
+          onTap: () => missing + unplanned > 0
+              ? context.push('/calendar/drift')
+              : _showDetails(context, drift, checks),
           child: Padding(
             padding: const EdgeInsets.all(StudioSpacing.md),
             child: Row(
@@ -70,7 +72,14 @@ class CalendarBanner extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Text(c.bannerOpen, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: StudioColors.berryPink)),
+                Text(
+                  c.bannerOpen,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: StudioColors.berryPink,
+                  ),
+                ),
               ],
             ),
           ),
@@ -79,7 +88,11 @@ class CalendarBanner extends ConsumerWidget {
     );
   }
 
-  void _showDetails(BuildContext context, PostDrift? drift, PostChecks? checks) {
+  void _showDetails(
+    BuildContext context,
+    PostDrift? drift,
+    PostChecks? checks,
+  ) {
     final c = CalendarStrings.of(context);
     final ar = isArabic(context);
     showModalBottomSheet<void>(

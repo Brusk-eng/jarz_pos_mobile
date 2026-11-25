@@ -570,6 +570,29 @@ enum ContentLayer {
   );
 }
 
+/// Contract enum `DecisionKind`. `unknown` stands in for a value this app does not know yet.
+enum DecisionKind {
+  @JsonValue('option')
+  option,
+  @JsonValue('text')
+  text,
+  @JsonValue('__unknown__')
+  unknown;
+
+  /// The exact string on the wire.
+  String get wire => switch (this) {
+    DecisionKind.option => 'option',
+    DecisionKind.text => 'text',
+    DecisionKind.unknown => '__unknown__',
+  };
+
+  /// Parses a wire string; anything not listed becomes `unknown`.
+  static DecisionKind parse(String? value) => DecisionKind.values.firstWhere(
+    (e) => e.wire == value,
+    orElse: () => DecisionKind.unknown,
+  );
+}
+
 /// Contract enum `DecisionStatus`. `unknown` stands in for a value this app does not know yet.
 enum DecisionStatus {
   @JsonValue('Open')
@@ -900,6 +923,8 @@ enum MediaKind {
   image,
   @JsonValue('video')
   video,
+  @JsonValue('audio')
+  audio,
   @JsonValue('__unknown__')
   unknown;
 
@@ -907,6 +932,7 @@ enum MediaKind {
   String get wire => switch (this) {
     MediaKind.image => 'image',
     MediaKind.video => 'video',
+    MediaKind.audio => 'audio',
     MediaKind.unknown => '__unknown__',
   };
 

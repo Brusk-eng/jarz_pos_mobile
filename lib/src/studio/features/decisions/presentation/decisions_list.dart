@@ -73,9 +73,15 @@ class DecisionsList extends ConsumerWidget {
                       child: DecisionCard(
                         key: ValueKey('dc-${dec.id}'),
                         decision: dec,
-                        onAnswer: (i, note, rid) => ref
+                        onAnswer: (i, note, rid, {text}) => ref
                             .read(decisionsProvider.notifier)
-                            .answer(dec.id, i, note: note, requestId: rid),
+                            .answer(
+                              dec.id,
+                              i,
+                              note: note,
+                              text: text,
+                              requestId: rid,
+                            ),
                       ),
                     ),
                   if (d.hasMore)

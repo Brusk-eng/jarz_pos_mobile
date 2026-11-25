@@ -101,6 +101,14 @@ fixtureCodecs = {
     parse: (d) => StudioDecision.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
   ),
+  'decisions.get.text_answered': (
+    parse: (d) => StudioDecision.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
+  'decisions.get.text_open': (
+    parse: (d) => StudioDecision.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
   'decisions.list': (
     parse: (d) =>
         StudioDecisionPage.fromJson(Map<String, dynamic>.from(d as Map)),
@@ -404,6 +412,10 @@ fixtureCodecs = {
   ),
   'service.rule_set': (
     parse: (d) => StudioRule.fromJson(Map<String, dynamic>.from(d as Map)),
+    toJson: (v) => (v as dynamic).toJson(),
+  ),
+  'service.scorecard_set': (
+    parse: (d) => WeekScorecard.fromJson(Map<String, dynamic>.from(d as Map)),
     toJson: (v) => (v as dynamic).toJson(),
   ),
   'service.shoot_upsert': (

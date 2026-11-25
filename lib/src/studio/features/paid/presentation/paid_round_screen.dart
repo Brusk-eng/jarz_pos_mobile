@@ -9,6 +9,8 @@ import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../../shell/more_common.dart';
 import '../../shell/more_strings.dart';
+import '../../settings/data/settings_repository.dart';
+import '../paid_rule_check.dart';
 import '../paid_strings.dart';
 import '../state/paid_state.dart';
 import 'paid_common.dart';
@@ -274,9 +276,20 @@ class _AdCard extends ConsumerWidget {
 
   Future<void> _setState(BuildContext context, WidgetRef ref) async {
     final t = PaidStrings.of(context);
+    double? maxCpp;
+    try {
+      final rules = await ref.read(rulesProvider.future);
+      maxCpp = rules
+          .where((r) => r.key == 'again_max_cpp')
+          .map((r) => r.value)
+          .firstOrNull;
+    } catch (_) {
+      // The rules are a help here; the dialog works without them.
+    }
+    if (!context.mounted) return;
     final result = await showDialog<_StatePick>(
       context: context,
-      builder: (_) => _StateDialog(current: ad.state),
+      builder: (_) => _StateDialog(ad: ad, maxCostPerPurchase: maxCpp),
     );
     if (result == null || !context.mounted) return;
     await runMoreWrite(
@@ -366,9 +379,11 @@ class _StatePick {
 }
 
 class _StateDialog extends StatefulWidget {
-  const _StateDialog({required this.current});
+  const _StateDialog({required this.ad, this.maxCostPerPurchase});
 
-  final AdState? current;
+  final PaidAd ad;
+  final double? maxCostPerPurchase;
+  AdState? get current => ad.state;
 
   @override
   State<_StateDialog> createState() => _StateDialogState();
@@ -387,6 +402,7 @@ class _StateDialogState extends State<_StateDialog> {
       ? null
       : widget.current;
   bool _touched = false;
+  bool _warned = false;
   final _note = TextEditingController();
 
   @override
@@ -399,6 +415,17 @@ class _StateDialogState extends State<_StateDialog> {
   Widget build(BuildContext context) {
     final t = PaidStrings.of(context);
     final m = MoreStrings.of(context);
+    final warning = adStateRuleWarning(
+      widget.ad,
+      _picked,
+      maxCostPerPurchase: widget.maxCostPerPurchase,
+    );
+    final warnText = switch (warning) {
+      WinnerNeedsPurchases(:final have, :final need) =>
+        t.againstWinnerPurchases(have, need),
+      CostAboveLine(:final cpa, :final line) => t.againstCostLine(cpa, line),
+      null => null,
+    };
     return AlertDialog(
       key: const ValueKey('state-dialog'),
       title: Text(t.setStateTitle),
@@ -406,11 +433,20 @@ class _StateDialogState extends State<_StateDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (widget.ad.hint != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
+                child: _Hint(
+                  hint: widget.ad.hint!,
+                  adId: '${widget.ad.id}-dialog',
+                ),
+              ),
             RadioGroup<AdState?>(
               groupValue: _picked,
               onChanged: (v) => setState(() {
                 _picked = v;
                 _touched = true;
+                _warned = false;
               }),
               child: Column(
                 children: [
@@ -419,17 +455,31 @@ class _StateDialogState extends State<_StateDialog> {
                       key: ValueKey('state-${s.wire}'),
                       value: s,
                       title: Text(t.stateLabel(s)),
+                      subtitle: Text(t.stateExplain(s)),
                       dense: true,
                     ),
                   RadioListTile<AdState?>(
                     key: const ValueKey('state-clear'),
                     value: null,
                     title: Text(t.clearState),
+                    subtitle: Text(t.stateExplain(null)),
                     dense: true,
                   ),
                 ],
               ),
             ),
+            if (warnText != null)
+              Container(
+                key: const ValueKey('state-warning'),
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: StudioSpacing.sm),
+                padding: const EdgeInsets.all(StudioSpacing.md),
+                decoration: BoxDecoration(
+                  color: StudioColors.warning.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(StudioRadii.sm),
+                ),
+                child: Text('$warnText ${t.tapAgainToSet}'),
+              ),
             TextField(
               key: const ValueKey('state-note'),
               controller: _note,
@@ -445,12 +495,20 @@ class _StateDialogState extends State<_StateDialog> {
         ),
         FilledButton(
           key: const ValueKey('state-save'),
-          onPressed: _touched
-              ? () => Navigator.of(
-                  context,
-                ).pop(_StatePick(_picked, _note.text.trim()))
-              : null,
-          child: Text(m.save),
+          onPressed: !_touched
+              ? null
+              : () {
+                  // A pick against the rule is allowed, but asks for a
+                  // second tap so it is never done by accident.
+                  if (warnText != null && !_warned) {
+                    setState(() => _warned = true);
+                    return;
+                  }
+                  Navigator.of(
+                    context,
+                  ).pop(_StatePick(_picked, _note.text.trim()));
+                },
+          child: Text(warnText != null && _warned ? t.setAnyway : m.save),
         ),
       ],
     );

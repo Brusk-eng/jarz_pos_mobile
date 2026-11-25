@@ -48,7 +48,7 @@ features/<f>/data/<f>_repository.dart   thin repository + Riverpod providers per
 core/push/studio_push_router.dart       push payload -> router location (pure)
 ```
 
-Contract: `systems/studio-rebuild/API_CONTRACT.md` v1.0 (frozen) and its `contract/` folder.
+Contract: `systems/studio-rebuild/API_CONTRACT.md` (v1.2) and its `contract/` folder.
 Naming: shapes that clash with Flutter/Dio/Dart get a prefix or suffix (`Round` is `PaidRound`, `Media` is `StudioMedia`,
 `Options` is `StudioOptions`, `Route` is `ProdRoute`...; the map is `SHAPE_RENAME` / `ENUM_RENAME` in the generator).
 Dates and times stay `String` (ISO, offset kept) so a model round-trips to the same JSON. Every enum has `unknown`;
@@ -64,7 +64,10 @@ tool/studio_gen.sh "<path to systems/studio-rebuild/contract>"
 It runs `python tool/studio_gen_contract.py <contract_dir>` (models, enums, API mixins, `studio_fixtures.g.dart`, and the
 test tables under `test/studio/data/generated/`), formats, runs `build_runner` for `lib/src/studio/**` only, and restores
 any POS generated file build_runner deleted. Then run `flutter test test/studio`. Endpoint parameters are read from the
-markdown tables of `API_CONTRACT.md` (one level above the contract folder), result shapes from `check_fixtures.py`.
+markdown tables of `API_CONTRACT.md` (one level above the contract folder), result shapes from `check_fixtures.py`. The
+"Who may call" letters of the same file become `data/fake/studio_endpoint_roles.g.dart`, which the fake reads to filter
+`actions` by role. A field the contract says defaults when absent (`Decision.answer_kind` reads as `option`) is set in the
+generator, never in the generated file.
 
 ### Real or fake (compile time)
 
@@ -86,6 +89,14 @@ same one on a retry. Lists and maps go out as JSON strings (like the POS materia
 `<group>.<fn>.<role>` first (`today.get.creator`), then `<group>.<fn>`. Role `none` is a signed-in user without a Studio
 role. Writes (approve, fix, clear review, rate, comment, tick, answer a decision, keep, drop, mark read) return the updated
 object and change later reads, the to-approve feed and the inbox counts, in memory.
+
+The fake answers as the server would for the signed-in role: every `actions` list is cut down to the endpoints that role
+may call (`fakeObjectKind` tells which kind of object a map is), so a screen that shows a button the role cannot use shows
+up in the role tests. `decisions.answer` takes the same arguments as the server (an option decision takes `option_index`
+and an optional `note`, a decision answered in words takes `text` only, 1 to 2000 characters) and refuses a wrong
+combination with `VALIDATION` and the `field`. `FakeStudioApi(textDecisions: true)` adds the two decisions answered in
+words (`DEC-00012` open, `DEC-00011` answered) to the decisions list and the Inbox count; they are served by id either way.
+The running fake app turns it on.
 
 Force a failure in a test or while building a screen:
 
@@ -135,6 +146,14 @@ children. The contract's `/references`, `/paid`, `/results`, `/reports`, `/setti
 - A picture and two lines: `shared/media_row.dart`. Uploads: `core/upload` (the tray sits under every screen in
   `StudioApp`, the queue resumes at app start).
 
+## Words for what the server sends
+
+`core/l10n/studio_labels.dart` (`StudioLabels`) is the one place that turns a server value into words in both languages: an
+action name on a button, a Today block title and its empty line, a metric and its unit, and every enum that is shown to a
+person (stage, post status, decision status, idea status, task kind, media kind, signal level, read window...). A screen
+never prints a raw key or a wire value. `test/studio/labels_test.dart` walks every generated enum and fails for one that is
+neither worded nor listed as not shown. New terms are added to `core/l10n/GLOSSARY.md` first.
+
 ## Localisation
 
 Studio strings are separate from the POS ARB files and need no change to `l10n.yaml`. `core/l10n/studio_strings.dart`
@@ -149,6 +168,19 @@ The language switch is in the app bar (`studioLocaleProvider`); Arabic turns on 
 `session.me` returns the Frappe roles. `StudioRole.primaryOf` picks founder, lead, creator, then story. The order of
 Today's blocks and of the More list per role is in `core/roles/studio_role.dart`. A signed-in user with none of the four
 roles gets the "You don't have Studio access" screen and cannot get past it by deep link.
+
+## Screens worth knowing
+
+- A Today line says what happens next (`todayDoneNotesProvider` keeps the notes for lines just acted on).
+- Posts: the post screen holds the ready-to-post panel (save the files, copy the caption, mark posted with the link) and
+  the 72-hour read; `/calendar/drift` is the drift screen, reached from Today and the calendar banner.
+- Paid: `paid_rule_check.dart` explains why a state change is or is not allowed and asks for a second tap when a rule says wait.
+- A decision is one card for both kinds: options with a note, or one question with an answer box (founder only; the other
+  roles read the question and who answers it). The same card sits in the Inbox list and on `/inbox/decisions/:id`.
+- Every edit screen waits for its object with a loading and an error state (`piece_edit_screen.dart` is the pattern); none
+  reads an unloaded value.
+- The server may change typed text (angle brackets are stored as `‹ ›`). No screen compares what it sent with what came
+  back; the returned object simply replaces the optimistic one.
 
 ## Tests
 

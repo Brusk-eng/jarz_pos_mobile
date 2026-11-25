@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/l10n/plural.dart';
 import '../../data/models/studio_enums.dart';
 
 /// Texts of the Reports screen, English and Arabic, same pattern as
@@ -37,7 +38,7 @@ class ReportsStringsEn extends ReportsStrings {
   List<String> get help => const [
     'Every page Claude wrote, newest first.',
     'Filter by kind, or search by title and topic.',
-    'Tap one to read it in the browser.',
+    'Tap a report to read it in the browser.',
     'Questions a report raises wait in Decisions.',
   ];
   @override
@@ -85,8 +86,8 @@ class ReportsStringsAr extends ReportsStrings {
   List<String> get help => const [
     'كل صفحة Claude كتبها، الأحدث الأول.',
     'فلتر بالنوع، أو دوّر بالعنوان والموضوع.',
-    'اضغط على أي واحد تقراه في المتصفح.',
-    'الأسئلة اللي التقرير بيفتحها مستنية في القرارات.',
+    'اضغط على تقرير يفتح في المتصفح.',
+    'الأسئلة اللي التقرير بيطلع بيها مستنية في القرارات.',
   ];
   @override
   String get emptyPurpose => 'كل صفحة Claude عملها، الأحدث الأول.';
@@ -94,7 +95,7 @@ class ReportsStringsAr extends ReportsStrings {
   String get emptyFirstStep =>
       'مفيش تقارير لسه. أول صفحة Claude يكتبها هتظهر هنا.';
   @override
-  String get emptyFiltered => 'مفيش تقرير بيطابق. امسح البحث أو النوع.';
+  String get emptyFiltered => 'مفيش تقرير مطابق. امسح البحث أو النوع.';
   @override
   String get searchHint => 'دوّر بالعنوان أو الموضوع';
   @override
@@ -102,20 +103,26 @@ class ReportsStringsAr extends ReportsStrings {
     ReportKind.adsRead => 'قراءة الإعلانات',
     ReportKind.plan => 'خطة',
     ReportKind.study => 'دراسة',
-    ReportKind.retro => 'مراجعة بعد التنفيذ',
-    ReportKind.competitorDaily => 'المنافسين اليومي',
+    ReportKind.retro => 'Retro',
+    ReportKind.competitorDaily => 'متابعة المنافسين اليومية',
     ReportKind.referenceIntake => 'مراجع جديدة',
     ReportKind.weeklyWorkingNow => 'اللي شغّال دلوقتي',
     ReportKind.sundayReview => 'مراجعة الأحد',
-    ReportKind.other => 'تاني',
-    ReportKind.unknown => 'تاني',
+    ReportKind.other => 'غير كده',
+    ReportKind.unknown => 'غير كده',
   };
   @override
   String get open => 'افتح';
   @override
-  String openQuestions(int n) => n == 1 ? 'سؤال واحد مستني' : '$n أسئلة مستنية';
+  String openQuestions(int n) => arCount(
+    n,
+    one: 'سؤال مستني',
+    two: 'سؤالين مستنيين',
+    few: 'أسئلة مستنية',
+    many: 'سؤال مستني',
+  );
   @override
   String get byClaude => 'Claude';
   @override
-  String createdBy(String who) => 'بواسطة $who';
+  String createdBy(String who) => 'من $who';
 }

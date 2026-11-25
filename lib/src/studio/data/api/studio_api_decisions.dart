@@ -40,16 +40,18 @@ mixin StudioApiDecisions on StudioApiCore {
   /// `decisions.answer` (POST).
   Future<StudioDecision> decisionsAnswer({
     required String decisionId,
-    required int optionIndex,
+    int? optionIndex,
     String? note,
+    String? text,
     String? requestId,
   }) async {
     final d = await call(
       'jarz_social.api.studio.decisions.answer',
       params: {
         'decision_id': decisionId,
-        'option_index': optionIndex,
+        if (optionIndex != null) 'option_index': optionIndex,
         if (note != null) 'note': note,
+        if (text != null) 'text': text,
         'request_id': requestId ?? newRequestId(),
       },
     );

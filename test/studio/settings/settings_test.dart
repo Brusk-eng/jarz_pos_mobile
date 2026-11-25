@@ -187,7 +187,7 @@ void main() {
       }
 
       await tryChange('SHADOW_MODE', 'not switched on yet');
-      await tryChange('NOT_PERMITTED', 'You cannot do that.');
+      await tryChange('NOT_PERMITTED', 'Your role cannot do that.');
       await tryChange('SERVER_ERROR', 'Something went wrong');
       expect(tester.widget<Text>(_key('rule-now')).data, 'EGP 185');
 
@@ -288,7 +288,7 @@ void main() {
       );
       await tapKey(tester, 'edit');
       await tapKey(tester, 'flavour-save');
-      expect(snackText(tester), contains('Someone changed this'));
+      expect(snackText(tester), contains('This changed since you opened it'));
       expect(find.text('Changed by Ali a moment ago'), findsOneWidget);
     });
 

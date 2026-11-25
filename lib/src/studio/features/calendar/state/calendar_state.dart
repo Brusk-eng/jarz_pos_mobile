@@ -19,7 +19,9 @@ final calendarModeProvider = StateProvider<CalendarMode>(
 /// Any day inside the week or month on screen. Null means today.
 final calendarAnchorProvider = StateProvider<DateTime?>((ref) => null);
 
-final calendarChannelFilterProvider = StateProvider<PostChannel?>((ref) => null);
+final calendarChannelFilterProvider = StateProvider<PostChannel?>(
+  (ref) => null,
+);
 
 /// The window to fetch for [mode] around [anchor], as dates.
 CalendarWindow calendarWindowFor(CalendarMode mode, DateTime anchor) {

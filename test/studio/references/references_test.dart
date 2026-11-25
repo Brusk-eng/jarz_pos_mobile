@@ -275,9 +275,8 @@ void main() {
       final api = await open(tester);
       final cases = {
         'SHADOW_MODE':
-            'The Studio is not switched on yet. You can look, but '
-            'not change anything.',
-        'NOT_PERMITTED': 'You cannot do that.',
+            'The Studio is not switched on yet, so nothing was changed.',
+        'NOT_PERMITTED': 'Your role cannot do that.',
         'SERVER_ERROR': 'Something went wrong. Try again.',
       };
       for (final e in cases.entries) {
@@ -316,7 +315,7 @@ void main() {
         },
       );
       await tapKey(tester, 'ref-shortlist');
-      expect(snackText(tester), contains('Someone changed this'));
+      expect(snackText(tester), contains('This changed since you opened it'));
       expect(find.text('Dropped'), findsOneWidget);
       expect(_key('ref-shortlist'), findsNothing);
     });

@@ -4,6 +4,8 @@ import '../../../core/network/studio_api.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
+import '../../review/data/review_repository.dart' show inboxCountsProvider;
+import '../../today/data/today_repository.dart' show todayProvider;
 
 class IdeasRepository {
   IdeasRepository(this._api);
@@ -93,6 +95,8 @@ class IdeasNotifier extends PagedNotifier<StudioIdea> {
       toItem: (r) => r.idea,
       fromCurrent: _parse,
     );
+    ref.invalidate(todayProvider);
+    ref.invalidate(inboxCountsProvider);
     return r?.piece;
   }
 
@@ -108,6 +112,8 @@ class IdeasNotifier extends PagedNotifier<StudioIdea> {
       toItem: (i) => i,
       fromCurrent: _parse,
     );
+    ref.invalidate(todayProvider);
+    ref.invalidate(inboxCountsProvider);
   }
 
   /// Adds a new idea at the top of the list.

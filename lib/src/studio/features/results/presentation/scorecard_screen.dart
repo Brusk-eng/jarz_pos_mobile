@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/studio_labels.dart';
 import '../../../core/roles/studio_role.dart';
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
@@ -170,7 +171,10 @@ class _ScorecardBody extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(g.label),
+                              Text(
+                                StudioLabels.of(context).metric(g.key) ??
+                                    g.label,
+                              ),
                               if (g.detail != null)
                                 Text(
                                   g.detail!,
@@ -309,11 +313,11 @@ class _NumberRow extends StatelessWidget {
 
   final ScorecardNumber n;
 
-  String _fmt(MoreStrings m, double v) {
+  String _fmt(MoreStrings m, double v, StudioLabels labels) {
     if (n.unit == 'EGP') return m.egp(v);
     if (n.unit == '%') return m.percent(v);
     final s = v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(1);
-    return n.unit.isEmpty ? s : '$s ${n.unit}';
+    return n.unit.isEmpty ? s : '$s ${labels.unit(n.unit)}';
   }
 
   @override
@@ -331,12 +335,16 @@ class _NumberRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(n.label, style: theme.textTheme.bodyMedium),
+                Text(
+                  StudioLabels.of(context).metric(n.key) ?? n.label,
+                  style: theme.textTheme.bodyMedium,
+                ),
                 const SizedBox(height: StudioSpacing.xxs),
                 Text(
                   [
                     t.sourceLabel(n.source),
-                    if (n.line != null) '${t.againstLine}: ${_fmt(m, n.line!)}',
+                    if (n.line != null)
+                      '${t.againstLine}: ${_fmt(m, n.line!, StudioLabels.of(context))}',
                   ].join(' · '),
                   style: theme.textTheme.bodySmall,
                 ),
@@ -348,7 +356,9 @@ class _NumberRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                n.value == null ? '-' : _fmt(m, n.value!),
+                n.value == null
+                    ? '-'
+                    : _fmt(m, n.value!, StudioLabels.of(context)),
                 key: ValueKey('number-value-${n.key}'),
                 style: theme.textTheme.titleMedium,
               ),

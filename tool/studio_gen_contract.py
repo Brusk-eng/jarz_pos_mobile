@@ -12,6 +12,7 @@ Writes (all under this repo, all marked "GENERATED"):
   lib/src/studio/data/models/studio_models.dart     every shape + Page/Sync classes (freezed)
   lib/src/studio/data/api/studio_api_<group>.dart   one typed mixin per endpoint group
   lib/src/studio/data/fake/studio_fixtures.g.dart   fixtures as one const Map<String, String>
+  lib/src/studio/data/fake/studio_endpoint_roles.g.dart  "Who may call" letters per endpoint (the fake filters `actions` by it)
   test/studio/data/generated/*.g.dart               fixture/result tables the tests iterate
 
 After it runs:  dart run build_runner build --delete-conflicting-outputs
@@ -185,6 +186,9 @@ def gen_models():
             ty = dart_type(t)
             nullable = ty.endswith("?") or ty == "dynamic"
             req = "" if nullable else "required "
+            if f == "answer_kind":
+                # A row that never stored the kind reads as an option decision (contract v1.2).
+                req = "@Default(DecisionKind.option) "
             doc = ("    /// %s\n" % note) if note else ""
             params.append("%s    %s%s%s %s," % (doc, a, req, ty, fn))
         body.append("/// Contract shape `%s`.\n@freezed\nabstract class %s with _$%s {\n  @JsonSerializable(explicitToJson: true)\n  const factory %s({\n%s\n  }) = _%s;\n\n  factory %s.fromJson(Map<String, dynamic> json) =>\n      _$%sFromJson(json);\n}\n"
@@ -213,7 +217,9 @@ def parse_endpoints():
         for row in re.finditer(r"^\| `(\w+)` \| `([^`]+)` \| (yes)? ?\| ?(.*?) ?\|$", block, re.M):
             params.append((row.group(1), row.group(2), bool(row.group(3)), row.group(4)))
         rm = re.search(r"\*\*Result:\*\* `([^`]+)`", block)
-        eps[key] = {"verb": verb, "params": params, "result": rm.group(1) if rm else None}
+        wm = re.search(r"\*\*Who may call:\*\* (.*)", block)
+        letters = "".join(re.findall(r"\b([FLCSVUG]) ", (wm.group(1) if wm else "") + " "))
+        eps[key] = {"verb": verb, "params": params, "result": rm.group(1) if rm else None, "who": letters}
     return eps
 
 
@@ -328,6 +334,18 @@ def gen_fixtures():
     return "\n".join(out)
 
 
+def gen_roles(eps):
+    out = [HEADER % "1.1",
+           "/// Who may call each endpoint, as the role letters of the contract's \"Who may call\" lines\n"
+           "/// (F Founder, L Marketing Lead, C Creator, S Story Lead, V Service, U Uploader, G guest).\n"
+           "/// The fake API filters every object's `actions` by it, so tests and demos show each role only what it may do.\n"
+           "const Map<String, String> studioEndpointRoles = {"]
+    for k in sorted(eps):
+        out.append("  %s: %s," % (str_lit(k), str_lit(eps[k]["who"])))
+    out.append("};\n")
+    return "\n".join(out)
+
+
 def gen_test_tables(calls):
     # fixture file -> result type expression for the round-trip test
     rows = []
@@ -393,6 +411,7 @@ def main():
     for n, t in files.items():
         write("lib/src/studio/data/api/" + n, t)
     write("lib/src/studio/data/fake/studio_fixtures.g.dart", gen_fixtures())
+    write("lib/src/studio/data/fake/studio_endpoint_roles.g.dart", gen_roles(eps))
     write("test/studio/data/generated/fixture_codecs.g.dart", gen_test_tables(calls))
     write("test/studio/data/generated/endpoint_calls.g.dart", gen_call_table(calls))
     print("shapes", len(SHAPES), "enums", len(ENUMS), "pages", len(PAGES), "endpoints", len(calls), "fixtures", len(fixture_files()))

@@ -7,6 +7,7 @@ import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../shared/how_this_works_sheet.dart';
+import '../../../shared/studio_async_view.dart' show StudioErrorState;
 import '../shoots_strings.dart';
 import '../state/on_set_state.dart';
 import 'shoot_widgets.dart';
@@ -38,6 +39,7 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
   String? banner;
   var busy = false;
   var ready = false;
+  var loadFailed = false;
 
   @override
   void initState() {
@@ -47,14 +49,19 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
 
   Future<void> _init() async {
     final id = widget.shootId;
-    if (id != null) {
-      final c = ref.read(onSetProvider.notifier);
-      await c.ensureLoaded();
-      var s = ref.read(onSetProvider).shoot(id);
-      s ??= await c.openShoot(id);
-      _fill(s);
+    try {
+      if (id != null) {
+        final c = ref.read(onSetProvider.notifier);
+        await c.ensureLoaded();
+        var s = ref.read(onSetProvider).shoot(id);
+        s ??= await c.openShoot(id);
+        _fill(s);
+      }
+      if (mounted) setState(() => ready = true);
+    } catch (_) {
+      // Not loaded: say so with a way to try again, never a spinner forever.
+      if (mounted) setState(() => loadFailed = true);
     }
-    if (mounted) setState(() => ready = true);
   }
 
   void _fill(StudioShoot s) {
@@ -113,10 +120,13 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
           if (title.text.trim() != o.title) 'title': title.text.trim(),
           if (date != o.shootDate) 'shoot_date': date,
           if (time != o.shootTime) 'shoot_time': time,
-          if ((_nz(place.text) ?? '') != (o.place ?? '')) 'place': place.text.trim(),
-          if ((_nz(people.text) ?? '') != (o.people ?? '')) 'people': people.text.trim(),
+          if ((_nz(place.text) ?? '') != (o.place ?? ''))
+            'place': place.text.trim(),
+          if ((_nz(people.text) ?? '') != (o.people ?? ''))
+            'people': people.text.trim(),
           if ((_nz(kit.text) ?? '') != (o.kit ?? '')) 'kit': kit.text.trim(),
-          if ((_nz(notes.text) ?? '') != (o.notes ?? '')) 'notes': notes.text.trim(),
+          if ((_nz(notes.text) ?? '') != (o.notes ?? ''))
+            'notes': notes.text.trim(),
           if (status != null && status != o.status) 'status': status!.wire,
         };
         if (fields.isNotEmpty) await c.update(id, fields);
@@ -207,10 +217,7 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
         controller: c,
         minLines: lines,
         maxLines: lines + 2,
-        decoration: InputDecoration(
-          labelText: label,
-          errorText: errors[field],
-        ),
+        decoration: InputDecoration(labelText: label, errorText: errors[field]),
       ),
     );
 
@@ -234,7 +241,14 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
           ),
         ],
       ),
-      body: !ready
+      body: loadFailed
+          ? StudioErrorState(
+              onRetry: () {
+                setState(() => loadFailed = false);
+                _init();
+              },
+            )
+          : !ready
           ? const Center(child: CircularProgressIndicator())
           : ShootPage(
               child: ListView(
@@ -251,7 +265,12 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
                       ),
                       child: Text(banner!),
                     ),
-                  text(title, t.fieldTitle, 'title', key: const ValueKey('f-title')),
+                  text(
+                    title,
+                    t.fieldTitle,
+                    'title',
+                    key: const ValueKey('f-title'),
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -284,7 +303,12 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
                     ],
                   ),
                   const SizedBox(height: StudioSpacing.md),
-                  text(place, t.fieldPlace, 'place', key: const ValueKey('f-place')),
+                  text(
+                    place,
+                    t.fieldPlace,
+                    'place',
+                    key: const ValueKey('f-place'),
+                  ),
                   text(people, t.fieldPeople, 'people'),
                   text(kit, t.fieldKit, 'kit', lines: 2),
                   text(notes, t.fieldNotes, 'notes', lines: 2),
@@ -294,7 +318,7 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
                       child: DropdownButtonFormField<ShootStatus>(
                         key: const ValueKey('f-status'),
                         isExpanded: true,
-        initialValue: status,
+                        initialValue: status,
                         decoration: InputDecoration(
                           labelText: t.fieldStatus,
                           errorText: errors['status'],
@@ -302,7 +326,10 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
                         items: [
                           for (final s in ShootStatus.values)
                             if (s != ShootStatus.unknown)
-                              DropdownMenuItem(value: s, child: Text(t.status(s))),
+                              DropdownMenuItem(
+                                value: s,
+                                child: Text(t.status(s)),
+                              ),
                         ],
                         onChanged: (v) => setState(() => status = v),
                       ),

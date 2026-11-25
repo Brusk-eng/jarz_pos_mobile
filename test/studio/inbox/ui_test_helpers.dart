@@ -26,6 +26,7 @@ FakeStudioApi fakeApi({
   String role = 'founder',
   Duration delay = Duration.zero,
   Map<String, void Function(dynamic json)> edits = const {},
+  bool textDecisions = false,
 }) {
   final fx = Map<String, String>.from(studioFixtures);
   edits.forEach((key, edit) {
@@ -37,7 +38,12 @@ FakeStudioApi fakeApi({
       fx[k] = jsonEncode(json);
     }
   });
-  return FakeStudioApi(role: role, delay: delay, fixtures: fx);
+  return FakeStudioApi(
+    role: role,
+    delay: delay,
+    fixtures: fx,
+    textDecisions: textDecisions,
+  );
 }
 
 /// The whole Studio with [api] as [role] in [locale]. Returns the container.

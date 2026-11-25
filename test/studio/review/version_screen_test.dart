@@ -119,7 +119,7 @@ void main() {
       expect(find.text('Version 2 · Current version'), findsOneWidget);
       expect(find.text('RUN'), findsOneWidget);
       expect(key('verdict-score'), findsOneWidget);
-      expect(find.text('Sells 4.2 out of 5'), findsOneWidget);
+      expect(find.text('Sell score: 4.2 out of 5'), findsOneWidget);
       expect(find.textContaining('Opens on the spoon'), findsOneWidget);
       expect(find.textContaining('closing line repeats'), findsOneWidget);
       expect(find.textContaining('Cut the closing line'), findsOneWidget);
@@ -128,7 +128,7 @@ void main() {
       expect(key('my-rating-none'), findsOneWidget);
       expect(find.textContaining('Headline sits right above'), findsOneWidget);
       expect(key('media-pages'), findsOneWidget);
-      expect(find.text('Waiting for approval'), findsOneWidget);
+      expect(find.text("Waiting for the founder's approval"), findsOneWidget);
       expect(find.textContaining('Posts Tue 1 Dec 13:00'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -334,7 +334,7 @@ void main() {
       await tester.tap(find.text('Got it'));
       await tester.pumpAndSettle();
       expect(key('action-approve'), findsOneWidget, reason: 'rolled back');
-      expect(find.text('Waiting for approval'), findsOneWidget);
+      expect(find.text("Waiting for the founder's approval"), findsOneWidget);
     });
 
     testWidgets('SHADOW_MODE says the Studio is not switched on', (
@@ -347,7 +347,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(key('notice-error'), findsOneWidget);
       expect(find.textContaining('not switched on yet'), findsOneWidget);
-      expect(find.text('Waiting for approval'), findsOneWidget);
+      expect(find.text("Waiting for the founder's approval"), findsOneWidget);
     });
 
     testWidgets('STALE loads the fresh copy and says so', (tester) async {
@@ -363,7 +363,10 @@ void main() {
       await tapKey(tester, 'action-approve');
       await tester.tap(key('approve-confirm'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('changed this a moment ago'), findsOneWidget);
+      expect(
+        find.textContaining('changed since you opened it'),
+        findsOneWidget,
+      );
       expect(find.text('Fresh title from the server'), findsOneWidget);
     });
 
@@ -373,7 +376,7 @@ void main() {
       await tapKey(tester, 'action-approve');
       await tester.tap(key('approve-confirm'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('not allowed to do this'), findsOneWidget);
+      expect(find.textContaining('Your role cannot do that'), findsOneWidget);
       expect(api.calls.where((c) => c == 'versions.get').length, 2);
     });
 
@@ -404,7 +407,7 @@ void main() {
       await tapKey(tester, 'action-approve');
       await tester.tap(key('approve-confirm'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('already done'), findsOneWidget);
+      expect(find.textContaining('Already done'), findsOneWidget);
       expect(key('action-approve'), findsNothing);
     });
   });
@@ -462,7 +465,7 @@ void main() {
       expect(find.text('Approved by Abdelrahman'), findsOneWidget);
       await tapKey(tester, 'action-clear');
       expect(api.calls, contains('versions.clear_review'));
-      expect(find.textContaining('Decision cleared'), findsOneWidget);
+      expect(find.textContaining('Undone'), findsOneWidget);
       expect(key('action-approve'), findsOneWidget);
     });
   });
@@ -587,7 +590,7 @@ void main() {
       );
       expect(find.text('مراجعة'), findsOneWidget);
       expect(find.text('وافق'), findsOneWidget);
-      expect(find.text('رجّعها'), findsOneWidget);
+      expect(find.text('رجّع'), findsOneWidget);
       expect(
         Directionality.of(tester.element(key('piece-title'))),
         TextDirection.rtl,
@@ -595,7 +598,7 @@ void main() {
       await tapKey(tester, 'action-approve');
       await tester.tap(key('approve-confirm'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('اتوافق عليها. هتتنشر'), findsOneWidget);
+      expect(find.textContaining('معتمدة. هتتنشر'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

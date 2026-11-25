@@ -190,7 +190,7 @@ class StudioStringsEn extends StudioStrings {
     TodayBlock.blocked => 'Blocked',
     TodayBlock.readyToPost => 'Ready to post',
     TodayBlock.stories => 'Stories',
-    TodayBlock.readsMissing => 'Reads missing',
+    TodayBlock.readsMissing => 'Results missing',
     TodayBlock.didntGoOut => "Didn't go out",
     TodayBlock.warnings => 'System warnings',
   };
@@ -218,7 +218,7 @@ class StudioStringsEn extends StudioStrings {
       title: 'Today',
       purpose:
           'What waits on you, in order: sent back, due today, '
-          'ready to post, stories, reads missing, what did not go out, '
+          'ready to post, stories, results missing, what did not go out, '
           'system warnings.',
       firstStep:
           'Nothing waits on you yet. When a piece is sent back '
@@ -227,7 +227,7 @@ class StudioStringsEn extends StudioStrings {
         'Today lists what waits on you, most urgent first.',
         'The order follows your role.',
         'Tap an item to open the exact piece, shoot or post.',
-        'Ticks and "I posted it" happen here, not in a chat.',
+        'Ticks and "Mark posted" happen here, not in a chat.',
       ],
     ),
     StudioScreen.approve => const ScreenCopy(
@@ -347,11 +347,11 @@ class StudioStringsEn extends StudioStrings {
       purpose: 'Raw clips, photos, templates and customer content.',
       firstStep:
           'No files yet. Upload a clip or a photo and tag it '
-          'with a category and flavour.',
+          'with a category and flavor.',
       help: [
         'Upload from the phone, straight to storage.',
-        'Tag each file with its category and flavour.',
-        'Customer content needs its consent logged before use.',
+        'Tag each file with its category and flavor.',
+        'Customer content needs its consent logged before you use it.',
         'Mark a file as used once it goes into a piece.',
       ],
     ),
@@ -411,13 +411,13 @@ class StudioStringsEn extends StudioStrings {
     StudioScreen.settings => const ScreenCopy(
       title: 'Settings',
       purpose:
-          'Rules, flavours, claims, moments, people and my '
+          'Rules, flavors, claims, moments, people and my '
           'notifications.',
       firstStep:
           'Nothing to change yet. Settings fill in when the '
           'rules are synced.',
       help: [
-        'Rules, flavours, claims and moments live here.',
+        'Rules, flavors, claims and moments live here.',
         'The approved-claims list is a read-only copy of the registry.',
         'Tap to view; the pencil edits.',
         'Choose which notifications reach you.',
@@ -469,7 +469,7 @@ class StudioStringsAr extends StudioStrings {
   @override
   String get languageSwitchTarget => 'EN';
   @override
-  String get signOut => 'تسجيل الخروج';
+  String get signOut => 'خروج';
   @override
   String get more => 'المزيد';
   @override
@@ -491,8 +491,8 @@ class StudioStringsAr extends StudioStrings {
   String get noAccessTitle => 'مفيش عندك صلاحية للـ Studio';
   @override
   String get noAccessBody =>
-      'دخلت بحسابك، بس لسه مفيش ليه دور في الـ Studio. '
-      'كلّم المؤسس أو مسؤول التسويق يضيفوك.';
+      'دخلت بحسابك، بس لسه ملكش دور في الـ Studio. '
+      'اطلب من المؤسس أو مسؤول التسويق يضيفوك.';
   @override
   String get checkingAccess => 'بنراجع صلاحياتك';
   @override
@@ -502,8 +502,8 @@ class StudioStringsAr extends StudioStrings {
   String role(StudioRole role) => switch (role) {
     StudioRole.founder => 'المؤسس',
     StudioRole.lead => 'مسؤول التسويق',
-    StudioRole.creator => 'صانع محتوى',
-    StudioRole.story => 'مسؤول الستوريز',
+    StudioRole.creator => 'كرييتور',
+    StudioRole.story => 'مسؤول الـ Stories',
   };
 
   @override
@@ -512,9 +512,9 @@ class StudioStringsAr extends StudioStrings {
     TodayBlock.dueToday => 'ميعادها النهارده',
     TodayBlock.blocked => 'واقفة',
     TodayBlock.readyToPost => 'جاهزة للنشر',
-    TodayBlock.stories => 'الستوريز',
-    TodayBlock.readsMissing => 'قراءات ناقصة',
-    TodayBlock.didntGoOut => 'ما نزلتش',
+    TodayBlock.stories => 'الـ Stories',
+    TodayBlock.readsMissing => 'نتايج ناقصة',
+    TodayBlock.didntGoOut => 'ما نزلش',
     TodayBlock.warnings => 'تحذيرات السيستم',
   };
 
@@ -535,11 +535,11 @@ class StudioStringsAr extends StudioStrings {
     'Script' => 'سكريبت',
     'To shoot' => 'للتصوير',
     'To edit' => 'للمونتاج',
-    'In review' => 'في المراجعة',
-    'Approved' => 'اتوافق عليها',
+    'In review' => 'في الريفيو',
+    'Approved' => 'معتمدة',
     'Scheduled' => 'مجدولة',
     'Posted' => 'اتنشرت',
-    'Read' => 'اتقرت',
+    'Read' => 'اتقرت نتايجها',
     _ => apiName,
   };
 
@@ -552,40 +552,40 @@ class StudioStringsAr extends StudioStrings {
       title: 'النهارده',
       purpose:
           'اللي مستنيك بالترتيب: اللي اترجع، واللي ميعاده '
-          'النهارده، والجاهز للنشر، والستوريز، والقراءات الناقصة، '
+          'النهارده، والجاهز للنشر، والـ Stories، والنتايج الناقصة، '
           'واللي ما نزلش، وتحذيرات السيستم.',
       firstStep:
-          'مفيش حاجة مستنياك دلوقتي. أول ما حاجة ترجعلك أو '
+          'مفيش حاجة مستنية منك دلوقتي. أول ما حاجة ترجعلك أو '
           'ميعادها يجي، هتلاقيها هنا.',
       help: [
         'النهارده بيعرض اللي مستنيك، الأهم الأول.',
         'الترتيب بيتغير حسب دورك.',
-        'اضغط على أي حاجة تفتح القطعة أو التصوير أو البوست بالظبط.',
-        'التشيك و"نشرتها" بيتعملوا هنا، مش في شات.',
+        'اضغط على أي سطر يفتح القطعة أو التصوير أو البوست بالظبط.',
+        'علامة اتصوّر وزرار "علّم إنه اتنشر" بيتعملوا هنا، مش في شات.',
       ],
     ),
     StudioScreen.approve => const ScreenCopy(
       title: 'للموافقة',
       purpose:
-          'نسخة واحدة في كل صفحة: الفيديو، وتقييم الـ verdict، '
-          'والكابشن، وهتنزل فين.',
+          'نسخة واحدة في كل صفحة: الفيديو، وعلامة الـ verdict، '
+          'والكابشن، وهتتنشر فين.',
       firstStep: 'مفيش حاجة مستنية. أول ما نسخة تجهز هتظهر هنا.',
       help: [
         'اسحب بين النسخ المستنية موافقتك.',
         'وافق عليها، أو رجّعها بسبب.',
-        'قيّم واكتب تعليقك على النسخة نفسها.',
-        'مفيش حاجة بتنزل قبل ما توافق.',
+        'قيّم وعلّق على النسخة نفسها.',
+        'مفيش حاجة بتتنشر قبل ما توافق.',
       ],
     ),
     StudioScreen.decisions => const ScreenCopy(
       title: 'القرارات',
       purpose:
           'أسئلة مفتوحة بخياراتها ومميزاتها وعيوبها، والخيار '
-          'الموصى بيه.',
-      firstStep: 'مفيش قرارات مفتوحة. أي تقرير بيطلع بسؤال بيبعته هنا.',
+          'المرشّح.',
+      firstStep: 'مفيش قرارات مفتوحة. أي تقرير فيه سؤال بيبعته هنا.',
       help: [
         'كل كارت سؤال واحد بـ 2 لـ 4 خيارات.',
-        'الخيار الموصى بيه متعلّم، بس تقدر تختار أي خيار.',
+        'الخيار المرشّح متعلّم، بس تقدر تختار أي خيار.',
         'اكتب ملاحظة لو السبب هيفرق بعدين.',
         'التقارير بتبعت أسئلتها المفتوحة هنا.',
       ],
@@ -599,21 +599,21 @@ class StudioStringsAr extends StudioStrings {
       help: [
         'احتفظ بفكرة وهتبقى قطعة محتوى.',
         'سيبها وهتختفي من القايمة.',
-        'أي حد يقدر يجيب فكرة، بس المؤسس هو اللي يحتفظ أو يسيب.',
+        'أي حد يقدر يجيب فكرة، بس المؤسس هو اللي بيحتفظ أو بيسيب.',
       ],
     ),
     StudioScreen.calendar => const ScreenCopy(
       title: 'التقويم',
       purpose:
-          'جدول اليوم والأسبوع والشهر، حسب القناة والحالة، '
+          'اليوم والأسبوع والشهر، حسب القناة والحالة، '
           'وإيه اللي اتحرك.',
       firstStep:
-          'مفيش بوستات مجدولة. إدّي قطعة معاد من المحتوى '
+          'مفيش بوستات مجدولة. حدّد ميعاد لقطعة من المحتوى '
           'وهتظهر هنا.',
       help: [
         'بدّل بين اليوم والأسبوع والشهر.',
         'فلتر حسب القناة والحالة.',
-        'إدّي قطعة معاد، أو حرّكها، أو علّم إنها مش هتنزل.',
+        'حدّد ميعاد لقطعة، أو انقله، أو علّم إنها مش هتنزل.',
         'اضغط على بوست تشوفه، والقلم يعدّل الكابشن.',
       ],
     ),
@@ -624,14 +624,14 @@ class StudioStringsAr extends StudioStrings {
           'لسه مفيش محتوى. ابدأ بقطعة جديدة، أو احتفظ بفكرة '
           'من الوارد.',
       help: [
-        'كل قطعة في مرحلة من تسع مراحل، من الشمال لليمين.',
+        'كل قطعة في مرحلة من 9 مراحل، بالترتيب.',
         '"الأسبوع ده" بيوضّح مين مسؤول عن إيه.',
         'افتح القطعة تشوف السكريبت والنسخ والتقييمات والنتايج.',
         'ضيف نسخة من صفحة القطعة.',
       ],
     ),
     StudioScreen.piece => const ScreenCopy(
-      title: 'قطعة محتوى',
+      title: 'قطعة',
       purpose:
           'السكريبت والنسخ والتقييمات والبوستات والنتايج لقطعة '
           'واحدة.',
@@ -644,25 +644,25 @@ class StudioStringsAr extends StudioStrings {
     ),
     StudioScreen.shoots => const ScreenCopy(
       title: 'التصوير',
-      purpose: 'الخطة، وقايمة التجهيز، ووضع On set بكارت لكل لقطة.',
+      purpose: 'الخطة، وقايمة التجهيز، ووضع On set بكارت لكل شوت.',
       firstStep:
           'مفيش تصوير مخطط. خطّط لواحد وقايمة التجهيز هتتبني '
           'من القطع.',
       help: [
-        'خطّط للتصوير وابعت قايمة التجهيز لكريم.',
-        'في الموقع بتشتغل من غير نت: علّم كل لقطة واكتب ملاحظة.',
-        'كل كارت لقطة معاه المراجع بتاعته.',
+        'خطّط للتصوير وابعت قايمة التجهيز للتشغيل.',
+        'في On set بتشتغل من غير نت: علّم كل شوت واكتب ملاحظة.',
+        'كل كارت شوت معاه المراجع بتاعته.',
       ],
     ),
     StudioScreen.shoot => const ScreenCopy(
       title: 'تصوير',
-      purpose: 'الخطة وقايمة التجهيز وكروت اللقطات لتصوير واحد.',
+      purpose: 'الخطة وقايمة التجهيز وكروت الشوتس لتصوير واحد.',
       firstStep:
-          'التصوير ده لسه مفيهوش لقطات. ضيف القطع اللي '
+          'التصوير ده لسه مفيهوش شوتس. ضيف القطع اللي '
           'هيغطيها.',
       help: [
-        'اضغط على لقطة تقرا البريف بتاعها.',
-        'في الموقع: علّم اللقطة واكتب عليها ملاحظة.',
+        'اضغط على شوت تقرا البريف بتاعه.',
+        'في On set: علّم الشوت واكتب عليه ملاحظة.',
         'قايمة التجهيز بتتبعت بلينك من غير تسجيل دخول.',
       ],
     ),
@@ -670,12 +670,12 @@ class StudioStringsAr extends StudioStrings {
       title: 'الملفات',
       purpose: 'الكليبات الخام والصور والتمبلتس ومحتوى العملاء.',
       firstStep:
-          'لسه مفيش ملفات. ارفع كليب أو صورة وحط لها تصنيف '
-          'وflavor.',
+          'لسه مفيش ملفات. ارفع كليب أو صورة وحدّد التصنيف '
+          'والـ flavor.',
       help: [
         'ارفع من الموبايل على طول.',
-        'حط لكل ملف التصنيف والـ flavor بتاعه.',
-        'محتوى العملاء لازم تسجّل موافقتهم قبل ما تستخدمه.',
+        'حدّد لكل ملف التصنيف والـ flavor بتاعه.',
+        'محتوى العملاء لازم يتسجّل إذنهم قبل ما يتستخدم.',
         'علّم الملف إنه اتستخدم لما يدخل في قطعة.',
       ],
     ),
@@ -685,8 +685,8 @@ class StudioStringsAr extends StudioStrings {
       firstStep: 'لسه مفيش مراجع. ضيف إعلان أو بوست يستاهل نتعلم منه.',
       help: [
         'ضيف إعلان أو بوست بلينك.',
-        'حط في القايمة المختصرة اللي يستاهل نشتغل عليه.',
-        'ابعت المرجع لتصوير، أو اطلب نعمل منه نسخة جديدة.',
+        'اختار اللي يستاهل نشتغل عليه.',
+        'ابعت المرجع لتصوير، أو اطلب نعمل منه نسخة بتاعتنا.',
       ],
     ),
     StudioScreen.paid => const ScreenCopy(
@@ -697,7 +697,7 @@ class StudioStringsAr extends StudioStrings {
           'وأرقامها هتظهر هنا.',
       help: [
         'الأرقام بتتملى لوحدها.',
-        'حدّد حالة كل إعلان في اليوم الرابع والسابع.',
+        'حدّد حالة كل إعلان يوم 4 ويوم 7.',
         'الطابور فيه اللي هيدخل الجولة الجاية.',
         'التنفيذ نفسه بيتعمل في Ads Manager.',
       ],
@@ -711,7 +711,7 @@ class StudioStringsAr extends StudioStrings {
           'لسه مفيش نتايج. الـ scorecard بيتملى كل ما قطعة '
           'تتقري.',
       help: [
-        'السيستم بيملا الـ scorecard، وإنت بتضيف اللي ما يقدرش يقراه.',
+        'السيستم بيملا الـ scorecard، وإنت بتضيف اللي مايقدرش يقراه.',
         'بتراجعوه سوا يوم الأحد.',
         'ضيف ملاحظات المراجعة على أي نتيجة.',
       ],
@@ -738,7 +738,7 @@ class StudioStringsAr extends StudioStrings {
         'القواعد والـ flavors والـ claims واللحظات هنا.',
         'قايمة الـ claims المعتمدة نسخة للقراءة بس من الـ registry.',
         'اضغط تشوف، والقلم يعدّل.',
-        'اختار أنهي إشعارات توصلك.',
+        'اختار الإشعارات اللي توصلك.',
       ],
     ),
   };

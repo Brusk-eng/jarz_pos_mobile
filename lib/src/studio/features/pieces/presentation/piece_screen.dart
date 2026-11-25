@@ -596,7 +596,11 @@ class _Versions extends StatelessWidget {
               key: const ValueKey('add-version'),
               onPressed: () => context.push('/pieces/${piece.id}/add-version'),
               icon: const Icon(Icons.add),
-              label: Text(AddVersionStrings.of(context).button),
+              label: Text(
+                piece.format == PieceFormat.story
+                    ? AddVersionStrings.of(context).buttonFrames
+                    : AddVersionStrings.of(context).button,
+              ),
             ),
           ),
         if (versions.isEmpty)

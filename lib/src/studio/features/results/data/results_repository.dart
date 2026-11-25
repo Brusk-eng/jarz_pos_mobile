@@ -95,23 +95,28 @@ class ScorecardNotifier extends EntityNotifier<WeekScorecard> {
   @override
   String? modifiedOf(WeekScorecard value) => value.modified;
 
-  Future<void> saveNotes({String? reviewNotes, String? actionsAgreed}) =>
-      mutate(
-        call: () => _repo.scorecardNote(
-          state.requireValue.weekStart,
-          reviewNotes: reviewNotes,
-          actionsAgreed: actionsAgreed,
-          baseModified: baseModified,
-        ),
-      );
+  Future<void> saveNotes({String? reviewNotes, String? actionsAgreed}) async {
+    final week = (await future).weekStart;
+    await mutate(
+      call: () => _repo.scorecardNote(
+        week,
+        reviewNotes: reviewNotes,
+        actionsAgreed: actionsAgreed,
+        baseModified: baseModified,
+      ),
+    );
+  }
 
-  Future<void> markReviewed() => mutate(
-    call: () => _repo.scorecardNote(
-      state.requireValue.weekStart,
-      markReviewed: true,
-      baseModified: baseModified,
-    ),
-  );
+  Future<void> markReviewed() async {
+    final week = (await future).weekStart;
+    await mutate(
+      call: () => _repo.scorecardNote(
+        week,
+        markReviewed: true,
+        baseModified: baseModified,
+      ),
+    );
+  }
 }
 
 final resultsByPieceProvider =

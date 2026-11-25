@@ -2261,12 +2261,20 @@ abstract class StudioDecision with _$StudioDecision {
     String? context,
     @JsonKey(unknownEnumValue: DecisionStatus.unknown)
     required DecisionStatus status,
+
+    /// option: answered by option_index; text: no options, answered by text
+    @JsonKey(name: 'answer_kind', unknownEnumValue: DecisionKind.unknown)
+    @Default(DecisionKind.option)
+    DecisionKind answerKind,
     required List<DecisionOption> options,
     @JsonKey(name: 'recommended_index') int? recommendedIndex,
     @JsonKey(name: 'raised_by') required String raisedBy,
     ReportBrief? report,
     @JsonKey(name: 'picked_index') int? pickedIndex,
     @JsonKey(name: 'pick_note') String? pickNote,
+
+    /// text kind only, once answered
+    @JsonKey(name: 'answer_text') String? answerText,
     @JsonKey(name: 'answered_by') PersonRef? answeredBy,
     @JsonKey(name: 'answered_at') String? answeredAt,
     DocRef? changed,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../calendar/data/calendar_repository.dart' show postProvider;
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
@@ -134,7 +135,7 @@ class _PieceCard extends StatelessWidget {
           if (r.reads.isNotEmpty) ...[
             const Divider(),
             Text(t.readsTitle, style: theme.textTheme.labelLarge),
-            for (final read in r.reads) _ReadRow(read: read),
+            for (final read in r.reads) ReadRow(read: read),
           ],
         ],
       ),
@@ -151,8 +152,10 @@ String _bucketLabel(bool ar, ReadBucket b) => switch (b) {
   ReadBucket.unknown => '',
 };
 
-class _ReadRow extends ConsumerWidget {
-  const _ReadRow({required this.read});
+/// One 72-hour (or other) read of a post: its state, and the button to file it
+/// when it is due. Used on Results by piece and on the post screen.
+class ReadRow extends ConsumerWidget {
+  const ReadRow({super.key, required this.read});
 
   final PostRead read;
 
@@ -225,8 +228,10 @@ class _ReadRow extends ConsumerWidget {
         avgWatchS: values['avg_watch_s']?.toDouble(),
         reelLenS: values['reel_len_s']?.toDouble(),
       );
+      ref.invalidate(postProvider(read.postId));
       showMoreSnack(messenger, t.readFiledOk);
     } on StudioAlreadyDone {
+      ref.invalidate(postProvider(read.postId));
       notifier.markFiled(read.postId);
       showMoreSnack(messenger, t.readAlreadyFiled);
     } catch (e) {

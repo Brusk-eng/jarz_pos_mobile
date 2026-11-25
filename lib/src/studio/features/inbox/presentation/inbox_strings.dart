@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/plural.dart';
+
 /// Inbox strings (hub, to-approve list, and the plain-word errors shared by the
 /// Today, Inbox, Decisions, Ideas and Notifications screens). English and
 /// Arabic; the Arabic is simple Egyptian-friendly wording and gets a language
@@ -146,19 +148,18 @@ class InboxStringsEn extends InboxStrings {
   ];
   @override
   String get errShadow =>
-      'The Studio is not switched on yet, so nothing can be saved for now.';
+      'The Studio is not switched on yet, so nothing was changed.';
   @override
-  String get errGateHeader => 'This cannot go ahead yet. Fix these first:';
+  String get errGateHeader => 'The check failed. Fix these and try again:';
   @override
   String get errStale =>
-      'Someone changed this a moment ago. It was reloaded. Check it and try again.';
+      'This changed since you opened it. Refresh the page and try again.';
   @override
-  String get errNotPermitted =>
-      'You are not allowed to do this. The page was refreshed.';
+  String get errNotPermitted => 'Your role cannot do that.';
   @override
-  String get errNotFound => 'This is no longer there.';
+  String get errNotFound => 'This is no longer there. Go back and refresh.';
   @override
-  String get errAlreadyDone => 'Already done. Showing how it stands now.';
+  String get errAlreadyDone => 'Already done. This is how it stands now.';
   @override
   String get errNetwork => 'No connection. Check the internet and try again.';
   @override
@@ -166,7 +167,7 @@ class InboxStringsEn extends InboxStrings {
   @override
   String get errServer => 'Something went wrong on our side. Try again soon.';
   @override
-  String get errGeneric => 'That did not work. Try again.';
+  String get errGeneric => 'Something went wrong. Try again.';
 }
 
 class InboxStringsAr extends InboxStrings {
@@ -190,20 +191,19 @@ class InboxStringsAr extends InboxStrings {
   String get approveEmptyFirstStep =>
       'مفيش حاجة مستنية. أول ما نسخة تجهز هتظهر هنا وهييجيلك إشعار.';
   @override
-  String waiting(String d) => 'مستنية من $d';
+  String waiting(String d) => 'مستنية بقالها $d';
   @override
   String get noSlot => 'لسه من غير ميعاد';
   @override
-  String get notJudged => 'لسه ما اتقيمتش';
+  String get notJudged => 'لسه ماتقيّمتش';
   @override
-  String sellScore(String s) => 'بيع $s';
+  String sellScore(String s) => 'درجة البيع $s';
   @override
-  String get stale => 'قديم';
+  String get stale => 'قديمة';
   @override
   String get loadMore => 'اعرض أكتر';
   @override
-  String get notYourList =>
-      'القايمة دي مش من شغلك. استخدم الأقسام التانية فوق.';
+  String get notYourList => 'القايمة دي مش لدورك. استخدم الأقسام التانية فوق.';
   @override
   String get nextStepApprove =>
       'الخطوة الجاية: افتح نسخة، ووافق عليها أو رجّعها بسبب. '
@@ -211,23 +211,26 @@ class InboxStringsAr extends InboxStrings {
   @override
   String get cancel => 'إلغاء';
   @override
-  String get save => 'حفظ';
+  String get save => 'احفظ';
   @override
-  String get confirm => 'تأكيد';
+  String get confirm => 'تمام';
   @override
-  String get add => 'إضافة';
+  String get add => 'ضيف';
   @override
   String get open => 'افتح';
   @override
-  String get refresh => 'تحديث';
+  String get refresh => 'حدّث';
   @override
   String get justNow => 'دلوقتي';
   @override
-  String minutes(int n) => '$n دقيقة';
+  String minutes(int n) =>
+      arCount(n, one: 'دقيقة', two: 'دقيقتين', few: 'دقايق', many: 'دقيقة');
   @override
-  String hours(int n) => n == 1 ? 'ساعة' : '$n ساعات';
+  String hours(int n) =>
+      arCount(n, one: 'ساعة', two: 'ساعتين', few: 'ساعات', many: 'ساعة');
   @override
-  String days(int n) => n == 1 ? 'يوم' : '$n أيام';
+  String days(int n) =>
+      arCount(n, one: 'يوم', two: 'يومين', few: 'أيام', many: 'يوم');
   @override
   List<String> get weekdays => const [
     'الاثنين',
@@ -254,23 +257,23 @@ class InboxStringsAr extends InboxStrings {
     'ديسمبر',
   ];
   @override
-  String get errShadow => 'الـ Studio لسه مش شغال، فمفيش حاجة تتحفظ دلوقتي.';
+  String get errShadow => 'الـ Studio لسه مش شغّال، فمفيش حاجة اتغيّرت.';
   @override
-  String get errGateHeader => 'مينفعش نكمل لسه. صلّح الحاجات دي الأول:';
+  String get errGateHeader => 'الفحص مانجحش. صلّح اللي تحت وجرّب تاني:';
   @override
-  String get errStale => 'حد غيّر ده من لحظات. اتحدّث. راجعه وجرّب تاني.';
+  String get errStale => 'اتغيّر من ساعة ما فتحته. حدّث الصفحة وجرّب تاني.';
   @override
-  String get errNotPermitted => 'مش مسموحلك بده. الصفحة اتحدثت.';
+  String get errNotPermitted => 'مش مسموح لدورك.';
   @override
-  String get errNotFound => 'ده مبقاش موجود.';
+  String get errNotFound => 'ده مبقاش موجود. ارجع وحدّث الصفحة.';
   @override
-  String get errAlreadyDone => 'اتعمل قبل كده. بنعرض الحالة دلوقتي.';
+  String get errAlreadyDone => 'اتعمل قبل كده. دي الحالة دلوقتي.';
   @override
-  String get errNetwork => 'مفيش اتصال. اتأكد من النت وجرّب تاني.';
+  String get errNetwork => 'مفيش نت. اتأكد من الاتصال وجرّب تاني.';
   @override
   String get errRate => 'محاولات كتير ورا بعض. استنى شوية وجرّب تاني.';
   @override
   String get errServer => 'حصلت مشكلة عندنا. جرّب تاني كمان شوية.';
   @override
-  String get errGeneric => 'ما اشتغلش. جرّب تاني.';
+  String get errGeneric => 'حصلت مشكلة. جرّب تاني.';
 }

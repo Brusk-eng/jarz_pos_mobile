@@ -114,9 +114,7 @@ class ShootStatusPill extends StatelessWidget {
       ),
       child: Text(
         t.status(status),
-        style: Theme.of(
-          context,
-        ).textTheme.labelMedium?.copyWith(color: fg),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: fg),
       ),
     );
   }

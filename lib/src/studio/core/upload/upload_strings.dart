@@ -65,21 +65,23 @@ class UploadStringsEn extends UploadStrings {
 
   @override
   String rejection(UploadRejection r, String name) => switch (r) {
-    UploadRejection.empty => '$name is empty.',
+    UploadRejection.empty => '$name is empty. Pick another file.',
     UploadRejection.wrongType =>
-      '$name is not a picture, a video or a PDF, so it cannot go up.',
-    UploadRejection.tooBig => '$name is too big to upload.',
-    UploadRejection.tooLong => '$name is longer than a story clip can be.',
+      '$name is not a picture, a video or a PDF. Pick one of those.',
+    UploadRejection.tooBig =>
+      '$name is too big to upload. Pick a smaller file.',
+    UploadRejection.tooLong =>
+      '$name is longer than a Story clip can be. Pick a shorter one.',
     UploadRejection.duplicate => '$name is already uploading or uploaded.',
   };
 
   @override
   String errorText(String? code, String? message) => switch (code) {
-    'shadow' => 'The Studio is not switched on yet, so nothing can go up.',
+    'shadow' => 'The Studio is not switched on yet, so nothing went up.',
     'permission' => message ?? 'You are not allowed to upload this.',
     'validation' => message ?? 'The server did not accept this file.',
     'expired' => 'The upload link ran out. Try again.',
-    'file_missing' => 'The file is no longer on this phone.',
+    'file_missing' => 'The file is no longer on this phone. Pick it again.',
     _ => message ?? 'The upload failed. Try again.',
   };
 }
@@ -90,14 +92,14 @@ class UploadStringsAr extends UploadStrings {
   String get trayTitle => 'الرفع';
   @override
   String trayCounts(int u, int f, int d) => [
-    if (u > 0) '$u بيترفع',
-    if (f > 0) '$f فشل',
-    if (d > 0) '$d خلص',
+    if (u > 0) 'بيترفع: $u',
+    if (f > 0) 'فشل: $f',
+    if (d > 0) 'خلص: $d',
   ].join(' · ');
   @override
   String get waitingForConnection => 'مستني النت';
   @override
-  String get waitingForTurn => 'مستني دوره';
+  String get waitingForTurn => 'مستني في الطابور';
   @override
   String uploadingPercent(int pct) => 'بيترفع $pct%';
   @override
@@ -119,21 +121,22 @@ class UploadStringsAr extends UploadStrings {
 
   @override
   String rejection(UploadRejection r, String name) => switch (r) {
-    UploadRejection.empty => '$name فاضي.',
+    UploadRejection.empty => '$name فاضي. اختار ملف تاني.',
     UploadRejection.wrongType =>
-      '$name مش صورة ولا فيديو ولا PDF، فمينفعش يترفع.',
-    UploadRejection.tooBig => '$name كبير أوي على الرفع.',
-    UploadRejection.tooLong => '$name أطول من اللي الستوري تقبله.',
+      '$name مش صورة ولا فيديو ولا PDF. اختار واحد منهم.',
+    UploadRejection.tooBig => '$name كبير ومينفعش يترفع. اختار ملف أصغر.',
+    UploadRejection.tooLong =>
+      '$name أطول من اللي الـ Story بتقبله. اختار كليب أقصر.',
     UploadRejection.duplicate => '$name بيترفع أو اترفع قبل كده.',
   };
 
   @override
   String errorText(String? code, String? message) => switch (code) {
-    'shadow' => 'الـ Studio لسه مش شغّال، فمفيش حاجة تترفع.',
-    'permission' => message ?? 'مش مسموح لك ترفع ده.',
-    'validation' => message ?? 'السيرفر ما قبلش الملف ده.',
-    'expired' => 'لينك الرفع خلص. جرّب تاني.',
-    'file_missing' => 'الملف ما بقاش على التليفون.',
+    'shadow' => 'الـ Studio لسه مش شغّال، فمفيش حاجة اترفعت.',
+    'permission' => message ?? 'مش مسموح لدورك ترفع ده.',
+    'validation' => message ?? 'الملف ده ما اتقبلش. اختار ملف تاني.',
+    'expired' => 'لينك الرفع خلصت مدته. جرّب تاني.',
+    'file_missing' => 'الملف مبقاش على التليفون. اختاره تاني.',
     _ => message ?? 'الرفع فشل. جرّب تاني.',
   };
 }

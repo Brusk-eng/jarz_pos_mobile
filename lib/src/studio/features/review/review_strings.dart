@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/l10n/plural.dart';
+
 /// Texts of the review screens (version page and rating feed), English and
 /// Arabic, in the same pattern as `StudioStrings`: an abstract class with one
 /// implementation per language, so a text missing in Arabic fails the build.
@@ -250,7 +252,7 @@ class ReviewStringsEn extends ReviewStrings {
   String get openFullScreen => 'Open full screen';
 
   @override
-  String get waitingForApproval => 'Waiting for approval';
+  String get waitingForApproval => 'Waiting for the founder\'s approval';
   @override
   String approvedBy(String name) => 'Approved by $name';
   @override
@@ -265,16 +267,16 @@ class ReviewStringsEn extends ReviewStrings {
   @override
   String get noVerdict => 'Not judged yet.';
   @override
-  String sellScore(String score) => 'Sells $score out of 5';
+  String sellScore(String score) => 'Sell score: $score out of 5';
   @override
   String get whySells => 'Why it sells';
   @override
   String get whatStops => 'What stops it';
   @override
-  String get fixesTitle => 'Fix these';
+  String get fixesTitle => 'What to fix';
   @override
   String get verdictOutdated =>
-      'This verdict was for an older cut. It will be judged again.';
+      'This verdict is for an older version. A new one will be made.';
   @override
   String get verdictBlocked => 'Blocked';
 
@@ -309,14 +311,14 @@ class ReviewStringsEn extends ReviewStrings {
   @override
   String get wholeVersion => 'Whole version';
   @override
-  String get commentsLoadFailed => 'Could not load the comments.';
+  String get commentsLoadFailed => 'Could not load the comments. Try again.';
 
   @override
   String get approve => 'Approve';
   @override
   String get sendBack => 'Send back';
   @override
-  String get clearDecision => 'Clear the decision';
+  String get clearDecision => 'Undo my approval';
   @override
   String get rate => 'Rate';
   @override
@@ -368,7 +370,7 @@ class ReviewStringsEn extends ReviewStrings {
   String get sentBackToCreator => 'Sent back to the creator, with your reason.';
   @override
   String get decisionCleared =>
-      'Decision cleared. It is waiting for your approval again.';
+      'Undone. It is waiting for your approval again.';
   @override
   String ratedSaved(int score, String label) =>
       'Saved your rating: $score, $label.';
@@ -380,7 +382,8 @@ class ReviewStringsEn extends ReviewStrings {
   @override
   String get gateFailedTitle => 'It is not ready to approve';
   @override
-  String get gateFailedIntro => 'Fix these first. Nothing was changed.';
+  String get gateFailedIntro =>
+      'The check failed. Nothing was changed. Fix these and try again.';
   @override
   String get gotIt => 'Got it';
   @override
@@ -390,12 +393,12 @@ class ReviewStringsEn extends ReviewStrings {
   String get feedEmptyPurpose => 'You rated everything';
   @override
   String get feedEmptyFirstStep =>
-      'Nothing is waiting for your rating. New cuts show up here when they are ready.';
+      'Nothing is waiting for your rating. New versions show up here when they are ready.';
   @override
   String get feedEndTitle => 'You rated everything';
   @override
   String get feedEndBody =>
-      'Thank you. New cuts show up here when they are ready.';
+      'Thanks. New versions show up here when they are ready.';
   @override
   String get feedBack => 'Back';
   @override
@@ -411,7 +414,7 @@ class ReviewStringsEn extends ReviewStrings {
       total == null ? '$i' : '$i of $total';
   @override
   String feedRollback(String title) =>
-      'Your rating for "$title" was not saved.';
+      'Your rating for "$title" was not saved. Try again.';
   @override
   String get feedSoundOn => 'Sound on';
   @override
@@ -434,11 +437,11 @@ class ReviewStringsAr extends ReviewStrings {
   String get versionHelpTitle => 'إزاي تراجع نسخة';
   @override
   List<String> get versionHelp => const [
-    'اتفرّج على النسخة الأول. دوس على الصورة تفتحها على الشاشة كلها.',
-    'الـ sell judge بيقول هتبيع ولا لأ، وليه، وإيه اللي محتاج يتصلّح.',
-    'قيّمها من 1 لـ 5 وقول السبب. تقدر تغيّر تقييمك بعدين.',
-    'المؤسس بيوافق على النسخة أو بيرجّعها بسبب. بتشوف بس الأزرار اللي تقدر تستخدمها.',
-    'بعد كل خطوة الصفحة بتقولك إيه اللي هيحصل بعد كده ومين ماسكها.',
+    'شوف النسخة الأول. دوس على الصورة تفتحها ملء الشاشة.',
+    'الـ sell judge بيقول هتبيع ولا لأ، وليه، وإيه اللي لازم يتصلّح.',
+    'قيّمها من 1 لـ 5 واكتب السبب. ممكن تغيّر التقييم بعدين.',
+    'المؤسس بيوافق على النسخة أو بيرجّعها مع السبب. بتظهرلك بس الأزرار المسموحة ليك.',
+    'بعد كل خطوة، الصفحة بتقولك إيه اللي هيحصل بعد كده ومين ماسكها.',
   ];
   @override
   String get feedTitle => 'قيّم';
@@ -447,10 +450,10 @@ class ReviewStringsAr extends ReviewStrings {
   @override
   List<String> get feedHelp => const [
     'نسخة واحدة في المرة. اسحب لفوق للي بعدها.',
-    'دوس على رقم تقيّم. التقييم بيتسجّل وتروح للي بعده.',
-    'عايز تقول السبب؟ دوس "أضف تعليق" قبل ما تدوس على الرقم.',
-    'دوس على الصورة توقّف الفيديو. دوس على السماعة تسمعه.',
-    'مش متأكد؟ دوس "عدّي". هتفضل في قايمتك.',
+    'دوس على رقم للتقييم. بيتحفظ وبتنتقل للي بعده.',
+    'للسبب، دوس "ضيف تعليق" قبل الرقم.',
+    'دوس على الصورة توقّف الفيديو، ودوس على السماعة تسمع الصوت.',
+    'مش واضحة؟ دوس "تخطّى". هتفضل في القائمة.',
   ];
 
   @override
@@ -467,13 +470,13 @@ class ReviewStringsAr extends ReviewStrings {
   @override
   String get noMedia => 'مفيش صورة ولا فيديو على النسخة دي لسه.';
   @override
-  String get storyFrames => 'فريمات الستوري';
+  String get storyFrames => 'فريمات الـ Story';
   @override
   String frameLabel(int n) => 'فريم $n';
   @override
   String get framePosted => 'اتنشر';
   @override
-  String get frameSkipped => 'اتعدّى';
+  String get frameSkipped => 'اتخطّى';
   @override
   String get langAr => 'عربي';
   @override
@@ -482,31 +485,31 @@ class ReviewStringsAr extends ReviewStrings {
   String get openFullScreen => 'افتح على الشاشة كلها';
 
   @override
-  String get waitingForApproval => 'مستنية الموافقة';
+  String get waitingForApproval => 'مستنية موافقة المؤسس';
   @override
   String approvedBy(String name) => 'وافق عليها $name';
   @override
   String sentBackWith(String reason) => 'اترجّعت: $reason';
   @override
-  String get approvedPlain => 'اتوافق عليها';
+  String get approvedPlain => 'معتمدة';
   @override
   String get sentBackPlain => 'اترجّعت';
 
   @override
   String get verdictTitle => 'Sell judge';
   @override
-  String get noVerdict => 'لسه ما اتحكمش عليها.';
+  String get noVerdict => 'مفيش verdict لسه.';
   @override
-  String sellScore(String score) => 'هتبيع $score من 5';
+  String sellScore(String score) => 'درجة البيع: $score من 5';
   @override
   String get whySells => 'ليه هتبيع';
   @override
-  String get whatStops => 'إيه اللي بيمنعها';
+  String get whatStops => 'اللي بيمنعها';
   @override
-  String get fixesTitle => 'اتصلّح الحاجات دي';
+  String get fixesTitle => 'اللي لازم يتصلّح';
   @override
   String get verdictOutdated =>
-      'الحكم ده كان على نسخة أقدم. هيتحكم عليها تاني.';
+      'الـ verdict ده على نسخة أقدم، وهيتعمل واحد جديد.';
   @override
   String get verdictBlocked => 'موقوفة';
 
@@ -516,11 +519,11 @@ class ReviewStringsAr extends ReviewStrings {
   String get noRatingsYet => 'مفيش تقييمات لسه.';
   @override
   String ratingSummary(String avg, int n) =>
-      '$avg من 5 من $n ${n == 1 ? 'تقييم' : 'تقييمات'}';
+      '$avg من 5 من ${arCount(n, one: 'تقييم واحد', two: 'تقييمين', few: 'تقييمات', many: 'تقييم')}';
   @override
-  String stillToRate(String names) => 'لسه هيقيّموا: $names';
+  String stillToRate(String names) => 'لسه محتاجة تقييم من: $names';
   @override
-  String get notRatedByMe => 'إنت لسه ما قيّمتش النسخة دي.';
+  String get notRatedByMe => 'النسخة دي لسه ما اتقيّمتش منك.';
   @override
   String yourRating(int score, String label) => 'تقييمك: $score، $label';
   @override
@@ -541,14 +544,14 @@ class ReviewStringsAr extends ReviewStrings {
   @override
   String get wholeVersion => 'النسخة كلها';
   @override
-  String get commentsLoadFailed => 'مقدرناش نحمّل التعليقات.';
+  String get commentsLoadFailed => 'التعليقات ما اتحمّلتش. جرّب تاني.';
 
   @override
   String get approve => 'وافق';
   @override
-  String get sendBack => 'رجّعها';
+  String get sendBack => 'رجّع';
   @override
-  String get clearDecision => 'امسح القرار';
+  String get clearDecision => 'ارجع في موافقتي';
   @override
   String get rate => 'قيّم';
   @override
@@ -562,10 +565,10 @@ class ReviewStringsAr extends ReviewStrings {
   @override
   String get send => 'ابعت';
   @override
-  String get confirmApproveTitle => 'توافق على النسخة دي؟';
+  String get confirmApproveTitle => 'نعتمد النسخة دي؟';
   @override
   String confirmApproveBody(String? when) => when == null
-      ? 'لسه ليها ميعاد نشر. مسؤول التسويق هيديها ميعاد بعد كده.'
+      ? 'لسه ماليهاش ميعاد نشر. مسؤول التسويق هيحدد ميعادها بعد كده.'
       : 'هتتنشر $when.';
   @override
   String get confirmApprove => 'أيوه، وافق';
@@ -575,76 +578,79 @@ class ReviewStringsAr extends ReviewStrings {
   String get sendBackHint => 'إيه اللي لازم يتغيّر؟';
   @override
   String get sendBackReasonRequired =>
-      'اكتب إيه اللي لازم يتغيّر عشان صاحب الشغل يعرف يصلّحه.';
+      'اكتب إيه اللي لازم يتغيّر عشان الكرييتور يعرف يصلّحه.';
   @override
-  String get sendBackConfirm => 'رجّعها';
+  String get sendBackConfirm => 'رجّع';
   @override
   String get rateSheetTitle => 'شايفها إزاي؟';
   @override
-  String get rateCommentHint => 'قول السبب (اختياري)';
+  String get rateCommentHint => 'اكتب السبب (اختياري)';
   @override
-  String get commentSheetTitle => 'أضف تعليق';
+  String get commentSheetTitle => 'ضيف تعليق';
   @override
   String get commentHint => 'اكتب تعليقك';
   @override
   String get commentForFrame => 'على أنهي فريم؟';
 
   @override
-  String approvedPosts(String when) => 'اتوافق عليها. هتتنشر $when.';
+  String approvedPosts(String when) => 'معتمدة. هتتنشر $when.';
   @override
   String get approvedNoSlot =>
-      'اتوافق عليها. لسه ماليهاش ميعاد نشر. مسؤول التسويق هيديها ميعاد بعد كده.';
+      'معتمدة. لسه ماليهاش ميعاد نشر. مسؤول التسويق هيحدد ميعادها بعد كده.';
   @override
-  String sentBackTo(String name) => 'اترجّعت لـ $name، ومعاها السبب بتاعك.';
+  String sentBackTo(String name) => 'اترجّعت لـ $name مع السبب اللي كتبته.';
   @override
-  String get sentBackToCreator => 'اترجّعت لصاحب الشغل، ومعاها السبب بتاعك.';
+  String get sentBackToCreator => 'اترجّعت للكرييتور مع السبب اللي كتبته.';
   @override
-  String get decisionCleared => 'القرار اتمسح. النسخة مستنية موافقتك تاني.';
+  String get decisionCleared => 'رجعت في الموافقة. النسخة مستنية موافقتك تاني.';
   @override
   String ratedSaved(int score, String label) =>
-      'تقييمك اتسجّل: $score، $label.';
+      'التقييم اتحفظ: $score، $label.';
   @override
   String get commentAdded => 'التعليق اتضاف.';
   @override
-  String get backToList => 'ارجع للقايمة';
+  String get backToList => 'رجوع للقائمة';
 
   @override
   String get gateFailedTitle => 'لسه مش جاهزة للموافقة';
   @override
-  String get gateFailedIntro => 'صلّح الحاجات دي الأول. مفيش حاجة اتغيّرت.';
+  String get gateFailedIntro =>
+      'الفحص مانجحش ومفيش حاجة اتغيّرت. صلّح اللي تحت وجرّب تاني.';
   @override
   String get gotIt => 'تمام';
   @override
   String get tryAgain => 'جرّب تاني';
 
   @override
-  String get feedEmptyPurpose => 'قيّمت كل حاجة';
+  String get feedEmptyPurpose => 'كله اتقيّم';
   @override
   String get feedEmptyFirstStep =>
       'مفيش حاجة مستنية تقييمك. النسخ الجديدة هتظهر هنا أول ما تجهز.';
   @override
-  String get feedEndTitle => 'قيّمت كل حاجة';
+  String get feedEndTitle => 'كله اتقيّم';
   @override
-  String get feedEndBody => 'شكراً. النسخ الجديدة هتظهر هنا أول ما تجهز.';
+  String get feedEndBody => 'تسلم. النسخ الجديدة هتظهر هنا أول ما تجهز.';
   @override
   String get feedBack => 'رجوع';
   @override
-  String get feedSkip => 'عدّي';
+  String get feedSkip => 'تخطّى';
   @override
   String get feedDetails => 'التفاصيل';
   @override
-  String get feedAddComment => 'أضف تعليق';
+  String get feedAddComment => 'ضيف تعليق';
   @override
-  String get feedCommentAdded => 'التعليق جاهز. دوس على رقم يتبعت.';
+  String get feedCommentAdded =>
+      'التعليق جاهز. دوس على رقم التقييم عشان يتبعت.';
   @override
   String feedPosition(int i, int? total) =>
       total == null ? '$i' : '$i من $total';
   @override
-  String feedRollback(String title) => 'تقييمك لـ "$title" ما اتسجّلش.';
+  String feedRollback(String title) =>
+      'تقييمك لـ "$title" ما اتحفظش. جرّب تاني.';
   @override
   String get feedSoundOn => 'الصوت شغّال';
   @override
   String get feedSoundOff => 'الصوت مقفول';
   @override
-  String get feedLoadMoreFailed => 'مقدرناش نحمّل أكتر. دوس تجرّب تاني.';
+  String get feedLoadMoreFailed => 'ما اتحمّلش المزيد. دوس وجرّب تاني.';
 }

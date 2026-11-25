@@ -104,7 +104,7 @@ void main() {
       await tester.pump();
       await tester.tap(confirmButton());
       await tester.pumpAndSettle();
-      expect(find.textContaining('not allowed'), findsOneWidget);
+      expect(find.textContaining('Your role cannot do that'), findsOneWidget);
       expect(find.byKey(const ValueKey('decision-answered')), findsNothing);
     });
 
@@ -136,9 +136,9 @@ void main() {
         await tester.pump();
         await tester.tap(confirmButton());
         await tester.pumpAndSettle();
-        expect(find.textContaining('already done'), findsOneWidget);
+        expect(find.textContaining('Already done'), findsOneWidget);
         expect(find.textContaining('went wrong'), findsNothing);
-        expect(find.textContaining('not allowed'), findsNothing);
+        expect(find.textContaining('Your role cannot do that'), findsNothing);
       },
     );
 
@@ -161,7 +161,10 @@ void main() {
       expect(find.byKey(const ValueKey('option-1')), findsOneWidget);
       expect(confirmButton(), findsNothing);
       expect(find.byKey(const ValueKey('decision-note')), findsNothing);
-      expect(find.textContaining('Waiting for the founder'), findsOneWidget);
+      expect(
+        find.textContaining('Only the founder answers this'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('an answered decision is read-only and shows the pick', (

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/l10n/studio_labels.dart';
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
@@ -161,6 +162,7 @@ class _IdeaCardState extends ConsumerState<IdeaCard> {
                 if (fmt != null) _Tag(fmt),
                 for (final f in idea.flavours) _Tag(f.name),
                 _Tag(t.from(who)),
+                _Tag(StudioLabels.of(context).ideaStatus(idea.status)),
               ],
             ),
             if (idea.angle != null && idea.angle!.isNotEmpty) ...[

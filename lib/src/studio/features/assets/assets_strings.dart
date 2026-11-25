@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/l10n/plural.dart';
 import '../../data/models/studio_enums.dart';
 
 /// Texts of the Library (assets) screens, English and Arabic, in the same
@@ -88,6 +89,9 @@ abstract class AssetStrings {
   String get fieldTitle;
   String get fieldKind;
   String get chooseKind;
+  String get chooseFlavour;
+  String get chooseCategory;
+  String get noFlavour;
   String get uploadButton;
   String get saveButton;
   String get cancel;
@@ -333,6 +337,12 @@ class AssetStringsEn extends AssetStrings {
   @override
   String get chooseKind => 'Choose what it is';
   @override
+  String get chooseFlavour => 'Choose a flavor, or "No flavor"';
+  @override
+  String get chooseCategory => 'Choose a category';
+  @override
+  String get noFlavour => 'No flavor (general)';
+  @override
   String get uploadButton => 'Upload';
   @override
   String get saveButton => 'Save';
@@ -363,7 +373,7 @@ class AssetStringsEn extends AssetStrings {
   String get consentStatusLabel => 'Where it stands';
   @override
   String get consentGivenNeeds =>
-      'Given needs who gave it, the date, what it covers and a screenshot of the message.';
+      'To mark consent as given, add who gave it, the date, what it covers and a screenshot of the message.';
   @override
   String get consentWhoHint => 'Name or handle';
   @override
@@ -386,18 +396,18 @@ class AssetStringsEn extends AssetStrings {
 
   @override
   String get errShadow =>
-      'The Studio is not switched on yet. Nothing was changed.';
+      'The Studio is not switched on yet, so nothing was changed.';
   @override
   String get errStale =>
-      'This changed meanwhile. The new version is on screen.';
+      'This changed since you opened it. Refresh the page and try again.';
   @override
-  String get errNotPermitted => 'You are not allowed to do this.';
+  String get errNotPermitted => 'Your role cannot do that.';
   @override
-  String get errNetwork => 'No connection. Try again when you are online.';
+  String get errNetwork => 'No connection. Check the internet and try again.';
   @override
-  String get errGeneric => 'That did not work. Try again.';
+  String get errGeneric => 'Something went wrong. Try again.';
   @override
-  String get errNotFound => 'This file is no longer there.';
+  String get errNotFound => 'This is no longer there. Go back and refresh.';
   @override
   String get needsConnection => 'The Library needs a connection.';
 }
@@ -416,13 +426,13 @@ class AssetStringsAr extends AssetStrings {
   @override
   List<String> get libraryHelp => const [
     'هنا الكليبات والصور الخام والتمبلتس ومحتوى العملاء.',
-    'فلتر بالنوع أو الـ flavor أو الحالة أو الموافقة، أو دوّر بكلمات.',
-    'ضيف ملفات من تليفونك. بتترفع على طول وتتعمل لها تاجز.',
-    'محتوى العملاء لازم له سجل موافقة قبل ما يتستخدم.',
+    'فلتر بالنوع أو الـ flavor أو الحالة أو الإذن، أو دوّر بكلمات.',
+    'ضيف ملفات من تليفونك. بتترفع على طول وبتتحط عليها تاجز.',
+    'محتوى العملاء لازم له سجل إذن قبل ما يتستخدم.',
   ];
   @override
   String get emptyPurpose =>
-      'المكتبة فيها الكليبات والصور الخام ومحتوى العملاء اللي الفريق يقدر يستخدمها.';
+      'المكتبة فيها الكليبات والصور الخام ومحتوى العملاء اللي الفريق يقدر يستخدمه.';
   @override
   String get emptyFirstStep => 'ضيف أول ملف من تليفونك.';
   @override
@@ -434,7 +444,7 @@ class AssetStringsAr extends AssetStrings {
   @override
   String get addAsset => 'ضيف ملفات';
   @override
-  String get search => 'بحث';
+  String get search => 'دوّر';
   @override
   String get filterKind => 'النوع';
   @override
@@ -442,23 +452,23 @@ class AssetStringsAr extends AssetStrings {
   @override
   String get filterStatus => 'الحالة';
   @override
-  String get filterConsent => 'الموافقة';
+  String get filterConsent => 'الإذن';
   @override
   String get any => 'أي حاجة';
   @override
-  String get loadMore => 'وريني أكتر';
+  String get loadMore => 'اعرض أكتر';
 
   @override
   String kind(AssetKind k) => switch (k) {
     AssetKind.clip => 'كليب',
     AssetKind.photo => 'صورة',
     AssetKind.template => 'تمبلت',
-    AssetKind.storyFrame => 'فريم ستوري',
-    AssetKind.storyPhoto => 'صورة ستوري',
-    AssetKind.kitchenShot => 'لقطة مطبخ',
+    AssetKind.storyFrame => 'فريم Story',
+    AssetKind.storyPhoto => 'صورة Story',
+    AssetKind.kitchenShot => 'شوت مطبخ',
     AssetKind.customerContent => 'محتوى عميل',
     AssetKind.oldCreative => 'شغل قديم',
-    AssetKind.unknown => 'حاجة تانية',
+    AssetKind.unknown => 'غير ذلك',
   };
   @override
   String category(AssetCategory c) => switch (c) {
@@ -467,8 +477,8 @@ class AssetStringsAr extends AssetStrings {
     AssetCategory.jars => 'البرطمانات',
     AssetCategory.kitchen => 'المطبخ',
     AssetCategory.team => 'الفريق',
-    AssetCategory.other => 'حاجة تانية',
-    AssetCategory.unknown => 'حاجة تانية',
+    AssetCategory.other => 'غير ذلك',
+    AssetCategory.unknown => 'غير ذلك',
   };
   @override
   String status(AssetStatus s) => switch (s) {
@@ -476,21 +486,21 @@ class AssetStringsAr extends AssetStrings {
     AssetStatus.used => 'اتستخدم',
     AssetStatus.skipped => 'اتخطّى',
     AssetStatus.retired => 'اتسحب',
-    AssetStatus.unknown => 'حاجة تانية',
+    AssetStatus.unknown => 'غير ذلك',
   };
   @override
   String consentStatus(ConsentStatus s) => switch (s) {
-    ConsentStatus.notNeeded => 'مش مطلوبة',
-    ConsentStatus.asked => 'اتسأل ولسه مردّش',
-    ConsentStatus.given => 'اتوافق',
+    ConsentStatus.notNeeded => 'مش مطلوب',
+    ConsentStatus.asked => 'اتطلب ولسه مفيش رد',
+    ConsentStatus.given => 'اتاخد',
     ConsentStatus.refused => 'اترفض',
-    ConsentStatus.unknown => 'حاجة تانية',
+    ConsentStatus.unknown => 'غير ذلك',
   };
   @override
   String scope(ConsentScope s) => switch (s) {
     ConsentScope.organicOnly => 'أورجانيك بس',
     ConsentScope.organicAndPaid => 'أورجانيك وإعلانات',
-    ConsentScope.unknown => 'حاجة تانية',
+    ConsentScope.unknown => 'غير ذلك',
   };
 
   @override
@@ -500,11 +510,11 @@ class AssetStringsAr extends AssetStrings {
   @override
   List<String> get assetHelp => const [
     'دوس على الصورة تشوفها بالشاشة كلها.',
-    'محتوى العميل بيظهر معاه سجل الموافقة. الإعلانات محتاجة موافقة للإعلانات.',
+    'محتوى العميل بيظهر معاه سجل الإذن. الإعلانات المدفوعة محتاجة إذن للإعلانات.',
     'قيّمه عشان تقول يستاهل ولا لأ، واكتب تعليق للفريق.',
   ];
   @override
-  String get noMedia => 'مفيش صورة لسه. ممكن لسه بتتعالج.';
+  String get noMedia => 'لسه مفيش صورة. ممكن يكون لسه بيتجهّز.';
   @override
   String get openFullScreen => 'افتح بالشاشة كلها';
   @override
@@ -516,19 +526,20 @@ class AssetStringsAr extends AssetStrings {
   @override
   String get fieldTags => 'تاجز';
   @override
-  String uploadedBy(String name) => 'ضافه $name';
+  String uploadedBy(String name) => 'اتضاف من $name';
   @override
-  String usedTimes(int n) => n == 1 ? 'اتستخدم مرة' : 'اتستخدم $n مرات';
+  String usedTimes(int n) =>
+      'اتستخدم ${arCount(n, one: 'مرة', two: 'مرتين', few: 'مرات', many: 'مرة')}';
   @override
-  String get notUsedYet => 'لسه ما اتستخدمش';
+  String get notUsedYet => 'لسه ماتستخدمش';
   @override
-  String get consentTitle => 'الموافقة';
+  String get consentTitle => 'الإذن';
   @override
-  String get consentWho => 'مين وافق';
+  String get consentWho => 'مين إدّى الإذن';
   @override
   String get consentDate => 'التاريخ';
   @override
-  String get consentScope => 'بتغطي';
+  String get consentScope => 'بيغطي إيه';
   @override
   String get consentProof => 'الإثبات';
   @override
@@ -543,7 +554,7 @@ class AssetStringsAr extends AssetStrings {
   String get noRatingsYet => 'مفيش تقييمات لسه.';
   @override
   String ratingSummary(String avg, int n) =>
-      n == 1 ? '$avg من واحد' : '$avg من $n';
+      '$avg من ${arCount(n, one: 'تقييم واحد', two: 'تقييمين', few: 'تقييمات', many: 'تقييم')}';
   @override
   String yourRating(int score) => 'تقييمك: $score';
   @override
@@ -561,18 +572,24 @@ class AssetStringsAr extends AssetStrings {
       ? 'مفيش تعليقات لسه.'
       : n == 1
       ? 'تعليق واحد'
-      : '$n تعليقات';
+      : arCount(
+          n,
+          one: 'تعليق واحد',
+          two: 'تعليقين',
+          few: 'تعليقات',
+          many: 'تعليق',
+        );
   @override
   String get commentHint => 'اكتب تعليق';
   @override
   String get commentSend => 'ابعت';
   @override
-  String get commentSent => 'التعليق اتبعت';
+  String get commentSent => 'التعليق اتبعت.';
   @override
   String get hiddenNotice => 'مخفي من المكتبة.';
 
   @override
-  String get actionConsent => 'سجّل الموافقة';
+  String get actionConsent => 'سجّل الإذن';
   @override
   String get actionMarkUsed => 'علّمه اتستخدم';
   @override
@@ -581,19 +598,25 @@ class AssetStringsAr extends AssetStrings {
   @override
   String get addTitle => 'ضيف ملفات';
   @override
-  String get editTitle => 'عدّل الملف';
+  String get editTitle => 'تعديل الملف';
   @override
   String get pickFromGallery => 'من الصور على التليفون';
   @override
   String get pickFiles => 'من الملفات';
   @override
-  String get noFilesPicked => 'اختار الصور أو الكليبات اللي عايز تضيفها.';
+  String get noFilesPicked => 'اختار الصور أو الكليبات اللي هتضيفها.';
   @override
   String get fieldTitle => 'العنوان';
   @override
-  String get fieldKind => 'ده إيه';
+  String get fieldKind => 'النوع';
   @override
-  String get chooseKind => 'اختار ده إيه';
+  String get chooseKind => 'اختار النوع';
+  @override
+  String get chooseFlavour => 'اختار الـ flavor، أو «من غير flavor»';
+  @override
+  String get chooseCategory => 'اختار التصنيف';
+  @override
+  String get noFlavour => 'من غير flavor (عام)';
   @override
   String get uploadButton => 'ارفع';
   @override
@@ -601,7 +624,7 @@ class AssetStringsAr extends AssetStrings {
   @override
   String get cancel => 'إلغاء';
   @override
-  String get hideFromLibrary => 'اخفيه من المكتبة';
+  String get hideFromLibrary => 'خبّيه من المكتبة';
   @override
   String get openForRating => 'مفتوح للتقييم';
   @override
@@ -611,35 +634,35 @@ class AssetStringsAr extends AssetStrings {
   @override
   String get removeFile => 'شيل';
   @override
-  String get addHelpTitle => 'إضافة ملفات';
+  String get addHelpTitle => 'إزاي تضيف ملفات';
   @override
   List<String> get addHelp => const [
-    'اختار الملفات وقول هي إيه ودوس ارفع.',
+    'اختار الملفات وقول هي إيه، وبعدين دوس «ارفع».',
     'بتترفع على طول من تليفونك. تقدر تسيب الشاشة دي.',
     'لو النت قطع، الرفع بيستنى ويكمّل.',
   ];
 
   @override
-  String get consentSheetTitle => 'موافقة العميل';
+  String get consentSheetTitle => 'إذن العميل';
   @override
-  String get consentStatusLabel => 'وصلت لفين';
+  String get consentStatusLabel => 'الحالة';
   @override
   String get consentGivenNeeds =>
-      'اتوافق محتاجة اسم اللي وافق والتاريخ وبتغطي إيه وسكرين شوت للرسالة.';
+      'عشان الإذن يبقى «اتاخد» لازم اسم اللي إدّاه والتاريخ وبيغطي إيه وسكرين شوت للرسالة.';
   @override
   String get consentWhoHint => 'الاسم أو الهاندل';
   @override
   String get consentPickDate => 'اختار التاريخ';
   @override
-  String get consentAttachProof => 'ارفق السكرين شوت';
+  String get consentAttachProof => 'ضيف السكرين شوت';
   @override
   String get consentProofAttached => 'السكرين شوت اتضاف';
   @override
-  String get consentProofUploading => 'بيترفع السكرين شوت';
+  String get consentProofUploading => 'السكرين شوت بيترفع';
   @override
-  String get consentProofFailed => 'السكرين شوت ما اترفعش. جرّب تاني.';
+  String get consentProofFailed => 'السكرين شوت مااترفعش. جرّب تاني.';
   @override
-  String get consentSave => 'احفظ الموافقة';
+  String get consentSave => 'احفظ الإذن';
 
   @override
   String get usedSheetTitle => 'علّمه كـ';
@@ -647,17 +670,17 @@ class AssetStringsAr extends AssetStrings {
   String get usedNoteHint => 'اتستخدم فين، أو ليه لأ (اختياري)';
 
   @override
-  String get errShadow => 'الـ Studio لسه مش شغّال. ماحصلش أي تغيير.';
+  String get errShadow => 'الـ Studio لسه مش شغّال، فمفيش حاجة اتغيّرت.';
   @override
-  String get errStale => 'ده اتغيّر في الأثناء. النسخة الجديدة قدامك.';
+  String get errStale => 'اتغيّر من ساعة ما فتحته. حدّث الصفحة وجرّب تاني.';
   @override
-  String get errNotPermitted => 'مش مسموح لك بالحاجة دي.';
+  String get errNotPermitted => 'مش مسموح لدورك.';
   @override
-  String get errNetwork => 'مفيش نت. جرّب تاني لما يرجع.';
+  String get errNetwork => 'مفيش نت. اتأكد من الاتصال وجرّب تاني.';
   @override
-  String get errGeneric => 'ما نفعش. جرّب تاني.';
+  String get errGeneric => 'حصلت مشكلة. جرّب تاني.';
   @override
-  String get errNotFound => 'الملف ده ما بقاش موجود.';
+  String get errNotFound => 'ده مبقاش موجود. ارجع وحدّث الصفحة.';
   @override
   String get needsConnection => 'المكتبة محتاجة نت.';
 }

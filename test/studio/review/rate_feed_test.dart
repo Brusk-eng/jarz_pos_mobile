@@ -62,7 +62,7 @@ void main() {
       await pumpFeed(tester, api: FeedApi({}));
       expect(key('empty-purpose'), findsOneWidget);
       expect(find.text('You rated everything'), findsOneWidget);
-      expect(find.textContaining('New cuts show up here'), findsOneWidget);
+      expect(find.textContaining('New versions show up here'), findsOneWidget);
     });
 
     testWidgets('how this works opens', (tester) async {
@@ -351,10 +351,10 @@ void main() {
       await pumpFeed(tester, api: api, locale: 'ar');
       expect(find.text('قيّم'), findsOneWidget);
       expect(find.text('شغّلها'), findsOneWidget);
-      expect(find.text('عدّي'), findsOneWidget);
+      expect(find.text('تخطّى'), findsOneWidget);
       await tester.tap(key('score-5'));
       await tester.pumpAndSettle();
-      expect(find.text('قيّمت كل حاجة'), findsOneWidget);
+      expect(find.text('كله اتقيّم'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

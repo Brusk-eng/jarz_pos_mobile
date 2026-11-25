@@ -19,23 +19,34 @@ class DecisionScreen extends ConsumerWidget {
 
   final String decisionId;
 
+  void _refresh(WidgetRef ref) {
+    ref.invalidate(decisionProvider(decisionId));
+    ref.invalidate(decisionsProvider);
+    ref.invalidate(inboxCountsProvider);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = DecisionsStrings.of(context);
     final s = InboxStrings.of(context);
     final value = ref.watch(decisionProvider(decisionId));
 
-    Future<void> answer(int index, String? note, String rid) async {
+    Future<void> answer(
+      int? index,
+      String? note,
+      String rid, {
+      String? text,
+    }) async {
       try {
         await ref
             .read(decisionsRepositoryProvider)
-            .answer(decisionId, index, note: note, requestId: rid);
+            .answer(decisionId, index, note: note, text: text, requestId: rid);
       } on StudioAlreadyDone {
-        // Counts as done: show how it stands now.
+        // The first answer stands: show how it stands now, and say so.
+        _refresh(ref);
+        rethrow;
       }
-      ref.invalidate(decisionProvider(decisionId));
-      ref.invalidate(decisionsProvider);
-      ref.invalidate(inboxCountsProvider);
+      _refresh(ref);
     }
 
     return ViewEditScaffold(

@@ -191,9 +191,7 @@ Future<({ProviderContainer container, GoRouter router})> pumpMoreRouter(
       GoRoute(
         path: '/more',
         builder: (_, _) => const StudioMoreScreen(),
-        routes: [
-          ...moreRoutes(),
-        ],
+        routes: [...moreRoutes()],
       ),
       GoRoute(path: '/shoots', builder: (_, _) => stub('shoots')),
       GoRoute(path: '/assets', builder: (_, _) => stub('library')),

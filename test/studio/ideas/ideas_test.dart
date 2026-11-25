@@ -64,7 +64,7 @@ void main() {
     ) async {
       usePhone(tester, height: 1600);
       final api = fakeApi(
-        role: 'creator',
+        role: 'founder',
         edits: {
           'ideas.list': (j) {
             j['items'][0]['actions'] = ['edit'];
@@ -148,7 +148,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('keep-confirm')));
       await tester.pumpAndSettle();
       expect(find.textContaining('went wrong'), findsNothing);
-      expect(find.textContaining('not allowed'), findsNothing);
+      expect(find.textContaining('Your role cannot do that'), findsNothing);
     });
 
     testWidgets('keep NOT_PERMITTED is shown in plain words', (tester) async {
@@ -160,7 +160,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('keep-confirm')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('not allowed'), findsOneWidget);
+      expect(find.textContaining('Your role cannot do that'), findsOneWidget);
     });
 
     testWidgets('drop needs a reason, then drops', (tester) async {
@@ -279,7 +279,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('idea-submit')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Someone changed this'), findsOneWidget);
+      expect(
+        find.textContaining('This changed since you opened it'),
+        findsOneWidget,
+      );
       expect(find.byKey(const ValueKey('idea-title')), findsNothing);
     });
 

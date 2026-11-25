@@ -43,9 +43,9 @@ class MediaStringsEn extends MediaStrings {
   @override
   String get pause => 'Pause';
   @override
-  String get couldNotPlay => 'This video will not play.';
+  String get couldNotPlay => 'This video will not play. Try again.';
   @override
-  String get couldNotShow => 'This picture will not load.';
+  String get couldNotShow => 'This picture will not load. Try again.';
   @override
   String get tryAgain => 'Try again';
   @override
@@ -75,9 +75,9 @@ class MediaStringsAr extends MediaStrings {
   @override
   String get pause => 'وقّف';
   @override
-  String get couldNotPlay => 'الفيديو ده مش شغال.';
+  String get couldNotPlay => 'الفيديو مش بيشتغل. جرّب تاني.';
   @override
-  String get couldNotShow => 'الصورة دي مش بتفتح.';
+  String get couldNotShow => 'الصورة مش بتفتح. جرّب تاني.';
   @override
   String get tryAgain => 'جرّب تاني';
   @override

@@ -124,8 +124,7 @@ final Map<String, Future<Object?> Function(StudioApi)> endpointCalls = {
   'reports.get': (api) => api.reportsGet(reportId: 'x'),
   'decisions.list': (api) => api.decisionsList(),
   'decisions.get': (api) => api.decisionsGet(decisionId: 'x'),
-  'decisions.answer': (api) =>
-      api.decisionsAnswer(decisionId: 'x', optionIndex: 1),
+  'decisions.answer': (api) => api.decisionsAnswer(decisionId: 'x'),
   'settings.options': (api) => api.settingsOptions(),
   'settings.rules': (api) => api.settingsRules(),
   'settings.rule_set': (api) =>

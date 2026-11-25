@@ -96,7 +96,7 @@ void main() {
       expect(p['actions_agreed'], 'Fix the pixel by Thursday.');
       expect(p['base_modified'], isNotNull);
       expect(p['week_start'], '2026-11-22');
-      expect(snackText(tester), 'Review saved');
+      expect(snackText(tester), 'Review saved.');
     });
 
     testWidgets('adding a line needs a name and a value', (tester) async {
@@ -109,7 +109,7 @@ void main() {
       await tapKey(tester, 'line-save');
       final p = api.last('results.scorecard_note')!;
       expect(p['line'], {'label': 'Walk-in orders', 'value': '14'});
-      expect(snackText(tester), 'Line added');
+      expect(snackText(tester), 'Line added.');
     });
 
     testWidgets('mark as reviewed only with the action', (tester) async {
@@ -117,7 +117,7 @@ void main() {
       await pumpMore(tester, const ScorecardScreen(), api: api, size: _tall);
       await tapKey(tester, 'mark-reviewed');
       expect(api.last('results.scorecard_note')!['mark_reviewed'], true);
-      expect(snackText(tester), 'Marked as reviewed');
+      expect(snackText(tester), 'Marked as reviewed.');
     });
 
     testWidgets('a reviewed week hides the button and shows who', (
@@ -155,7 +155,7 @@ void main() {
       api.failNext('results.scorecard_note', 'NOT_PERMITTED');
       await tapKey(tester, 'edit');
       await tapKey(tester, 'notes-save');
-      expect(snackText(tester), 'You cannot do that.');
+      expect(snackText(tester), 'Your role cannot do that.');
       ScaffoldMessenger.of(
         tester.element(find.byType(Scaffold).first),
       ).clearSnackBars();
@@ -184,7 +184,7 @@ void main() {
       await pumpMore(tester, const ScorecardScreen(), api: api, size: _tall);
       await tapKey(tester, 'edit');
       await tapKey(tester, 'notes-save');
-      expect(snackText(tester), contains('Someone changed this'));
+      expect(snackText(tester), contains('This changed since you opened it'));
       expect(find.text('Written by Ali a minute ago.'), findsOneWidget);
     });
 
@@ -296,7 +296,7 @@ void main() {
       expect(p['post_id'], 'SP-2026-00190');
       expect(p['bucket'], '72h');
       expect(p['hold3_pct'], 21.5);
-      expect(snackText(tester), 'Read filed');
+      expect(snackText(tester), 'Read filed.');
     });
 
     testWidgets('a read refused before its window shows the reason', (
@@ -354,7 +354,7 @@ void main() {
         api: api,
         size: const Size(700, 1000),
       );
-      await tapKey(tester, 'chip-Persona');
+      await tapKey(tester, 'chip-Audience');
       expect(api.last('results.summary')!['group_by'], 'persona');
       await tapKey(tester, 'chip-Last 90 days');
       final p = api.last('results.summary')!;

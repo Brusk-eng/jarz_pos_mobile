@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/l10n/plural.dart';
 import '../../data/models/studio_enums.dart';
 
 /// Texts of the Results screens (scorecard, results by piece, summary),
@@ -104,29 +105,29 @@ class ResultsStringsEn extends ResultsStrings {
   String get helpTitle => 'Results';
   @override
   List<String> get help => const [
-    'The Sunday scorecard fills itself in. Lines marked by the system are read only.',
+    'The Sunday scorecard fills itself in. Lines filled by the system are read only.',
     'Add only what the system cannot read, as a line with a name and a value.',
     'Review it together on Sunday, then mark it reviewed.',
-    'Results by piece and the summary sit one tap away.',
+    'Results by piece and the summary are one tap away.',
   ];
   @override
   String get emptyPurpose =>
-      'The scorecard, and results by piece, format and persona.';
+      'The scorecard, and results by piece, format and audience.';
   @override
   String get emptyFirstStep =>
       'No scorecard yet. It fills in as pieces are read and ads report.';
   @override
   String weekLabel(String from, String to) => '$from to $to';
   @override
-  String get previousWeek => 'Week before';
+  String get previousWeek => 'Previous week';
   @override
-  String get nextWeek => 'Week after';
+  String get nextWeek => 'Next week';
   @override
   String statusLabel(ScorecardStatus s) => switch (s) {
     ScorecardStatus.filling => 'Still filling in',
     ScorecardStatus.ready => 'Ready to review',
     ScorecardStatus.reviewed => 'Reviewed',
-    ScorecardStatus.unknown => 'Other',
+    ScorecardStatus.unknown => 'Other status',
   };
   @override
   String get numbersTitle => 'Numbers';
@@ -149,24 +150,24 @@ class ResultsStringsEn extends ResultsStrings {
   @override
   String reviewedBy(String name, String when) => 'Reviewed by $name, $when';
   @override
-  String get againstLine => 'Line';
+  String get againstLine => 'Target';
   @override
-  String get aboveLine => 'Meets the line';
+  String get aboveLine => 'Meets the target';
   @override
-  String get belowLine => 'Misses the line';
+  String get belowLine => 'Misses the target';
   @override
-  String get noLineToJudge => 'No line to judge by';
+  String get noLineToJudge => 'No target to judge by';
   @override
   String sourceLabel(ScoreSource s) => switch (s) {
     ScoreSource.system => 'Filled by the system',
     ScoreSource.person => 'Added by hand',
     ScoreSource.missing => 'Missing, nobody has added it',
-    ScoreSource.unknown => 'Other',
+    ScoreSource.unknown => 'Other source',
   };
   @override
-  String get seeByPiece => 'Results by piece';
+  String get seeByPiece => 'Results by piece and 72-hour reads';
   @override
-  String get seeSummary => 'Summary by format and persona';
+  String get seeSummary => 'Summary by format and audience';
 
   @override
   String get editNotes => 'Write the review';
@@ -183,11 +184,11 @@ class ResultsStringsEn extends ResultsStrings {
   @override
   String get markReviewed => 'Mark as reviewed';
   @override
-  String get notesSaved => 'Review saved';
+  String get notesSaved => 'Review saved.';
   @override
-  String get lineAdded => 'Line added';
+  String get lineAdded => 'Line added.';
   @override
-  String get reviewedOk => 'Marked as reviewed';
+  String get reviewedOk => 'Marked as reviewed.';
   @override
   String get lineNeedsBoth => 'Write what it is and its value.';
 
@@ -243,7 +244,7 @@ class ResultsStringsEn extends ResultsStrings {
   @override
   String get fileReadNothingMissing => 'Nothing is missing. File it as it is.';
   @override
-  String get readFiledOk => 'Read filed';
+  String get readFiledOk => 'Read filed.';
   @override
   String get readAlreadyFiled => 'Already filed. Showing it as filed.';
   @override
@@ -267,7 +268,7 @@ class ResultsStringsEn extends ResultsStrings {
   String get summaryHelpTitle => 'The summary';
   @override
   List<String> get summaryHelp => const [
-    'Groups pieces by format, persona, situation, layer, flavor or series.',
+    'Groups pieces by format, audience, situation, layer, flavor or series.',
     'Bars are drawn against the best group, so you can compare at a glance.',
     'Choose how far back to look.',
   ];
@@ -275,13 +276,13 @@ class ResultsStringsEn extends ResultsStrings {
   String get summaryEmptyPurpose => 'Which kind of piece does best.';
   @override
   String get summaryEmptyFirstStep =>
-      'Nothing in this period. Try a longer period.';
+      'Nothing in this period. Choose a longer period.';
   @override
   String get groupBy => 'Group by';
   @override
   String groupByLabel(String wire) => switch (wire) {
     'format' => 'Format',
-    'persona' => 'Persona',
+    'persona' => 'Audience',
     'situation' => 'Situation',
     'layer' => 'Layer',
     'flavour' => 'Flavor',
@@ -289,7 +290,7 @@ class ResultsStringsEn extends ResultsStrings {
     _ => wire,
   };
   @override
-  String lastDays(int n) => 'Last $n days';
+  String lastDays(int n) => n == 1 ? 'Last day' : 'Last $n days';
   @override
   String get avgViews => 'Average views';
   @override
@@ -300,7 +301,9 @@ class ResultsStringsEn extends ResultsStrings {
   String get purchasesLabel => 'Purchases';
   @override
   String piecesLine(int pieces, int posts, int reads) =>
-      '$pieces pieces, $posts posts, $reads reads';
+      '${pieces == 1 ? '1 piece' : '$pieces pieces'}, '
+      '${posts == 1 ? '1 post' : '$posts posts'}, '
+      '${reads == 1 ? '1 read' : '$reads reads'}';
 }
 
 class ResultsStringsAr extends ResultsStrings {
@@ -312,18 +315,18 @@ class ResultsStringsAr extends ResultsStrings {
   String get helpTitle => 'النتائج';
   @override
   List<String> get help => const [
-    'لوحة الأحد بتتملي لوحدها. السطور اللي عليها علامة النظام للقراءة بس.',
+    'الـ scorecard بتتملي لوحدها. السطور اللي ملاها النظام للقراءة بس.',
     'ضيف بس اللي النظام مش قادر يقراه، كسطر باسم وقيمة.',
-    'راجعوها مع بعض يوم الأحد، وبعدين علّمها إنها اتراجعت.',
+    'راجعوها مع بعض يوم الأحد، وبعدين علّم إنها اتراجعت.',
     'نتايج كل قطعة والملخص على بعد ضغطة.',
   ];
   @override
-  String get emptyPurpose => 'لوحة الأحد، ونتايج القطع بالنوع والـ persona.';
+  String get emptyPurpose => 'الـ scorecard، ونتايج القطع بالنوع والجمهور.';
   @override
   String get emptyFirstStep =>
-      'مفيش لوحة لسه. بتتملي مع قراءة القطع وتقارير الإعلانات.';
+      'مفيش scorecard لسه. بتتملي مع قراءة نتايج القطع وأرقام الإعلانات.';
   @override
-  String weekLabel(String from, String to) => 'من $from إلى $to';
+  String weekLabel(String from, String to) => 'من $from لحد $to';
   @override
   String get previousWeek => 'الأسبوع اللي فات';
   @override
@@ -333,7 +336,7 @@ class ResultsStringsAr extends ResultsStrings {
     ScorecardStatus.filling => 'لسه بتتملي',
     ScorecardStatus.ready => 'جاهزة للمراجعة',
     ScorecardStatus.reviewed => 'اتراجعت',
-    ScorecardStatus.unknown => 'تاني',
+    ScorecardStatus.unknown => 'حالة تانية',
   };
   @override
   String get numbersTitle => 'الأرقام';
@@ -341,10 +344,12 @@ class ResultsStringsAr extends ResultsStrings {
   String get gatesTitle => 'شروط زيادة الصرف';
   @override
   String gatesHeld(int weeks) => weeks == 1
-      ? 'كل الشروط متحققة من أسبوع'
-      : 'كل الشروط متحققة من $weeks أسابيع ورا بعض';
+      ? 'كل الشروط متحققة بقالها أسبوع ورا بعض'
+      : 'كل الشروط متحققة بقالها '
+            '${arCount(weeks, one: 'أسبوع', two: 'أسبوعين', few: 'أسابيع', many: 'أسبوع')} '
+            'ورا بعض';
   @override
-  String get linesTitle => 'اللي اتضاف بإيد حد';
+  String get linesTitle => 'اللي اتضاف بإيد';
   @override
   String get noLines => 'محدش ضاف سطر الأسبوع ده.';
   @override
@@ -356,24 +361,24 @@ class ResultsStringsAr extends ResultsStrings {
   @override
   String reviewedBy(String name, String when) => 'راجعها $name، $when';
   @override
-  String get againstLine => 'الخط';
+  String get againstLine => 'الهدف';
   @override
-  String get aboveLine => 'عدّى الخط';
+  String get aboveLine => 'حقق الهدف';
   @override
-  String get belowLine => 'ماوصلش للخط';
+  String get belowLine => 'ماوصلش للهدف';
   @override
-  String get noLineToJudge => 'مفيش خط نقيس عليه';
+  String get noLineToJudge => 'مفيش هدف نقيس عليه';
   @override
   String sourceLabel(ScoreSource s) => switch (s) {
-    ScoreSource.system => 'النظام ملاه',
+    ScoreSource.system => 'اتملت من النظام',
     ScoreSource.person => 'اتضاف بإيد',
     ScoreSource.missing => 'ناقص، محدش ضافه',
-    ScoreSource.unknown => 'تاني',
+    ScoreSource.unknown => 'مصدر تاني',
   };
   @override
-  String get seeByPiece => 'نتايج كل قطعة';
+  String get seeByPiece => 'نتايج كل قطعة وقراءات الـ 72 ساعة';
   @override
-  String get seeSummary => 'ملخص بالنوع والـ persona';
+  String get seeSummary => 'ملخص بالنوع والجمهور';
 
   @override
   String get editNotes => 'اكتب المراجعة';
@@ -384,17 +389,17 @@ class ResultsStringsAr extends ResultsStrings {
   @override
   String get addLineTitle => 'رقم النظام مش قادر يقراه';
   @override
-  String get lineLabelHint => 'إيه هو؟ (مثلا أوردرات الفرع)';
+  String get lineLabelHint => 'إيه هو؟ (مثلًا أوردرات الفرع)';
   @override
   String get lineValueHint => 'القيمة';
   @override
-  String get markReviewed => 'علّمها إنها اتراجعت';
+  String get markReviewed => 'علّم إنها اتراجعت';
   @override
-  String get notesSaved => 'المراجعة اتحفظت';
+  String get notesSaved => 'المراجعة اتحفظت.';
   @override
-  String get lineAdded => 'السطر اتضاف';
+  String get lineAdded => 'السطر اتضاف.';
   @override
-  String get reviewedOk => 'اتعلّمت إنها اتراجعت';
+  String get reviewedOk => 'اتعلّمت إنها اتراجعت.';
   @override
   String get lineNeedsBoth => 'اكتب إيه هو وقيمته.';
 
@@ -412,7 +417,7 @@ class ResultsStringsAr extends ResultsStrings {
   String get piecesEmptyPurpose => 'كل قطعة عملت إيه بعد ما نزلت.';
   @override
   String get piecesEmptyFirstStep =>
-      'مفيش نتايج لسه. بتظهر بعد البوست بكام يوم.';
+      'مفيش نتايج لسه. بتظهر بعد نشر البوست بكام يوم.';
   @override
   String get sortBy => 'رتّب حسب';
   @override
@@ -424,11 +429,18 @@ class ResultsStringsAr extends ResultsStrings {
   @override
   String get bestViews => 'أعلى مشاهدات';
   @override
-  String get bestHold => 'أعلى كمّلوا بعد 3 ثواني';
+  String get bestHold => 'أعلى نسبة كمّلوا بعد 3 ثواني';
   @override
-  String postsCount(int n) => n == 1 ? 'بوست واحد' : '$n بوستات';
+  String postsCount(int n) =>
+      arCount(n, one: 'بوست واحد', two: 'بوستين', few: 'بوستات', many: 'بوست');
   @override
-  String adsCount(int n) => n == 1 ? 'إعلان واحد' : '$n إعلانات';
+  String adsCount(int n) => arCount(
+    n,
+    one: 'إعلان واحد',
+    two: 'إعلانين',
+    few: 'إعلانات',
+    many: 'إعلان',
+  );
   @override
   String get readsTitle => 'القراءات';
   @override
@@ -436,7 +448,7 @@ class ResultsStringsAr extends ResultsStrings {
   @override
   String get readFiled => 'اتسجلت';
   @override
-  String get readNotOpen => 'بتفتح بعدين';
+  String get readNotOpen => 'بتفتح بعد كده';
   @override
   String get fileRead => 'سجّل القراءة';
 
@@ -449,21 +461,21 @@ class ResultsStringsAr extends ResultsStrings {
   @override
   String get fileReadNothingMissing => 'مفيش حاجة ناقصة. سجّلها زي ما هي.';
   @override
-  String get readFiledOk => 'القراءة اتسجلت';
+  String get readFiledOk => 'القراءة اتسجلت.';
   @override
   String get readAlreadyFiled => 'اتسجلت قبل كده. بنعرضها كمسجّلة.';
   @override
   String fieldLabel(String key) => switch (key) {
     'views' => 'المشاهدات',
     'reach' => 'الوصول',
-    'sends' => 'الإرسال',
+    'sends' => 'الإرسالات',
     'shares' => 'المشاركات',
-    'likes' => 'الإعجابات',
+    'likes' => 'اللايكات',
     'saves' => 'الحفظ',
     'comments_count' => 'التعليقات',
     'hold3_pct' => 'كمّلوا بعد 3 ثواني (%)',
     'avg_watch_s' => 'متوسط وقت المشاهدة (ثواني)',
-    'reel_len_s' => 'طول الـ reel (ثواني)',
+    'reel_len_s' => 'طول الـ Reel (ثواني)',
     _ => key.replaceAll('_', ' '),
   };
 
@@ -473,20 +485,21 @@ class ResultsStringsAr extends ResultsStrings {
   String get summaryHelpTitle => 'الملخص';
   @override
   List<String> get summaryHelp => const [
-    'بيجمّع القطع بالنوع أو الـ persona أو الموقف أو الطبقة أو الـ flavor أو السلسلة.',
+    'بيجمّع القطع بالنوع أو الجمهور أو الموقف أو الطبقة أو الـ flavor أو السلسلة.',
     'الأعمدة بتتقاس على أحسن مجموعة، فتقارن بنظرة.',
-    'اختار تبص لورا قد إيه.',
+    'اختار الفترة اللي عايز تبص عليها.',
   ];
   @override
   String get summaryEmptyPurpose => 'أنهي نوع قطع بيعمل أحسن.';
   @override
-  String get summaryEmptyFirstStep => 'مفيش حاجة في الفترة دي. جرّب فترة أطول.';
+  String get summaryEmptyFirstStep =>
+      'مفيش حاجة في الفترة دي. اختار فترة أطول.';
   @override
   String get groupBy => 'جمّع حسب';
   @override
   String groupByLabel(String wire) => switch (wire) {
     'format' => 'النوع',
-    'persona' => 'Persona',
+    'persona' => 'الجمهور',
     'situation' => 'الموقف',
     'layer' => 'الطبقة',
     'flavour' => 'Flavor',
@@ -494,7 +507,8 @@ class ResultsStringsAr extends ResultsStrings {
     _ => wire,
   };
   @override
-  String lastDays(int n) => 'آخر $n يوم';
+  String lastDays(int n) =>
+      'آخر ${arCount(n, one: 'يوم', two: 'يومين', few: 'أيام', many: 'يوم')}';
   @override
   String get avgViews => 'متوسط المشاهدات';
   @override
@@ -505,5 +519,7 @@ class ResultsStringsAr extends ResultsStrings {
   String get purchasesLabel => 'المشتريات';
   @override
   String piecesLine(int pieces, int posts, int reads) =>
-      '$pieces قطع، $posts بوستات، $reads قراءات';
+      '${arCount(pieces, one: 'قطعة', two: 'قطعتين', few: 'قطع', many: 'قطعة')}، '
+      '${arCount(posts, one: 'بوست', two: 'بوستين', few: 'بوستات', many: 'بوست')}، '
+      '${arCount(reads, one: 'قراءة', two: 'قراءتين', few: 'قراءات', many: 'قراءة')}';
 }

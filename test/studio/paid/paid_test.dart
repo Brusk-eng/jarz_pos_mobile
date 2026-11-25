@@ -158,7 +158,7 @@ void main() {
       final p = api.last('paid.queue_reorder')!;
       expect(p['ad_ids'], ['AD-00032', 'AD-00031']);
       expect(tester.getTopLeft(_key('queue-AD-00032')).dy, lessThan(before));
-      expect(snackText(tester), 'New order saved');
+      expect(snackText(tester), 'New order saved.');
     });
 
     testWidgets('a refused reorder puts the order back and says why', (
@@ -185,7 +185,7 @@ void main() {
       expect(_key('remove-dialog'), findsOneWidget);
       await tapKey(tester, 'remove-confirm');
       expect(api.last('paid.queue_remove')!['ad_id'], 'AD-00032');
-      expect(snackText(tester), 'Taken out of the queue');
+      expect(snackText(tester), 'Taken out of the queue.');
     });
 
     testWidgets('remove refused: ALREADY_DONE says so, queue is kept', (
@@ -228,7 +228,7 @@ void main() {
       expect(p['version_id'], 'PC-00188-v1');
       expect(p['note'], 'For Saturday');
       expect(_key('candidate-PC-00188'), findsNothing);
-      expect(snackText(tester), 'Added to the queue');
+      expect(snackText(tester), 'Added to the queue.');
     });
 
     testWidgets('a refusal shows the server reason and keeps the sheet', (
@@ -381,6 +381,11 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('state-Winner')));
       await tester.pump();
       await typeKey(tester, 'state-note', 'Seven purchases');
+      // 6 purchases against a rule that says 7: the first tap warns, the
+      // second sets it anyway.
+      await tapKey(tester, 'state-save');
+      expect(find.byKey(const ValueKey('state-warning')), findsOneWidget);
+      expect(api.last('paid.ad_set_state'), isNull);
       await tapKey(tester, 'state-save');
       final p = api.last('paid.ad_set_state')!;
       expect(p['ad_id'], 'AD-00013');
@@ -451,7 +456,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('state-Off')));
       await tester.pump();
       await tapKey(tester, 'state-save');
-      expect(snackText(tester), contains('Someone changed this'));
+      expect(snackText(tester), contains('This changed since you opened it'));
       expect(
         tester
             .widget<Text>(
@@ -478,7 +483,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('state-Off')));
       await tester.pump();
       await tapKey(tester, 'state-save');
-      expect(snackText(tester), 'You cannot do that.');
+      expect(snackText(tester), 'Your role cannot do that.');
     });
 
     testWidgets('the pencil edits the round date', (tester) async {

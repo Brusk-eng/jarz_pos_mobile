@@ -388,9 +388,7 @@ class _PostSlotFormState extends ConsumerState<PostSlotForm> {
                   icon: const Icon(Icons.event_outlined),
                   onPressed: _pickDate,
                   label: Text(
-                    _date == null
-                        ? c.fieldDate
-                        : CairoFormat.full(_date!, ar),
+                    _date == null ? c.fieldDate : CairoFormat.full(_date!, ar),
                   ),
                 ),
               ),
@@ -461,7 +459,10 @@ class _PiecePickerState extends ConsumerState<_PiecePicker> {
 
   Future<PieceSummaryPage> _search(String q) => ref
       .read(piecesRepositoryProvider)
-      .list(stage: q.isEmpty ? PieceStage.approved.wire : null, q: q.isEmpty ? null : q);
+      .list(
+        stage: q.isEmpty ? PieceStage.approved.wire : null,
+        q: q.isEmpty ? null : q,
+      );
 
   @override
   void dispose() {
@@ -513,7 +514,9 @@ class _PiecePickerState extends ConsumerState<_PiecePicker> {
                     }
                     if (snap.hasError) {
                       return Center(
-                        child: Text(PiecesStrings.of(context).error(snap.error!)),
+                        child: Text(
+                          PiecesStrings.of(context).error(snap.error!),
+                        ),
                       );
                     }
                     final items = snap.data!.items;
@@ -523,9 +526,7 @@ class _PiecePickerState extends ConsumerState<_PiecePicker> {
                           ListTile(
                             key: ValueKey('picker-${p.id}'),
                             title: Text(pieceTitle(context, p)),
-                            subtitle: Text(
-                              stageName(context, p.stage),
-                            ),
+                            subtitle: Text(stageName(context, p.stage)),
                             onTap: () => Navigator.of(context).pop(p),
                           ),
                       ],

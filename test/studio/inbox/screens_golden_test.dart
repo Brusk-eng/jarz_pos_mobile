@@ -67,5 +67,42 @@ void main() {
         matchesGoldenFile('../goldens/decision_card_360_$locale.png'),
       );
     });
+
+    testWidgets('golden: decision in words, 360 px, $locale', (tester) async {
+      usePhone(tester, width: 360, height: 1100);
+      final c = await pumpStudioWith(
+        tester,
+        fakeApi(textDecisions: true),
+        locale: locale,
+        now: now,
+      );
+      await goTo(tester, c, '/inbox/decisions/DEC-00012');
+      await tester.enterText(
+        find.byKey(const ValueKey('decision-text')),
+        locale == 'en' ? 'December, from the 6th.' : 'ديسمبر، من يوم 6.',
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile('../goldens/decision_text_360_$locale.png'),
+      );
+    });
+
+    testWidgets('golden: decision in words, answered, 360 px, $locale', (
+      tester,
+    ) async {
+      usePhone(tester, width: 360, height: 900);
+      final c = await pumpStudioWith(
+        tester,
+        fakeApi(textDecisions: true),
+        locale: locale,
+        now: now,
+      );
+      await goTo(tester, c, '/inbox/decisions/DEC-00011');
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile('../goldens/decision_text_answered_360_$locale.png'),
+      );
+    });
   }
 }

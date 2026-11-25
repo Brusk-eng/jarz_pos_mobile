@@ -84,7 +84,9 @@ class _OnSetScreenState extends ConsumerState<OnSetScreen> {
   @override
   Widget build(BuildContext context) {
     final t = ShootStrings.of(context);
-    final shoot = ref.watch(onSetProvider.select((s) => s.shoot(widget.shootId)));
+    final shoot = ref.watch(
+      onSetProvider.select((s) => s.shoot(widget.shootId)),
+    );
 
     if (shoot == null) {
       return Scaffold(
@@ -211,9 +213,8 @@ class _CloseButton extends StatelessWidget {
       key: const ValueKey('onset-close'),
       tooltip: t.exitOnSet,
       icon: const Icon(Icons.close),
-      onPressed: () => context.canPop()
-          ? context.pop()
-          : context.go('/shoots/$shootId'),
+      onPressed: () =>
+          context.canPop() ? context.pop() : context.go('/shoots/$shootId'),
     );
   }
 }
@@ -477,10 +478,14 @@ class _ShotPageState extends ConsumerState<_ShotPage> {
               shot.pieces.map((p) => p.title).join(' · '),
             ),
           section(t.setupLabel, shot.setup),
-          section(t.scriptLine, [
-            if (shot.ar != null && shot.ar!.isNotEmpty) shot.ar!,
-            if (shot.en != null && shot.en!.isNotEmpty) shot.en!,
-          ].join('\n'), key: const ValueKey('shot-script')),
+          section(
+            t.scriptLine,
+            [
+              if (shot.ar != null && shot.ar!.isNotEmpty) shot.ar!,
+              if (shot.en != null && shot.en!.isNotEmpty) shot.en!,
+            ].join('\n'),
+            key: const ValueKey('shot-script'),
+          ),
           section(t.onScreenText, b.copy, key: const ValueKey('shot-copy')),
           section(t.briefWhy, b.why),
           section(t.briefFrame, b.frame),

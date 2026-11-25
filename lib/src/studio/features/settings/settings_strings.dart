@@ -154,7 +154,7 @@ class SettingsStringsEn extends SettingsStrings {
     'Rules, flavors, approved claims, moments and people live here.',
     'Everyone can read. Only the founder changes them.',
     'A rule change adds a new dated value. Old values are never edited.',
-    'Tap an item to read it; the pencil changes it.',
+    'Tap an item to read it. The pencil edits it.',
   ];
   @override
   String get readOnlyNote => 'You can read these. The founder changes them.';
@@ -173,7 +173,7 @@ class SettingsStringsEn extends SettingsStrings {
   @override
   String get moments => 'Moments';
   @override
-  String get momentsBlurb => 'Launches, Hero windows and budget steps';
+  String get momentsBlurb => 'Launches, Occasion windows and budget steps';
   @override
   String get people => 'People';
   @override
@@ -256,7 +256,7 @@ class SettingsStringsEn extends SettingsStrings {
     FlavourStatus.paused => 'Paused',
     FlavourStatus.seasonal => 'Seasonal',
     FlavourStatus.coming => 'Coming',
-    FlavourStatus.unknown => 'Other',
+    FlavourStatus.unknown => 'Unknown',
   };
   @override
   String get availableFrom => 'Available from';
@@ -283,10 +283,10 @@ class SettingsStringsEn extends SettingsStrings {
   @override
   String get flavourSaved => 'Flavor saved';
   @override
-  String get flavourWarningsTitle => 'Saved, with a heads up';
+  String get flavourWarningsTitle => 'Saved, with a warning';
   @override
   String get flavourWarningsIntro =>
-      'The change went through. These things now need a look:';
+      'The change is saved. These now need a look:';
   @override
   String get clearDate => 'Clear';
 
@@ -310,7 +310,7 @@ class SettingsStringsEn extends SettingsStrings {
     ClaimStatus.aPPROVED => 'Approved',
     ClaimStatus.hOLD => 'On hold',
     ClaimStatus.rETIRED => 'Retired',
-    ClaimStatus.unknown => 'Other',
+    ClaimStatus.unknown => 'Unknown',
   };
   @override
   String get englishWording => 'English wording';
@@ -327,27 +327,28 @@ class SettingsStringsEn extends SettingsStrings {
   String get momentsHelpTitle => 'Moments';
   @override
   List<String> get momentsHelp => const [
-    'Launches, Hero windows and budget steps, by date.',
-    'A Hero window opens the push for one occasion; none runs outside it.',
+    'Launches, Occasion windows and budget steps, by date.',
+    'An occasion window opens the push for one occasion; none runs outside it.',
     'This list is for reading. Dates move from the calendar.',
   ];
   @override
-  String get momentsEmptyPurpose => 'Launches, Hero windows and budget steps.';
+  String get momentsEmptyPurpose =>
+      'Launches, Occasion windows and budget steps.';
   @override
   String get momentsEmptyFirstStep => 'No moments yet. None are planned.';
   @override
   String kindLabel(MomentKind k) => switch (k) {
     MomentKind.launch => 'Launch',
-    MomentKind.heroWindow => 'Hero window',
+    MomentKind.heroWindow => 'Occasion window',
     MomentKind.budgetStep => 'Budget step',
-    MomentKind.unknown => 'Other',
+    MomentKind.unknown => 'Unknown',
   };
   @override
   String kindPlural(MomentKind k) => switch (k) {
     MomentKind.launch => 'Launches',
-    MomentKind.heroWindow => 'Hero windows',
+    MomentKind.heroWindow => 'Occasion windows',
     MomentKind.budgetStep => 'Budget steps',
-    MomentKind.unknown => 'Other',
+    MomentKind.unknown => 'Unknown',
   };
   @override
   String get until => 'until';
@@ -357,7 +358,7 @@ class SettingsStringsEn extends SettingsStrings {
     LaunchStage.live => 'Live',
     LaunchStage.paused => 'Paused',
     LaunchStage.done => 'Done',
-    LaunchStage.unknown => 'Other',
+    LaunchStage.unknown => 'Unknown',
   };
   @override
   String get jarLabel => 'Jar label';
@@ -365,7 +366,7 @@ class SettingsStringsEn extends SettingsStrings {
   String labelName(JarLabel l) => switch (l) {
     JarLabel.old => 'Old label',
     JarLabel.newValue => 'New label',
-    JarLabel.unknown => 'Other',
+    JarLabel.unknown => 'Unknown',
   };
   @override
   String get owner => 'Owner';
@@ -396,7 +397,7 @@ class SettingsStringsEn extends SettingsStrings {
     PersonRole.creator => 'Creator',
     PersonRole.storyLead => 'Story lead',
     PersonRole.moderator => 'Moderator (no access yet)',
-    PersonRole.unknown => 'Other',
+    PersonRole.unknown => 'Unknown',
   };
   @override
   String get linkedLogin => 'Linked login';
@@ -451,13 +452,13 @@ class SettingsStringsAr extends SettingsStrings {
   String get helpTitle => 'الإعدادات';
   @override
   List<String> get help => const [
-    'القواعد والـ flavors والادعاءات المعتمدة واللحظات والناس هنا.',
+    'القواعد والـ flavors والـ claims المعتمدة واللحظات والناس هنا.',
     'الكل يقدر يقرا. المؤسس بس اللي بيغيّر.',
-    'تغيير القاعدة بيضيف قيمة جديدة بتاريخ. القديم مبيتعدلش.',
-    'اضغط على أي حاجة تقراها؛ القلم بيغيّرها.',
+    'تغيير القاعدة بيضيف قيمة جديدة بتاريخ. القيم القديمة مبتتعدلش.',
+    'اضغط على أي عنصر عشان تقراه. القلم للتعديل.',
   ];
   @override
-  String get readOnlyNote => 'تقدر تقرا دول. المؤسس هو اللي بيغيّر.';
+  String get readOnlyNote => 'تقدر تقرا دول بس. المؤسس هو اللي بيغيّرهم.';
   @override
   String get rules => 'القواعد';
   @override
@@ -468,13 +469,13 @@ class SettingsStringsAr extends SettingsStrings {
   @override
   String get flavoursBlurb => 'حالة وتواريخ وأسعار كل flavor';
   @override
-  String get claims => 'الادعاءات المعتمدة';
+  String get claims => 'الـ claims المعتمدة';
   @override
-  String get claimsBlurb => 'اللي مسموح نقوله، زي ما السجل ماسكه';
+  String get claimsBlurb => 'اللي مسموح نقوله، زي ما الـ registry ماسكه';
   @override
   String get moments => 'اللحظات';
   @override
-  String get momentsBlurb => 'الإطلاقات ونوافذ الـ Hero وخطوات الميزانية';
+  String get momentsBlurb => 'الإطلاقات ونوافذ المناسبات وخطوات الميزانية';
   @override
   String get people => 'الناس';
   @override
@@ -482,7 +483,7 @@ class SettingsStringsAr extends SettingsStrings {
   @override
   String get options => 'قوائم الاختيارات';
   @override
-  String get optionsBlurb => 'الاختيارات اللي كل نموذج بيعرضها';
+  String get optionsBlurb => 'الاختيارات اللي كل فورم بيعرضها';
 
   @override
   String get rulesTitle => 'القواعد';
@@ -491,7 +492,7 @@ class SettingsStringsAr extends SettingsStrings {
   @override
   List<String> get rulesHelp => const [
     'كل قاعدة رقم معاه التاريخ اللي بيسري منه.',
-    'عشان تغيّر واحدة، ضيف قيمة جديدة من تاريخ. القديم بيفضل في السجل.',
+    'عشان تغيّر قاعدة، ضيف قيمة جديدة من تاريخ معيّن. القيم القديمة بتفضل في السجل.',
     'شاشات الإعلانات والـ judges بيقروا الأرقام دي.',
   ];
   @override
@@ -499,7 +500,7 @@ class SettingsStringsAr extends SettingsStrings {
       'الأرقام اللي القواعد بتشتغل بيها، بالتواريخ.';
   @override
   String get rulesEmptyFirstStep =>
-      'مفيش قواعد لسه. بتيجي لما جدول القواعد يتزامن.';
+      'مفيش قواعد لسه. هتظهر لما جدول القواعد يتزامن.';
   @override
   String get rulesSearchHint => 'دوّر في القواعد';
   @override
@@ -533,7 +534,7 @@ class SettingsStringsAr extends SettingsStrings {
   @override
   String get historyNeverEdited => 'القيم القديمة بتفضل زي ما كانت.';
   @override
-  String get sourceLabel => 'جاية منين';
+  String get sourceLabel => 'مصدرها';
 
   @override
   String get flavoursTitle => 'الـ flavors';
@@ -541,24 +542,24 @@ class SettingsStringsAr extends SettingsStrings {
   String get flavoursHelpTitle => 'الـ flavors';
   @override
   List<String> get flavoursHelp => const [
-    'كل flavor له حالة تسويقية وتواريخ بيتباع فيها.',
+    'كل flavor له حالة وتواريخ بيكون متاح فيها.',
     'الأسعار بتتقرا لايف من ERPNext. مش بتتكتب هنا.',
-    'الحفظ مبيتمنعش. لو التغيير هيعمل مشكلة، بيظهر تنبيه.',
+    'الحفظ مش بيتمنع. لو التغيير هيعمل مشكلة، بيظهر تنبيه.',
   ];
   @override
   String get flavoursEmptyPurpose => 'كل flavor بحالته وتواريخه.';
   @override
   String get flavoursEmptyFirstStep =>
-      'مفيش flavors لسه. بتيجي لما الكتالوج يتزامن.';
+      'مفيش flavors لسه. هتظهر لما الكتالوج يتزامن.';
   @override
   String get flavourTitle => 'Flavor';
   @override
   String statusLabel(FlavourStatus s) => switch (s) {
     FlavourStatus.live => 'متاح للبيع',
-    FlavourStatus.paused => 'واقف مؤقتا',
+    FlavourStatus.paused => 'واقف مؤقتًا',
     FlavourStatus.seasonal => 'موسمي',
     FlavourStatus.coming => 'جاي قريب',
-    FlavourStatus.unknown => 'تاني',
+    FlavourStatus.unknown => 'غير معروف',
   };
   @override
   String get availableFrom => 'متاح من';
@@ -577,9 +578,9 @@ class SettingsStringsAr extends SettingsStrings {
   @override
   String get flavourNote => 'ملاحظة';
   @override
-  String get nameBlocked => 'الاسم ممنوع. متستخدموش في أي كلام.';
+  String get nameBlocked => 'الاسم ده ممنوع. متستخدمهوش في أي كلام.';
   @override
-  String get editFlavour => 'غيّر الـ flavor ده';
+  String get editFlavour => 'عدّل الـ flavor ده';
   @override
   String get statusField => 'الحالة';
   @override
@@ -588,38 +589,38 @@ class SettingsStringsAr extends SettingsStrings {
   String get flavourWarningsTitle => 'اتحفظ، مع تنبيه';
   @override
   String get flavourWarningsIntro =>
-      'التغيير عدّى. الحاجات دي محتاجة تتبص عليها دلوقتي:';
+      'التغيير اتحفظ. الحاجات دي محتاجة مراجعة دلوقتي:';
   @override
   String get clearDate => 'امسح';
 
   @override
-  String get claimsTitle => 'الادعاءات المعتمدة';
+  String get claimsTitle => 'الـ claims المعتمدة';
   @override
-  String get claimsHelpTitle => 'الادعاءات المعتمدة';
+  String get claimsHelpTitle => 'الـ claims المعتمدة';
   @override
   List<String> get claimsHelp => const [
-    'نسخة للقراءة بس من سجل الادعاءات المعتمدة.',
+    'نسخة للقراءة بس من الـ registry بتاع الـ claims المعتمدة.',
     'الصياغة المعتمدة بس هي اللي تتستخدم في الكلام.',
-    'Hold يعني لسه ما اتوافقش عليه. Retired يعني متستخدموش تاني.',
+    'متوقف يعني لسه ما اتوافقش عليه. اتسحب يعني متستخدمهوش تاني.',
   ];
   @override
   String get claimsEmptyPurpose => 'اللي مسموح نقوله، كلمة بكلمة.';
   @override
   String get claimsEmptyFirstStep =>
-      'مفيش ادعاءات لسه. بتتنسخ من السجل بسكربت.';
+      'مفيش claims لسه. بتتنسخ من الـ registry بسكربت.';
   @override
   String claimStatusLabel(ClaimStatus s) => switch (s) {
     ClaimStatus.aPPROVED => 'معتمد',
     ClaimStatus.hOLD => 'متوقف',
     ClaimStatus.rETIRED => 'اتسحب',
-    ClaimStatus.unknown => 'تاني',
+    ClaimStatus.unknown => 'غير معروف',
   };
   @override
   String get englishWording => 'الصياغة بالإنجليزي';
   @override
   String get arabicWording => 'الصياغة بالعربي';
   @override
-  String get registrySource => 'سطر السجل';
+  String get registrySource => 'سطر الـ registry';
   @override
   String syncedOn(String when) => 'اتنسخ $when';
 
@@ -629,28 +630,28 @@ class SettingsStringsAr extends SettingsStrings {
   String get momentsHelpTitle => 'اللحظات';
   @override
   List<String> get momentsHelp => const [
-    'الإطلاقات ونوافذ الـ Hero وخطوات الميزانية، بالتاريخ.',
-    'نافذة الـ Hero بتفتح الدفعة لمناسبة واحدة؛ ومفيش واحدة برّاها.',
-    'القائمة دي للقراءة. التواريخ بتتحرك من التقويم.',
+    'الإطلاقات ونوافذ المناسبات وخطوات الميزانية، بالتاريخ.',
+    'نافذة المناسبة بتفتح الدفعة لمناسبة واحدة، ومفيش دفعة بره النافذة.',
+    'القائمة دي للقراءة بس. التواريخ بتتغيّر من التقويم.',
   ];
   @override
   String get momentsEmptyPurpose =>
-      'الإطلاقات ونوافذ الـ Hero وخطوات الميزانية.';
+      'الإطلاقات ونوافذ المناسبات وخطوات الميزانية.';
   @override
-  String get momentsEmptyFirstStep => 'مفيش لحظات لسه. مفيش حاجة متخططة.';
+  String get momentsEmptyFirstStep => 'مفيش لحظات لسه. لسه مفيش حاجة متخططة.';
   @override
   String kindLabel(MomentKind k) => switch (k) {
     MomentKind.launch => 'إطلاق',
-    MomentKind.heroWindow => 'نافذة Hero',
+    MomentKind.heroWindow => 'نافذة المناسبة',
     MomentKind.budgetStep => 'خطوة ميزانية',
-    MomentKind.unknown => 'تاني',
+    MomentKind.unknown => 'غير معروف',
   };
   @override
   String kindPlural(MomentKind k) => switch (k) {
     MomentKind.launch => 'الإطلاقات',
-    MomentKind.heroWindow => 'نوافذ الـ Hero',
+    MomentKind.heroWindow => 'نوافذ المناسبات',
     MomentKind.budgetStep => 'خطوات الميزانية',
-    MomentKind.unknown => 'تاني',
+    MomentKind.unknown => 'غير معروف',
   };
   @override
   String get until => 'لحد';
@@ -660,7 +661,7 @@ class SettingsStringsAr extends SettingsStrings {
     LaunchStage.live => 'شغّال',
     LaunchStage.paused => 'واقف',
     LaunchStage.done => 'خلص',
-    LaunchStage.unknown => 'تاني',
+    LaunchStage.unknown => 'غير معروف',
   };
   @override
   String get jarLabel => 'ليبل البرطمان';
@@ -668,12 +669,12 @@ class SettingsStringsAr extends SettingsStrings {
   String labelName(JarLabel l) => switch (l) {
     JarLabel.old => 'الليبل القديم',
     JarLabel.newValue => 'الليبل الجديد',
-    JarLabel.unknown => 'تاني',
+    JarLabel.unknown => 'غير معروف',
   };
   @override
   String get owner => 'المسؤول';
   @override
-  String get startsFrom => 'بتبدأ';
+  String get startsFrom => 'بيبدأ من';
 
   @override
   String get peopleTitle => 'الناس';
@@ -683,23 +684,23 @@ class SettingsStringsAr extends SettingsStrings {
   List<String> get peopleHelp => const [
     'كل اللي في الفريق، ودور كل واحد.',
     'ربط اللوجين بيدّي الشخص صلاحيات الـ Studio المناسبة.',
-    'اقفل الشخص بدل ما تمسحه.',
+    'وقّف الشخص بدل ما تمسحه.',
   ];
   @override
   String get peopleEmptyPurpose => 'مين في الفريق وبيعمل إيه.';
   @override
   String get peopleEmptyFirstStep =>
-      'مفيش ناس لسه. بيجوا لما قايمة الفريق تتزامن.';
+      'مفيش ناس لسه. هيظهروا لما قائمة الفريق تتزامن.';
   @override
   String get personTitle => 'شخص';
   @override
   String roleLabel(PersonRole r) => switch (r) {
     PersonRole.founder => 'المؤسس',
     PersonRole.marketingLead => 'مسؤول التسويق',
-    PersonRole.creator => 'صانع محتوى',
-    PersonRole.storyLead => 'مسؤول الـ stories',
-    PersonRole.moderator => 'مودريتور (من غير صلاحية لسه)',
-    PersonRole.unknown => 'تاني',
+    PersonRole.creator => 'كرييتور',
+    PersonRole.storyLead => 'مسؤول الـ Stories',
+    PersonRole.moderator => 'مودريتور (لسه من غير صلاحية)',
+    PersonRole.unknown => 'غير معروف',
   };
   @override
   String get linkedLogin => 'اللوجين المربوط';
@@ -708,7 +709,7 @@ class SettingsStringsAr extends SettingsStrings {
   @override
   String get active => 'شغّال';
   @override
-  String get inactive => 'مقفول';
+  String get inactive => 'واقف';
   @override
   String get mustRate => 'بيقيّم كل نسخة';
   @override
@@ -724,7 +725,7 @@ class SettingsStringsAr extends SettingsStrings {
   @override
   String get mustRateField => 'بيقيّم كل نسخة';
   @override
-  String get editPerson => 'غيّر الشخص ده';
+  String get editPerson => 'عدّل بيانات الشخص ده';
   @override
   String get personSaved => 'الشخص اتحفظ';
 
@@ -734,13 +735,13 @@ class SettingsStringsAr extends SettingsStrings {
   String get optionsHelpTitle => 'قوائم الاختيارات';
   @override
   List<String> get optionsHelp => const [
-    'دي الاختيارات اللي كل نموذج في الـ Studio بيعرضها.',
+    'دي الاختيارات اللي كل فورم في الـ Studio بيعرضها.',
     'للقراءة بس هنا. السيرفر هو اللي ماسكها.',
   ];
   @override
-  String get optionsEmptyPurpose => 'الاختيارات اللي كل نموذج بيعرضها.';
+  String get optionsEmptyPurpose => 'الاختيارات اللي كل فورم بيعرضها.';
   @override
-  String get optionsEmptyFirstStep => 'القوائم مجاتش. جرّب تاني.';
+  String get optionsEmptyFirstStep => 'القوائم ما وصلتش. جرّب تاني.';
   @override
   String optionListLabel(String key) => _humanize(key);
 }

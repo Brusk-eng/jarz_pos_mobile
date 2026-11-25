@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
@@ -7,13 +8,14 @@ import '../../../core/theme/studio_theme.dart';
 import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
-import '../../../data/studio_error.dart';
+import '../../../core/network/studio_api.dart';
 import '../../../shared/how_this_works_sheet.dart';
 import '../../../shared/media/studio_media_widgets.dart';
 import '../../../shared/studio_async_view.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../../pieces/pieces_strings.dart';
 import '../../pieces/presentation/piece_widgets.dart';
+import '../../results/presentation/piece_results_screen.dart' show ReadRow;
 import '../calendar_strings.dart';
 import '../data/calendar_repository.dart';
 import '../state/cairo_format.dart';
@@ -230,6 +232,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
               _Checks(post: p),
               _Log(post: p),
               _PostResults(post: p),
+              if (p.actions.contains('mark_posted')) _HandPost(post: p),
               _Actions(
                 post: p,
                 busy: _busy,
@@ -315,6 +318,35 @@ class _Frames extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionTitle(c.sectionFrames),
+        Padding(
+          padding: const EdgeInsets.only(bottom: StudioSpacing.xs),
+          child: Text(
+            key: const ValueKey('frames-progress'),
+            c.framesDecided(
+              post.frames
+                  .where(
+                    (f) =>
+                        f.status == FrameStatus.posted ||
+                        f.status == FrameStatus.skipped,
+                  )
+                  .length,
+              post.frames.length,
+            ),
+            style: StudioTextStyles.caption,
+          ),
+        ),
+        if (post.frames.every(
+          (f) =>
+              f.status == FrameStatus.posted || f.status == FrameStatus.skipped,
+        ))
+          Padding(
+            padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
+            child: Text(
+              c.framesAllDecided,
+              key: const ValueKey('frames-all-decided'),
+              style: StudioTextStyles.caption,
+            ),
+          ),
         if (canSet)
           Padding(
             padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
@@ -354,25 +386,29 @@ class _Frames extends StatelessWidget {
                             ].join(': '),
                             style: StudioTextStyles.caption,
                           ),
+                        if (canSet)
+                          Wrap(
+                            spacing: StudioSpacing.sm,
+                            children: [
+                              TextButton(
+                                key: ValueKey('frame-posted-${f.position}'),
+                                onPressed: busy
+                                    ? null
+                                    : () => onFrame(f, FrameStatus.posted),
+                                child: Text(c.actionFramePosted),
+                              ),
+                              TextButton(
+                                key: ValueKey('frame-skip-${f.position}'),
+                                onPressed: busy
+                                    ? null
+                                    : () => onFrame(f, FrameStatus.skipped),
+                                child: Text(c.actionFrameSkipped),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ),
-                  if (canSet) ...[
-                    TextButton(
-                      key: ValueKey('frame-posted-${f.position}'),
-                      onPressed: busy
-                          ? null
-                          : () => onFrame(f, FrameStatus.posted),
-                      child: Text(c.actionFramePosted),
-                    ),
-                    TextButton(
-                      key: ValueKey('frame-skip-${f.position}'),
-                      onPressed: busy
-                          ? null
-                          : () => onFrame(f, FrameStatus.skipped),
-                      child: Text(c.actionFrameSkipped),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -419,6 +455,44 @@ class _Links extends StatelessWidget {
 
 bool _hasArabic(String s) => RegExp(r'[؀-ۿ]').hasMatch(s);
 
+/// The caption, each line in its own direction: an Arabic line reads right to
+/// left, the hashtag line under it left to right, so `#Jarz #JarzEgypt` does
+/// not come out reversed.
+class _CaptionText extends StatelessWidget {
+  const _CaptionText(this.caption);
+  final String caption;
+
+  TextDirection _dir(String line) =>
+      _hasArabic(line) ? TextDirection.rtl : TextDirection.ltr;
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = caption.split('\n');
+    if (lines.length == 1) {
+      return Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Text(
+          caption,
+          key: const ValueKey('post-caption'),
+          textDirection: _dir(caption),
+        ),
+      );
+    }
+    return Column(
+      key: const ValueKey('post-caption'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (i, line) in lines.indexed)
+          Text(
+            line.isEmpty ? ' ' : line,
+            key: ValueKey('post-caption-line-$i'),
+            textDirection: _dir(line),
+          ),
+      ],
+    );
+  }
+}
+
 class _CaptionBlock extends StatelessWidget {
   const _CaptionBlock({
     required this.post,
@@ -442,16 +516,7 @@ class _CaptionBlock extends StatelessWidget {
           Text(c.noCaption, style: Theme.of(context).textTheme.bodySmall)
         else
           // Arabic first: the caption is shown in its own direction.
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(
-              caption,
-              key: const ValueKey('post-caption'),
-              textDirection: _hasArabic(caption)
-                  ? TextDirection.rtl
-                  : TextDirection.ltr,
-            ),
-          ),
+          _CaptionText(caption),
         if (post.captionProblems.isNotEmpty) ...[
           const SizedBox(height: StudioSpacing.sm),
           ProblemChecklist(problems: post.captionProblems),
@@ -695,14 +760,29 @@ class _PostResults extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = CalendarStrings.of(context);
     final s = c.names;
-    final reads = post.reads.where((r) => r.filed).toList();
-    if (reads.isEmpty) return const SizedBox.shrink();
+    final filed = post.reads.where((r) => r.filed).toList();
+    // The reads still to file (the 72-hour one above all): due ones get the
+    // button, the others say when they open.
+    final open = post.reads.where((r) => !r.filed).toList();
+    if (filed.isEmpty && open.isEmpty) return const SizedBox.shrink();
     String n(int? v) => v == null ? '–' : '$v';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionTitle(c.sectionResults),
-        for (final r in reads)
+        for (final r in open)
+          Card(
+            key: ValueKey('post-read-open-${r.bucket.wire}'),
+            margin: const EdgeInsets.only(bottom: StudioSpacing.sm),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: StudioSpacing.md,
+                vertical: StudioSpacing.xs,
+              ),
+              child: ReadRow(read: r),
+            ),
+          ),
+        for (final r in filed)
           Card(
             margin: const EdgeInsets.only(bottom: StudioSpacing.sm),
             child: Padding(
@@ -784,6 +864,111 @@ class _Actions extends StatelessWidget {
         runSpacing: StudioSpacing.sm,
         children: buttons,
       ),
+    );
+  }
+}
+
+/// What the hand-poster needs before "I posted it": the files to save (one tap
+/// each, or all at once) and the caption to copy. Works on web (the signed link
+/// opens in a new tab) and on Android (the browser downloads it).
+class _HandPost extends ConsumerStatefulWidget {
+  const _HandPost({required this.post});
+  final SocialPost post;
+
+  @override
+  ConsumerState<_HandPost> createState() => _HandPostState();
+}
+
+class _HandPostState extends ConsumerState<_HandPost> {
+  bool _busy = false;
+
+  List<StudioMedia> get _files => widget.post.files.isNotEmpty
+      ? widget.post.files
+      : [for (final f in widget.post.frames) ?f.asset.media];
+
+  Future<bool> _save(StudioMedia m) async {
+    try {
+      final link = await ref
+          .read(studioApiProvider)
+          .mediaDownloadLink(mediaId: m.id);
+      return await ref.read(studioLinkOpenerProvider)(Uri.parse(link.url));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _saveOne(StudioMedia m) async {
+    final c = CalendarStrings.of(context);
+    setState(() => _busy = true);
+    final ok = await _save(m);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (!ok) showSnack(context, c.saveFailed);
+  }
+
+  Future<void> _saveAll() async {
+    final c = CalendarStrings.of(context);
+    setState(() => _busy = true);
+    var allOk = true;
+    for (final m in _files) {
+      allOk = await _save(m) && allOk;
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (!allOk) showSnack(context, c.saveFailed);
+  }
+
+  Future<void> _copy() async {
+    final c = CalendarStrings.of(context);
+    final text = widget.post.caption ?? '';
+    if (text.trim().isEmpty) {
+      showSnack(context, c.nothingToCopy);
+      return;
+    }
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) showSnack(context, c.captionCopied);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = CalendarStrings.of(context);
+    final files = _files;
+    return Column(
+      key: const ValueKey('hand-post'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionTitle(c.handPostTitle),
+        Text(c.handPostSteps, style: StudioTextStyles.caption),
+        const SizedBox(height: StudioSpacing.sm),
+        if (files.isEmpty)
+          Text(c.noFilesYet, style: Theme.of(context).textTheme.bodySmall),
+        Wrap(
+          spacing: StudioSpacing.sm,
+          runSpacing: StudioSpacing.sm,
+          children: [
+            for (final (i, m) in files.indexed)
+              OutlinedButton.icon(
+                key: ValueKey('save-file-$i'),
+                icon: const Icon(Icons.download),
+                onPressed: _busy ? null : () => _saveOne(m),
+                label: Text(c.saveFile(i + 1, m.kind == MediaKind.video)),
+              ),
+            if (files.length > 1)
+              FilledButton.tonalIcon(
+                key: const ValueKey('save-all'),
+                icon: const Icon(Icons.download_for_offline_outlined),
+                onPressed: _busy ? null : _saveAll,
+                label: Text(c.saveAll),
+              ),
+            OutlinedButton.icon(
+              key: const ValueKey('copy-caption'),
+              icon: const Icon(Icons.copy),
+              onPressed: _copy,
+              label: Text(c.copyCaption),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

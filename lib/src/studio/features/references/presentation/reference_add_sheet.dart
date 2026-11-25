@@ -225,7 +225,7 @@ class AddReferenceStrings {
   String get tooltip => tr('Add a reference', 'ضيف مرجع');
   String get title => tr('Add a reference', 'ضيف مرجع');
   String get titleLabel => tr('Title', 'العنوان');
-  String get titleNeeded => tr('Give it a title.', 'اكتب له عنوان.');
+  String get titleNeeded => tr('Give it a title.', 'اكتب عنوان.');
   String get linkLabel => tr('Link', 'اللينك');
   String get brandLabel => tr('Who made it', 'مين عامله');
   String get noteLabel =>

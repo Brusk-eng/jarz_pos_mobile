@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/l10n/plural.dart';
 import '../../data/models/studio_enums.dart';
 
 /// Texts of the shoot screens (list, shoot page, edit, On set and the public
@@ -185,7 +186,12 @@ const _daysAr = [
   'الأحد',
 ];
 
-String _date(String? date, String? time, List<String> days, List<String> months) {
+String _date(
+  String? date,
+  String? time,
+  List<String> days,
+  List<String> months,
+) {
   final d = date == null ? null : DateTime.tryParse(date);
   if (d == null) return time ?? '';
   final s = '${days[d.weekday - 1]} ${d.day} ${months[d.month - 1]}';
@@ -214,7 +220,8 @@ class ShootStringsEn extends ShootStrings {
   @override
   String get emptyPastPurpose => 'Shoots that are done show here.';
   @override
-  String get emptyPastFirst => 'Nothing finished yet.';
+  String get emptyPastFirst =>
+      'Nothing finished yet. Set a shoot to Done when it is over.';
   @override
   String get planShoot => 'Plan a shoot';
   @override
@@ -315,7 +322,8 @@ class ShootStringsEn extends ShootStrings {
   @override
   String get notFilmedMark => 'Not filmed';
   @override
-  String get shootNotFound => 'This shoot is no longer there.';
+  String get shootNotFound =>
+      'This shoot is not there. Go back to the shoot list.';
   @override
   String piecesCount(int n) => n == 1 ? '1 piece' : '$n pieces';
 
@@ -343,13 +351,13 @@ class ShootStringsEn extends ShootStrings {
   String get saved => 'Saved';
   @override
   String get changedMeanwhile =>
-      'Someone changed this shoot meanwhile. The new version is on screen. Check it and save again.';
+      'Someone changed this shoot since you opened it. The new version is on screen. Check it and save again.';
   @override
   String get editHelpTitle => 'Planning a shoot';
   @override
   List<String> get editHelp => const [
     'Give it a name, a date and a place.',
-    'Ready needs a date and a brief on every shot.',
+    'To mark it Ready, it needs a date and a brief on every shot.',
     'Saving shows the changes to everyone at once.',
   ];
 
@@ -436,17 +444,19 @@ class ShootStringsEn extends ShootStrings {
   ];
 
   @override
-  String get errShadow => 'The Studio is not switched on yet. Nothing was changed.';
+  String get errShadow =>
+      'The Studio is not switched on yet, so nothing was changed.';
   @override
-  String get errStale => 'This changed meanwhile. The new version is on screen.';
+  String get errStale =>
+      'This changed since you opened it. Refresh the page and try again.';
   @override
-  String get errNotPermitted => 'You are not allowed to do this.';
+  String get errNotPermitted => 'Your role cannot do that.';
   @override
-  String get errNetwork => 'No connection. Try again when you are online.';
+  String get errNetwork => 'No connection. Check the internet and try again.';
   @override
-  String get errGeneric => 'That did not work. Try again.';
+  String get errGeneric => 'Something went wrong. Try again.';
   @override
-  String get errNotFound => 'This is no longer there.';
+  String get errNotFound => 'This is no longer there. Go back and refresh.';
 
   @override
   String get prepPageTitle => 'Shoot prep';
@@ -462,7 +472,8 @@ class ShootStringsEn extends ShootStrings {
   String get prepBadLinkBody =>
       'It may be wrong or out of date. Ask for a new link.';
   @override
-  String get prepTryAgainLater => 'Too many tries. Wait a minute and try again.';
+  String get prepTryAgainLater =>
+      'Too many tries. Wait a minute and try again.';
   @override
   String get prepRead => 'Read only. Ticks are made by the Jarz team.';
 }
@@ -482,19 +493,20 @@ class ShootStringsAr extends ShootStrings {
   String get tabPast => 'اللي فاتت';
   @override
   String get emptyUpcomingPurpose =>
-      'التصويرات اللي خططتلها هتظهر هنا، بقايمة التجهيز واللقطات.';
+      'التصويرات المخطط لها هتظهر هنا، مع قايمة التجهيز والشوتس.';
   @override
-  String get emptyUpcomingFirst => 'خطّط لتصوير وابعت قايمة التجهيز لكريم.';
+  String get emptyUpcomingFirst => 'خطّط لتصوير وابعت قايمة التجهيز للمطبخ.';
   @override
   String get emptyPastPurpose => 'التصويرات اللي خلصت هتظهر هنا.';
   @override
-  String get emptyPastFirst => 'لسه مفيش حاجة خلصت.';
+  String get emptyPastFirst =>
+      'لسه مفيش تصوير خلص. غيّر حالة التصوير لـ «خلص» لما يخلص.';
   @override
   String get planShoot => 'خطّط لتصوير';
   @override
-  String get noDateYet => 'لسه من غير ميعاد';
+  String get noDateYet => 'مفيش ميعاد لسه';
   @override
-  String shotsOf(int d, int t) => 'اتصوّر $d من $t لقطة';
+  String shotsOf(int d, int t) => 'اتصوّر $d من $t شوت';
   @override
   String prepOf(int d, int t) => 'التجهيز $d من $t';
   @override
@@ -504,20 +516,21 @@ class ShootStringsAr extends ShootStrings {
     ShootStatus.ready => 'جاهز',
     ShootStatus.shot => 'اتصوّر',
     ShootStatus.done => 'خلص',
-    ShootStatus.skipped => 'اتلغى',
+    ShootStatus.skipped => 'اتخطّى',
     ShootStatus.unknown => 'حاجة تانية',
   };
   @override
   String get loadMore => 'وريني أكتر';
   @override
-  String get showingStoredCopy => 'مفيش نت. ده النسخة المحفوظة على التليفون.';
+  String get showingStoredCopy =>
+      'مفيش نت. بنعرض النسخة المحفوظة على التليفون.';
   @override
   String get listHelpTitle => 'التصوير بيشتغل إزاي';
   @override
   List<String> get listHelp => const [
-    'كل كارت يوم تصوير: إمتى وفين وجاهز قد إيه.',
-    'افتح التصوير تشوف قايمة التجهيز وكارت لكل لقطة.',
-    'وضع On set بيشتغل من غير نت: علّم كل لقطة واكتب ملاحظة.',
+    'كل كارت هو يوم تصوير: إمتى وفين وجاهز قد إيه.',
+    'افتح التصوير تشوف قايمة التجهيز وكارت لكل شوت.',
+    'On set بيشتغل من غير نت: علّم كل شوت اتصوّر واكتب ملاحظة.',
     'ابعت صفحة التجهيز للمطبخ. مش محتاجين حساب.',
   ];
 
@@ -526,19 +539,19 @@ class ShootStringsAr extends ShootStrings {
   @override
   String get sectionPrep => 'قايمة التجهيز';
   @override
-  String get sectionShots => 'اللقطات';
+  String get sectionShots => 'الشوتس';
   @override
   String get noPrep => 'مفيش مهام تجهيز لسه.';
   @override
-  String get noShots => 'مفيش لقطات لسه. ضيف أول واحدة.';
+  String get noShots => 'مفيش شوتس لسه. ضيف أول شوت.';
   @override
-  String get notForPieceYet => 'لسه مش لقطعة معينة';
+  String get notForPieceYet => 'لسه مش مربوط بقطعة';
   @override
   String get fieldPlace => 'المكان';
   @override
-  String get fieldPeople => 'مين هيكون موجود';
+  String get fieldPeople => 'مين هيحضر';
   @override
-  String get fieldKit => 'نجيب إيه';
+  String get fieldKit => 'اللي هنجيبه';
   @override
   String get fieldNotes => 'ملاحظات';
   @override
@@ -551,7 +564,7 @@ class ShootStringsAr extends ShootStrings {
   String get shareTitle => 'لينك صفحة التجهيز';
   @override
   String get shareHelp =>
-      'أي حد معاه اللينك يقدر يقرا قايمة التجهيز. مش هيقدر يغيّر فيها.';
+      'أي حد معاه اللينك يقدر يقرا قايمة التجهيز، بس مش هيقدر يغيّر فيها.';
   @override
   String get copyLink => 'انسخ اللينك';
   @override
@@ -561,17 +574,17 @@ class ShootStringsAr extends ShootStrings {
   @override
   String get newLink => 'اعمل لينك جديد';
   @override
-  String get newLinkWarning => 'اللينك القديم هيقف.';
+  String get newLinkWarning => 'اللينك القديم مش هيشتغل تاني.';
   @override
   String get shareFailed => 'مقدرناش نجيب اللينك. جرّب تاني.';
   @override
-  String get addShot => 'ضيف لقطة';
+  String get addShot => 'ضيف شوت';
   @override
-  String get editShot => 'عدّل اللقطة';
+  String get editShot => 'عدّل الشوت';
   @override
   String get shotWhat => 'هنصوّر إيه';
   @override
-  String get shotSetup => 'التجهيز (المكان، الحاجات)';
+  String get shotSetup => 'الـ setup (المكان، الـ props)';
   @override
   String get shotLineAr => 'الجملة بالعربي';
   @override
@@ -581,15 +594,17 @@ class ShootStringsAr extends ShootStrings {
   @override
   String get cancel => 'إلغاء';
   @override
-  String get prepNeedsConnection => 'قايمة التجهيز محتاجة نت. جرّب تاني لما النت يرجع.';
+  String get prepNeedsConnection =>
+      'قايمة التجهيز محتاجة نت. جرّب تاني لما النت يرجع.';
   @override
-  String get filmedMark => 'اتصوّرت';
+  String get filmedMark => 'اتصوّر';
   @override
-  String get notFilmedMark => 'لسه';
+  String get notFilmedMark => 'لسه ما اتصوّرش';
   @override
-  String get shootNotFound => 'التصوير ده ما بقاش موجود.';
+  String get shootNotFound => 'التصوير ده مش موجود. ارجع لقايمة التصويرات.';
   @override
-  String piecesCount(int n) => n == 1 ? 'قطعة' : '$n قطع';
+  String piecesCount(int n) =>
+      arCount(n, one: 'قطعة', two: 'قطعتين', few: 'قطع', many: 'قطعة');
 
   @override
   String get editTitle => 'عدّل التصوير';
@@ -602,7 +617,7 @@ class ShootStringsAr extends ShootStrings {
   @override
   String get fieldTime => 'الساعة';
   @override
-  String get fieldStatus => 'وصل لفين';
+  String get fieldStatus => 'الحالة';
   @override
   String get pickDate => 'اختار تاريخ';
   @override
@@ -615,14 +630,14 @@ class ShootStringsAr extends ShootStrings {
   String get saved => 'اتحفظ';
   @override
   String get changedMeanwhile =>
-      'حد غيّر التصوير ده في الأثناء. النسخة الجديدة قدامك. راجعها واحفظ تاني.';
+      'حد غيّر التصوير ده من ساعة ما فتحته. النسخة الجديدة قدامك. راجعها واحفظ تاني.';
   @override
   String get editHelpTitle => 'تخطيط تصوير';
   @override
   List<String> get editHelp => const [
-    'اكتب له اسم وتاريخ ومكان.',
-    'جاهز محتاج تاريخ وبريف على كل لقطة.',
-    'الحفظ بيظهر التغيير للكل فورًا.',
+    'اكتب اسم وتاريخ ومكان للتصوير.',
+    'عشان تخلّيه «جاهز» لازم تاريخ وبريف على كل شوت.',
+    'أول ما تحفظ، التغيير بيظهر للكل.',
   ];
 
   @override
@@ -630,11 +645,11 @@ class ShootStringsAr extends ShootStrings {
   @override
   String shotOf(int i, int n) => '$i من $n';
   @override
-  String get filmedButton => 'اتصوّرت';
+  String get filmedButton => 'اتصوّر';
   @override
-  String get filmedDone => 'اتصوّرت. دوس للتراجع';
+  String get filmedDone => 'اتصوّر. دوس للتراجع';
   @override
-  String get noteLabel => 'ملاحظة على اللقطة';
+  String get noteLabel => 'ملاحظة على الشوت';
   @override
   String get noteHint => 'إيه اللي حلو وإيه اللي نعيده';
   @override
@@ -648,19 +663,19 @@ class ShootStringsAr extends ShootStrings {
   @override
   String get onScreenText => 'الكلام على الشاشة';
   @override
-  String get setupLabel => 'التجهيز';
+  String get setupLabel => 'الـ setup';
   @override
   String lengthSeconds(String s) => 'حوالي $s ثانية';
   @override
   String get referencesTitle => 'المراجع';
   @override
-  String get noReferences => 'مفيش مرجع على اللقطة دي لسه.';
+  String get noReferences => 'مفيش مرجع على الشوت ده لسه.';
   @override
   String get realReference => 'مرجع حقيقي';
   @override
   String get madeReference => 'معمول بالـ AI';
   @override
-  String get briefWhy => 'ليه اللقطة دي';
+  String get briefWhy => 'ليه الشوت ده';
   @override
   String get briefFrame => 'الكادر';
   @override
@@ -678,52 +693,57 @@ class ShootStringsAr extends ShootStrings {
   @override
   String get servesPieces => 'للقطع دي';
   @override
-  String get allFilmed => 'كل اللقطات اتصوّرت.';
+  String get allFilmed => 'كل الشوتس اتصوّرت.';
   @override
   String get exitOnSet => 'اقفل On set';
   @override
-  String get offlineBanner => 'مفيش نت. العلامات والملاحظات محفوظة.';
+  String get offlineBanner => 'مفيش نت. اللي علّمته والملاحظات محفوظين.';
   @override
-  String waitingToSend(int n) =>
-      n == 1 ? 'تغيير واحد مستني يتبعت' : '$n تغييرات مستنية تتبعت';
+  String waitingToSend(int n) => arCount(
+    n,
+    one: 'تغيير واحد مستني يتبعت',
+    two: 'تغييرين مستنيين يتبعتوا',
+    few: 'تغييرات مستنية تتبعت',
+    many: 'تغيير مستني يتبعت',
+  );
   @override
-  String get sendingNow => 'بنبعت تغييراتك';
+  String get sendingNow => 'بنبعت التغييرات';
   @override
   String get allSent => 'كله اتبعت';
   @override
   String get sendNow => 'ابعت دلوقتي';
   @override
   String piecesMoved(int n, String stage) =>
-      n == 1 ? 'قطعة واحدة راحت لـ $stage' : '$n قطع راحت لـ $stage';
+      '${arCount(n, one: 'قطعة واحدة اتنقلت', two: 'قطعتين اتنقلوا', few: 'قطع اتنقلت', many: 'قطعة اتنقلت')}. المرحلة الجديدة: $stage';
   @override
-  String refusedChange(String what) => 'ما اتقبلش: $what';
+  String refusedChange(String what) => 'اترفض: $what';
   @override
   String get onSetHelpTitle => 'On set بيشتغل إزاي';
   @override
   List<String> get onSetHelp => const [
-    'لقطة لقطة. اقرا البريف، صوّر، ودوس اتصوّرت.',
-    'مفيش نت مش مشكلة. العلامات والملاحظات بتستنى على التليفون.',
-    'بتتبعت لوحدها بالترتيب لما النت يرجع.',
-    'لما القطعة تخلّص لقطاتها، بتروح للمونتاج.',
+    'شوت شوت. اقرا البريف، صوّر، ودوس «اتصوّر».',
+    'مفيش نت مش مشكلة. اللي علّمته والملاحظات بيستنوا على التليفون.',
+    'بيتبعتوا لوحدهم بالترتيب لما النت يرجع.',
+    'لما كل شوتس القطعة تتصوّر، بتروح للمونتاج.',
   ];
 
   @override
-  String get errShadow => 'الـ Studio لسه مش شغّال. ماحصلش أي تغيير.';
+  String get errShadow => 'الـ Studio لسه مش شغّال، فمفيش حاجة اتغيّرت.';
   @override
-  String get errStale => 'ده اتغيّر في الأثناء. النسخة الجديدة قدامك.';
+  String get errStale => 'اتغيّر من ساعة ما فتحته. حدّث الصفحة وجرّب تاني.';
   @override
-  String get errNotPermitted => 'مش مسموح لك بالحاجة دي.';
+  String get errNotPermitted => 'مش مسموح لدورك.';
   @override
-  String get errNetwork => 'مفيش نت. جرّب تاني لما يرجع.';
+  String get errNetwork => 'مفيش نت. اتأكد من الاتصال وجرّب تاني.';
   @override
-  String get errGeneric => 'ما نفعش. جرّب تاني.';
+  String get errGeneric => 'حصلت مشكلة. جرّب تاني.';
   @override
-  String get errNotFound => 'ده ما بقاش موجود.';
+  String get errNotFound => 'ده مبقاش موجود. ارجع وحدّث الصفحة.';
 
   @override
   String get prepPageTitle => 'تجهيز التصوير';
   @override
-  String get prepKit => 'نجيب إيه';
+  String get prepKit => 'اللي هنجيبه';
   @override
   String get prepItems => 'قايمة التجهيز';
   @override

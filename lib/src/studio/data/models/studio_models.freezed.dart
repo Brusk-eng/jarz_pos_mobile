@@ -37154,6 +37154,10 @@ mixin _$StudioDecision {
   String? get context => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: DecisionStatus.unknown)
   DecisionStatus get status => throw _privateConstructorUsedError;
+
+  /// option: answered by option_index; text: no options, answered by text
+  @JsonKey(name: 'answer_kind', unknownEnumValue: DecisionKind.unknown)
+  DecisionKind get answerKind => throw _privateConstructorUsedError;
   List<DecisionOption> get options => throw _privateConstructorUsedError;
   @JsonKey(name: 'recommended_index')
   int? get recommendedIndex => throw _privateConstructorUsedError;
@@ -37164,6 +37168,10 @@ mixin _$StudioDecision {
   int? get pickedIndex => throw _privateConstructorUsedError;
   @JsonKey(name: 'pick_note')
   String? get pickNote => throw _privateConstructorUsedError;
+
+  /// text kind only, once answered
+  @JsonKey(name: 'answer_text')
+  String? get answerText => throw _privateConstructorUsedError;
   @JsonKey(name: 'answered_by')
   PersonRef? get answeredBy => throw _privateConstructorUsedError;
   @JsonKey(name: 'answered_at')
@@ -37198,12 +37206,15 @@ abstract class $StudioDecisionCopyWith<$Res> {
     String question,
     String? context,
     @JsonKey(unknownEnumValue: DecisionStatus.unknown) DecisionStatus status,
+    @JsonKey(name: 'answer_kind', unknownEnumValue: DecisionKind.unknown)
+    DecisionKind answerKind,
     List<DecisionOption> options,
     @JsonKey(name: 'recommended_index') int? recommendedIndex,
     @JsonKey(name: 'raised_by') String raisedBy,
     ReportBrief? report,
     @JsonKey(name: 'picked_index') int? pickedIndex,
     @JsonKey(name: 'pick_note') String? pickNote,
+    @JsonKey(name: 'answer_text') String? answerText,
     @JsonKey(name: 'answered_by') PersonRef? answeredBy,
     @JsonKey(name: 'answered_at') String? answeredAt,
     DocRef? changed,
@@ -37236,12 +37247,14 @@ class _$StudioDecisionCopyWithImpl<$Res, $Val extends StudioDecision>
     Object? question = null,
     Object? context = freezed,
     Object? status = null,
+    Object? answerKind = null,
     Object? options = null,
     Object? recommendedIndex = freezed,
     Object? raisedBy = null,
     Object? report = freezed,
     Object? pickedIndex = freezed,
     Object? pickNote = freezed,
+    Object? answerText = freezed,
     Object? answeredBy = freezed,
     Object? answeredAt = freezed,
     Object? changed = freezed,
@@ -37267,6 +37280,10 @@ class _$StudioDecisionCopyWithImpl<$Res, $Val extends StudioDecision>
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
                       as DecisionStatus,
+            answerKind: null == answerKind
+                ? _value.answerKind
+                : answerKind // ignore: cast_nullable_to_non_nullable
+                      as DecisionKind,
             options: null == options
                 ? _value.options
                 : options // ignore: cast_nullable_to_non_nullable
@@ -37290,6 +37307,10 @@ class _$StudioDecisionCopyWithImpl<$Res, $Val extends StudioDecision>
             pickNote: freezed == pickNote
                 ? _value.pickNote
                 : pickNote // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            answerText: freezed == answerText
+                ? _value.answerText
+                : answerText // ignore: cast_nullable_to_non_nullable
                       as String?,
             answeredBy: freezed == answeredBy
                 ? _value.answeredBy
@@ -37377,12 +37398,15 @@ abstract class _$$StudioDecisionImplCopyWith<$Res>
     String question,
     String? context,
     @JsonKey(unknownEnumValue: DecisionStatus.unknown) DecisionStatus status,
+    @JsonKey(name: 'answer_kind', unknownEnumValue: DecisionKind.unknown)
+    DecisionKind answerKind,
     List<DecisionOption> options,
     @JsonKey(name: 'recommended_index') int? recommendedIndex,
     @JsonKey(name: 'raised_by') String raisedBy,
     ReportBrief? report,
     @JsonKey(name: 'picked_index') int? pickedIndex,
     @JsonKey(name: 'pick_note') String? pickNote,
+    @JsonKey(name: 'answer_text') String? answerText,
     @JsonKey(name: 'answered_by') PersonRef? answeredBy,
     @JsonKey(name: 'answered_at') String? answeredAt,
     DocRef? changed,
@@ -37417,12 +37441,14 @@ class __$$StudioDecisionImplCopyWithImpl<$Res>
     Object? question = null,
     Object? context = freezed,
     Object? status = null,
+    Object? answerKind = null,
     Object? options = null,
     Object? recommendedIndex = freezed,
     Object? raisedBy = null,
     Object? report = freezed,
     Object? pickedIndex = freezed,
     Object? pickNote = freezed,
+    Object? answerText = freezed,
     Object? answeredBy = freezed,
     Object? answeredAt = freezed,
     Object? changed = freezed,
@@ -37448,6 +37474,10 @@ class __$$StudioDecisionImplCopyWithImpl<$Res>
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
                   as DecisionStatus,
+        answerKind: null == answerKind
+            ? _value.answerKind
+            : answerKind // ignore: cast_nullable_to_non_nullable
+                  as DecisionKind,
         options: null == options
             ? _value._options
             : options // ignore: cast_nullable_to_non_nullable
@@ -37471,6 +37501,10 @@ class __$$StudioDecisionImplCopyWithImpl<$Res>
         pickNote: freezed == pickNote
             ? _value.pickNote
             : pickNote // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        answerText: freezed == answerText
+            ? _value.answerText
+            : answerText // ignore: cast_nullable_to_non_nullable
                   as String?,
         answeredBy: freezed == answeredBy
             ? _value.answeredBy
@@ -37510,12 +37544,15 @@ class _$StudioDecisionImpl implements _StudioDecision {
     required this.question,
     this.context,
     @JsonKey(unknownEnumValue: DecisionStatus.unknown) required this.status,
+    @JsonKey(name: 'answer_kind', unknownEnumValue: DecisionKind.unknown)
+    this.answerKind = DecisionKind.option,
     required final List<DecisionOption> options,
     @JsonKey(name: 'recommended_index') this.recommendedIndex,
     @JsonKey(name: 'raised_by') required this.raisedBy,
     this.report,
     @JsonKey(name: 'picked_index') this.pickedIndex,
     @JsonKey(name: 'pick_note') this.pickNote,
+    @JsonKey(name: 'answer_text') this.answerText,
     @JsonKey(name: 'answered_by') this.answeredBy,
     @JsonKey(name: 'answered_at') this.answeredAt,
     this.changed,
@@ -37537,6 +37574,11 @@ class _$StudioDecisionImpl implements _StudioDecision {
   @override
   @JsonKey(unknownEnumValue: DecisionStatus.unknown)
   final DecisionStatus status;
+
+  /// option: answered by option_index; text: no options, answered by text
+  @override
+  @JsonKey(name: 'answer_kind', unknownEnumValue: DecisionKind.unknown)
+  final DecisionKind answerKind;
   final List<DecisionOption> _options;
   @override
   List<DecisionOption> get options {
@@ -37559,6 +37601,11 @@ class _$StudioDecisionImpl implements _StudioDecision {
   @override
   @JsonKey(name: 'pick_note')
   final String? pickNote;
+
+  /// text kind only, once answered
+  @override
+  @JsonKey(name: 'answer_text')
+  final String? answerText;
   @override
   @JsonKey(name: 'answered_by')
   final PersonRef? answeredBy;
@@ -37586,7 +37633,7 @@ class _$StudioDecisionImpl implements _StudioDecision {
 
   @override
   String toString() {
-    return 'StudioDecision(id: $id, question: $question, context: $context, status: $status, options: $options, recommendedIndex: $recommendedIndex, raisedBy: $raisedBy, report: $report, pickedIndex: $pickedIndex, pickNote: $pickNote, answeredBy: $answeredBy, answeredAt: $answeredAt, changed: $changed, waitingSince: $waitingSince, modified: $modified, actions: $actions)';
+    return 'StudioDecision(id: $id, question: $question, context: $context, status: $status, answerKind: $answerKind, options: $options, recommendedIndex: $recommendedIndex, raisedBy: $raisedBy, report: $report, pickedIndex: $pickedIndex, pickNote: $pickNote, answerText: $answerText, answeredBy: $answeredBy, answeredAt: $answeredAt, changed: $changed, waitingSince: $waitingSince, modified: $modified, actions: $actions)';
   }
 
   @override
@@ -37599,6 +37646,8 @@ class _$StudioDecisionImpl implements _StudioDecision {
                 other.question == question) &&
             (identical(other.context, context) || other.context == context) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.answerKind, answerKind) ||
+                other.answerKind == answerKind) &&
             const DeepCollectionEquality().equals(other._options, _options) &&
             (identical(other.recommendedIndex, recommendedIndex) ||
                 other.recommendedIndex == recommendedIndex) &&
@@ -37609,6 +37658,8 @@ class _$StudioDecisionImpl implements _StudioDecision {
                 other.pickedIndex == pickedIndex) &&
             (identical(other.pickNote, pickNote) ||
                 other.pickNote == pickNote) &&
+            (identical(other.answerText, answerText) ||
+                other.answerText == answerText) &&
             (identical(other.answeredBy, answeredBy) ||
                 other.answeredBy == answeredBy) &&
             (identical(other.answeredAt, answeredAt) ||
@@ -37629,12 +37680,14 @@ class _$StudioDecisionImpl implements _StudioDecision {
     question,
     context,
     status,
+    answerKind,
     const DeepCollectionEquality().hash(_options),
     recommendedIndex,
     raisedBy,
     report,
     pickedIndex,
     pickNote,
+    answerText,
     answeredBy,
     answeredAt,
     changed,
@@ -37667,12 +37720,15 @@ abstract class _StudioDecision implements StudioDecision {
     final String? context,
     @JsonKey(unknownEnumValue: DecisionStatus.unknown)
     required final DecisionStatus status,
+    @JsonKey(name: 'answer_kind', unknownEnumValue: DecisionKind.unknown)
+    final DecisionKind answerKind,
     required final List<DecisionOption> options,
     @JsonKey(name: 'recommended_index') final int? recommendedIndex,
     @JsonKey(name: 'raised_by') required final String raisedBy,
     final ReportBrief? report,
     @JsonKey(name: 'picked_index') final int? pickedIndex,
     @JsonKey(name: 'pick_note') final String? pickNote,
+    @JsonKey(name: 'answer_text') final String? answerText,
     @JsonKey(name: 'answered_by') final PersonRef? answeredBy,
     @JsonKey(name: 'answered_at') final String? answeredAt,
     final DocRef? changed,
@@ -37693,6 +37749,11 @@ abstract class _StudioDecision implements StudioDecision {
   @override
   @JsonKey(unknownEnumValue: DecisionStatus.unknown)
   DecisionStatus get status;
+
+  /// option: answered by option_index; text: no options, answered by text
+  @override
+  @JsonKey(name: 'answer_kind', unknownEnumValue: DecisionKind.unknown)
+  DecisionKind get answerKind;
   @override
   List<DecisionOption> get options;
   @override
@@ -37709,6 +37770,11 @@ abstract class _StudioDecision implements StudioDecision {
   @override
   @JsonKey(name: 'pick_note')
   String? get pickNote;
+
+  /// text kind only, once answered
+  @override
+  @JsonKey(name: 'answer_text')
+  String? get answerText;
   @override
   @JsonKey(name: 'answered_by')
   PersonRef? get answeredBy;

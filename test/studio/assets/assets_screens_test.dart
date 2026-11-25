@@ -10,6 +10,19 @@ import 'assets_test_utils.dart';
 
 Finder key(String k) => find.byKey(ValueKey(k));
 
+/// Every new file is tagged on the way in: a flavor (or "No flavor") and a
+/// category are required, so the tests choose them like a person does.
+Future<void> tagFile(WidgetTester tester) async {
+  await tester.tap(key('add-flavour'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('No flavor (general)').last);
+  await tester.pumpAndSettle();
+  await tester.tap(key('add-category'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Kitchen').last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   late AssetsHarness h;
 
@@ -106,7 +119,7 @@ void main() {
     testWidgets('Arabic', (tester) async {
       await pumpAssets(tester, h, locale: 'ar');
       expect(find.text('ضيف ملفات'), findsOneWidget);
-      expect(find.text('اتوافق'), findsOneWidget);
+      expect(find.text('اتاخد'), findsOneWidget);
     });
   });
 
@@ -165,7 +178,10 @@ void main() {
     ) async {
       h.api.failNext('assets.get', 'NOT_FOUND');
       await pumpAssets(tester, h, location: '/assets/AST-0000318');
-      expect(find.text('This file is no longer there.'), findsOneWidget);
+      expect(
+        find.text('This is no longer there. Go back and refresh.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('error state', (tester) async {
@@ -262,6 +278,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('kitchen.jpg'), findsOneWidget);
       await tester.enterText(key('add-title'), 'Kitchen morning');
+      await tagFile(tester);
       await tester.tap(key('add-upload'));
       await tester.pumpAndSettle();
       // Back on the library; the upload ran in the background.
@@ -291,6 +308,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(key('pick-files'));
       await tester.pumpAndSettle();
+      await tagFile(tester);
       await tester.tap(key('add-upload'));
       await tester.pumpAndSettle();
       expect(
@@ -312,6 +330,7 @@ void main() {
       await pumpAssets(tester, h, location: '/assets/new');
       await tester.tap(key('pick-files'));
       await tester.pumpAndSettle();
+      await tagFile(tester);
       await tester.tap(key('add-upload'));
       await tester.pumpAndSettle();
       expect(key('add-problem'), findsOneWidget);

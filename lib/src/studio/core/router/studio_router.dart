@@ -75,6 +75,9 @@ final studioRouterProvider = Provider<GoRouter>((ref) {
     return null;
   }
 
+  // A screen opened from a list puts its own address in the browser, so a
+  // reload (or a copied link) lands on the same screen, not on its tab.
+  GoRouter.optionURLReflectsImperativeAPIs = true;
   return GoRouter(
     initialLocation: StudioRoutes.today,
     refreshListenable: refresh,

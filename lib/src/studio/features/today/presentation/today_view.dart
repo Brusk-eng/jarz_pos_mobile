@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/studio_labels.dart';
 import '../../../core/l10n/studio_strings.dart';
 import '../../../core/router/studio_screen.dart';
 import '../../../core/roles/studio_role.dart' show StudioRole;
@@ -35,6 +36,7 @@ class TodayBody extends ConsumerWidget {
     ref.invalidate(todayProvider);
     ref.invalidate(inboxCountsProvider);
     ref.read(todayHiddenLinesProvider.notifier).state = const {};
+    ref.read(todayDoneNotesProvider.notifier).state = const {};
     await ref.read(todayTasksProvider.notifier).refresh();
     try {
       await ref.read(todayProvider.future);
@@ -49,6 +51,7 @@ class TodayBody extends ConsumerWidget {
     final value = ref.watch(todayProvider);
     final tasks = ref.watch(todayTasksProvider);
     final hidden = ref.watch(todayHiddenLinesProvider);
+    final labels = StudioLabels.of(context);
     final screenCopy = StudioStrings.of(context).screen(StudioScreen.today);
 
     bool nothing(TodayView v) =>
@@ -93,12 +96,43 @@ class TodayBody extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: StudioSpacing.md),
                   child: _BlockCard(block: block, hidden: hidden),
                 ),
+            for (final key in _emptyBlocks(view, role))
+              Padding(
+                padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
+                child: Text(
+                  labels.blockEmpty(key)!,
+                  key: ValueKey('today-empty-${key.name}'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
             _TasksSection(role: role),
           ],
         ),
       ),
     );
   }
+}
+
+/// The blocks this role watches that came back empty (the server leaves empty
+/// blocks out), so a new person can tell "nothing" from "no such block".
+List<BlockKey> _emptyBlocks(TodayView view, StudioRole? role) {
+  if (role == null) return const [];
+  const watched = {
+    StudioRole.lead: [
+      BlockKey.blocked,
+      BlockKey.dueToday,
+      BlockKey.sentBack,
+      BlockKey.didntGoOut,
+    ],
+    StudioRole.creator: [BlockKey.sentBack, BlockKey.dueToday],
+    StudioRole.story: [BlockKey.sentBack, BlockKey.dueToday],
+    StudioRole.founder: [BlockKey.didntGoOut],
+  };
+  final present = {for (final b in view.blocks) b.key};
+  return [
+    for (final k in watched[role] ?? const <BlockKey>[])
+      if (!present.contains(k)) k,
+  ];
 }
 
 class _BlockCard extends ConsumerWidget {
@@ -131,7 +165,12 @@ class _BlockCard extends ConsumerWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(block.title, style: theme.textTheme.titleMedium),
+                  child: Text(
+                    StudioLabels.of(
+                      context,
+                    ).block(block.key, fallback: block.title),
+                    style: theme.textTheme.titleMedium,
+                  ),
                 ),
                 CountPill(
                   block.count,
@@ -145,6 +184,19 @@ class _BlockCard extends ConsumerWidget {
             ),
           ),
           for (final line in lines) TodayLineTile(line: line),
+          if (const {
+            BlockKey.didntGoOut,
+            BlockKey.unplanned,
+            BlockKey.unconfirmed,
+          }.contains(block.key))
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                key: ValueKey('today-drift-${block.key.name}'),
+                onPressed: () => context.push('/calendar/drift'),
+                child: Text(t.clearDrift),
+              ),
+            ),
           if (block.moreRoute != null && block.count > lines.length)
             Align(
               alignment: AlignmentDirectional.centerStart,
@@ -159,6 +211,20 @@ class _BlockCard extends ConsumerWidget {
     );
   }
 }
+
+/// The actions a Today line may show as a button (the contract's inline ones).
+const _lineActions = {
+  'tick',
+  'approve',
+  'fix',
+  'posted',
+  'mark_posted',
+  'wont_post',
+  'frame_set',
+  'match',
+  'ignore',
+  'resolve',
+};
 
 /// One line of a block. Tapping it opens `line.route`; inline buttons come
 /// only from `line.actions`.
@@ -176,6 +242,7 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
   Future<void> _run(String action) async {
     final line = widget.line;
     final t = TodayStrings.of(context);
+    final inboxStrings = InboxStrings.of(context);
     final router = GoRouter.maybeOf(context);
     // Actions the line can do in place; the rest open the exact screen.
     final inline = action == 'tick' || action == 'approve';
@@ -183,22 +250,29 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
       router?.push(line.route);
       return;
     }
-    final hiddenNotifier = ref.read(todayHiddenLinesProvider.notifier);
+    final notes = ref.read(todayDoneNotesProvider.notifier);
     final id = line.ref?.name ?? line.id;
     setState(() => _busy = true);
-    hiddenNotifier.state = {...hiddenNotifier.state, line.id};
     try {
+      String next;
       if (action == 'tick') {
         await ref.read(todayRepositoryProvider).tick(id);
+        next = t.tickedNext;
       } else {
-        await ref.read(reviewRepositoryProvider).approve(id);
+        final v = await ref.read(reviewRepositoryProvider).approve(id);
+        final post = v.post;
+        final slot = post?.slotTime;
+        next = t.approvedNext(
+          slot == null ? null : slotText(inboxStrings, slot),
+          post?.postingMode == PostingMode.byHand,
+        );
       }
-      ref.invalidate(todayProvider);
+      // The line stays with what happens next and who has it; the next
+      // refresh drops it (the server no longer lists it).
+      notes.state = {...notes.state, line.id: next};
       ref.invalidate(inboxCountsProvider);
       ref.invalidate(todayTasksProvider);
-      if (mounted) showStudioNote(context, t.done);
     } catch (e) {
-      hiddenNotifier.state = {...hiddenNotifier.state}..remove(line.id);
       if (mounted) {
         // ALREADY_DONE is a quiet success: refresh and move on.
         showStudioError(context, e);
@@ -215,9 +289,13 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
     final t = TodayStrings.of(context);
     final s = InboxStrings.of(context);
     final theme = Theme.of(context);
+    final doneNote = ref.watch(todayDoneNotesProvider)[line.id];
+    // Only the actions a line can run in place or open its screen for, with a
+    // label; a code this app does not know is left out, never shown raw.
     final buttons = [
       for (final a in line.actions)
-        if (a != 'open') a,
+        if (a != 'open' && _lineActions.contains(a) && t.actionLabel(a) != null)
+          a,
     ];
     final bar = levelColor(line.level);
     return InkWell(
@@ -276,7 +354,29 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
                 const Icon(Icons.chevron_right, color: StudioColors.plumMuted),
               ],
             ),
-            if (buttons.isNotEmpty)
+            if (doneNote != null)
+              Padding(
+                padding: const EdgeInsets.only(top: StudioSpacing.sm),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.check_circle_outline,
+                      size: 18,
+                      color: StudioColors.success,
+                    ),
+                    const SizedBox(width: StudioSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        doneNote,
+                        key: ValueKey('line-${line.id}-done'),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (buttons.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: StudioSpacing.sm),
                 child: Wrap(
@@ -290,7 +390,7 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
                           visualDensity: VisualDensity.compact,
                         ),
                         onPressed: _busy ? null : () => _run(a),
-                        child: Text(t.actionLabel(a)),
+                        child: Text(t.actionLabel(a)!),
                       ),
                   ],
                 ),

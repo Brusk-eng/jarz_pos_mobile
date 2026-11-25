@@ -23,7 +23,8 @@ class CairoTime {
   static String _p(int v, [int w = 2]) => v.toString().padLeft(w, '0');
 
   /// `2026-11-23`.
-  static String date(DateTime d) => '${_p(d.year, 4)}-${_p(d.month)}-${_p(d.day)}';
+  static String date(DateTime d) =>
+      '${_p(d.year, 4)}-${_p(d.month)}-${_p(d.day)}';
 
   /// `13:00`.
   static String time(DateTime d) => '${_p(d.hour)}:${_p(d.minute)}';
@@ -47,8 +48,7 @@ class CairoTime {
   }
 
   /// A wall-clock time as the wire string `2026-12-01T13:00:00+02:00`.
-  static String wire(DateTime d) =>
-      '${date(d)}T${time(d)}:00${offsetFor(d)}';
+  static String wire(DateTime d) => '${date(d)}T${time(d)}:00${offsetFor(d)}';
 
   /// The Saturday that starts the Studio week containing [d].
   static DateTime weekStart(DateTime d) {

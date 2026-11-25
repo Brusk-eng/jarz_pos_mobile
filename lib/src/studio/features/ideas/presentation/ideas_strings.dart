@@ -152,20 +152,20 @@ class IdeasStringsAr extends IdeasStrings {
   @override
   String get tabOpen => 'للقرار';
   @override
-  String get tabKept => 'اتحفظت';
+  String get tabKept => 'محتفظ بيها';
   @override
-  String get tabDropped => 'اتشالت';
+  String get tabDropped => 'اتسابت';
   @override
   String get emptyPurpose =>
-      'كروت أفكار تحتفظ بيها أو تشيلها. الفكرة اللي بتتحفظ بتبقى قطعة.';
+      'كروت أفكار للقرار: احتفظ أو سيب. الفكرة اللي بيتحتفظ بيها بتبقى قطعة.';
   @override
   String get emptyFirstStep =>
-      'مفيش أفكار مستنية. دوس فكرة جديدة وهات واحدة: عنوان وبداية الفيديو كفاية.';
+      'مفيش أفكار مستنية. دوس «فكرة جديدة» وهات واحدة: عنوان وهوك كفاية.';
   @override
   String get emptyKeptFirstStep =>
-      'لسه مفيش أفكار اتحفظت. احتفظ بفكرة وهتبقى قطعة.';
+      'لسه مفيش أفكار محتفظ بيها. أي فكرة بتتحفظ بتبقى قطعة هنا.';
   @override
-  String get emptyDroppedFirstStep => 'لسه مفيش حاجة اتشالت.';
+  String get emptyDroppedFirstStep => 'لسه مفيش حاجة اتسابت.';
   @override
   String get newIdea => 'فكرة جديدة';
   @override
@@ -185,17 +185,17 @@ class IdeasStringsAr extends IdeasStrings {
   @override
   String get keep => 'احتفظ';
   @override
-  String get drop => 'شيل';
+  String get drop => 'سيب';
   @override
-  String get edit => 'عدّل';
+  String get edit => 'تعديل';
   @override
-  String get keepTitle => 'تحتفظ بالفكرة دي؟';
+  String get keepTitle => 'نحتفظ بالفكرة دي؟';
   @override
   String get keepBody => 'هتبقى قطعة في مرحلة الفكرة وجاهزة للتخطيط.';
   @override
-  String get dropTitle => 'شيل الفكرة دي';
+  String get dropTitle => 'نسيب الفكرة دي؟';
   @override
-  String get dropReasonLabel => 'ليه؟ (الفريق بيشوف السبب)';
+  String get dropReasonLabel => 'السبب؟ (الفريق بيشوفه)';
   @override
   String get dropReasonRequired => 'اكتب سبب قصير.';
   @override
@@ -205,20 +205,20 @@ class IdeasStringsAr extends IdeasStrings {
   @override
   String get ideaKept => 'اتحفظت. بقت قطعة دلوقتي.';
   @override
-  String get ideaDropped => 'اتشالت.';
+  String get ideaDropped => 'اتسابت.';
   @override
   String get ideaSent => 'الفكرة اتبعتت. المؤسس هيشوفها.';
   @override
   String get ideaSaved => 'الفكرة اتحفظت.';
   @override
   String get nextOpenCanDecide =>
-      'الخطوة الجاية: احتفظ بيها (هتبقى قطعة) أو شيلها بسبب.';
+      'الخطوة الجاية: احتفظ بيها (هتبقى قطعة) أو سيبها وقول السبب.';
   @override
-  String get nextOpenWaiting => 'مستنيين المؤسس يحتفظ بيها أو يشيلها.';
+  String get nextOpenWaiting => 'مستنيين المؤسس يقرر: يحتفظ بيها أو يسيبها.';
   @override
   String get nextKept => 'اتحفظت. بقت قطعة دلوقتي.';
   @override
-  String get nextDropped => 'اتشالت واتأرشفت بسببها.';
+  String get nextDropped => 'اتسابت واتأرشفت مع السبب.';
   @override
   String get forWho => 'لـ';
   @override
@@ -231,7 +231,7 @@ class IdeasStringsAr extends IdeasStrings {
     'trial' => 'Trial reel',
     'static' => 'Static',
     'carousel' => 'Carousel',
-    'story' => 'ستوري',
+    'story' => 'Story',
     _ => 'فكرة',
   };
   @override

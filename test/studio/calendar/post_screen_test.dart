@@ -50,6 +50,27 @@ void main() {
       expect(text.textDirection, TextDirection.rtl);
     });
 
+    testWidgets('a hashtag line under Arabic text reads left to right', (
+      tester,
+    ) async {
+      await pumpFeature(
+        tester,
+        location: _path,
+        height: 3000,
+        fixtures: patchedFixtures(
+          _post((j) => j['caption'] = 'عزومة تليق بيك\n#Jarz #JarzEgypt'),
+        ),
+      );
+      final ar = tester.widget<Text>(
+        find.byKey(const ValueKey('post-caption-line-0')),
+      );
+      final tags = tester.widget<Text>(
+        find.byKey(const ValueKey('post-caption-line-1')),
+      );
+      expect(ar.textDirection, TextDirection.rtl);
+      expect(tags.textDirection, TextDirection.ltr);
+    });
+
     testWidgets('the publish log lists what happened', (tester) async {
       await pumpFeature(
         tester,
@@ -190,7 +211,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('ask-confirm')));
       await tester.pumpAndSettle();
       expect(h.api.calls, contains('calendar.post_mark_posted'));
-      expect(find.text('Marked as posted.'), findsOneWidget);
+      expect(find.textContaining('Marked as posted'), findsOneWidget);
     });
 
     testWidgets('I posted it works without a link', (tester) async {
@@ -281,9 +302,9 @@ void main() {
     });
 
     for (final c in [
-      ('ALREADY_DONE', 'This was already done'),
+      ('ALREADY_DONE', 'Already done'),
       ('SHADOW_MODE', 'The Studio is not switched on yet'),
-      ('NOT_PERMITTED', 'You are not allowed to do this.'),
+      ('NOT_PERMITTED', 'Your role cannot do that.'),
     ]) {
       testWidgets('${c.$1} on mark posted', (tester) async {
         final api = FakeStudioApi(role: 'founder', delay: Duration.zero)
@@ -313,7 +334,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         find.text(
-          'Someone changed this a moment ago. Showing the latest, try again.',
+          'This changed since you opened it. Refresh the page and try again.',
         ),
         findsOneWidget,
       );

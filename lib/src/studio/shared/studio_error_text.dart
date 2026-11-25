@@ -11,33 +11,36 @@ import '../data/studio_error.dart';
 String studioErrorMessage(Object error, {required bool ar}) {
   String tr(String en, String arabic) => ar ? arabic : en;
   if (error is! StudioError) {
-    return tr('That did not go through. Nothing was changed.', _arGeneric);
+    return tr(
+      'That did not go through. Nothing was changed. Try again.',
+      _arGeneric,
+    );
   }
   return switch (error) {
     StudioShadowMode() => tr(
-      'The Studio is not switched on yet, so nothing can be changed.',
-      'الـ Studio لسه مش شغّال، فمفيش حاجة تتغيّر.',
+      'The Studio is not switched on yet, so nothing was changed.',
+      'الـ Studio لسه مش شغّال، فمفيش حاجة اتغيّرت.',
     ),
     StudioGateFailed(:final problems) =>
       problems.isEmpty
           ? studioGateHeader(ar: ar)
           : '${studioGateHeader(ar: ar)}\n${[for (final p in problems) '- ${p.message}'].join('\n')}',
     StudioStale() => tr(
-      'Someone changed this a moment ago. Showing the latest, try again.',
-      'حد غيّر ده من لحظات. بنعرض آخر نسخة، جرّب تاني.',
+      'This changed since you opened it. Refresh the page and try again.',
+      'اتغيّر من ساعة ما فتحته. حدّث الصفحة وجرّب تاني.',
     ),
-    StudioNotPermitted() => tr(
-      'You are not allowed to do this.',
-      'مش مسموح لك تعمل ده.',
+    StudioNotPermitted() => tr('Your role cannot do that.', 'مش مسموح لدورك.'),
+    StudioNotFound() => tr(
+      'This is no longer there. Go back and refresh.',
+      'ده مبقاش موجود. ارجع وحدّث الصفحة.',
     ),
-    StudioNotFound() => tr('This is no longer there.', 'ده مبقاش موجود.'),
     StudioAlreadyDone() => tr(
-      'This was already done. Showing how it stands now.',
-      'ده اتعمل قبل كده. بنعرض الحالة دلوقتي.',
+      'Already done. This is how it stands now.',
+      'اتعمل قبل كده. دي الحالة دلوقتي.',
     ),
     StudioNetworkError() => tr(
       'No connection. Check the internet and try again.',
-      'مفيش اتصال. اتأكد من النت وجرّب تاني.',
+      'مفيش نت. اتأكد من الاتصال وجرّب تاني.',
     ),
     StudioRateLimited() => tr(
       'Too many tries in a row. Wait a moment and try again.',
@@ -49,18 +52,24 @@ String studioErrorMessage(Object error, {required bool ar}) {
     ),
     StudioValidation(:final message) =>
       message.isEmpty
-          ? tr('That did not go through. Nothing was changed.', _arGeneric)
+          ? tr(
+              'That did not go through. Nothing was changed. Try again.',
+              _arGeneric,
+            )
           : message,
-    _ => tr('That did not go through. Nothing was changed.', _arGeneric),
+    _ => tr(
+      'That did not go through. Nothing was changed. Try again.',
+      _arGeneric,
+    ),
   };
 }
 
-const _arGeneric = 'ده ماتمش. مفيش حاجة اتغيّرت.';
+const _arGeneric = 'ده ماتمش، ومفيش حاجة اتغيّرت. جرّب تاني.';
 
 /// The sentence above a list of gate problems.
 String studioGateHeader({required bool ar}) => ar
-    ? 'مينفعش نكمل لسه. صلّح الحاجات دي الأول:'
-    : 'This cannot go ahead yet. Fix these first:';
+    ? 'الفحص مانجحش. صلّح اللي تحت وجرّب تاني:'
+    : 'The check failed. Fix these and try again:';
 
 bool _isAr(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'ar';

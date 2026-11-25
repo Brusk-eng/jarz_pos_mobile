@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/studio_labels.dart';
 import '../../../core/roles/studio_role.dart';
 
 abstract class TodayStrings {
@@ -43,8 +44,15 @@ abstract class TodayStrings {
   String get skipped;
   String get nextTask;
   String get nextBlocks;
-  String actionLabel(String action);
+  String? actionLabel(String action);
   String get done;
+
+  /// What a row says after its action worked: what happens next, and who has it.
+  String approvedNext(String? slot, bool byHand);
+  String get tickedNext;
+  String get postedNext;
+  String get emptyBlockHint;
+  String get clearDrift;
 }
 
 class TodayStringsEn extends TodayStrings {
@@ -94,9 +102,9 @@ class TodayStringsEn extends TodayStrings {
   String get showDone => 'Done';
   @override
   String get noTasksOpen =>
-      'No open tasks. A one-off ask with a due date goes here.';
+      'No open tasks. Add a task for a one-off ask with a due date.';
   @override
-  String get noTasksDone => 'Nothing ticked yet.';
+  String get noTasksDone => 'Nothing ticked yet. Tick a task when it is done.';
   @override
   String get addTask => 'Add a task';
   @override
@@ -142,19 +150,24 @@ class TodayStringsEn extends TodayStrings {
   @override
   String get nextBlocks => 'Tap a line to open the exact item.';
   @override
-  String actionLabel(String a) => switch (a) {
-    'tick' => 'Done',
-    'approve' => 'Approve',
-    'fix' => 'Send back',
-    'posted' || 'mark_posted' => 'I posted it',
-    'wont_post' => 'Will not post',
-    'frame_set' => 'Set the frame',
-    'match' => 'Match',
-    'ignore' => 'Ignore',
-    'resolve' => 'Resolve',
-    'open' => 'Open',
-    _ => a,
-  };
+  String? actionLabel(String a) => StudioLabels.en.action(a);
+  @override
+  String approvedNext(String? slot, bool byHand) => slot == null
+      ? 'Approved. The marketing lead picks its slot.'
+      : byHand
+      ? 'Approved. It goes to Ready to post for whoever posts by hand, on $slot.'
+      : 'Approved. It posts by itself on $slot.';
+  @override
+  String get tickedNext =>
+      'Done. It is off your list; whoever set it sees it ticked.';
+  @override
+  String get postedNext =>
+      'Marked posted. The 72-hour read comes due in 3 days: the founder or the '
+      'marketing lead files it.';
+  @override
+  String get emptyBlockHint => 'Nothing here right now.';
+  @override
+  String get clearDrift => 'Clear these one by one';
   @override
   String get done => 'Done.';
 }
@@ -170,23 +183,23 @@ class TodayStringsAr extends TodayStrings {
       'النهارده بيعرض اللي واقف واللي ميعاده جه واللي ما نزلش، '
           'عشان توزّع الأسبوع.',
     StudioRole.creator =>
-      'النهارده بيعرض اللي اترجعلك واللي ميعاده جه واللي تصوّره أو تنزّله.',
+      'النهارده بيعرض اللي اترجعلك واللي ميعاده جه واللي تصوّره أو تنشره.',
     StudioRole.story =>
-      'النهارده بيعرض فريمات الستوري اللي تصوّرها وتنزّلها واللي اترجع.',
+      'النهارده بيعرض فريمات الـ Story اللي تصوّرها وتنشرها واللي اترجع.',
   };
   @override
   String firstStep(StudioRole r) => switch (r) {
     StudioRole.founder =>
-      'مفيش حاجة مستنياك لسه. افتح الأفكار تحتفظ باللي جه أو تشيله، '
-          'أو التقويم تشوف إيه اللي هينزل.',
+      'مفيش حاجة مستنية منك لسه. افتح الأفكار تحتفظ باللي جه أو تسيبه، '
+          'أو التقويم تشوف إيه اللي هيتنشر.',
     StudioRole.lead =>
-      'ابدأ الأسبوع: ضيف مهمة لحد، وبعدين افتح التقويم '
-          'تشوف اللي هينزل في الـ 48 ساعة الجاية.',
+      'ابدأ الأسبوع: ضيف مهمة لحد في الفريق، وبعدين افتح التقويم '
+          'تشوف اللي هيتنشر في الـ 48 ساعة الجاية.',
     StudioRole.creator =>
-      'مفيش حاجة مستنياك لسه. افتح الأفكار وهات فكرة، '
-          'أو افتح القطع تشوف اللي اتسندلك.',
+      'مفيش حاجة مستنية منك لسه. افتح الأفكار وهات فكرة، '
+          'أو افتح المحتوى تشوف اللي اتسندلك.',
     StudioRole.story =>
-      'مفيش حاجة مستنياكي لسه. افتح الملفات وارفع صور وفيديوهات النهارده.',
+      'مفيش حاجة مستنية منك لسه. افتح الملفات وارفع صور وفيديوهات النهارده.',
   };
   @override
   String get refresh => 'تحديث';
@@ -199,14 +212,14 @@ class TodayStringsAr extends TodayStrings {
   @override
   String get everyonesTasks => 'الكل';
   @override
-  String get showOpen => 'للتنفيذ';
+  String get showOpen => 'لسه';
   @override
   String get showDone => 'خلصت';
   @override
   String get noTasksOpen =>
-      'مفيش مهام مفتوحة. أي طلب لمرة واحدة وليه ميعاد بيتحط هنا.';
+      'مفيش مهام مفتوحة. ضيف مهمة لأي طلب لمرة واحدة وليه ميعاد.';
   @override
-  String get noTasksDone => 'لسه مفيش حاجة اتعلّمت خلصت.';
+  String get noTasksDone => 'لسه مفيش مهمة اتعلّمت إنها خلصت.';
   @override
   String get addTask => 'ضيف مهمة';
   @override
@@ -220,7 +233,7 @@ class TodayStringsAr extends TodayStrings {
   @override
   String get me => 'أنا';
   @override
-  String get creatorsTeam => 'فريق المحتوى';
+  String get creatorsTeam => 'الكرييتورز';
   @override
   String get claudeTeam => 'Claude';
   @override
@@ -230,13 +243,13 @@ class TodayStringsAr extends TodayStrings {
   @override
   String get pickDate => 'اختار تاريخ';
   @override
-  String get clearDate => 'شيل التاريخ';
+  String get clearDate => 'امسح التاريخ';
   @override
   String get tick => 'علّم إنها خلصت';
   @override
   String get skip => 'تخطّى';
   @override
-  String get edit => 'عدّل';
+  String get edit => 'تعديل';
   @override
   String get taskSaved => 'المهمة اتحفظت.';
   @override
@@ -252,19 +265,24 @@ class TodayStringsAr extends TodayStrings {
   @override
   String get nextBlocks => 'اضغط على سطر يفتح الحاجة نفسها.';
   @override
-  String actionLabel(String a) => switch (a) {
-    'tick' => 'خلصت',
-    'approve' => 'وافق',
-    'fix' => 'رجّع',
-    'posted' || 'mark_posted' => 'نزّلتها',
-    'wont_post' => 'مش هتنزل',
-    'frame_set' => 'حدد الفريم',
-    'match' => 'اربط',
-    'ignore' => 'تجاهل',
-    'resolve' => 'اتحلت',
-    'open' => 'افتح',
-    _ => a,
-  };
+  String? actionLabel(String a) => StudioLabels.arabic.action(a);
+  @override
+  String approvedNext(String? slot, bool byHand) => slot == null
+      ? 'اتوافق عليه. مسؤول التسويق هيحدد ميعاده.'
+      : byHand
+      ? 'اتوافق عليه. هيروح لـ «جاهز للنشر» لمين هينشره يدوي، يوم $slot.'
+      : 'اتوافق عليه. هينزل لوحده يوم $slot.';
+  @override
+  String get tickedNext =>
+      'تمام. اختفت من قايمتك، واللي كلّفك بيها هيشوفها اتعلّمت.';
+  @override
+  String get postedNext =>
+      'اتعلّم إنه اتنشر. قراءة الـ 72 ساعة ميعادها بعد 3 أيام، والمؤسس أو '
+      'مسؤول التسويق بيسجّلها.';
+  @override
+  String get emptyBlockHint => 'مفيش حاجة دلوقتي.';
+  @override
+  String get clearDrift => 'نضّفهم واحد واحد';
   @override
   String get done => 'تمام.';
 }

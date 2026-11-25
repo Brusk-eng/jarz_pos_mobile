@@ -137,7 +137,7 @@ void main() {
       expect(seen, hasLength(errors.length), reason: 'no two the same');
       expect(
         studioErrorMessage(const StudioAlreadyDone('x', null), ar: false),
-        startsWith('This was already done'),
+        startsWith('Already done'),
       );
     });
   });

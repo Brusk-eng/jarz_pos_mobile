@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../core/network/studio_api.dart';
+import 'studio_endpoint_roles.g.dart';
 import 'studio_fixtures.g.dart';
 
 /// An armed failure: the next [times] calls whose key matches throw [code].
@@ -21,6 +22,10 @@ class _Failure {
 ///   approve, fix, clear review, rate, comment, tick, answer a decision, keep
 ///   or drop an idea return the updated object, and later reads of the same id
 ///   (and the to-approve feed and the inbox counts) reflect them.
+/// * Every `actions` list is cut down to what the role may do. The fixtures show
+///   the founder's buttons, so each action is looked up in the contract's
+///   "Who may call" table (`studio_endpoint_roles.g.dart`, generated) through
+///   [fakeActionEndpoints]; an action that table does not know stays.
 /// * [failNext] / [failAlways] make a call fail with any contract error code.
 /// * Each call waits [delay] first.
 class FakeStudioApi extends StudioApi {
@@ -28,12 +33,17 @@ class FakeStudioApi extends StudioApi {
     this.role = 'founder',
     this.delay = const Duration(milliseconds: 150),
     Map<String, String>? fixtures,
+    this.textDecisions = false,
   }) : _fixtures = fixtures ?? studioFixtures;
 
   /// founder, lead, creator, story, or none (signed in with no Studio role).
   final String role;
   final Duration delay;
   final Map<String, String> _fixtures;
+
+  /// Adds the two decisions answered in words (one open, one answered) to
+  /// the decisions list and to the Inbox count. They are served by id either way.
+  final bool textDecisions;
 
   final _failures = <_Failure>[];
   final _patches = <String, Map<String, dynamic>>{};
@@ -103,7 +113,45 @@ class FakeStudioApi extends StudioApi {
     final p = params ?? const <String, dynamic>{};
     final written = _write(key, p);
     final result = written ?? _read(key, p);
-    return _copy(result);
+    return _forRole(_copy(result));
+  }
+
+  // ---------------------------------------------------------- role filtering
+
+  static const _letters = {
+    'founder': 'F',
+    'lead': 'L',
+    'creator': 'C',
+    'story': 'S',
+  };
+
+  /// Cuts every `actions` list in [v] down to what this role may do.
+  dynamic _forRole(dynamic v) {
+    final letter = _letters[role];
+    if (letter == null) return v; // 'none': no Studio role, nothing to filter
+    if (v is List) return [for (final e in v) _forRole(e)];
+    if (v is! Map) return v;
+    final m = <String, dynamic>{
+      for (final e in v.entries) e.key as String: _forRole(e.value),
+    };
+    final acts = m['actions'];
+    if (acts is List && acts.every((a) => a is String)) {
+      final kind = fakeObjectKind(m);
+      final table = kind == null ? null : fakeActionEndpoints[kind];
+      if (table != null) {
+        m['actions'] = [
+          for (final a in acts)
+            if (_allowed(table[a], letter)) a,
+        ];
+      }
+    }
+    return m;
+  }
+
+  bool _allowed(String? endpoint, String letter) {
+    if (endpoint == null) return true; // not a gated action (open, rate...)
+    final who = studioEndpointRoles[endpoint];
+    return who == null || who.contains(letter);
   }
 
   // ---------------------------------------------------------------- failures
@@ -179,11 +227,71 @@ class FakeStudioApi extends StudioApi {
         ],
       };
     }
+    if (key == 'today.get' && data is Map) {
+      // A line the person acted on (approved, ticked) is gone on the next read,
+      // like the real server: its block loses it, an empty block disappears.
+      bool gone(Map line) {
+        final id = line['id'];
+        return _gone.contains(id) || _patches[id]?['done'] == true;
+      }
+
+      data = {
+        ...data,
+        'blocks': [
+          for (final b in data['blocks'] as List)
+            if (((b as Map)['lines'] as List).any((l) => !gone(l as Map)))
+              {
+                ...Map<String, dynamic>.from(b),
+                'lines': [
+                  for (final l in b['lines'] as List)
+                    if (!gone(l as Map)) l,
+                ],
+                'count':
+                    ((b['count'] as int) -
+                            (b['lines'] as List)
+                                .where((l) => gone(l as Map))
+                                .length)
+                        .clamp(0, 1 << 30),
+              },
+        ],
+      };
+    }
+    if (key == 'decisions.get' && data is Map) {
+      // The two decisions answered in words are served by id.
+      final id = p['decision_id'];
+      if (id == 'DEC-00012' || id == 'DEC-00011') {
+        data = _fixture(
+          id == 'DEC-00012'
+              ? 'decisions.get.text_open'
+              : 'decisions.get.text_answered',
+        );
+      }
+    }
+    if (key == 'decisions.list' && data is Map) {
+      // The list holds the option decision and the two in words; `status`
+      // narrows it, as on the server.
+      final status = p['status'];
+      final all = [
+        ...(data['items'] as List),
+        if (textDecisions) ...[
+          _fixture('decisions.get.text_open'),
+          _fixture('decisions.get.text_answered'),
+        ],
+      ];
+      String now(Map d) => '${_patches[d['id']]?['status'] ?? d['status']}';
+      data = {
+        ...data,
+        'items': [
+          for (final d in all)
+            if (status == null || now(d as Map) == status) d,
+        ],
+      };
+    }
     if (key == 'inbox.counts' && data is Map) {
       int n(String k, int delta) =>
           ((data[k] as int) + delta).clamp(0, 1 << 30);
       final a = n('to_approve', _approveDelta);
-      final d = n('decisions', _decisionDelta);
+      final d = n('decisions', _decisionDelta + (textDecisions ? 1 : 0));
       final i = n('ideas', _ideaDelta);
       data = {
         ...data,
@@ -274,13 +382,66 @@ class FakeStudioApi extends StudioApi {
         return _overlay(base);
       case 'decisions.answer':
         final id = p['decision_id'] as String;
-        final base = _fixture(key) as Map<String, dynamic>..['id'] = id;
+        final inWords = id == 'DEC-00012' || id == 'DEC-00011';
+        final base =
+            _fixture(inWords ? 'decisions.get.text_open' : key)
+                  as Map<String, dynamic>
+              ..['id'] = id;
         final wasOpen = (_patches[id]?['status'] ?? 'Open') == 'Open';
+        // The same rules as the server: an option decision takes option_index
+        // (and a note), a text decision takes text only, 1 to 2000 characters.
+        final text = p['text'] is String ? (p['text'] as String).trim() : null;
+        if (inWords) {
+          if (p['option_index'] != null) {
+            throw const StudioValidation(
+              'This question is answered in words, not by an option.',
+              field: 'option_index',
+              statusCode: 422,
+            );
+          }
+          if (p['note'] != null) {
+            throw const StudioValidation(
+              'A question answered in words has no note.',
+              field: 'note',
+              statusCode: 422,
+            );
+          }
+          if (text == null || text.isEmpty) {
+            throw const StudioValidation(
+              'Write the answer first.',
+              field: 'text',
+              statusCode: 422,
+            );
+          }
+          if (text.length > 2000) {
+            throw const StudioValidation(
+              'The answer can be 2000 characters at most.',
+              field: 'text',
+              statusCode: 422,
+            );
+          }
+        } else {
+          if (p['text'] != null) {
+            throw const StudioValidation(
+              'This decision is answered by an option, not in words.',
+              field: 'text',
+              statusCode: 422,
+            );
+          }
+          if (p['option_index'] == null && id.startsWith('DEC-')) {
+            throw const StudioValidation(
+              'Pick an option.',
+              field: 'option_index',
+              statusCode: 422,
+            );
+          }
+        }
         _patches[id] = {
           ...?_patches[id],
           'status': 'Answered',
           'picked_index': p['option_index'],
           'pick_note': p['note'],
+          if (inWords) 'answer_text': text,
           'answered_by': _meRef(),
           'answered_at': _stamp(),
           'actions': <String>[],
@@ -311,6 +472,18 @@ class FakeStudioApi extends StudioApi {
           'actions': ['edit'],
         };
         _ideaDelta--;
+        return _overlay(base);
+      case 'paid.ad_set_state':
+        final id = p['ad_id'] as String;
+        final raw = '${p['state'] ?? ''}';
+        final base = _fixture(key) as Map<String, dynamic>..['id'] = id;
+        _patches[id] = {
+          ...?_patches[id],
+          'state': raw.isEmpty ? null : raw,
+          'state_label': raw.isEmpty ? 'Not set' : raw,
+          'state_set_at': _stamp(),
+          'modified': _stamp(),
+        };
         return _overlay(base);
       case 'notifications.mark_read':
         final n = (p['all'] == true)
@@ -371,3 +544,85 @@ class FakeStudioApi extends StudioApi {
 
   dynamic _copy(dynamic v) => jsonDecode(jsonEncode(v));
 }
+
+/// Which contract shape a JSON object is, told apart by a key only that shape
+/// has. Null for objects that carry no gated `actions`.
+String? fakeObjectKind(Map<String, dynamic> m) {
+  bool has(String k) => m.containsKey(k);
+  if (has('review_outcome')) return 'version';
+  if (has('kept_piece_id')) return 'idea';
+  if (has('caption_problems') || (has('posting_mode') && has('slot_time'))) {
+    return 'post';
+  }
+  if (has('due_in_min')) return 'ready_post';
+  if (has('assignee_team') && has('stage')) return 'piece';
+  if (has('sort_order') && has('skipped')) return 'task';
+  if (has('setup') && has('shoot_id')) return 'shot';
+  if (has('n_shots')) return 'shoot';
+  if (has('consent') && has('media')) return 'asset';
+  if (has('remake') && has('competitor')) return 'reference';
+  if (has('state_label')) return 'ad';
+  if (has('d4_date')) return 'round';
+  if (has('queued_by')) return 'queue_item';
+  if (has('week_start') && has('gates')) return 'scorecard';
+  if (has('options') && has('question')) return 'decision';
+  if (has('signal_date')) return 'signal';
+  if (has('badge') && has('route') && has('kind')) return 'today_line';
+  if (has('default_value')) return 'rule';
+  if (has('item_code')) return 'flavour';
+  if (has('launch_stage')) return 'moment';
+  if (has('studio_role') && has('full_name')) return 'person';
+  return null;
+}
+
+/// Per object kind: the endpoint each gated action calls, so the fake can read
+/// who may call it from the generated contract table. Actions not listed here
+/// (open, rate, comment, ...) are open to every Studio role.
+const Map<String, Map<String, String>> fakeActionEndpoints = {
+  'version': {
+    'approve': 'versions.approve',
+    'fix': 'versions.fix',
+    'clear_review': 'versions.clear_review',
+    'edit_meta': 'versions.set_meta',
+  },
+  'idea': {'keep': 'ideas.keep', 'drop': 'ideas.drop'},
+  'piece': {
+    'assign': 'pieces.assign',
+    'park': 'pieces.park',
+    'unpark': 'pieces.unpark',
+  },
+  'post': {
+    'move': 'calendar.post_move',
+    'retry': 'calendar.post_retry',
+    'wont_post': 'calendar.post_wont_post',
+    'mark_posted': 'calendar.post_mark_posted',
+    'edit': 'calendar.post_set',
+    'set_caption': 'calendar.post_set',
+  },
+  'ready_post': {
+    'mark_posted': 'calendar.post_mark_posted',
+    'wont_post': 'calendar.post_wont_post',
+    'frame_set': 'calendar.frame_set',
+  },
+  'task': {'edit': 'today.task_update'},
+  'shot': {'edit': 'shoots.shot_set'},
+  'shoot': {
+    'edit': 'shoots.update',
+    'share': 'shoots.share_link',
+    'add_shot': 'shoots.shot_set',
+  },
+  'reference': {'link': 'references.link', 'edit': 'references.update_status'},
+  'ad': {'set_state': 'paid.ad_set_state', 'queue_remove': 'paid.queue_remove'},
+  'round': {'edit': 'paid.round_set'},
+  'queue_item': {'remove': 'paid.queue_remove', 'move': 'paid.queue_reorder'},
+  'decision': {'answer': 'decisions.answer'},
+  'rule': {'set': 'settings.rule_set'},
+  'flavour': {'edit': 'settings.flavour_set'},
+  'moment': {'edit': 'settings.moment_set', 'move': 'settings.moment_set'},
+  'person': {'edit': 'settings.person_set'},
+  'today_line': {
+    'approve': 'versions.approve',
+    'fix': 'versions.fix',
+    'posted': 'calendar.post_mark_posted',
+  },
+};
