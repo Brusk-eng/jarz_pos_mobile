@@ -15,17 +15,60 @@ import 'calendar_widgets.dart';
 
 /// The banner above the calendar: posts that did not go out, posts that went
 /// out without being in the calendar, and consistency problems. Hidden when
-/// there is nothing to say, or while the data has not arrived.
+/// there is nothing to say, or while the data has not arrived. With a
+/// [window] it speaks only for the days on screen: a week with nothing wrong
+/// shows nothing, whatever is wrong in another week.
 class CalendarBanner extends ConsumerWidget {
-  const CalendarBanner({super.key});
+  const CalendarBanner({super.key, this.window});
+
+  /// The days on screen as `yyyy-mm-dd`; null counts everything.
+  final ({String from, String to})? window;
+
+  bool _in(String? iso) {
+    final w = window;
+    if (w == null || iso == null || iso.length < 10) return true;
+    final day = iso.substring(0, 10);
+    return day.compareTo(w.from) >= 0 && day.compareTo(w.to) <= 0;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = CalendarStrings.of(context);
-    final drift = ref.watch(postDriftProvider).valueOrNull;
-    final checks = ref.watch(postChecksProvider).valueOrNull;
-    final missing = drift?.counts.missing ?? 0;
-    final unplanned = drift?.counts.unplanned ?? 0;
+    final fullDrift = ref.watch(postDriftProvider).valueOrNull;
+    final fullChecks = ref.watch(postChecksProvider).valueOrNull;
+    final drift = fullDrift == null || window == null
+        ? fullDrift
+        : fullDrift.copyWith(
+            missing: [
+              for (final m in fullDrift.missing)
+                if (_in(m.post.slotTime)) m,
+            ],
+            unplanned: [
+              for (final a in fullDrift.unplanned)
+                if (_in(a.postedAt)) a,
+            ],
+          );
+    final checkRows = [
+      for (final r in fullChecks?.items ?? const <CheckRow>[])
+        if (_in(r.date)) r,
+    ];
+    final checks = fullChecks == null || window == null
+        ? fullChecks
+        : fullChecks.copyWith(
+            items: checkRows,
+            block: checkRows
+                .where((r) => r.severity == CheckSeverity.block)
+                .length,
+            warn: checkRows
+                .where((r) => r.severity != CheckSeverity.block)
+                .length,
+          );
+    final missing = window == null
+        ? drift?.counts.missing ?? 0
+        : drift?.missing.length ?? 0;
+    final unplanned = window == null
+        ? drift?.counts.unplanned ?? 0
+        : drift?.unplanned.length ?? 0;
     final block = checks?.block ?? 0;
     final warn = checks?.warn ?? 0;
     if (missing + unplanned + block + warn == 0) return const SizedBox.shrink();

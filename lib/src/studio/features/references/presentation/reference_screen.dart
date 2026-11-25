@@ -504,6 +504,7 @@ class _Buttons extends ConsumerWidget {
           ref,
           sourceReferenceId: r.id,
           initialTitle: r.title,
+          sourceName: r.competitor?.name ?? r.brand ?? r.title,
         ),
         child: Text(context.tr('Make an idea from this', 'اعمل فكرة من ده')),
       ),

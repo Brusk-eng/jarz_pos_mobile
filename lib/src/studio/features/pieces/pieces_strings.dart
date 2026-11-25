@@ -118,7 +118,7 @@ class PiecesStrings {
       PieceStage.scheduled =>
         byHand
             ? tr(
-                'Has a post${slot == null ? '' : ' on $slot'}. Whoever posts by hand puts it out and taps "I posted it".',
+                'Has a post${slot == null ? '' : ' on $slot'}. Whoever posts by hand puts it out and taps "Mark posted".',
                 'ليها بوست${slot == null ? '' : ' يوم $slot'}. اللي بينشر بإيده بينشره ويدوس «علّم إنه اتنشر».',
               )
             : tr(
@@ -358,7 +358,7 @@ class PiecesStrings {
     PostStatus.publishing => tr('Going out now', 'بينزل دلوقتي'),
     PostStatus.published => tr('Posted', 'اتنشر'),
     PostStatus.failed => tr('Did not go out', 'ما نزلش'),
-    PostStatus.cancelled => tr('Cancelled', 'اتلغى'),
+    PostStatus.cancelled => tr("Won't post", 'مش هيتنشر'),
     PostStatus.unknown => '',
   };
   String postingMode(PostingMode m) => switch (m) {

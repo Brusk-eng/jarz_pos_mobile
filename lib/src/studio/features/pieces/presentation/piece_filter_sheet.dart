@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/studio_tokens.dart';
 import '../../../shared/studio_tr.dart';
+import '../../calendar/state/cairo_format.dart';
 import '../../calendar/state/cairo_time.dart';
 import '../../settings/data/settings_repository.dart';
 import '../state/piece_filters.dart';
@@ -30,8 +31,8 @@ String _weekLabel(BuildContext c, String date) {
     return c.tr('Next week', 'الأسبوع الجاي');
   }
   return c.tr(
-    'Week of ${CairoTime.date(start)}',
-    'أسبوع ${CairoTime.date(start)}',
+    'Week of ${CairoFormat.full(start, false)}',
+    'أسبوع ${CairoFormat.full(start, true)}',
   );
 }
 

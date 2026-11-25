@@ -10,6 +10,7 @@ import '../../../shared/person_text.dart';
 import '../../../shared/studio_error_text.dart';
 import '../../../shared/studio_toast.dart';
 import '../../../shared/studio_tr.dart';
+import '../../calendar/state/cairo_format.dart';
 import '../../calendar/state/cairo_time.dart';
 import '../data/settings_repository.dart';
 
@@ -46,7 +47,11 @@ class MomentForms {
       child: OutlinedButton.icon(
         key: ValueKey('moment-$key'),
         icon: const Icon(Icons.calendar_month, size: 18),
-        label: Text(value.isEmpty ? label : '$label: $value'),
+        label: Text(
+          value.isEmpty
+              ? label
+              : '$label: ${CairoFormat.isoDay(value, context.isAr)}',
+        ),
         onPressed: () async {
           final start = CairoTime.parse(value) ?? DateTime.now();
           final picked = await showDatePicker(

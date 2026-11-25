@@ -364,7 +364,7 @@ class ShootStringsEn extends ShootStrings {
   @override
   String get onSetTitle => 'On set';
   @override
-  String shotOf(int i, int n) => '$i of $n';
+  String shotOf(int i, int n) => 'Shot $i of $n';
   @override
   String get filmedButton => 'Filmed';
   @override
@@ -506,7 +506,7 @@ class ShootStringsAr extends ShootStrings {
   @override
   String get noDateYet => 'مفيش ميعاد لسه';
   @override
-  String shotsOf(int d, int t) => 'اتصوّر $d من $t شوت';
+  String shotsOf(int d, int t) => 'اتصوّر $d من ${arShot.of(t)}';
   @override
   String prepOf(int d, int t) => 'التجهيز $d من $t';
   @override
@@ -643,7 +643,7 @@ class ShootStringsAr extends ShootStrings {
   @override
   String get onSetTitle => 'On set';
   @override
-  String shotOf(int i, int n) => '$i من $n';
+  String shotOf(int i, int n) => 'شوت $i من $n';
   @override
   String get filmedButton => 'اتصوّر';
   @override

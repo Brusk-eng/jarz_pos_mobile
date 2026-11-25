@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/plural.dart';
 import '../../../core/theme/studio_tokens.dart';
 import '../../../core/upload/file_source.dart';
 import '../../../core/upload/picked_file.dart';
@@ -333,9 +334,7 @@ class AddVersionStrings {
     n == 1 ? '1 file is uploading.' : '$n files are uploading.',
     n == 1
         ? 'ملف واحد بيترفع.'
-        : (n == 2
-              ? 'ملفين بيترفعوا.'
-              : (n <= 10 ? '$n ملفات بيترفعوا.' : '$n ملف بيترفعوا.')),
+        : '${arFile.of(n)} بيترفعوا.',
   );
   String get whatNext => tr(
     'When the files are stored, the version is added to the piece. It goes to review once it has its verdict, passes the checks and has a slot. Then the founder approves it or sends it back with a reason. You can leave this page; the uploads keep going.',

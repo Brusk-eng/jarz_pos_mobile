@@ -180,6 +180,15 @@ class MomentsScreen extends ConsumerWidget {
               key: const ValueKey('moments-list'),
               padding: const EdgeInsets.only(bottom: StudioSpacing.xxl),
               children: [
+                if (me != null && me.canManageMoments && !me.canEditSettings)
+                  Padding(
+                    padding: const EdgeInsets.all(StudioSpacing.gutter),
+                    child: Text(
+                      t.momentsLeadNote,
+                      key: const ValueKey('moments-lead-note'),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
                 for (final k in kinds)
                   if (items.any((x) => x.kind == k)) ...[
                     SectionLabel(t.kindPlural(k)),
@@ -248,13 +257,21 @@ class _MomentCard extends ConsumerWidget {
                   TextButton(
                     key: ValueKey('moment-edit-${mo.id}'),
                     onPressed: () => MomentForms.edit(context, ref, mo: mo),
-                    child: Text(context.tr('Edit', 'تعديل')),
+                    child: Semantics(
+                      label: context.tr('Edit ${mo.title}', 'عدّل ${mo.title}'),
+                      excludeSemantics: true,
+                      child: Text(context.tr('Edit', 'تعديل')),
+                    ),
                   ),
                 if (mo.actions.contains('move'))
                   TextButton(
                     key: ValueKey('moment-move-${mo.id}'),
                     onPressed: () => MomentForms.move(context, ref, mo),
-                    child: Text(context.tr('Move', 'انقل')),
+                    child: Semantics(
+                      label: context.tr('Move ${mo.title}', 'انقل ${mo.title}'),
+                      excludeSemantics: true,
+                      child: Text(context.tr('Move', 'انقل')),
+                    ),
                   ),
               ],
             ),

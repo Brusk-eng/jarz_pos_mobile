@@ -28,6 +28,7 @@ class CompetitorsScreen extends ConsumerWidget {
     final t = ReferencesStrings.of(context);
     final list = ref.watch(competitorListProvider);
     final q = ref.watch(competitorSearchProvider);
+    final status = ref.watch(competitorStatusProvider);
     final me = ref.watch(studioSessionProvider).valueOrNull;
     return ViewEditScaffold(
       title: t.competitorsTitle,
@@ -54,6 +55,28 @@ class CompetitorsScreen extends ConsumerWidget {
               initial: q,
               onChanged: (v) =>
                   ref.read(competitorSearchProvider.notifier).state = v,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: StudioSpacing.gutter,
+              ),
+              child: Wrap(
+                spacing: StudioSpacing.sm,
+                children: [
+                  for (final (key, en, ar) in const [
+                    ('Active', 'Active', 'شغّالين'),
+                    ('Removed', 'Removed', 'اتشالوا'),
+                  ])
+                    ChoiceChip(
+                      key: ValueKey('competitor-status-$key'),
+                      label: Text(context.tr(en, ar)),
+                      selected: status == key,
+                      onSelected: (_) =>
+                          ref.read(competitorStatusProvider.notifier).state =
+                              key,
+                    ),
+                ],
+              ),
             ),
             Expanded(
               child: StudioAsyncView<PagedState<StudioCompetitor>>(

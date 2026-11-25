@@ -294,7 +294,7 @@ class StudioStringsEn extends StudioStrings {
       help: [
         'Switch between agenda, week and month.',
         'Filter by channel and status.',
-        'Give a piece a slot, move it, or mark that it will not post.',
+        "Give a piece a slot, move it, or mark it Won't post.",
         'Tap a post to view it; the pencil edits its caption.',
       ],
     ),
@@ -744,13 +744,13 @@ class StudioStringsAr extends StudioStrings {
     StudioScreen.settings => const ScreenCopy(
       title: 'الإعدادات',
       purpose:
-          'القواعد والـ flavors والـ claims واللحظات والناس '
+          'القواعد والـ flavors والـ claims والمواعيد والناس '
           'وإشعاراتي.',
       firstStep:
           'مفيش حاجة تتغيّر دلوقتي. الإعدادات بتتملى لما '
           'القواعد تتزامن.',
       help: [
-        'القواعد والـ flavors والـ claims واللحظات هنا.',
+        'القواعد والـ flavors والـ claims والمواعيد هنا.',
         'قايمة الـ claims المعتمدة نسخة للقراءة بس من الـ registry.',
         'اضغط تشوف، والقلم يعدّل.',
         'اختار الإشعارات اللي توصلك.',

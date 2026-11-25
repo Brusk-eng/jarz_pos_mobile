@@ -7,6 +7,7 @@ import 'package:jarz_pos/src/studio/core/l10n/studio_locale.dart';
 import 'package:jarz_pos/src/studio/core/network/studio_api.dart';
 import 'package:jarz_pos/src/studio/data/fake/fake_studio_api.dart';
 import 'package:jarz_pos/src/studio/core/router/studio_router.dart';
+import 'package:jarz_pos/src/studio/features/inbox/state/inbox_state.dart';
 import 'package:jarz_pos/src/studio/studio_app.dart';
 import 'package:go_router/go_router.dart';
 
@@ -24,6 +25,10 @@ Future<ProviderContainer> pumpStudio(
   WidgetTester tester, {
   String role = 'founder',
   String locale = 'en',
+
+  /// A fixed "now" for text that counts from the clock ("waiting 12 hours"),
+  /// so a golden does not change with the day it is run.
+  DateTime? now,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -35,6 +40,7 @@ Future<ProviderContainer> pumpStudio(
         studioKvStoreProvider.overrideWithValue(
           MemoryKvStore({'studio.lang.device': locale}),
         ),
+        if (now != null) studioNowProvider.overrideWithValue(() => now),
         studioFakeRoleProvider.overrideWithValue(role),
         studioLocaleProvider.overrideWith((ref) => Locale(locale)),
       ],

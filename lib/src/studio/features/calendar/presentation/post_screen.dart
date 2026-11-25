@@ -618,7 +618,7 @@ class _SlotBlock extends StatelessWidget {
         ),
         row(
           Icons.person_outline,
-          '${c.fieldMode}: ${post.postingMode == null ? '' : names.postingMode(post.postingMode!)} ($who)',
+          c.whoPostsLine(post.postingMode == PostingMode.byHand, who),
           key: const ValueKey('post-who'),
         ),
         if (post.actions.contains('move'))
@@ -878,7 +878,7 @@ class _Actions extends StatelessWidget {
   }
 }
 
-/// What the hand-poster needs before "I posted it": the files to save (one tap
+/// What the hand-poster needs before "Mark posted": the files to save (one tap
 /// each, or all at once) and the caption to copy. Works on web (the signed link
 /// opens in a new tab) and on Android (the browser downloads it).
 class _HandPost extends ConsumerStatefulWidget {

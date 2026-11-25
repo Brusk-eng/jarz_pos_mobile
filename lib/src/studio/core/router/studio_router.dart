@@ -17,7 +17,10 @@ import '../../features/shell/presentation/inbox_screen.dart';
 import '../../features/shell/presentation/more_screen.dart';
 import '../../features/shell/presentation/shell_scaffold.dart';
 import '../../features/shell/presentation/today_screen.dart';
+import '../../shared/studio_toast.dart';
+import '../l10n/studio_locale.dart';
 import '../push/studio_push_router.dart';
+import 'studio_role_guard.dart';
 import 'studio_screen.dart';
 
 const _authRoutes = {
@@ -71,6 +74,19 @@ final studioRouterProvider = Provider<GoRouter>((ref) {
     }
     if (_authRoutes.contains(loc)) {
       return state.uri.queryParameters['from'] ?? StudioRoutes.today;
+    }
+    // A screen the role's menu does not offer is not opened by typing its
+    // address: back to Today, with a short word on why.
+    if (studioRoleBlocks(me, here)) {
+      final ar = ref.read(studioLocaleProvider).languageCode == 'ar';
+      Future<void>.microtask(
+        () => showStudioToast(
+          ar
+              ? 'الصفحة دي مش من صلاحياتك.'
+              : 'That page is not part of your role.',
+        ),
+      );
+      return StudioRoutes.today;
     }
     return null;
   }

@@ -309,7 +309,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('viewer-download')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('download link'), findsOneWidget);
+      expect(find.textContaining('save the file'), findsOneWidget);
     });
 
     testWidgets('a server error on the link says so', (tester) async {
@@ -319,7 +319,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('viewer-download')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('download link'), findsOneWidget);
+      expect(find.textContaining('save the file'), findsOneWidget);
     });
 
     testWidgets('Arabic labels and RTL swipe', (tester) async {

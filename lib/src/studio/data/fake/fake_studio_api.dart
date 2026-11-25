@@ -68,7 +68,25 @@ class FakeStudioApi extends StudioApi {
   String? get serverLang => _lang;
 
   final _failures = <_Failure>[];
-  final _patches = <String, Map<String, dynamic>>{};
+  final _patches = <String, Map<String, dynamic>>{
+    // A post marked won't post, as the contract shows one
+    // (`calendar.post_wont_post`): Cancelled, with its reason, and "Put back"
+    // (`reopen`) as its one action. It is the post the sample What changed
+    // line is about. The Won't post list, What changed and the
+    // range filtered by status all read this one fact.
+    _wontPostId: {
+      'status': 'Cancelled',
+      'skip_reason': 'Same footage as the reel on Sunday',
+      'actions': ['reopen'],
+    },
+  };
+  static const _wontPostId = 'SP-2026-00230';
+
+  /// Rows added to What changed by writes made in this run (newest last).
+  final _changeRows = <Map<String, dynamic>>[];
+
+  /// Competitors removed or restored in this run, by key.
+  final _competitorPatches = <String, Map<String, dynamic>>{};
   final _gone = <String>{}; // version ids that left the to-approve feed
   final _calls = <String>[];
   var _approveDelta = 0;
@@ -173,6 +191,13 @@ class FakeStudioApi extends StudioApi {
           _allowed('shoots.shot_note', letter) &&
           !(m['actions'] as List).contains('note')) {
         m['actions'] = [...(m['actions'] as List), 'note'];
+      }
+      // "Creators cannot Drop" a reference (references.update_status).
+      if (kind == 'reference' && role != 'founder' && role != 'lead') {
+        m['actions'] = [
+          for (final a in m['actions'] as List)
+            if (a != 'drop') a,
+        ];
       }
       // A creator may add a line to the scorecard and nothing else on it.
       if (kind == 'scorecard' && role == 'creator') {
@@ -354,6 +379,25 @@ class FakeStudioApi extends StudioApi {
       }
       data = {...data, 'state_counts': counts};
     }
+    if (key == 'versions.get' && data is Map) {
+      // A version the person already approved, sent back or cleared reads back
+      // as that version, with its piece's new stage and the buttons that
+      // follow the outcome.
+      final id = '${p['version_id']}';
+      if (_patches.containsKey(id)) {
+        data = {...data, 'id': id};
+        final owner = _pieceOfVersion(id);
+        if (owner != null && data['piece'] is Map) {
+          data['piece'] = {
+            ...Map<String, dynamic>.from(data['piece'] as Map),
+            'id': owner,
+          };
+        }
+      }
+    }
+    if (key == 'results.scorecard' && data is Map && _lang == 'ar') {
+      data = _scorecardAr(data);
+    }
     if (key == 'today.tasks' && data is Map) data = _tasks(data, p);
     if (key == 'today.get' && data is Map && _lang == 'ar') {
       data = _todayAr(data);
@@ -375,6 +419,27 @@ class FakeStudioApi extends StudioApi {
     }
     if (key == 'settings.my_notifications' && data is Map) {
       data = {...data, 'lang': _lang};
+    }
+    if (key == 'calendar.changes' && data is Map) data = _changesNow(data);
+    if (key == 'references.competitors' && data is Map) {
+      data = _competitorsNow(data, p);
+    }
+    if (key == 'references.competitor_get' && data is Map) {
+      data = _competitorNow(data, '${p['key']}');
+    }
+    if (key == 'calendar.range' && data is Map) {
+      // The status filter, as the server applies it (after the writes made
+      // here are applied).
+      final status = p['status'];
+      final now = _overlay(data) as Map<String, dynamic>;
+      if (status == null) return now;
+      return {
+        ...now,
+        'posts': [
+          for (final post in now['posts'] as List)
+            if ((post as Map)['status'] == status) post,
+        ],
+      };
     }
     if (key == 'calendar.post_get' && data is Map) data = _post(data, p);
     if (key == 'calendar.ready_to_post' && data is Map) {
@@ -456,6 +521,30 @@ class FakeStudioApi extends StudioApi {
       };
     }
     return _overlay(data);
+  }
+
+  /// The scorecard's gate details, as the server words them for a person whose
+  /// language is Arabic (the fixtures hold the English).
+  Map _scorecardAr(Map data) {
+    String word(String s) {
+      final tagged = RegExp(r'^(\d+)% tagged$').firstMatch(s);
+      if (tagged != null) return '${tagged.group(1)}% متعلّمة';
+      final against = RegExp(r'^(\d+) against (\d+)$').firstMatch(s);
+      if (against != null) return '${against.group(1)} مقابل ${against.group(2)}';
+      if (s == 'Not entered yet') return 'لسه ما اتسجّلش';
+      return s;
+    }
+
+    return {
+      ...data,
+      'gates': [
+        for (final g in data['gates'] as List)
+          {
+            ...Map<String, dynamic>.from(g as Map),
+            if (g['detail'] is String) 'detail': word(g['detail'] as String),
+          },
+      ],
+    };
   }
 
   /// Today in Arabic, as the server words it for a person whose language is
@@ -643,6 +732,100 @@ class FakeStudioApi extends StudioApi {
       }
     }
     return m;
+  }
+
+  // ---------------------------------------------------- calendar and rivals
+
+  Map<String, dynamic>? _rangePost(String id) {
+    final range = _fixture('calendar.range') as Map;
+    for (final x in range['posts'] as List) {
+      if ((x as Map)['id'] == id) return Map<String, dynamic>.from(x);
+    }
+    return null;
+  }
+
+  void _addChange(String kind, String postId, {String? reason, String? text}) {
+    final post = _rangePost(postId);
+    if (post == null) return;
+    final at = _stamp();
+    _changeRows.add({
+      'id': '$postId:$kind:$at',
+      'kind': kind,
+      'post': post,
+      'old_slot': null,
+      'new_slot': null,
+      'reason': reason,
+      'by': _meRef(),
+      'at': at,
+      'text': text ?? '',
+    });
+  }
+
+  /// What changed: the contract's sample, with its won't-post line about the
+  /// post the sample marks Cancelled (so the list and this agree), then the
+  /// changes made in this run, newest first.
+  Map _changesNow(Map data) {
+    final cancelled = _rangePost(_wontPostId);
+    return {
+      ...data,
+      'items': [
+        for (final row in _changeRows.reversed) row,
+        for (final r in data['items'] as List)
+          if ((r as Map)['kind'] == 'wont_post' && cancelled != null)
+            {
+              ...Map<String, dynamic>.from(r),
+              'id': '$_wontPostId:wont_post:2026-11-24 18:02:00',
+              'post': cancelled,
+            }
+          else
+            r,
+      ],
+    };
+  }
+
+  Map<String, dynamic>? _competitorBase(String key) {
+    final all = _fixture('references.competitors') as Map;
+    for (final c in [
+      ...(all['items'] as List),
+      _fixture('references.competitor_get'),
+    ]) {
+      if ((c as Map)['key'] == key) return Map<String, dynamic>.from(c);
+    }
+    return null;
+  }
+
+  Map<String, dynamic> _withCompetitorPatch(Map c) => {
+    ...Map<String, dynamic>.from(c),
+    ...?_competitorPatches[c['key']],
+  };
+
+  /// The competitors list for `status` (Active by default, Removed, all).
+  Map _competitorsNow(Map data, Map<String, dynamic> p) {
+    final want = '${p['status'] ?? 'Active'}';
+    final seen = <String>{};
+    final items = data['items'] as List;
+    final all = [
+      for (final c in [
+        ...items,
+        // A competitor removed here that the page did not hold stays findable.
+        for (final k in _competitorPatches.keys)
+          if (!items.any((c) => (c as Map)['key'] == k)) _competitorBase(k),
+      ])
+        if (c != null && seen.add('${(c as Map)['key']}'))
+          _withCompetitorPatch(c),
+    ];
+    return {
+      ...data,
+      'items': [
+        for (final c in all)
+          if (want == 'all' || c['status'] == want) c,
+      ],
+    };
+  }
+
+  Map _competitorNow(Map data, String key) {
+    final c = key.isEmpty || data['key'] == key ? data : _competitorBase(key);
+    return c == null ? data : _withCompetitorPatch(c);
   }
 
   // ------------------------------------------------------------------- tasks
@@ -888,11 +1071,49 @@ class FakeStudioApi extends StudioApi {
         final base = _post(_fixture(key) as Map, {'post_id': id});
         _patches[id] = {
           ...?_patches[id],
-          'status': 'Skipped',
+          'status': 'Cancelled',
           'skip_reason': p['reason'],
-          'actions': <String>[],
+          'actions': ['reopen'],
+          'modified': _stamp(),
         };
+        _addChange(
+          'wont_post',
+          id,
+          reason: '${p['reason'] ?? ''}',
+          text: "Marked won't post: ${p['reason'] ?? ''}",
+        );
         return _overlay(base);
+      case 'calendar.post_set':
+        // "Put back" sets the slot of a Cancelled post again, which reopens it.
+        final id = '${p['post_id']}';
+        if (_patches[id]?['status'] != 'Cancelled') return null;
+        _patches[id] = {
+          ...?_patches[id],
+          'status': 'Scheduled',
+          'skip_reason': null,
+          'actions': ['edit', 'move', 'wont_post', 'mark_posted'],
+          'modified': _stamp(),
+        };
+        _addChange('put_back', id, text: 'Put back on the calendar');
+        return {
+          ...Map<String, dynamic>.from(_fixture(key) as Map),
+          'post': _overlay(
+            _post(_fixture('calendar.post_get') as Map, {'post_id': id}),
+          ),
+        };
+      case 'references.competitor_remove':
+      case 'references.competitor_restore':
+        final ck = '${p['key']}';
+        final removing = key.endsWith('remove');
+        final cur = _competitorBase(ck);
+        if (cur == null) return null; // the contract's sample answer
+        _competitorPatches[ck] = {
+          'status': removing ? 'Removed' : 'Active',
+          'removed_why': removing ? p['reason'] : null,
+          'actions': [removing ? 'restore' : 'remove'],
+          'modified': _stamp(),
+        };
+        return {...cur, ..._competitorPatches[ck]!};
       case 'calendar.post_retry':
         final id = '${p['post_id']}';
         final base = _post(_fixture(key) as Map, {'post_id': id});
@@ -1087,6 +1308,12 @@ class FakeStudioApi extends StudioApi {
     final base = _fixture(key) as Map<String, dynamic>..['id'] = id;
     if (leavesFeed && _gone.add(id)) _approveDelta--;
     _patches[id] = {...?_patches[id], ...patch, 'modified': _stamp()};
+    // The result names the piece of the version asked for, so its stage (moved
+    // below) shows on the page the person is looking at.
+    final owner = _pieceOfVersion(id);
+    if (owner != null && base['piece'] is Map) {
+      (base['piece'] as Map)['id'] = owner;
+    }
     // The piece moves with its version, as the server moves it: an approved
     // version schedules its post (Scheduled), a fix sends the piece back (To
     // edit), a cleared review waits in review again.
@@ -1205,6 +1432,7 @@ const Map<String, Map<String, String>> fakeActionEndpoints = {
     'mark_posted': 'calendar.post_mark_posted',
     'edit': 'calendar.post_set',
     'set_caption': 'calendar.post_set',
+    'reopen': 'calendar.post_set',
   },
   'ready_post': {
     'mark_posted': 'calendar.post_mark_posted',
@@ -1219,6 +1447,12 @@ const Map<String, Map<String, String>> fakeActionEndpoints = {
     'add_shot': 'shoots.shot_set',
   },
   'reference': {
+    // Creators may move a reference along (shortlist, for a shoot) and add a
+    // note, but "Creators cannot Drop" (references.update_status); the
+    // `drop` rule is in `_forRole`.
+    'shortlist': 'references.update_status',
+    'send_to_shoot': 'references.update_status',
+    'note': 'references.note',
     'link': 'references.link',
     'edit': 'references.update_status',
     'set_feasibility': 'references.set_feasibility',

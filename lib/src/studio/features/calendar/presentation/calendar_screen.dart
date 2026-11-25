@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/plural.dart';
 import '../../../core/l10n/studio_strings.dart';
 import '../../../core/roles/studio_role.dart';
 import '../../../core/router/studio_screen.dart';
@@ -85,7 +86,7 @@ class CalendarScreen extends ConsumerWidget {
           _Toolbar(mode: mode, anchor: anchor, today: today),
           _ChannelFilter(selected: channel),
           StatusFilter(selected: status),
-          const CalendarBanner(),
+          CalendarBanner(window: window),
           Expanded(
             child: StudioAsyncView<CalendarRange>(
               value: range,
@@ -118,7 +119,12 @@ class CalendarScreen extends ConsumerWidget {
                           canAdd: canSet,
                           onAdd: addPost,
                         )
-                      : _MonthView(anchor: anchor, today: today, posts: posts),
+                      : _MonthView(
+                          anchor: anchor,
+                          today: today,
+                          posts: posts,
+                          moments: r.moments,
+                        ),
                 );
               },
             ),
@@ -518,11 +524,13 @@ class _MonthView extends ConsumerWidget {
     required this.anchor,
     required this.today,
     required this.posts,
+    required this.moments,
   });
 
   final DateTime anchor;
   final DateTime today;
   final List<PostSummary> posts;
+  final List<StudioMoment> moments;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -540,6 +548,14 @@ class _MonthView extends ConsumerWidget {
     for (final p in posts) {
       final d = _slotDay(p);
       if (d != null) byDay.putIfAbsent(CairoTime.date(d), () => []).add(p);
+    }
+    // A moment shows on the day it falls on (its effective date).
+    final momentsByDay = <String, int>{};
+    for (final m in moments) {
+      final d = CairoTime.parse(m.effectiveDate ?? m.date);
+      if (d != null) {
+        momentsByDay.update(CairoTime.date(d), (n) => n + 1, ifAbsent: () => 1);
+      }
     }
     return ListView(
       key: const ValueKey('month-grid'),
@@ -569,6 +585,13 @@ class _MonthView extends ConsumerWidget {
                     inMonth: d.month == anchor.month,
                     isToday: CairoTime.sameDay(d, today),
                     posts: byDay[CairoTime.date(d)] ?? const [],
+                    moments: momentsByDay[CairoTime.date(d)] ?? 0,
+                    momentsLabel: context.count(
+                      momentsByDay[CairoTime.date(d)] ?? 0,
+                      one: 'moment',
+                      many: 'moments',
+                      ar: arMoment,
+                    ),
                     onTap: () {
                       ref.read(calendarAnchorProvider.notifier).state = d;
                       ref.read(calendarModeProvider.notifier).state =
@@ -592,6 +615,8 @@ class _MonthCell extends StatelessWidget {
     required this.inMonth,
     required this.isToday,
     required this.posts,
+    required this.moments,
+    required this.momentsLabel,
     required this.onTap,
     required this.label,
   });
@@ -600,6 +625,10 @@ class _MonthCell extends StatelessWidget {
   final bool inMonth;
   final bool isToday;
   final List<PostSummary> posts;
+
+  /// How many moments fall on this day, and how they are named for a reader.
+  final int moments;
+  final String momentsLabel;
   final VoidCallback onTap;
   final String label;
 
@@ -607,7 +636,11 @@ class _MonthCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Semantics(
-      label: posts.isEmpty ? '${day.day}' : '${day.day}, $label',
+      label: [
+        '${day.day}',
+        if (posts.isNotEmpty) label,
+        if (moments > 0) momentsLabel,
+      ].join(', '),
       button: true,
       child: InkWell(
         key: ValueKey('month-cell-${CairoTime.date(day)}'),
@@ -633,6 +666,13 @@ class _MonthCell extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              if (moments > 0)
+                Icon(
+                  Icons.star_outline,
+                  key: ValueKey('month-moment-${CairoTime.date(day)}'),
+                  size: 12,
+                  color: StudioColors.berryPink,
+                ),
               if (posts.isNotEmpty)
                 Wrap(
                   spacing: 2,

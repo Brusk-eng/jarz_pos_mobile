@@ -30,6 +30,14 @@ class CairoFormat {
   static String full(DateTime d, bool ar) =>
       '${weekday(d, ar)} ${dayMonth(d, ar)}';
 
+  /// `Wed 25 Nov` from a `yyyy-mm-dd` (or full wire) string: the one way the
+  /// app writes a date that came as text. Anything unreadable comes back as it
+  /// was, so nothing is lost.
+  static String isoDay(String? iso, bool ar) {
+    final d = CairoTime.parse(iso);
+    return d == null ? (iso ?? '') : full(d, ar);
+  }
+
   /// `Nov 2026`.
   static String monthYear(DateTime d, bool ar) => '${month(d, ar)} ${d.year}';
 

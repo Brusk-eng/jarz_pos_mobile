@@ -31,7 +31,7 @@ void main() {
       expect(find.text('Feed carousel'), findsOneWidget);
       // Slot in Cairo time exactly as the data says: 25 Nov, 16:00.
       expect(find.textContaining('Wed 25 Nov, 16:00'), findsOneWidget);
-      expect(find.textContaining('Posted by hand'), findsOneWidget);
+      expect(find.textContaining('Who posts it: By hand'), findsOneWidget);
       expect(find.byKey(const ValueKey('post-approval')), findsOneWidget);
     });
 
@@ -265,7 +265,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('ask-confirm')));
       await tester.pumpAndSettle();
       expect(h.api.calls, contains('calendar.post_wont_post'));
-      expect(find.text('Marked as will not post.'), findsOneWidget);
+      expect(find.text("Marked Won't post."), findsOneWidget);
     });
 
     testWidgets('try again sends the post out again', (tester) async {

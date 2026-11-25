@@ -7,6 +7,7 @@ import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../shared/person_text.dart';
 import '../../../shared/studio_tr.dart';
+import '../../calendar/state/cairo_format.dart';
 import '../../calendar/state/cairo_time.dart';
 import '../../settings/data/settings_repository.dart';
 import '../data/today_repository.dart';
@@ -40,7 +41,7 @@ class DayBar extends ConsumerWidget {
       if (shown == anchor) return context.tr('Today', 'النهارده');
       if (shown == _shift(anchor, 1)) return context.tr('Tomorrow', 'بكرة');
       if (shown == _shift(anchor, -1)) return context.tr('Yesterday', 'امبارح');
-      return shown;
+      return CairoFormat.isoDay(shown, context.isAr);
     }
 
     void goTo(int days) {
@@ -56,8 +57,8 @@ class DayBar extends ConsumerWidget {
         ),
       if (date != null && shown != anchor)
         context.tr(
-          'Day shown: ${dayWord()} (${view.date})',
-          'اليوم المعروض: ${dayWord()} (${view.date})',
+          'Day shown: ${dayWord()} (${CairoFormat.isoDay(view.date, false)})',
+          'اليوم المعروض: ${dayWord()} (${CairoFormat.isoDay(view.date, true)})',
         ),
     ];
 

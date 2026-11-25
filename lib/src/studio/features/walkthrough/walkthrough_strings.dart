@@ -122,6 +122,14 @@ class WalkthroughStrings {
           'المزيد > التصوير: افتح التصوير ودوس على On set وعلّم كل شوت وإنت بتصوّره (بيشتغل من غير نت). المزيد > المكتبة: ارفع الكليبات والنسخ.',
         ),
       ),
+      WalkthroughCard(
+        icon: Icons.lightbulb_outline,
+        title: tr('Bring ideas', 'هات أفكار'),
+        body: tr(
+          'Inbox > Ideas: tap New idea to send one to the founder, and My ideas to see what happened to each.',
+          'الوارد > الأفكار: دوس على «فكرة جديدة» وابعتها للمؤسس، وفي «أفكاري» تشوف حصل إيه في كل واحدة.',
+        ),
+      ),
       _help,
     ],
     StudioRole.story => [

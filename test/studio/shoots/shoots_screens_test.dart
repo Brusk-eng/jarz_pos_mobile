@@ -358,10 +358,15 @@ void main() {
         const OnSetScreen(shootId: 'SHOOT-0006'),
         api: api,
       );
-      expect(find.text('2 of 3'), findsOneWidget);
+      expect(find.text('Shot 2 of 3'), findsOneWidget);
       expect(find.byKey(const ValueKey('onset-filmed')), findsOneWidget);
       expect(find.textContaining('Four jars land'), findsOneWidget);
       expect(find.byKey(const ValueKey('shot-note')), findsOneWidget);
+      // The note sits under the shot's title, in view without scrolling.
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('shot-note'))).dy,
+        lessThan(300),
+      );
       expect(find.byKey(const ValueKey('onset-prev')), findsOneWidget);
       expect(find.byKey(const ValueKey('onset-next')), findsOneWidget);
     });
@@ -431,7 +436,7 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('onset-next')));
       await tester.pumpAndSettle();
-      expect(find.text('3 of 3'), findsOneWidget);
+      expect(find.text('Shot 3 of 3'), findsOneWidget);
       await tester.enterText(
         find.byKey(const ValueKey('shot-note')),
         'Second take was better',
@@ -439,7 +444,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(find.byKey(const ValueKey('onset-prev')));
       await tester.pumpAndSettle();
-      expect(find.text('2 of 3'), findsOneWidget);
+      expect(find.text('Shot 2 of 3'), findsOneWidget);
       await tester.pump(const Duration(seconds: 1));
       await tester.pump(const Duration(milliseconds: 100));
       expect(api.noteCalls.single.note, 'Second take was better');

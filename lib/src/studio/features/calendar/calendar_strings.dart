@@ -69,8 +69,8 @@ class CalendarStrings {
   // Posts that did not go out and posts nobody planned.
   String get driftTitle => tr('Didn\'t go out', 'اللي ما نزلش');
   String get driftIntro => tr(
-    'Clear each one: move it, say it will not post, or match a live post to its slot. A post the system can send again shows a Try again button.',
-    'نضّف كل واحد: انقله، أو قول إنه مش هينزل، أو اربط بوست نازل بميعاده. البوست اللي السيستم يقدر يبعته تاني بيظهر عليه زرار «جرّب تاني».',
+    'Clear each one: move it, mark it Won\'t post, or match a live post to its slot. A post the system can send again shows a Try again button.',
+    'نضّف كل واحد: انقله، أو علّمه «مش هيتنشر»، أو اربط بوست نازل بميعاده. البوست اللي السيستم يقدر يبعته تاني بيظهر عليه زرار «جرّب تاني».',
   );
   String get driftEmptyPurpose => tr(
     'Posts that did not go out, and posts that went out without a plan, show here.',
@@ -84,7 +84,7 @@ class CalendarStrings {
   String get driftLoadingActions =>
       tr('Checking what you can do...', 'بنشوف تقدر تعمل إيه...');
   String get driftWontDone =>
-      tr('Marked as will not post.', 'اتعلّم إنه مش هينزل.');
+      tr('Marked Won\'t post.', 'اتعلّم إنه مش هيتنشر.');
   String get driftIgnored =>
       tr('Ignored. It leaves this list.', 'اتجاهل. هيختفي من القايمة دي.');
   String get driftMatched => tr(
@@ -138,12 +138,12 @@ class CalendarStrings {
           'هنا بتشوف البوست كله: الصورة أو الفيديو، الكابشن، القناة والميعاد.',
           'الأزرار اللي بتظهر هي اللي تقدر تعملها دلوقتي بس.',
           'لو البوست بيتنزّل يدوي، انزّله وبعدين دوس «علّم إنه اتنشر».',
-          'لو مش هينزل، دوس «مش هينزل» واكتب السبب.',
+          'لو مش هيتنشر، دوس «مش هيتنشر» واكتب السبب.',
         ]
       : const [
           'Here you see the whole post: the creative, the caption, the channel and the slot.',
           'Only the buttons you can use right now are shown.',
-          'If the post goes out by hand, post it and then tap "I posted it".',
+          'If the post goes out by hand, post it and then tap "Mark posted".',
           'If it will not go out, tap "Won\'t post" and write why.',
         ];
   String get emptyPostPurpose =>
@@ -157,7 +157,10 @@ class CalendarStrings {
   String get sectionLog => tr('What happened', 'اللي حصل');
   String get sectionResults => tr('Results', 'النتايج');
   String get sectionFrames => tr('Story frames', 'فريمات الـ Story');
-  String get noCaption => tr('No caption yet.', 'لسه مفيش كابشن.');
+  String get noCaption => tr('No caption yet.', 'لسه مفيش.');
+  String whoPostsLine(bool byHand, String who) => byHand
+      ? tr('Who posts it: By hand ($who)', 'هتنزلها: يدوي ($who)')
+      : tr('Who posts it: The system', 'هتنزل: بالسيستم');
   String get noChecks => tr('No problems found.', 'مفيش مشاكل.');
   String get noLog => tr('Nothing has happened yet.', 'لسه مفيش حاجة حصلت.');
   String get openPiece => tr('Open the piece', 'افتح القطعة');
@@ -174,15 +177,15 @@ class CalendarStrings {
       tr('matched from Instagram', 'اتعرف عليه من Instagram');
   String postedAt(String when) => tr('Went out at $when', 'نزل الساعة $when');
   String lastError(String e) => tr('It failed: $e', 'حصلت مشكلة: $e');
-  String skipReason(String r) => tr('Will not post: $r', 'مش هينزل: $r');
+  String skipReason(String r) => tr('Won\'t post: $r', 'مش هيتنشر: $r');
   String get approvalOk => tr('Approved', 'معتمد');
   String get approvalFix => tr('Needs a fix first', 'محتاج تعديل الأول');
   String get approvalWaiting => tr('Waiting for approval', 'مستني موافقة');
   String get approvalNone => tr('No version chosen', 'لسه مفيش نسخة');
 
   // Actions.
-  String get actionMarkPosted => tr('I posted it', 'علّم إنه اتنشر');
-  String get actionWontPost => tr('Won\'t post', 'مش هينزل');
+  String get actionMarkPosted => tr('Mark posted', 'علّم إنه اتنشر');
+  String get actionWontPost => tr('Won\'t post', 'مش هيتنشر');
   String get actionRetry => tr('Try again', 'جرّب تاني');
   String get actionMove => tr('Move', 'انقل');
   String get actionSetCaption => tr('Edit the caption', 'تعديل الكابشن');
@@ -199,7 +202,7 @@ class CalendarStrings {
   );
   String get handPostTitle => tr('Post it by hand', 'انشره يدوي');
   String get handPostSteps => tr(
-    '1. Save the files. 2. Copy the caption. 3. Post it in the app. 4. Come back and tap "I posted it".',
+    '1. Save the files. 2. Copy the caption. 3. Post it in the app. 4. Come back and tap "Mark posted".',
     '1. احفظ الملفات. 2. انسخ الكابشن. 3. انشره من التطبيق. 4. ارجع واضغط «علّم إنه اتنشر».',
   );
   String saveFile(int n, bool video) => tr(
@@ -218,13 +221,16 @@ class CalendarStrings {
   String get noFilesYet =>
       tr('No files on this post yet.', 'مفيش ملفات على البوست ده لسه.');
   String framesDecided(int done, int total) =>
-      tr('$done of $total frames decided', '$done من $total فريمات اتحددت');
+      tr(
+        '$done of $total frames decided',
+        '$done من ${arFrame.of(total)} اتحددت',
+      );
   String get framesAllDecided => tr(
     'Every frame is decided. The story now counts as done.',
     'كل الفريمات اتحددت. الـ Story اتحسبت خلصت.',
   );
   String get wontPostTitle =>
-      tr('This post will not go out', 'البوست ده مش هينزل');
+      tr('Won\'t post', 'مش هيتنشر');
   String get reasonLabel => tr('Reason', 'السبب');
   String get reasonNeeded => tr('Write the reason first.', 'اكتب السبب الأول.');
   String get confirm => tr('Confirm', 'تأكيد');
@@ -238,7 +244,7 @@ class CalendarStrings {
     'اتعلّم إنه اتنشر. قراءة الـ 72 ساعة ميعادها بعد 3 أيام: سجّلها من البوست ده.',
   );
   String get markedWont =>
-      tr('Marked as will not post.', 'اتعلّم إنه مش هينزل.');
+      tr('Marked Won\'t post.', 'اتعلّم إنه مش هيتنشر.');
   String get retrying => tr('Sent again.', 'اتبعت تاني.');
   String get moved => tr('Moved.', 'اتنقل.');
   String get frameSaved => tr('Frame saved.', 'الفريم اتحفظ.');

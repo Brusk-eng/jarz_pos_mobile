@@ -181,13 +181,24 @@ void main() {
         location: '/calendar',
         height: 3000,
         fixtures: patchedFixtures({
+          // The banner speaks for the days on screen (21 to 27 Nov), so the
+          // lists carry what it counts.
           'calendar.drift': (j) {
             j['counts']['missing'] = 2;
             j['counts']['unplanned'] = 1;
+            j['missing'] = [j['missing'][0], j['missing'][0]];
+            j['unplanned'] = [j['unplanned'][0]];
           },
           'calendar.checks': (j) {
+            final row = Map<String, dynamic>.from(j['items'][0] as Map);
             j['block'] = 1;
             j['warn'] = 3;
+            j['items'] = [
+              {...row, 'severity': 'block'},
+              {...row, 'severity': 'warn'},
+              {...row, 'severity': 'warn'},
+              {...row, 'severity': 'warn'},
+            ];
           },
         }),
       );
@@ -213,13 +224,27 @@ void main() {
           'calendar.drift': (j) {
             j['counts']['missing'] = 0;
             j['counts']['unplanned'] = 0;
+            j['missing'] = [];
+            j['unplanned'] = [];
           },
           'calendar.checks': (j) {
             j['block'] = 0;
             j['warn'] = 0;
+            j['items'] = [];
           },
         }),
       );
+      expect(find.byKey(const ValueKey('calendar-banner')), findsNothing);
+    });
+
+    testWidgets('a week with nothing wrong shows no banner', (tester) async {
+      // The same problems sit in the week of 21 to 27 Nov; the next week is
+      // clear, so the banner is not repeated there.
+      await pumpFeature(tester, location: '/calendar', height: 3000);
+      expect(find.byKey(const ValueKey('calendar-banner')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('calendar-next')));
+      await tester.pumpAndSettle();
+      expect(find.text('28 Nov – 4 Dec'), findsOneWidget);
       expect(find.byKey(const ValueKey('calendar-banner')), findsNothing);
     });
   });

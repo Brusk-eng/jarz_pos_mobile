@@ -17,8 +17,9 @@ class SettingsHubScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = SettingsStrings.of(context);
-    final isFounder =
-        ref.watch(studioSessionProvider).valueOrNull?.canEditSettings ?? false;
+    final me = ref.watch(studioSessionProvider).valueOrNull;
+    final isFounder = me?.canEditSettings ?? false;
+    final canMoments = me?.canManageMoments ?? false;
 
     Widget tile(String key, IconData icon, String title, String blurb) =>
         ListTile(
@@ -47,7 +48,7 @@ class SettingsHubScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(StudioSpacing.gutter),
                 child: Text(
-                  t.readOnlyNote,
+                  canMoments ? t.readOnlyNoteLead : t.readOnlyNote,
                   key: const ValueKey('settings-read-only'),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

@@ -18,6 +18,8 @@ abstract class SettingsStrings {
   String get helpTitle;
   List<String> get help;
   String get readOnlyNote;
+  String get readOnlyNoteLead;
+  String get momentsLeadNote;
   String get rules;
   String get rulesBlurb;
   String get flavours;
@@ -158,6 +160,11 @@ class SettingsStringsEn extends SettingsStrings {
   ];
   @override
   String get readOnlyNote => 'You can read these. The founder changes them.';
+  @override
+  String get readOnlyNoteLead =>
+      'You can read these. The founder changes them. Moments: you and the founder change them.';
+  @override
+  String get momentsLeadNote => 'You and the founder can change them.';
   @override
   String get rules => 'Rules';
   @override
@@ -452,13 +459,18 @@ class SettingsStringsAr extends SettingsStrings {
   String get helpTitle => 'الإعدادات';
   @override
   List<String> get help => const [
-    'القواعد والـ flavors والـ claims المعتمدة واللحظات والناس هنا.',
+    'القواعد والـ flavors والـ claims المعتمدة والمواعيد والناس هنا.',
     'الكل يقدر يقرا. المؤسس بس اللي بيغيّر.',
     'تغيير القاعدة بيضيف قيمة جديدة بتاريخ. القيم القديمة مبتتعدلش.',
     'اضغط على أي عنصر عشان تقراه. القلم للتعديل.',
   ];
   @override
   String get readOnlyNote => 'تقدر تقرا دول بس. المؤسس هو اللي بيغيّرهم.';
+  @override
+  String get readOnlyNoteLead =>
+      'تقدر تقرا دول بس. المؤسس هو اللي بيغيّرهم. المواعيد: إنت والمؤسس بتغيّروها.';
+  @override
+  String get momentsLeadNote => 'إنت والمؤسس تقدروا تغيّروها.';
   @override
   String get rules => 'القواعد';
   @override
@@ -473,7 +485,7 @@ class SettingsStringsAr extends SettingsStrings {
   @override
   String get claimsBlurb => 'اللي مسموح نقوله، زي ما الـ registry ماسكه';
   @override
-  String get moments => 'اللحظات';
+  String get moments => 'المواعيد';
   @override
   String get momentsBlurb => 'الإطلاقات ونوافذ المناسبات وخطوات الميزانية';
   @override
@@ -625,9 +637,9 @@ class SettingsStringsAr extends SettingsStrings {
   String syncedOn(String when) => 'اتنسخ $when';
 
   @override
-  String get momentsTitle => 'اللحظات';
+  String get momentsTitle => 'المواعيد';
   @override
-  String get momentsHelpTitle => 'اللحظات';
+  String get momentsHelpTitle => 'المواعيد';
   @override
   List<String> get momentsHelp => const [
     'الإطلاقات ونوافذ المناسبات وخطوات الميزانية، بالتاريخ.',
@@ -638,7 +650,7 @@ class SettingsStringsAr extends SettingsStrings {
   String get momentsEmptyPurpose =>
       'الإطلاقات ونوافذ المناسبات وخطوات الميزانية.';
   @override
-  String get momentsEmptyFirstStep => 'مفيش لحظات لسه. لسه مفيش حاجة متخططة.';
+  String get momentsEmptyFirstStep => 'مفيش مواعيد لسه. لسه مفيش حاجة متخططة.';
   @override
   String kindLabel(MomentKind k) => switch (k) {
     MomentKind.launch => 'إطلاق',

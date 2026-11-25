@@ -133,3 +133,13 @@ A status says what happens next and who has it, by role.
 - more filters: فلاتر أكتر; batch: الدفعة; route: الطريقة; ready for ads: جاهز للإعلانات; needs a verdict: محتاج حكم; best rated first: الأعلى تقييم الأول
 - a person's own text (title, idea, caption, reason, name) keeps its own direction: `shared/person_text.dart` (`PersonText`)
 - short screen texts: `context.tr('English', 'عربي')` (`shared/studio_tr.dart`)
+- mark posted (one name for the post and for a story frame, English and Arabic): Mark posted / علّم إنه اتنشر; never «I posted it»
+- moments (Settings page, calendar month mark, everywhere): المواعيد; one moment: موعد (one term until the founder rules on the glossary)
+- competitor list sections: Active / Removed: شغّالين / اتشالوا
+- shot position in On set: Shot 2 of 3 / شوت 2 من 3; filmed count: اتصوّر 1 من 3 شوتس
+- team is split: الفريق مش متفق (not «مختلف»)
+- who posts a post (post screen line): By hand (Reem) / هتنزلها: يدوي (Reem); The system / هتنزل: بالسيستم
+- piece move buttons carry their own «ل»: رجّعها للتصوير, رجّعها للسكريبت, انقلها للمونتاج (never «لـ للتصوير»)
+- counts with a noun: `context.count(...)` and the `ArNoun` list in `plural.dart` (قطعة, تقييم, تعليق, يوم, فريم, شوت, ملف, موعد); 1 مفرد, 2 مثنى, 3 to 10 جمع, 11 and over مفرد; never write «9 قطعة» by hand
+- a date that arrives as text is written by `CairoFormat.isoDay` (Wed 25 Nov), never as 2026-11-25
+- idea made from a reference: sheet line From: <name> / من: <name>; the founder's own idea toast: Idea added / الفكرة اتضافت

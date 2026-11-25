@@ -58,7 +58,14 @@ void main() {
 
     testWidgets('shell golden: Inbox decisions, $locale', (tester) async {
       usePhone(tester);
-      final c = await pumpStudio(tester, role: 'founder', locale: locale);
+      // "waiting N hours" counts from the clock: fix it to the fixtures' own
+      // moment so the golden is the same on any day.
+      final c = await pumpStudio(
+        tester,
+        role: 'founder',
+        locale: locale,
+        now: DateTime.parse('2026-11-25T14:05:00+02:00'),
+      );
       await goTo(tester, c, '/inbox/decisions');
       await expectLater(
         find.byType(MaterialApp),

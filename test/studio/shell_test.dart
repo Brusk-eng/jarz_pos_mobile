@@ -180,13 +180,13 @@ void main() {
       ]);
     });
 
-    testWidgets('lead reads Paid but has no Settings', (tester) async {
+    testWidgets('lead reads Paid and has Settings', (tester) async {
       usePhone(tester, height: 1000);
       final c = await pumpStudio(tester, role: 'lead');
       await goTo(tester, c, '/more');
       final order = orderOf(tester, moreKeys());
       expect(order, contains('more-paid'));
-      expect(order, isNot(contains('more-settings')));
+      expect(order, contains('more-settings'));
       expect(order.first, 'more-shoots');
     });
   });

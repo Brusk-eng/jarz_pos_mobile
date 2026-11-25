@@ -10,6 +10,7 @@ import '../../../shared/media/studio_media_widgets.dart';
 import '../../../shared/person_text.dart';
 import '../../../shared/studio_error_text.dart';
 import '../../../shared/studio_toast.dart';
+import '../../../core/l10n/plural.dart';
 import '../../../shared/studio_tr.dart';
 import '../../session/state/studio_session_notifier.dart';
 import '../../settings/presentation/moment_forms.dart';
@@ -121,7 +122,7 @@ class _ChangesState extends ConsumerState<CalendarChangesSheet> {
                       label: Text(
                         d == 1
                             ? context.tr('Last day', 'آخر يوم')
-                            : context.tr('Last $d days', 'آخر $d يوم'),
+                            : context.tr('Last $d days', 'آخر ${arDay.of(d)}'),
                       ),
                       selected: _days == d,
                       onSelected: (_) => setState(() => _days = d),
@@ -238,7 +239,7 @@ class SkippedPostsSheet extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(StudioSpacing.gutter),
               child: Text(
-                '${window.from} - ${window.to}',
+                '${CairoFormat.isoDay(window.from, context.isAr)} - ${CairoFormat.isoDay(window.to, context.isAr)}',
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -268,8 +269,8 @@ class SkippedPostsSheet extends ConsumerWidget {
                       padding: const EdgeInsets.all(StudioSpacing.gutter),
                       child: Text(
                         context.tr(
-                          'No skipped posts in this window.',
-                          'مفيش بوستات متخطّاة في الفترة دي.',
+                          'Nothing is marked Won\'t post in this window.',
+                          'مفيش بوست متعلّم «مش هيتنشر» في الفترة دي.',
                         ),
                       ),
                     );
@@ -405,11 +406,11 @@ class MomentSheet extends ConsumerWidget {
             Text(
               [
                 MomentForms.kindName(context, moment.kind),
-                if (d != null) CairoTime.date(d),
+                if (d != null) CairoFormat.full(d, context.isAr),
                 if (moment.endDate != null)
                   context.tr(
-                    'until ${moment.endDate}',
-                    'لحد ${moment.endDate}',
+                    'until ${CairoFormat.isoDay(moment.endDate, false)}',
+                    'لحد ${CairoFormat.isoDay(moment.endDate, true)}',
                   ),
               ].where((e) => e.isNotEmpty).join(' · '),
               style: theme.textTheme.bodySmall,

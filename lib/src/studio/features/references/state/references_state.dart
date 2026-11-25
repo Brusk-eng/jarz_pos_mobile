@@ -99,6 +99,9 @@ class ReferenceGridNotifier extends PagedNotifier<StudioReference> {
 /// What the competitors list is filtered by.
 final competitorSearchProvider = StateProvider<String>((ref) => '');
 
+/// Which competitors the list shows: `Active` (default) or `Removed`.
+final competitorStatusProvider = StateProvider<String>((ref) => 'Active');
+
 final competitorListProvider =
     AsyncNotifierProvider<CompetitorListNotifier, PagedState<StudioCompetitor>>(
       CompetitorListNotifier.new,
@@ -108,9 +111,14 @@ class CompetitorListNotifier extends PagedNotifier<StudioCompetitor> {
   @override
   Future<StudioCompetitorPage> fetchPage(String? after) {
     final q = ref.watch(competitorSearchProvider);
+    final status = ref.watch(competitorStatusProvider);
     return ref
         .read(referencesRepositoryProvider)
-        .competitors(q: q.isEmpty ? null : q, after: after);
+        .competitors(
+          q: q.isEmpty ? null : q,
+          status: status == 'Active' ? null : status,
+          after: after,
+        );
   }
 }
 

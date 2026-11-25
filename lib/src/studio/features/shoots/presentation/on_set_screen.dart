@@ -485,6 +485,29 @@ class _ShotPageState extends ConsumerState<_ShotPage> {
                 style: theme.textTheme.bodySmall,
               ),
             ),
+          const SizedBox(height: StudioSpacing.md),
+          if (canNote)
+            TextField(
+              key: const ValueKey('shot-note'),
+              controller: _note,
+              focusNode: _focus,
+              minLines: 2,
+              maxLines: 6,
+              textInputAction: TextInputAction.newline,
+              onTapOutside: (_) => _focus.unfocus(),
+              // Kept on the phone as it is typed; sent when the field is left.
+              onChanged: (v) {
+                _ctrl.saveNote(shot.id, v.trim(), send: false);
+                _debounce?.cancel();
+                _debounce = Timer(const Duration(milliseconds: 800), _commit);
+              },
+              decoration: InputDecoration(
+                labelText: t.noteLabel,
+                hintText: t.noteHint,
+              ),
+            )
+          else if ((shot.note ?? '').isNotEmpty)
+            section(t.noteLabel, shot.note),
           const SizedBox(height: StudioSpacing.lg),
           if (shot.pieces.isNotEmpty)
             section(
@@ -549,29 +572,6 @@ class _ShotPageState extends ConsumerState<_ShotPage> {
                 },
               ),
             ),
-          const SizedBox(height: StudioSpacing.lg),
-          if (canNote)
-            TextField(
-              key: const ValueKey('shot-note'),
-              controller: _note,
-              focusNode: _focus,
-              minLines: 2,
-              maxLines: 6,
-              textInputAction: TextInputAction.newline,
-              onTapOutside: (_) => _focus.unfocus(),
-              // Kept on the phone as it is typed; sent when the field is left.
-              onChanged: (v) {
-                _ctrl.saveNote(shot.id, v.trim(), send: false);
-                _debounce?.cancel();
-                _debounce = Timer(const Duration(milliseconds: 800), _commit);
-              },
-              decoration: InputDecoration(
-                labelText: t.noteLabel,
-                hintText: t.noteHint,
-              ),
-            )
-          else if ((shot.note ?? '').isNotEmpty)
-            section(t.noteLabel, shot.note),
         ],
       ),
     );

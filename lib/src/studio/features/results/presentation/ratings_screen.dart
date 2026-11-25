@@ -8,6 +8,7 @@ import '../../../shared/how_this_works_sheet.dart';
 import '../../../shared/media_row.dart';
 import '../../../shared/person_text.dart';
 import '../../../shared/studio_async_view.dart';
+import '../../../core/l10n/plural.dart';
 import '../../../shared/studio_tr.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../../shell/more_common.dart';
@@ -77,15 +78,15 @@ class RatingsScreen extends ConsumerWidget {
       ),
       context.tr(
         'Ready to run: at least $min ratings and an average of $ready or more.',
-        'جاهز للتشغيل: على الأقل $min تقييمات ومتوسط $ready أو أكتر.',
+        'جاهز للتشغيل: على الأقل ${arRating.of(min)} ومتوسط $ready أو أكتر.',
       ),
       context.tr(
         'Drop or rework: at least $min ratings and an average under $drop.',
-        'نشيلها أو نعيد شغلها: على الأقل $min تقييمات ومتوسط أقل من $drop.',
+        'نشيلها أو نعيد شغلها: على الأقل ${arRating.of(min)} ومتوسط أقل من $drop.',
       ),
       context.tr(
         'Team is split: at least $n ratings and the scores spread by $sd or more.',
-        'الفريق مختلف: على الأقل $n تقييمات والدرجات متباعدة $sd أو أكتر.',
+        'الفريق مش متفق: على الأقل ${arRating.of(n)} والدرجات متباعدة $sd أو أكتر.',
       ),
       context.tr(
         'Each list shows 25 pieces at most; the number beside the title is the full count.',
@@ -112,9 +113,11 @@ class _Body extends StatelessWidget {
             runSpacing: StudioSpacing.sm,
             children: [
               MorePill(
-                context.tr(
-                  '${r.openCount} open pieces',
-                  '${r.openCount} قطعة مفتوحة',
+                context.count(
+                  r.openCount,
+                  one: 'open piece',
+                  many: 'open pieces',
+                  ar: arOpenPiece,
                 ),
               ),
               MorePill(
@@ -124,15 +127,19 @@ class _Body extends StatelessWidget {
                 ),
               ),
               MorePill(
-                context.tr(
-                  '${r.ratingsCount} ratings',
-                  '${r.ratingsCount} تقييم',
+                context.count(
+                  r.ratingsCount,
+                  one: 'rating',
+                  many: 'ratings',
+                  ar: arRating,
                 ),
               ),
               MorePill(
-                context.tr(
-                  '${r.commentsCount} comments',
-                  '${r.commentsCount} تعليق',
+                context.count(
+                  r.commentsCount,
+                  one: 'comment',
+                  many: 'comments',
+                  ar: arComment,
                 ),
               ),
             ],
@@ -154,7 +161,7 @@ class _Body extends StatelessWidget {
         ),
         _Group(
           keyName: 'split',
-          title: context.tr('Team is split', 'الفريق مختلف'),
+          title: context.tr('Team is split', 'الفريق مش متفق'),
           count: r.counts.teamSplit,
           rows: r.teamSplit,
           empty: context.tr('Nothing yet.', 'مفيش لسه.'),
@@ -254,7 +261,7 @@ class _Group extends StatelessWidget {
     return context.tr(
       'avg $avg · ${row.n} ratings'
           '${waiting.isEmpty ? '' : ' · waiting: ${waiting.join(', ')}'}',
-      'متوسط $avg · ${row.n} تقييم'
+      'متوسط $avg · ${arRating.of(row.n)}'
           '${waiting.isEmpty ? '' : ' · مستنيين: ${waiting.join('، ')}'}',
     );
   }

@@ -31,9 +31,9 @@ class MediaStringsEn extends MediaStrings {
   @override
   String get close => 'Close';
   @override
-  String get download => 'Download';
+  String get download => 'Save';
   @override
-  String get downloadFailed => 'Could not get the download link. Try again.';
+  String get downloadFailed => 'Could not save the file. Try again.';
   @override
   String get mute => 'Turn sound off';
   @override
@@ -63,9 +63,9 @@ class MediaStringsAr extends MediaStrings {
   @override
   String get close => 'اقفل';
   @override
-  String get download => 'نزّل';
+  String get download => 'احفظ';
   @override
-  String get downloadFailed => 'مقدرناش نجيب لينك التنزيل. جرّب تاني.';
+  String get downloadFailed => 'مقدرناش نحفظ الملف. جرّب تاني.';
   @override
   String get mute => 'اقفل الصوت';
   @override

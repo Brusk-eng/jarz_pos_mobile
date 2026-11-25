@@ -814,10 +814,18 @@ class _History extends ConsumerWidget {
 String _moveLabel(BuildContext context, Move m) {
   final labels = StudioLabels.of(context);
   if (!labels.ar) return m.label;
-  final stage = labels.pieceStage(m.to);
+  // The stage with its own "to": «للتصوير», «للسكريبت», never «لـ للتصوير».
+  final to = switch (m.to) {
+    PieceStage.idea => 'للفكرة',
+    PieceStage.script => 'للسكريبت',
+    PieceStage.toShoot => 'للتصوير',
+    PieceStage.toEdit => 'للمونتاج',
+    PieceStage.inReview => 'للريفيو',
+    _ => 'لمرحلة ${labels.pieceStage(m.to)}',
+  };
   return switch (m.kind) {
-    MoveKind.back => 'رجّعها لـ $stage',
-    MoveKind.forward => 'انقلها لـ $stage',
+    MoveKind.back => 'رجّعها $to',
+    MoveKind.forward => 'انقلها $to',
     _ => m.label,
   };
 }

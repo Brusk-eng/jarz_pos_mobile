@@ -381,7 +381,7 @@ class ReferencesStringsEn extends ReferencesStrings {
   @override
   String get website => 'Website';
   @override
-  String get adLibrary => 'Ad library';
+  String get adLibrary => 'Ads Library';
   @override
   String get removedBecause => 'Removed because';
   @override
@@ -644,7 +644,7 @@ class ReferencesStringsAr extends ReferencesStrings {
   @override
   String get website => 'الموقع';
   @override
-  String get adLibrary => 'مكتبة الإعلانات';
+  String get adLibrary => 'Ads Library';
   @override
   String get removedBecause => 'اتشال بسبب';
   @override

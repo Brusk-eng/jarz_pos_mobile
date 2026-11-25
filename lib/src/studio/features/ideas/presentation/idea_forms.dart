@@ -6,6 +6,7 @@ import '../../../core/theme/studio_tokens.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/studio_error.dart';
 import '../../inbox/presentation/inbox_strings.dart';
+import '../../session/state/studio_session_notifier.dart';
 import '../data/ideas_repository.dart';
 import 'ideas_strings.dart';
 import '../../../shared/studio_error_text.dart';
@@ -60,6 +61,7 @@ Future<bool> showProposeSheet(
   WidgetRef ref, {
   String? sourceReferenceId,
   String? initialTitle,
+  String? sourceName,
 }) async {
   final done = await showModalBottomSheet<bool>(
     context: context,
@@ -70,6 +72,7 @@ Future<bool> showProposeSheet(
       idea: null,
       sourceReferenceId: sourceReferenceId,
       initialTitle: initialTitle,
+      sourceName: sourceName,
     ),
   );
   return done ?? false;
@@ -96,8 +99,12 @@ class _IdeaFormSheet extends ConsumerStatefulWidget {
     required this.idea,
     this.sourceReferenceId,
     this.initialTitle,
+    this.sourceName,
   });
   final StudioIdea? idea;
+
+  /// The reference the idea is made from, named in the sheet.
+  final String? sourceName;
 
   /// Set when the idea is made from a reference (`source_reference_id`).
   final String? sourceReferenceId;
@@ -162,7 +169,9 @@ class _IdeaFormSheetState extends ConsumerState<_IdeaFormSheet> {
         }, baseModified: idea.modified);
       }
       if (idea == null) {
-        showStudioToast(t.ideaSent);
+        final founder =
+            ref.read(studioSessionProvider).valueOrNull?.isFounder ?? false;
+        showStudioToast(founder ? t.ideaAddedFounder : t.ideaSent);
       }
       nav.pop(true);
     } catch (e) {
@@ -203,6 +212,14 @@ class _IdeaFormSheetState extends ConsumerState<_IdeaFormSheet> {
                 editing ? t.editTitle : t.newIdeaTitle,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
+              if (!editing && widget.sourceName != null) ...[
+                const SizedBox(height: StudioSpacing.xs),
+                Text(
+                  t.fromReference(widget.sourceName!),
+                  key: const ValueKey('idea-from'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
               const SizedBox(height: StudioSpacing.md),
               TextField(
                 key: const ValueKey('idea-title'),

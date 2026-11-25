@@ -242,6 +242,10 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('walkthrough-next')));
         await tester.pumpAndSettle();
       }
+      // The creator's tour has a card on ideas (New idea, My ideas).
+      expect(find.text('Bring ideas'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('walkthrough-next')));
+      await tester.pumpAndSettle();
       expect(find.text('Help is on every screen'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('walkthrough-next')));
       await tester.pumpAndSettle();

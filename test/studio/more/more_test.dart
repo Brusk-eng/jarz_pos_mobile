@@ -43,7 +43,7 @@ void main() {
       expect(find.byKey(const ValueKey('more-language')), findsOneWidget);
     });
 
-    testWidgets('lead has no Settings; creator has three; story one', (
+    testWidgets('lead has Settings; creator has three; story one', (
       tester,
     ) async {
       await pumpMoreRouter(
@@ -52,7 +52,7 @@ void main() {
       );
       final lead = entryKeys(tester);
       expect(lead, contains('more-paid'));
-      expect(lead, isNot(contains('more-settings')));
+      expect(lead, contains('more-settings'));
       expect(lead.first, 'more-shoots');
     });
 

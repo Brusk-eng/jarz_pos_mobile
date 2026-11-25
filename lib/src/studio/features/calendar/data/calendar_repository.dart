@@ -156,7 +156,7 @@ class ReadyToPostNotifier extends PagedNotifier<ReadyPost> {
   Future<ReadyPostPage> fetchPage(String? after) =>
       _repo.readyToPost(after: after);
 
-  /// "I posted it": the row leaves the list at once.
+  /// "Mark posted": the row leaves the list at once.
   Future<void> markPosted(String postId, {String? link, String? requestId}) =>
       mutate<SocialPost>(
         match: (r) => r.post.id == postId,

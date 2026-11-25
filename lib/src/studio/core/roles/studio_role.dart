@@ -94,6 +94,7 @@ const Map<StudioRole, List<MoreItem>> moreOrder = {
     MoreItem.assets,
     MoreItem.references,
     MoreItem.paid,
+    MoreItem.settings,
   ],
   StudioRole.creator: [
     MoreItem.shoots,

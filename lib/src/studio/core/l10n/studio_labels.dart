@@ -54,7 +54,7 @@ class StudioLabels {
     'add_version': ('Add a version', 'ضيف نسخة'),
     'keep': ('Keep', 'احتفظ'),
     'drop': ('Drop', 'سيب'),
-    'wont_post': ('Will not post', 'مش هيتنشر'),
+    'wont_post': ("Won't post", 'مش هيتنشر'),
     'mark_posted': ('Mark posted', 'علّم إنه اتنشر'),
     'posted': ('Mark posted', 'علّم إنه اتنشر'),
     'retry': ('Try again', 'جرّب تاني'),
@@ -87,7 +87,7 @@ class StudioLabels {
     'ignore': ('Ignore', 'تجاهل'),
     'actual_match': ('Match to a post', 'اربطه ببوست'),
     'actual_ignore': ('Ignore', 'تجاهل'),
-    'post_wont_post': ('Will not post', 'مش هيتنشر'),
+    'post_wont_post': ("Won't post", 'مش هيتنشر'),
     'post_retry': ('Try again', 'جرّب تاني'),
     'post_move': ('Move the post', 'انقل البوست'),
   };
@@ -232,7 +232,7 @@ class StudioLabels {
     PostStatus.publishing => tr('Going out now', 'بينزل دلوقتي'),
     PostStatus.published => tr('Posted', 'اتنشر'),
     PostStatus.failed => tr('Didn\'t go out', 'ما نزلش'),
-    PostStatus.cancelled => tr('Skipped', 'اتخطّى'),
+    PostStatus.cancelled => tr("Won't post", 'مش هيتنشر'),
     PostStatus.unknown => '',
   };
 
@@ -337,7 +337,7 @@ class StudioLabels {
   /// What happened to a post, for the "What changed" sheet.
   String changeKind(ChangeKind k) => switch (k) {
     ChangeKind.moved => tr('Moved', 'اتنقل'),
-    ChangeKind.wontPost => tr('Will not post', 'مش هيتنشر'),
+    ChangeKind.wontPost => tr("Won't post", 'مش هيتنشر'),
     ChangeKind.putBack => tr('Put back', 'اتحط تاني'),
     ChangeKind.added => tr('Added', 'اتضاف'),
     ChangeKind.unknown => '',

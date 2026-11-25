@@ -36,6 +36,8 @@ abstract class IdeasStrings {
   String get ideaKept;
   String get ideaDropped;
   String get ideaSent;
+  String get ideaAddedFounder;
+  String fromReference(String name);
   String get ideaSaved;
   String get nextOpenCanDecide;
   String get nextOpenWaiting;
@@ -113,6 +115,10 @@ class IdeasStringsEn extends IdeasStrings {
   String get ideaDropped => 'Dropped.';
   @override
   String get ideaSent => 'Idea sent. The founder will see it.';
+  @override
+  String get ideaAddedFounder => 'Idea added. It waits in your Ideas.';
+  @override
+  String fromReference(String name) => 'From: $name';
   @override
   String get ideaSaved => 'Idea saved.';
   @override
@@ -219,6 +225,10 @@ class IdeasStringsAr extends IdeasStrings {
   String get ideaDropped => 'اتسابت.';
   @override
   String get ideaSent => 'الفكرة اتبعتت. المؤسس هيشوفها.';
+  @override
+  String get ideaAddedFounder => 'الفكرة اتضافت. مستنياك في الأفكار.';
+  @override
+  String fromReference(String name) => 'من: $name';
   @override
   String get ideaSaved => 'الفكرة اتحفظت.';
   @override
