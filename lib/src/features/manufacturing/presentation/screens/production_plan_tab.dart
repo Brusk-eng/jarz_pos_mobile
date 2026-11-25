@@ -799,14 +799,24 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
       return;
     }
 
-    final confirmed = await confirmShortageCountFix(context, plan);
-    if (!confirmed || !mounted) return;
+    final choice = await confirmShortageCountFix(
+      context,
+      plan,
+      // "Change date": the count may be dated earlier than production.
+      recount: (countAt) => service.previewShortageCountFix(
+        lines,
+        scheduledAt: scheduledAt,
+        countAt: countAt,
+      ),
+    );
+    if (choice == null || !mounted) return;
 
     overlay.show();
     try {
       final done = await service.fixShortageByCount(
         lines,
         scheduledAt: scheduledAt,
+        countAt: choice.countAt,
       );
       overlay.hide();
       if (!mounted) return;

@@ -43,9 +43,13 @@ class ManufacturingService {
 
   /// What the shortage correction would post: items, counts, and the count
   /// moment a few minutes before production. Posts nothing.
+  ///
+  /// [countAt] ("YYYY-MM-DD HH:MM:SS") dates the count earlier than that
+  /// default; the server refuses a later one.
   Future<ShortageCountPlan> previewShortageCountFix(
     List<Map<String, dynamic>> lines, {
     String? scheduledAt,
+    String? countAt,
   }) async {
     try {
       final resp = await _dio.post(
@@ -53,6 +57,7 @@ class ManufacturingService {
         data: {
           'lines': lines,
           if (scheduledAt != null) 'scheduled_at': scheduledAt,
+          if (countAt != null) 'count_at': countAt,
         },
       );
       return ShortageCountPlan.fromJson(_unwrapMap(resp.data));
@@ -67,6 +72,7 @@ class ManufacturingService {
   Future<ShortageCountPlan> fixShortageByCount(
     List<Map<String, dynamic>> lines, {
     String? scheduledAt,
+    String? countAt,
   }) async {
     try {
       final resp = await _dio.post(
@@ -74,6 +80,7 @@ class ManufacturingService {
         data: {
           'lines': lines,
           if (scheduledAt != null) 'scheduled_at': scheduledAt,
+          if (countAt != null) 'count_at': countAt,
           'confirm_miscount': 1,
         },
       );

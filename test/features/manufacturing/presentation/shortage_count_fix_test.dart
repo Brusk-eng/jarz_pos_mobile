@@ -83,7 +83,7 @@ void main() {
     testWidgets('lists items and the count moment; confirm needs the tick', (
       tester,
     ) async {
-      bool? result;
+      ShortageCountChoice? result;
       await tester.pumpWidget(
         _app(
           Builder(
@@ -111,7 +111,69 @@ void main() {
 
       await tester.tap(submit);
       await tester.pumpAndSettle();
-      expect(result, isTrue);
+      expect(result, isNotNull);
+      // Untouched date: the server keeps its default moment.
+      expect(result!.countAt, isNull);
+      // No recount handler: no date control.
+      expect(find.text('Change date'), findsNothing);
+    });
+
+    testWidgets('a later stock count blocks confirming and is named', (
+      tester,
+    ) async {
+      final blocked = ShortageCountPlan.fromJson({
+        'production_at': '2026-11-20 18:00:00',
+        'count_at': '2026-11-18 09:30:00',
+        'latest_count_at': '2026-11-20 17:55:00',
+        'items': [
+          {
+            'item_code': 'RM-LABEL',
+            'item_name': 'Jar label',
+            'uom': 'Nos',
+            'warehouse': 'Raw Material - J',
+            'missing_qty': 23,
+            'current_qty': 11,
+            'counted_qty': 34,
+          },
+        ],
+        'later_counts': [
+          {
+            'item_code': 'RM-LABEL',
+            'warehouse': 'Raw Material - J',
+            'stock_reconciliation': 'MAT-RECO-9',
+            'posted_at': '2026-11-19 10:00:00',
+          },
+        ],
+      });
+      await tester.pumpWidget(
+        _app(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => confirmShortageCountFix(
+                context,
+                blocked,
+                recount: (_) async => blocked,
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Change date'), findsOneWidget);
+      expect(find.textContaining('MAT-RECO-9'), findsOneWidget);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      final submit = find.widgetWithText(FilledButton, 'Add to stock');
+      expect(tester.widget<FilledButton>(submit).onPressed, isNull);
+    });
+
+    test('moment helpers round-trip the server format', () {
+      final d = parseShortageMoment('2026-11-18 09:30:00');
+      expect(d, DateTime(2026, 11, 18, 9, 30));
+      expect(formatShortageMoment(d!), '2026-11-18 09:30:00');
     });
   });
 }

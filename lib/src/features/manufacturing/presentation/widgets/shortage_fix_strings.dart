@@ -23,6 +23,21 @@ class ShortageFixStrings {
       : 'A stock count will add these at $countAt, a few minutes before the '
             'production at $productionAt.';
 
+  String chosenWhen(String countAt, String productionAt) => _ar
+      ? 'هيتعمل جرد يضيف الكميات دي بتاريخ $countAt، قبل الإنتاج ($productionAt).'
+      : 'A stock count will add these dated $countAt, before the production '
+            'at $productionAt.';
+
+  String get changeDate => _ar ? 'غيّر التاريخ' : 'Change date';
+
+  String get useDefaultDate =>
+      _ar ? 'رجّع للتاريخ الأصلي' : 'Back to the default date';
+
+  String laterCount(String item, String at, String name) => _ar
+      ? '$item اتجرد تاني $at ($name) بعد التاريخ ده. الجرد ده هيمسح الإضافة: اختار تاريخ بعده.'
+      : '$item was counted again at $at ($name), after this date. That count '
+            'would erase the addition: choose a date after it.';
+
   String becomes(String current, String counted) =>
       _ar ? '$current ← $counted' : '$current → $counted';
 
