@@ -22056,8 +22056,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get returnOrderGoodsDamagedTitle => 'البضاعة تالفة';
 
   @override
-  String get returnOrderGoodsDamagedYes => 'هتتسجل هالك ومش هترجع المخزون.';
+  String get returnOrderGoodsDamagedYes => 'هتتسجل هالك ومش هترجع للمخزن.';
 
   @override
-  String get returnOrderGoodsDamagedNo => 'هترجع مخزون الفرع وتتباع تاني.';
+  String get returnOrderGoodsDamagedNo => 'هترجع لمخزن الفرع وتتباع تاني.';
 }

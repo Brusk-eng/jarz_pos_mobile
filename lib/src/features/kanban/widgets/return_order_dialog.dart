@@ -81,6 +81,11 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
   /// box with good jars is not.
   bool _goodsDamaged = false;
 
+  /// Set the moment the operator moves the switch. From then on the answer is
+  /// theirs: correcting the return type afterwards must not quietly put spoiled
+  /// jars back on the shelf, or write good ones off.
+  bool _goodsTouched = false;
+
   @override
   void initState() {
     super.initState();
@@ -167,6 +172,17 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
     return goods is Map && goods['can_write_off'] == true;
   }
 
+  /// Return types the server treats as unsellable goods. Read from the preview
+  /// so the two cannot drift; "Damaged" is the rule when it is not sent.
+  bool _typeImpliesDamaged(String type) {
+    final goods = widget.preview['goods'];
+    final types = goods is Map ? goods['waste_return_types'] : null;
+    if (types is List && types.isNotEmpty) {
+      return types.map((t) => t.toString()).contains(type);
+    }
+    return type == 'Damaged';
+  }
+
   void _setQty(String siDetail, double max, double value) {
     setState(() {
       final clamped = value.clamp(0.0, max).toDouble();
@@ -228,9 +244,11 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
                       .toList(),
                   onChanged: (value) => setState(() {
                     _returnType = value ?? _returnType;
-                    // The type is the first hint about the goods; the switch
-                    // below stays free to say otherwise.
-                    _goodsDamaged = _returnType == 'Damaged';
+                    // The type is the first hint about the goods — but only
+                    // until the operator has answered the question below.
+                    if (!_goodsTouched) {
+                      _goodsDamaged = _typeImpliesDamaged(_returnType);
+                    }
                   }),
                 ),
                 const SizedBox(height: 12),
@@ -240,7 +258,10 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
                     key: const Key('return-goods-damaged-switch'),
                     contentPadding: EdgeInsets.zero,
                     value: _goodsDamaged,
-                    onChanged: (value) => setState(() => _goodsDamaged = value),
+                    onChanged: (value) => setState(() {
+                      _goodsDamaged = value;
+                      _goodsTouched = true;
+                    }),
                     title: Text(l10n.returnOrderGoodsDamagedTitle),
                     subtitle: Text(
                       _goodsDamaged

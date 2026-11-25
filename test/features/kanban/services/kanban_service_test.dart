@@ -754,5 +754,47 @@ void main() {
         expect(mockDio.requestLog.last['data']['image_data'], 'aGVsbG8=');
       });
     });
+
+    group('Order returns', () {
+      const endpoint = '/api/method/jarz_pos.api.returns.submit_invoice_return';
+
+      Future<Map<String, dynamic>> sentPayload({String? goodsCondition}) async {
+        mockDio.setResponse(
+          endpoint,
+          createSuccessResponse(
+            data: {'success': true, 'credit_note': 'ACC-SINV-CN-1'},
+          ),
+        );
+        await service.submitInvoiceReturn(
+          invoiceName: 'INV-RET-1',
+          lines: const [
+            {'si_detail': 'row-1', 'qty': 1},
+          ],
+          reason: 'Melted on the way back',
+          returnType: 'Failed Delivery',
+          refundMode: 'customer_credit',
+          payCourierForTrip: true,
+          goodsCondition: goodsCondition,
+        );
+        return Map<String, dynamic>.from(mockDio.requestLog.last['data'] as Map);
+      }
+
+      test('submitInvoiceReturn - sends the goods answer under the server key',
+          () async {
+        // The key is the contract with api.returns.submit_invoice_return; a
+        // misspelling is silently dropped by the server and the jars restock.
+        expect((await sentPayload(goodsCondition: 'waste'))['goods_condition'],
+            'waste');
+        expect((await sentPayload(goodsCondition: 'restock'))['goods_condition'],
+            'restock');
+      });
+
+      test('submitInvoiceReturn - sends no goods key when the dialog did not ask',
+          () async {
+        final payload = await sentPayload();
+        expect(payload.containsKey('goods_condition'), isFalse);
+        expect(payload['return_type'], 'Failed Delivery');
+      });
+    });
   });
 }

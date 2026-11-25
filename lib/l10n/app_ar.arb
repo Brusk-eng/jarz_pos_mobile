@@ -7822,6 +7822,6 @@
     }
   },
   "returnOrderGoodsDamagedTitle": "البضاعة تالفة",
-  "returnOrderGoodsDamagedYes": "هتتسجل هالك ومش هترجع المخزون.",
-  "returnOrderGoodsDamagedNo": "هترجع مخزون الفرع وتتباع تاني."
+  "returnOrderGoodsDamagedYes": "هتتسجل هالك ومش هترجع للمخزن.",
+  "returnOrderGoodsDamagedNo": "هترجع لمخزن الفرع وتتباع تاني."
 }

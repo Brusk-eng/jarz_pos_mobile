@@ -285,6 +285,71 @@ void main() {
       expect(result.goodsCondition, 'waste');
     });
 
+    Future<void> pickType(WidgetTester tester, String label) async {
+      await tester.ensureVisible(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label).last);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapGoodsSwitch(WidgetTester tester) async {
+      final goodsSwitch = find.byKey(const Key('return-goods-damaged-switch'));
+      await tester.ensureVisible(goodsSwitch);
+      await tester.pumpAndSettle();
+      await tester.tap(goodsSwitch);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a Damaged return with good jars can still go back to stock',
+        (tester) async {
+      // Dented box, sound jars: the one case where the explicit answer changes
+      // what the server would otherwise do with a "Damaged" return.
+      final pending = await _openDialog(
+        tester,
+        preview: _preview(canWriteOffGoods: true),
+      );
+
+      await pickType(tester, 'Damaged');
+      await tapGoodsSwitch(tester);
+
+      await tester.enterText(find.byType(TextFormField).first, 'Box only');
+      await tester.tap(find.text('Confirm return'));
+      await tester.pumpAndSettle();
+
+      final result = await pending;
+      expect(result!.returnType, 'Damaged');
+      expect(result.goodsCondition, 'restock');
+    });
+
+    testWidgets('correcting the type does not undo the goods answer',
+        (tester) async {
+      // Marked damaged by hand, then the type is corrected. The switch used to
+      // snap back to "sellable" and spoiled jars went back into stock.
+      final pending = await _openDialog(
+        tester,
+        preview: _preview(canWriteOffGoods: true),
+      );
+
+      await tapGoodsSwitch(tester);
+      // The dropdown shows the translated label; the request carries the code.
+      await pickType(tester, 'Failed delivery');
+
+      expect(
+        find.text('Written off as waste. They will not go back into stock.'),
+        findsOneWidget,
+      );
+
+      await tester.enterText(find.byType(TextFormField).first, 'Melted');
+      await tester.tap(find.text('Confirm return'));
+      await tester.pumpAndSettle();
+
+      final result = await pending;
+      expect(result!.returnType, 'Failed Delivery');
+      expect(result.goodsCondition, 'waste');
+    });
+
     testWidgets('a fully returned line cannot be selected again',
         (tester) async {
       await _openDialog(
