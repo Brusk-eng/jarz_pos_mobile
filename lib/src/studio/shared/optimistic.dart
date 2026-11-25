@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../core/l10n/studio_strings.dart';
+import '../data/optimistic_write.dart';
 
 /// Optimistic update: take a snapshot, apply the change to local state at
 /// once, call the server, and on failure roll back and tell the user.
 ///
 /// Returns true when the server accepted the change. [failureMessage]
-/// defaults to the generic "that change was not saved" string.
+/// defaults to the generic "that change was not saved" string. Notifiers use
+/// the context-free [runOptimistic] directly.
 Future<bool> optimistic<T>({
   required BuildContext context,
   required T Function() snapshot,
@@ -19,13 +21,15 @@ Future<bool> optimistic<T>({
   final messenger = ScaffoldMessenger.maybeOf(context);
   final message = failureMessage ?? StudioStrings.of(context).changeFailed;
 
-  final previous = snapshot();
-  apply();
   try {
-    await call();
+    await runOptimistic<T, void>(
+      snapshot: snapshot,
+      apply: apply,
+      rollback: rollback,
+      call: call,
+    );
     return true;
   } catch (_) {
-    rollback(previous);
     messenger
       ?..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));

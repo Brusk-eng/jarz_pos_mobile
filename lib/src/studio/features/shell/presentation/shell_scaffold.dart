@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/studio_strings.dart';
+import '../../inbox/state/inbox_state.dart';
 
 /// The five-tab frame: a bottom bar on a phone, a rail from tablet width up.
-class StudioShellScaffold extends StatelessWidget {
+class StudioShellScaffold extends ConsumerWidget {
   const StudioShellScaffold({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
@@ -17,6 +19,8 @@ class StudioShellScaffold extends StatelessWidget {
     (Icons.more_horiz, Icons.more_horiz),
   ];
 
+  static const _inboxIndex = 1;
+
   void _select(int index) {
     navigationShell.goBranch(
       index,
@@ -25,7 +29,7 @@ class StudioShellScaffold extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = StudioStrings.of(context);
     final labels = [
       t.tabToday,
@@ -34,6 +38,20 @@ class StudioShellScaffold extends StatelessWidget {
       t.tabPieces,
       t.tabMore,
     ];
+    // What waits on this person plus unread notifications, on the Inbox tab.
+    final inboxBadge =
+        ref.watch(inboxBadgeProvider) + ref.watch(unreadBadgeProvider);
+    Widget icon(int i, {required bool selected}) {
+      final data = selected ? _icons[i].$2 : _icons[i].$1;
+      final child = Icon(data);
+      if (i != _inboxIndex || inboxBadge <= 0) return child;
+      return Badge(
+        key: const ValueKey('inbox-badge'),
+        label: Text(inboxBadge > 99 ? '99+' : '$inboxBadge'),
+        child: child,
+      );
+    }
+
     final wide = MediaQuery.sizeOf(context).width >= 840;
 
     if (wide) {
@@ -48,8 +66,8 @@ class StudioShellScaffold extends StatelessWidget {
               destinations: [
                 for (var i = 0; i < 5; i++)
                   NavigationRailDestination(
-                    icon: Icon(_icons[i].$1),
-                    selectedIcon: Icon(_icons[i].$2),
+                    icon: icon(i, selected: false),
+                    selectedIcon: icon(i, selected: true),
                     label: Text(labels[i]),
                   ),
               ],
@@ -70,8 +88,8 @@ class StudioShellScaffold extends StatelessWidget {
         destinations: [
           for (var i = 0; i < 5; i++)
             NavigationDestination(
-              icon: Icon(_icons[i].$1),
-              selectedIcon: Icon(_icons[i].$2),
+              icon: icon(i, selected: false),
+              selectedIcon: icon(i, selected: true),
               label: labels[i],
             ),
         ],

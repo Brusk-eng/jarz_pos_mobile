@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/calendar/calendar_routes.dart';
+import '../../features/inbox/inbox_routes.dart';
+import '../../features/pieces/pieces_routes.dart';
+import '../../features/review/review_routes.dart';
+import '../../features/assets/assets_routes.dart';
 import '../../features/session/presentation/boot_screen.dart';
+import '../../features/shoots/shoots_routes.dart';
+import '../../features/shell/more_routes.dart';
 import '../../features/session/presentation/login_screen.dart';
 import '../../features/session/presentation/no_access_screen.dart';
 import '../../features/session/state/studio_session_notifier.dart';
@@ -10,7 +17,7 @@ import '../../features/shell/presentation/inbox_screen.dart';
 import '../../features/shell/presentation/more_screen.dart';
 import '../../features/shell/presentation/shell_scaffold.dart';
 import '../../features/shell/presentation/today_screen.dart';
-import '../../shared/placeholder_screen.dart';
+import '../push/studio_push_router.dart';
 import 'studio_screen.dart';
 
 const _authRoutes = {
@@ -41,6 +48,12 @@ final studioRouterProvider = Provider<GoRouter>((ref) {
   String? redirect(BuildContext context, GoRouterState state) {
     final session = ref.read(studioSessionProvider);
     final loc = state.matchedLocation;
+    // The contract's route names (/paid, /shoots/<id>...) open the screens
+    // under /more.
+    final here = state.uri.toString();
+    final mapped = studioAppRoute(here);
+    if (mapped != here) return mapped;
+    if (loc.startsWith('/prep/')) return null; // public read-only page
 
     if (session.isLoading || session.hasError) {
       return loc == StudioRoutes.boot
@@ -62,9 +75,6 @@ final studioRouterProvider = Provider<GoRouter>((ref) {
     return null;
   }
 
-  Widget placeholder(StudioScreen s, {String? parent}) =>
-      StudioPlaceholderScreen(screen: s, parentRoute: parent);
-
   return GoRouter(
     initialLocation: StudioRoutes.today,
     refreshListenable: refresh,
@@ -83,6 +93,13 @@ final studioRouterProvider = Provider<GoRouter>((ref) {
         path: StudioRoutes.noAccess,
         builder: (_, _) => const StudioNoAccessScreen(),
       ),
+      // Above the shell, so the bottom bar does not cover the action bar.
+      // `/inbox/approve/:id` comes before any `/inbox/:tab` route.
+      ...reviewRoutes(),
+      // Top-level, above the shell (On set is full screen); the contract's
+      // paths. `/prep/:token` is public: the redirect lets it through.
+      ...shootsRoutes(),
+      ...assetsRoutes(),
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => StudioShellScaffold(navigationShell: shell),
         branches: [
@@ -111,36 +128,13 @@ final studioRouterProvider = Provider<GoRouter>((ref) {
                       path: name,
                       builder: (_, _) => StudioInboxScreen(initialIndex: i),
                     ),
+                  ...inboxRoutes(),
                 ],
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: StudioRoutes.calendar,
-                builder: (_, _) => placeholder(StudioScreen.calendar),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: StudioRoutes.pieces,
-                builder: (_, _) => placeholder(StudioScreen.pieces),
-                routes: [
-                  GoRoute(
-                    path: ':id',
-                    builder: (_, state) => StudioPlaceholderScreen(
-                      screen: StudioScreen.piece,
-                      parentRoute: StudioRoutes.pieces,
-                      titleSuffix: state.pathParameters['id'],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          StatefulShellBranch(routes: calendarRoutes()),
+          StatefulShellBranch(routes: piecesRoutes()),
           // More owns the list and every screen reachable from it, so the
           // More tab stays selected while you are inside one.
           StatefulShellBranch(
@@ -148,59 +142,7 @@ final studioRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: StudioRoutes.more,
                 builder: (_, _) => const StudioMoreScreen(),
-              ),
-              GoRoute(
-                path: StudioRoutes.shoots,
-                builder: (_, _) =>
-                    placeholder(StudioScreen.shoots, parent: StudioRoutes.more),
-                routes: [
-                  GoRoute(
-                    path: ':id',
-                    builder: (_, state) => StudioPlaceholderScreen(
-                      screen: StudioScreen.shoot,
-                      parentRoute: StudioRoutes.shoots,
-                      titleSuffix: state.pathParameters['id'],
-                    ),
-                  ),
-                ],
-              ),
-              GoRoute(
-                path: StudioRoutes.assets,
-                builder: (_, _) =>
-                    placeholder(StudioScreen.assets, parent: StudioRoutes.more),
-              ),
-              GoRoute(
-                path: StudioRoutes.references,
-                builder: (_, _) => placeholder(
-                  StudioScreen.references,
-                  parent: StudioRoutes.more,
-                ),
-              ),
-              GoRoute(
-                path: StudioRoutes.paid,
-                builder: (_, _) =>
-                    placeholder(StudioScreen.paid, parent: StudioRoutes.more),
-              ),
-              GoRoute(
-                path: StudioRoutes.results,
-                builder: (_, _) => placeholder(
-                  StudioScreen.results,
-                  parent: StudioRoutes.more,
-                ),
-              ),
-              GoRoute(
-                path: StudioRoutes.reports,
-                builder: (_, _) => placeholder(
-                  StudioScreen.reports,
-                  parent: StudioRoutes.more,
-                ),
-              ),
-              GoRoute(
-                path: StudioRoutes.settings,
-                builder: (_, _) => placeholder(
-                  StudioScreen.settings,
-                  parent: StudioRoutes.more,
-                ),
+                routes: [...moreRoutes()],
               ),
             ],
           ),

@@ -129,7 +129,6 @@ flutter:
     - .env.prod
     - assets/images/logo.png
     - assets/fonts/
-    - assets/studio/fixtures/
     - shorebird.yaml
 
 # Launcher icon configuration

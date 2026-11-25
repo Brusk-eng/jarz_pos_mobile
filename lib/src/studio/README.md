@@ -37,21 +37,103 @@ be edited, so the Studio builds its own Dio (`studioDioProvider`): the same base
 `NoReplayOfflineQueue` whose `addTransaction` does nothing. Nothing from a Studio call ever reaches the POS queue.
 Studio calls fail visibly; the UI offers retry. Web needs no extra handling: browsers own the cookie.
 
-## Fake API
+## Data layer
 
-`StudioApi` is the one door for Studio calls (`call(method, params)`, `message` envelope unwrapped). With
-`STUDIO_FAKE=1`, `studioApiProvider` returns `FakeStudioApi`, which reads bundled JSON; nothing touches the network or
-the POS env, and login is skipped.
+```
+data/models/    studio_enums.dart, studio_models.dart (+ .freezed/.g): GENERATED, one class per contract shape
+data/api/       studio_api_<group>.dart: GENERATED, one typed method per endpoint (mixins), studio_api_base.dart
+data/fake/      fake_studio_api.dart (hand written), studio_fixtures.g.dart (GENERATED fixtures as one const map)
+data/           studio_error.dart (sealed StudioError), paging.dart (PagedNotifier, EntityNotifier), optimistic_write.dart
+features/<f>/data/<f>_repository.dart   thin repository + Riverpod providers per feature
+core/push/studio_push_router.dart       push payload -> router location (pure)
+```
 
-- Fixtures: `assets/studio/fixtures/` (declared in `pubspec.yaml`).
-- A call to `jarz_social.api.studio.<key>` reads `<key>__<role>.json` if it exists, else `<key>.json`.
-  `session.me` has a variant per role: `session.me__founder.json`, `__lead`, `__creator`, `__story`, `__none`.
-- A fixture may be the full Frappe envelope (`{"message": ...}`) or bare JSON.
-- A missing fixture throws `StudioApiException(404)`.
-- Tests override `studioFixtureBundleProvider` with an in-memory bundle (no real asset IO under fake time).
+Contract: `systems/studio-rebuild/API_CONTRACT.md` v1.0 (frozen) and its `contract/` folder.
+Naming: shapes that clash with Flutter/Dio/Dart get a prefix or suffix (`Round` is `PaidRound`, `Media` is `StudioMedia`,
+`Options` is `StudioOptions`, `Route` is `ProdRoute`...; the map is `SHAPE_RENAME` / `ENUM_RENAME` in the generator).
+Dates and times stay `String` (ISO, offset kept) so a model round-trips to the same JSON. Every enum has `unknown`;
+`.wire` gives the exact string, `Enum.parse(s)` the reverse. `Page<T>` / `Sync<T>` become `<Item>Page` / `<Item>Sync`
+(all `implements PageLike<Item>`).
 
-To add an endpoint: add `features/<feature>/data/<x>_repository.dart` calling `ref.read(studioApiProvider).call(...)`,
-then drop `<key>.json` in the fixtures folder.
+### Re-generate (contract version bump)
+
+```
+tool/studio_gen.sh "<path to systems/studio-rebuild/contract>"
+```
+
+It runs `python tool/studio_gen_contract.py <contract_dir>` (models, enums, API mixins, `studio_fixtures.g.dart`, and the
+test tables under `test/studio/data/generated/`), formats, runs `build_runner` for `lib/src/studio/**` only, and restores
+any POS generated file build_runner deleted. Then run `flutter test test/studio`. Endpoint parameters are read from the
+markdown tables of `API_CONTRACT.md` (one level above the contract folder), result shapes from `check_fixtures.py`.
+
+### Real or fake (compile time)
+
+`studioApiProvider` picks `DioStudioApi` or `FakeStudioApi` with the const `StudioConfig.fake`
+(`--dart-define=STUDIO_FAKE=1`). In a normal build the fake and its fixtures are tree-shaken out (checked on the web
+build). Tests override `studioApiProvider` with `FakeStudioApi(role: ..., delay: Duration.zero)`.
+
+### Using the API
+
+`ref.read(studioApiProvider).versionsApprove(versionId: id)` and so on: one typed method per endpoint, named
+`<group><Fn>`. Writes the contract marks idempotent take an optional `requestId`; leave it out and a UUID is made, pass the
+same one on a retry. Lists and maps go out as JSON strings (like the POS materials repository). Failures throw a sealed
+`StudioError` (`StudioShadowMode`, `StudioValidation(field)`, `StudioGateFailed(problems)`, `StudioStale(current)`,
+`StudioAlreadyDone(current)`, `StudioNetworkError`...). `StudioUnauthenticated.deadSession` is true.
+
+### Fake API
+
+`FakeStudioApi({role, delay})` serves `studio_fixtures.g.dart`. `session.me` reads `me.<role>`; any other call reads
+`<group>.<fn>.<role>` first (`today.get.creator`), then `<group>.<fn>`. Role `none` is a signed-in user without a Studio
+role. Writes (approve, fix, clear review, rate, comment, tick, answer a decision, keep, drop, mark read) return the updated
+object and change later reads, the to-approve feed and the inbox counts, in memory.
+
+Force a failure in a test or while building a screen:
+
+```dart
+final api = FakeStudioApi(delay: Duration.zero)
+  ..failNext('versions.approve', 'SHADOW_MODE')             // one call
+  ..failNext('pieces', 'VALIDATION', message: 'x', field: 'to') // a whole group
+  ..failAlways('inbox.counts', 'SERVER_ERROR');             // until api.clearFailures()
+```
+
+Codes: UNAUTHENTICATED NOT_PERMITTED NOT_FOUND VALIDATION GATE_FAILED STALE ALREADY_DONE SHADOW_MODE RATE_LIMITED
+SERVER_ERROR. `api.calls` lists what was called. In a running fake app, override the provider in `main_studio` if you
+need a failing API.
+
+### Providers and notifiers
+
+One `<feature>_repository.dart` per feature with `xRepositoryProvider` and the screen providers: `inboxCountsProvider`,
+`toApproveProvider` (approve, fix), `toRateProvider`, `versionProvider(id)`; `decisionsProvider`, `ideasProvider`,
+`todayProvider`, `tasksProvider`, `calendarRangeProvider((from, to))`, `readyToPostProvider`, `postProvider(id)`,
+`pieceBoardProvider`, `piecesProvider`, `pieceProvider(id)`, `shootsProvider`, `shootProvider(id)`, `assetsProvider`,
+`assetProvider(id)`, `referencesProvider`, `referenceProvider(id)`, `paidOverviewProvider`, `scorecardProvider(week)`,
+`resultsByPieceProvider`, `reportsProvider`, `studioOptionsProvider`, `rulesProvider`, `flavoursProvider`,
+`myNotificationPrefsProvider`, `notificationsProvider`, `unreadCountProvider`.
+`PagedNotifier<T>` gives `loadMore()`, `refresh()`, `swap()` and `mutate()` (optimistic write with rollback; `STALE` swaps in
+the fresh object and rethrows, `ALREADY_DONE` counts as success). `EntityNotifier<T>` is the same for one object by id.
+Both use the context-free `runOptimistic()`; the widget helper `optimistic()` wraps it.
+
+## Routes
+
+Contract paths (section 1.9) are the app's paths. Above the shell: `/versions/:id`, `/inbox/approve/:id`, `/inbox/rate`
+(review), `/shoots`, `/shoots/new`, `/shoots/:id`, `/shoots/:id/edit`, `/shoots/:id/on-set`, `/assets`, `/assets/new`,
+`/assets/:id`, `/assets/:id/edit`, and the public `/prep/:token` (no login). In the shell: `/today`; `/inbox/{approve,
+decisions,ideas}`, `/inbox/decisions/:id`, `/inbox/notifications[/settings]`; `/calendar`, `/calendar/post/:id`; `/pieces`,
+`/pieces/:id`, `/pieces/:id/add-version`; `/more` with `/more/{references,paid,results,reports,settings}` and their
+children. The contract's `/references`, `/paid`, `/results`, `/reports`, `/settings` redirect to `/more/...`
+(`studioAppRoute`, also applied to every push payload). A signed-out deep link goes to `/login?from=...` and comes back.
+
+## One place for each shared thing
+
+- Error text: `shared/studio_error_text.dart` (`studioErrorText`, `showStudioError`, `studioErrorMessage`). No screen words
+  SHADOW_MODE, GATE_FAILED, STALE, NOT_PERMITTED or ALREADY_DONE its own way.
+- `base_modified`: `EntityNotifier.baseModified` (from `modifiedOf`, which every notifier must implement). Pass it to every
+  write the contract lets answer STALE. STALE and ALREADY_DONE take the server's copy and rethrow.
+- Clearing a nullable parameter (`null clears` in the contract): pass `studioClear`; the generated method sends an explicit
+  null. Leaving the parameter out sends nothing.
+- Client-side role checks: `features/session/data/me_profile_x.dart`, and nowhere else.
+- A picture and two lines: `shared/media_row.dart`. Uploads: `core/upload` (the tray sits under every screen in
+  `StudioApp`, the queue resumes at app start).
 
 ## Localisation
 

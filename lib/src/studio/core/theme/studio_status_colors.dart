@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/studio_enums.dart';
 import 'studio_tokens.dart';
 
 /// The nine stages a piece moves through (SYSTEM_DESIGN section 3).
@@ -60,4 +61,19 @@ const Map<Verdict, StatusColors> verdictColors = {
   Verdict.run: StatusColors(Colors.white, StudioColors.success),
   Verdict.fix: StatusColors(Colors.white, StudioColors.warning),
   Verdict.drop: StatusColors(Colors.white, StudioColors.danger),
+};
+
+/// One colour per post status, none of them a stage colour: grey while a
+/// draft, teal once checked, indigo when scheduled, amber while publishing,
+/// green once out, red when it failed, faded grey when cancelled. All pairs
+/// read on the light theme (text contrast 4.5:1 or better).
+const Map<PostStatus, StatusColors> postStatusColors = {
+  PostStatus.draft: StatusColors(Color(0xFF55526A), Color(0xFFECEAF0)),
+  PostStatus.checked: StatusColors(Color(0xFF14625F), Color(0xFFD3EEEB)),
+  PostStatus.scheduled: StatusColors(Color(0xFF2B479A), Color(0xFFDDE6FB)),
+  PostStatus.publishing: StatusColors(Color(0xFF8F4509), Color(0xFFFCE2C8)),
+  PostStatus.published: StatusColors(Colors.white, Color(0xFF2B7A55)),
+  PostStatus.failed: StatusColors(Colors.white, StudioColors.danger),
+  PostStatus.cancelled: StatusColors(Color(0xFF6E6B7A), Color(0xFFF3F1F4)),
+  PostStatus.unknown: StatusColors(Color(0xFF6E6B7A), Color(0xFFF3F1F4)),
 };

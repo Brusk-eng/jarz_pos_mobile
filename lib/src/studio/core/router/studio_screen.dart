@@ -34,11 +34,11 @@ class StudioRoutes {
   static const more = '/more';
   static const shoots = '/shoots';
   static const assets = '/assets';
-  static const references = '/references';
-  static const paid = '/paid';
-  static const results = '/results';
-  static const reports = '/reports';
-  static const settings = '/settings';
+  static const references = '/more/references';
+  static const paid = '/more/paid';
+  static const results = '/more/results';
+  static const reports = '/more/reports';
+  static const settings = '/more/settings';
 
   static String piece(String id) => '/pieces/$id';
   static String shoot(String id) => '/shoots/$id';

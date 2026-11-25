@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/studio/core/l10n/studio_locale.dart';
 import 'package:jarz_pos/src/studio/core/roles/studio_role.dart';
+import 'package:jarz_pos/src/studio/data/models/studio_enums.dart';
+
+import 'package:jarz_pos/src/studio/features/pieces/presentation/piece_screen.dart';
+
+import 'package:jarz_pos/src/studio/core/push/studio_push_router.dart';
+
+import 'package:jarz_pos/src/studio/features/shoots/presentation/shoots_list_screen.dart';
 
 import 'helpers.dart';
 
@@ -62,7 +69,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('inbox-tab-ideas')));
     await tester.pumpAndSettle();
     expect(currentLocation(c), '/inbox/ideas');
-    expect(find.byKey(const ValueKey('empty-purpose')), findsOneWidget);
+    expect(find.byKey(const ValueKey('ideas-list')), findsOneWidget);
   });
 
   testWidgets('every route is deep-linkable', (tester) async {
@@ -86,38 +93,37 @@ void main() {
       '/settings',
     ]) {
       await goTo(tester, c, path);
-      expect(currentLocation(c), path);
+      expect(currentLocation(c), studioAppRoute(path));
       expect(tester.takeException(), isNull, reason: path);
     }
     await goTo(tester, c, '/pieces/abc-1');
-    expect(find.text('Piece abc-1'), findsOneWidget);
+    expect(find.byType(PieceScreen), findsOneWidget);
   });
 
-  testWidgets('placeholder screens say what they are for', (tester) async {
+  testWidgets('screens open at their own URLs', (tester) async {
     usePhone(tester);
     final c = await pumpStudio(tester);
     await goTo(tester, c, '/inbox/decisions');
-    expect(find.textContaining('Open questions with options'), findsOneWidget);
-    await goTo(tester, c, '/paid');
-    expect(find.textContaining('each ad with its numbers'), findsOneWidget);
+    expect(find.byKey(const ValueKey('decisions-list')), findsOneWidget);
+    await goTo(tester, c, '/shoots');
+    expect(find.byType(ShootsListScreen), findsOneWidget);
   });
 
   group('role changes Today and More', () {
+    // Today's blocks and their order come from the server (today.get); the
+    // client keeps the server's order. First block per role, from the fixtures.
     final todayKeys = [
-      for (final b in TodayBlock.values) 'today-block-${b.name}',
+      for (final b in BlockKey.values) 'today-block-${b.name}',
     ];
 
-    testWidgets('founder Today order', (tester) async {
+    testWidgets('founder Today starts with what waits for his yes', (
+      tester,
+    ) async {
       usePhone(tester, height: 1400);
       await pumpStudio(tester, role: 'founder');
-      expect(orderOf(tester, todayKeys), [
-        'today-block-readyToPost',
-        'today-block-didntGoOut',
-        'today-block-readsMissing',
-        'today-block-warnings',
-        'today-block-dueToday',
-        'today-block-sentBack',
-        'today-block-stories',
+      expect(orderOf(tester, todayKeys).take(2).toList(), [
+        'today-block-toApprove',
+        'today-block-decisions',
       ]);
     });
 
@@ -127,8 +133,7 @@ void main() {
       expect(orderOf(tester, todayKeys), [
         'today-block-sentBack',
         'today-block-dueToday',
-        'today-block-readyToPost',
-        'today-block-readsMissing',
+        'today-block-shootTomorrow',
       ]);
     });
 
@@ -185,18 +190,15 @@ void main() {
     });
   });
 
-  testWidgets('a More item opens at its own URL and back returns to More', (
-    tester,
-  ) async {
+  testWidgets('a More item links to its own URL under /more', (tester) async {
     usePhone(tester);
     final c = await pumpStudio(tester);
     await goTo(tester, c, '/more');
     await tester.tap(find.byKey(const ValueKey('more-shoots')));
     await tester.pumpAndSettle();
+    // Library and Shoots are other screens' routes: the list only links to
+    // them. Back from a More screen is tested in test/studio/more.
     expect(currentLocation(c), '/shoots');
-    await tester.tap(find.byKey(const ValueKey('back')));
-    await tester.pumpAndSettle();
-    expect(currentLocation(c), '/more');
   });
 
   testWidgets('a user with no Studio role sees the no-access screen', (

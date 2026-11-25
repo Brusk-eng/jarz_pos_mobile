@@ -169,7 +169,7 @@ class StudioStringsEn extends StudioStrings {
   @override
   String get noAccessBody =>
       'You are signed in, but your account has no Studio role yet. '
-      'Ask Abdelrahman or Ali to add you.';
+      'Ask the founder or the marketing lead to add you.';
   @override
   String get checkingAccess => 'Checking your access';
   @override
@@ -325,7 +325,7 @@ class StudioStringsEn extends StudioStrings {
           'No shoots planned. Plan one and its prep list is '
           'built from the pieces.',
       help: [
-        'Plan a shoot, then share the prep list with Karim.',
+        'Plan a shoot, then share the prep list with operations.',
         'On set works offline: tick each shot, leave a note.',
         'Each shot card carries its references.',
       ],
@@ -492,7 +492,7 @@ class StudioStringsAr extends StudioStrings {
   @override
   String get noAccessBody =>
       'دخلت بحسابك، بس لسه مفيش ليه دور في الـ Studio. '
-      'كلّم عبدالرحمن أو علي يضيفوك.';
+      'كلّم المؤسس أو مسؤول التسويق يضيفوك.';
   @override
   String get checkingAccess => 'بنراجع صلاحياتك';
   @override

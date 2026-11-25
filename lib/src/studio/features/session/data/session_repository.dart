@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../features/auth/data/auth_repository.dart';
 import '../../../core/network/studio_api.dart';
-import 'studio_me.dart';
+import '../../../data/models/studio_models.dart';
 
 final studioSessionRepositoryProvider = Provider<StudioSessionRepository>((
   ref,
@@ -30,8 +30,5 @@ class StudioSessionRepository {
 
   Future<void> logout() => _auth.logout();
 
-  Future<StudioMe> me() async {
-    final data = await _api.call('${studioMethodPrefix}session.me');
-    return StudioMe.fromJson(Map<String, dynamic>.from(data as Map));
-  }
+  Future<MeProfile> me() => _api.sessionMe();
 }

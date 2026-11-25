@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,76 +8,68 @@ import '../../../core/network/dio_provider.dart'
     show SessionInterceptor, dioProvider;
 import '../../../core/offline/offline_queue.dart';
 import '../../../core/session/session_manager.dart';
+import '../../data/api/studio_api_endpoints.dart';
+import '../../data/fake/fake_studio_api.dart';
+import '../../data/studio_error.dart';
 import '../config/studio_config.dart';
+
+export '../../data/api/studio_api_base.dart' show newRequestId;
+export '../../data/studio_error.dart';
 
 /// Frappe method prefix for every Studio endpoint.
 const studioMethodPrefix = 'jarz_social.api.studio.';
 
-/// A failed Studio call. [deadSession] is true when the server no longer
-/// recognises the session (the caller should send the user to login).
-class StudioApiException implements Exception {
-  StudioApiException(this.message, {this.statusCode, this.deadSession = false});
+/// The one door every Studio repository calls through: one typed method per
+/// endpoint (generated, see `data/api/`), all built on [call]. Implemented by
+/// [DioStudioApi] and the fake.
+abstract class StudioApi extends StudioApiEndpoints {}
 
-  final String message;
-  final int? statusCode;
-  final bool deadSession;
-
-  @override
-  String toString() => 'StudioApiException($statusCode): $message';
-}
-
-/// True when the response means "your session is gone". The POS app has the
-/// same check but marks it test-only, so this is a narrow Studio copy: 401, or
-/// a 403 carrying Frappe's Guest wording or an auth exc_type. A plain 403
-/// (signed in, not allowed) is NOT a dead session.
-bool isDeadSessionResponse(int? status, Object? body) {
-  if (status == 401) return true;
-  if (status != 403) return false;
-  final text = (body ?? '').toString().toLowerCase();
-  if (text.contains('login to access')) return true;
-  if (text.contains('not whitelisted') &&
-      text.contains('not permitted to access this resource')) {
-    return true;
-  }
-  final excType = body is Map ? '${body['exc_type'] ?? ''}'.toLowerCase() : '';
-  return excType == 'sessionexpired' ||
-      excType == 'sessionstopped' ||
-      excType == 'authenticationerror';
-}
-
-/// The one door every Studio repository calls through. Whitelisted Frappe
-/// methods are POSTed to `/api/method/<method>` and the `message` envelope is
-/// unwrapped, exactly as the POS repositories do.
-abstract class StudioApi {
-  Future<dynamic> call(String method, {Map<String, dynamic>? params});
-}
-
-class DioStudioApi implements StudioApi {
+/// Real client: whitelisted Frappe methods go to `/api/method/<method>`
+/// (POST, or GET for pure reads), the `message` envelope is unwrapped and every
+/// failure becomes a [StudioError].
+class DioStudioApi extends StudioApi {
   DioStudioApi(this._dio);
 
   final Dio _dio;
 
   @override
-  Future<dynamic> call(String method, {Map<String, dynamic>? params}) async {
+  Future<dynamic> call(
+    String method, {
+    Map<String, dynamic>? params,
+    bool get = false,
+  }) async {
+    final wire = <String, dynamic>{
+      // Lists and objects travel as JSON strings, like materials_repository.
+      for (final e in (params ?? const <String, dynamic>{}).entries)
+        e.key: (e.value is Map || e.value is List)
+            ? jsonEncode(e.value)
+            : e.value,
+    };
     try {
-      final response = await _dio.post(
-        '/api/method/$method',
-        data: params ?? const <String, dynamic>{},
-      );
+      final response = get
+          ? await _dio.get('/api/method/$method', queryParameters: wire)
+          : await _dio.post('/api/method/$method', data: wire);
       final data = response.data;
       if (data is Map && data.containsKey('message')) return data['message'];
       return data;
     } on DioException catch (e) {
-      throw StudioApiException(
-        e.message ?? 'Request failed',
-        statusCode: e.response?.statusCode,
-        deadSession: isDeadSessionResponse(
-          e.response?.statusCode,
-          e.response?.data,
-        ),
-      );
+      throw _toStudioError(e);
     }
   }
+}
+
+StudioError _toStudioError(DioException e) {
+  final response = e.response;
+  if (response == null) {
+    return StudioNetworkError(e.message ?? 'No connection.');
+  }
+  var body = response.data;
+  if (body is String && body.trim().startsWith('{')) {
+    try {
+      body = jsonDecode(body);
+    } catch (_) {}
+  }
+  return StudioError.fromResponse(response.statusCode, body);
 }
 
 /// Queue stand-in for the Studio's Dio: swallows what the POS interceptor
@@ -107,56 +98,13 @@ final studioDioProvider = Provider<Dio>((ref) {
   return dio;
 });
 
-/// Serves `session.me` and any other call from JSON files in the bundle.
-///
-/// A call to `jarz_social.api.studio.<key>` reads
-/// `assets/studio/fixtures/<key>__<role>.json` when a role variant exists
-/// (role = STUDIO_FAKE_ROLE), else `<key>.json`.
-class FakeStudioApi implements StudioApi {
-  FakeStudioApi({AssetBundle? bundle, this.role = 'founder'})
-    : _bundle = bundle ?? rootBundle;
-
-  static const fixtureDir = 'assets/studio/fixtures';
-
-  final AssetBundle _bundle;
-  final String role;
-
-  @override
-  Future<dynamic> call(String method, {Map<String, dynamic>? params}) async {
-    final key = method.startsWith(studioMethodPrefix)
-        ? method.substring(studioMethodPrefix.length)
-        : method;
-    for (final file in ['${key}__$role', key]) {
-      final path = '$fixtureDir/$file.json';
-      try {
-        final text = await _bundle.loadString(path);
-        return _decode(text);
-      } catch (_) {
-        continue;
-      }
-    }
-    throw StudioApiException('No fake fixture for $method', statusCode: 404);
-  }
-
-  dynamic _decode(String text) {
-    final decoded = jsonDecode(text);
-    if (decoded is Map && decoded.containsKey('message')) {
-      return decoded['message'];
-    }
-    return decoded;
-  }
-}
-
-/// Where fake fixtures are read from. Tests override it with an in-memory
-/// bundle so no real asset IO runs under fake time.
-final studioFixtureBundleProvider = Provider<AssetBundle>((ref) => rootBundle);
-
+/// The API the whole Studio uses. The choice between real and fake is a
+/// compile-time constant (`--dart-define=STUDIO_FAKE=1`), so a normal build
+/// drops [FakeStudioApi] and the bundled fixtures entirely. Tests override
+/// this provider with a [FakeStudioApi].
 final studioApiProvider = Provider<StudioApi>((ref) {
-  if (ref.watch(studioFakeProvider)) {
-    return FakeStudioApi(
-      bundle: ref.watch(studioFixtureBundleProvider),
-      role: ref.watch(studioFakeRoleProvider),
-    );
+  if (StudioConfig.fake) {
+    return FakeStudioApi(role: StudioConfig.fakeRole);
   }
   return DioStudioApi(ref.watch(studioDioProvider));
 });

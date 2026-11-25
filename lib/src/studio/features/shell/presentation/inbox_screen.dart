@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/studio_strings.dart';
 import '../../../core/router/studio_screen.dart';
-import '../../../shared/placeholder_screen.dart';
 import '../../../shared/view_edit_scaffold.dart';
+import '../../decisions/presentation/decisions_list.dart';
+import '../../ideas/presentation/ideas_list.dart';
+import '../../inbox/presentation/inbox_hub.dart';
+import '../../inbox/presentation/inbox_strings.dart';
+import '../../inbox/presentation/to_approve_list.dart';
+import '../../inbox/state/inbox_state.dart';
+import '../../session/state/studio_session_notifier.dart';
 
-/// Inbox with its three tabs. Each tab is its own route so it can be linked
-/// to (`/inbox/decisions`); the tab bar just navigates between them.
-class StudioInboxScreen extends StatefulWidget {
+/// Inbox: the hub of tiles (with counts) over the list of the open section.
+/// Each section is its own route so it can be linked to
+/// (`/inbox/decisions`); the tiles navigate between them.
+class StudioInboxScreen extends ConsumerWidget {
   const StudioInboxScreen({super.key, required this.initialIndex});
 
   final int initialIndex;
@@ -23,54 +31,47 @@ class StudioInboxScreen extends StatefulWidget {
     StudioScreen.decisions,
     StudioScreen.ideas,
   ];
+  static const _sections = [
+    InboxSection.approve,
+    InboxSection.decisions,
+    InboxSection.ideas,
+  ];
 
   @override
-  State<StudioInboxScreen> createState() => _StudioInboxScreenState();
-}
-
-class _StudioInboxScreenState extends State<StudioInboxScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _controller = TabController(
-    length: 3,
-    vsync: this,
-    initialIndex: widget.initialIndex,
-  );
-
-  @override
-  void didUpdateWidget(StudioInboxScreen old) {
-    super.didUpdateWidget(old);
-    if (widget.initialIndex != _controller.index) {
-      _controller.index = widget.initialIndex;
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = StudioStrings.of(context);
-    final screen = StudioInboxScreen.screens[widget.initialIndex];
+    final s = InboxStrings.of(context);
+    final current = _sections[initialIndex];
+    final mine = ref.watch(inboxSectionsProvider);
+    final role = ref.watch(studioSessionProvider).valueOrNull?.primaryRole;
+
+    // A list that is not part of this person's work: land on their first one.
+    if (role != null && !mine.contains(current)) {
+      final first = mine.where(InboxHub.isTab).firstOrNull;
+      if (first != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) context.go(InboxHub.pathOf(first));
+        });
+      }
+    }
+
+    final body = switch (current) {
+      InboxSection.approve => const ToApproveList(),
+      InboxSection.decisions => const DecisionsList(),
+      InboxSection.ideas => const IdeasList(),
+      _ => Center(child: Text(s.notYourList)),
+    };
+
     return ViewEditScaffold(
       title: t.tabInbox,
-      screen: screen,
+      screen: screens[initialIndex],
       showLanguageSwitch: true,
-      bottom: TabBar(
-        controller: _controller,
-        onTap: (i) => context.go(StudioInboxScreen.paths[i]),
-        tabs: [
-          Tab(key: const ValueKey('inbox-tab-approve'), text: t.inboxApprove),
-          Tab(
-            key: const ValueKey('inbox-tab-decisions'),
-            text: t.inboxDecisions,
-          ),
-          Tab(key: const ValueKey('inbox-tab-ideas'), text: t.inboxIdeas),
+      body: Column(
+        children: [
+          InboxHub(current: current),
+          Expanded(child: body),
         ],
       ),
-      body: PlaceholderBody(screen: screen),
     );
   }
 }
