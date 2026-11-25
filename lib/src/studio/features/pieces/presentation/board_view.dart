@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -124,7 +125,7 @@ class _PiecesBoardViewState extends ConsumerState<PiecesBoardView> {
                             padding: const EdgeInsetsDirectional.only(
                               end: StudioSpacing.sm,
                             ),
-                            child: ChoiceChip(
+                            child: StudioChoiceChip(
                               key: ValueKey('board-tab-${p.keyName}'),
                               label: Text('${p.label} ${p.count}'),
                               selected: i == _current,

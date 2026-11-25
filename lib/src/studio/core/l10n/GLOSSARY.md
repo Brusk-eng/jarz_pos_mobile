@@ -143,3 +143,11 @@ A status says what happens next and who has it, by role.
 - counts with a noun: `context.count(...)` and the `ArNoun` list in `plural.dart` (قطعة, تقييم, تعليق, يوم, فريم, شوت, ملف, موعد); 1 مفرد, 2 مثنى, 3 to 10 جمع, 11 and over مفرد; never write «9 قطعة» by hand
 - a date that arrives as text is written by `CairoFormat.isoDay` (Wed 25 Nov), never as 2026-11-25
 - idea made from a reference: sheet line From: <name> / من: <name>; the founder's own idea toast: Idea added / الفكرة اتضافت
+
+- Any creator / أي واحد من صنّاع المحتوى: the owner choice for the creators team; "With the creators" / عند صنّاع المحتوى on a piece
+- No due date / مفيش ميعاد; Task / مهمة and Shot / شوت: a task or a shot in the week list is labelled, never shown as a piece
+- Page not found / الصفحة مش موجودة; Back to Today / ارجع للنهارده
+- OK / Cancel on every date and time picker: تمام / إلغاء (one helper, shared/studio_pickers.dart)
+- Required input: label ends with " *" and the line "Required" / «مطلوب»; a required date reads "(required)" / «(مطلوب)»
+- Story frame buttons: "Mark frame N posted" / «علّم فريم N إنه اتنشر», "Skip frame N" / «تخطّى فريم N»
+- No removed competitors. / مفيش منافسين اتشالوا.

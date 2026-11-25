@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -110,6 +111,18 @@ class TodayBody extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: StudioSpacing.md),
+              if (canAddTasks(role)) ...[
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: FilledButton.tonalIcon(
+                    key: const ValueKey('task-add-top'),
+                    onPressed: () => showTaskForm(context),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(t.addTask),
+                  ),
+                ),
+                const SizedBox(height: StudioSpacing.md),
+              ],
               NextStepLine(t.nextBlocks),
               const SizedBox(height: StudioSpacing.lg),
             ],
@@ -553,7 +566,7 @@ class _TasksSection extends ConsumerWidget {
               spacing: StudioSpacing.sm,
               runSpacing: StudioSpacing.xs,
               children: [
-                ChoiceChip(
+                StudioChoiceChip(
                   key: const ValueKey('tasks-open'),
                   label: Text(t.showOpen),
                   selected: !showDone,
@@ -561,7 +574,7 @@ class _TasksSection extends ConsumerWidget {
                       ref.read(tasksStatusFilterProvider.notifier).state =
                           'open',
                 ),
-                ChoiceChip(
+                StudioChoiceChip(
                   key: const ValueKey('tasks-done'),
                   label: Text(t.showDone),
                   selected: showDone,
@@ -570,7 +583,7 @@ class _TasksSection extends ConsumerWidget {
                           'done',
                 ),
                 if (canAdd) ...[
-                  ChoiceChip(
+                  StudioChoiceChip(
                     key: const ValueKey('tasks-mine'),
                     label: Text(t.myTasks),
                     selected: assignee == null,
@@ -578,7 +591,7 @@ class _TasksSection extends ConsumerWidget {
                         ref.read(todayTasksAssigneeProvider.notifier).state =
                             null,
                   ),
-                  ChoiceChip(
+                  StudioChoiceChip(
                     key: const ValueKey('tasks-all'),
                     label: Text(t.everyonesTasks),
                     selected: assignee == 'all',

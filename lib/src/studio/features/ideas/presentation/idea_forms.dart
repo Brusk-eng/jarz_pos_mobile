@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -253,7 +254,7 @@ class _IdeaFormSheetState extends ConsumerState<_IdeaFormSheet> {
                 spacing: StudioSpacing.sm,
                 children: [
                   for (final f in _formats)
-                    ChoiceChip(
+                    StudioChoiceChip(
                       key: ValueKey('format-$f'),
                       label: Text(t.format(f)),
                       selected: _format == f,

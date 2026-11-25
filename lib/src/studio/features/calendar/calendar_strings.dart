@@ -190,8 +190,9 @@ class CalendarStrings {
   String get actionMove => tr('Move', 'انقل');
   String get actionSetCaption => tr('Edit the caption', 'تعديل الكابشن');
   String get actionEditSlot => tr('Edit the slot', 'تعديل الميعاد');
-  String get actionFramePosted => tr('Mark posted', 'علّم إنه اتنشر');
-  String get actionFrameSkipped => tr('Skip it', 'تخطّاه');
+  String actionFramePosted(int n) =>
+      tr('Mark frame $n posted', 'علّم فريم $n إنه اتنشر');
+  String actionFrameSkipped(int n) => tr('Skip frame $n', 'تخطّى فريم $n');
   String get frameDone => tr('Posted', 'اتنشر');
   String get frameSkipped => tr('Skipped', 'اتخطّى');
   String get linkLabel =>

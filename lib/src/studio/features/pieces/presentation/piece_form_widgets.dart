@@ -1,3 +1,4 @@
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -119,7 +120,7 @@ class DateField extends StatelessWidget {
               ),
               onPressed: () async {
                 final now = DateTime.now();
-                final picked = await showDatePicker(
+                final picked = await showStudioDatePicker(
                   context: context,
                   initialDate: d ?? now,
                   firstDate: DateTime(now.year - 1),

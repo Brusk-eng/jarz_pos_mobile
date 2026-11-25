@@ -144,6 +144,21 @@ class _ScorecardBody extends ConsumerWidget {
             ],
           ),
         ),
+        if (canSeeMore)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: StudioSpacing.gutter,
+            ),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: OutlinedButton.icon(
+                key: const ValueKey('top-ratings'),
+                icon: const Icon(Icons.star_outline),
+                label: Text(context.tr('Team ratings', 'تقييمات الفريق')),
+                onPressed: () => context.go('/more/results/ratings'),
+              ),
+            ),
+          ),
         SectionLabel(t.numbersTitle),
         for (final n in card.numbers) _NumberRow(n: n),
         if (card.gates.isNotEmpty) ...[

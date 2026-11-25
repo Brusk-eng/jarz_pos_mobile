@@ -327,7 +327,13 @@ void main() {
         'calendar.range': (j) => {
           ...(j as Map),
           'posts': [
-            {...(j['posts'] as List).first as Map, 'status': 'Cancelled'},
+            {
+              ...(j['posts'] as List).first as Map,
+              'status': 'Cancelled',
+              // Inside the window the calendar asks for (the fake now cuts
+              // the answer to it, as the server does).
+              'slot_time': '${DateTime.now().toIso8601String().substring(0, 10)}T20:00:00+02:00',
+            },
           ],
         },
       });

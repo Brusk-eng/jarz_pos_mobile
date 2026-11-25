@@ -1,3 +1,4 @@
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -67,7 +68,7 @@ class _TaskFormState extends ConsumerState<_TaskFormSheet> {
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final initial = _due != null ? DateTime.tryParse(_due!) ?? now : now;
-    final d = await showDatePicker(
+    final d = await showStudioDatePicker(
       context: context,
       initialDate: initial,
       firstDate: DateTime(now.year - 1),

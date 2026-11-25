@@ -54,7 +54,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const ValueKey('next-card')), findsOneWidget);
-      expect(find.textContaining('With The creators'), findsOneWidget);
+      expect(find.textContaining('With the creators'), findsOneWidget);
       // Plain words, not enum names.
       expect(find.text('Self-treater'), findsWidgets);
       expect(find.text('One jar for me'), findsWidgets);

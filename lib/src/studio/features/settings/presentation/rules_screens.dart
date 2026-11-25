@@ -1,3 +1,4 @@
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../shared/person_text.dart';
@@ -369,7 +370,7 @@ class _ChangeDialogState extends State<_ChangeDialog> {
               icon: const Icon(Icons.event),
               label: Text('${t.validFrom}: ${m.date(_from)}'),
               onPressed: () async {
-                final picked = await showDatePicker(
+                final picked = await showStudioDatePicker(
                   context: context,
                   initialDate: DateTime.tryParse(_from) ?? DateTime.now(),
                   firstDate: DateTime(2026),

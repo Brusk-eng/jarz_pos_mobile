@@ -1,3 +1,4 @@
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -164,7 +165,7 @@ class _PostSlotFormState extends ConsumerState<PostSlotForm> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final d = await showDatePicker(
+    final d = await showStudioDatePicker(
       context: context,
       initialDate: _date ?? now,
       firstDate: DateTime(now.year - 1),
@@ -174,7 +175,7 @@ class _PostSlotFormState extends ConsumerState<PostSlotForm> {
   }
 
   Future<void> _pickTime() async {
-    final t = await showTimePicker(
+    final t = await showStudioTimePicker(
       context: context,
       initialTime: _time ?? const TimeOfDay(hour: 13, minute: 0),
     );

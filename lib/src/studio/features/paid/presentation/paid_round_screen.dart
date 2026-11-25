@@ -1,3 +1,4 @@
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -573,7 +574,7 @@ class _EditRoundDialogState extends State<_EditRoundDialog> {
               label: Text('${t.launchDate}: ${m.date(_date)}'),
               onPressed: () async {
                 final parsed = DateTime.tryParse(_date) ?? DateTime.now();
-                final picked = await showDatePicker(
+                final picked = await showStudioDatePicker(
                   context: context,
                   initialDate: parsed,
                   firstDate: DateTime(2026),

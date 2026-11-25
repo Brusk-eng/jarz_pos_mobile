@@ -8,7 +8,9 @@ String? _navKeyOf(String path) {
   final m = RegExp(
     r'^/more/(references|paid|results|reports|settings)(?=$|/)',
   ).firstMatch(path);
-  return m?.group(1);
+  if (m != null) return m.group(1);
+  // Shoots and the Library sit at the contract's own paths, above the shell.
+  return RegExp(r'^/(shoots|assets)(?=$|/)').firstMatch(path)?.group(1);
 }
 
 /// The path a person may not open, or null when the address is fine.

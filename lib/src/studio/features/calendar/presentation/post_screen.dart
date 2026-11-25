@@ -149,7 +149,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
     if (status == FrameStatus.skipped) {
       reason = await askText(
         context,
-        title: c.actionFrameSkipped,
+        title: c.actionFrameSkipped(f.position),
         label: c.reasonLabel,
         requiredMessage: c.reasonNeeded,
       );
@@ -403,14 +403,14 @@ class _Frames extends StatelessWidget {
                                 onPressed: busy
                                     ? null
                                     : () => onFrame(f, FrameStatus.posted),
-                                child: Text(c.actionFramePosted),
+                                child: Text(c.actionFramePosted(f.position)),
                               ),
                               TextButton(
                                 key: ValueKey('frame-skip-${f.position}'),
                                 onPressed: busy
                                     ? null
                                     : () => onFrame(f, FrameStatus.skipped),
-                                child: Text(c.actionFrameSkipped),
+                                child: Text(c.actionFrameSkipped(f.position)),
                               ),
                             ],
                           ),

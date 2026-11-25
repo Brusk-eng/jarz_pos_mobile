@@ -313,6 +313,8 @@ void main() {
         300,
         scrollable: find.byType(Scrollable).first,
       );
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -150));
+      await tester.pumpAndSettle();
       await tester.tap(
         find.byKey(const ValueKey('today-line-SP-2026-00190:72h')),
       );

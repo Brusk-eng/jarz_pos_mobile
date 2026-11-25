@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -224,7 +225,7 @@ class _PersonDialogState extends State<_PersonDialog> {
                   PersonRole.storyLead,
                   PersonRole.moderator,
                 ])
-                  ChoiceChip(
+                  StudioChoiceChip(
                     key: ValueKey('person-role-${r.wire}'),
                     label: Text(t.roleLabel(r)),
                     selected: _role == r,

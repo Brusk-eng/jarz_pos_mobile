@@ -1,3 +1,4 @@
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -169,7 +170,7 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
   Future<void> pickDate() async {
     final now = DateTime.now();
     final cur = date == null ? null : DateTime.tryParse(date!);
-    final d = await showDatePicker(
+    final d = await showStudioDatePicker(
       context: context,
       initialDate: cur ?? now,
       firstDate: DateTime(now.year - 1),
@@ -191,7 +192,7 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
             minute: int.tryParse(parts[1]) ?? 0,
           )
         : const TimeOfDay(hour: 9, minute: 0);
-    final p = await showTimePicker(context: context, initialTime: init);
+    final p = await showStudioTimePicker(context: context, initialTime: init);
     if (p != null) {
       setState(
         () => time =

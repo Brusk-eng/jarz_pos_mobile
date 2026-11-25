@@ -1,3 +1,5 @@
+import '../../../shared/studio_chips.dart';
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -39,8 +41,9 @@ class MomentForms {
     Map<String, String> values,
     VoidCallback rebuild,
     String key,
-    String label,
-  ) {
+    String label, {
+    bool required = false,
+  }) {
     final value = values[key] ?? '';
     return Padding(
       padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
@@ -49,12 +52,12 @@ class MomentForms {
         icon: const Icon(Icons.calendar_month, size: 18),
         label: Text(
           value.isEmpty
-              ? label
+              ? (required ? '$label * ${context.tr('(required)', '(مطلوب)')}' : label)
               : '$label: ${CairoFormat.isoDay(value, context.isAr)}',
         ),
         onPressed: () async {
           final start = CairoTime.parse(value) ?? DateTime.now();
-          final picked = await showDatePicker(
+          final picked = await showStudioDatePicker(
             context: context,
             initialDate: start,
             firstDate: DateTime(2025),
@@ -151,7 +154,7 @@ class MomentForms {
                 spacing: StudioSpacing.sm,
                 children: [
                   for (final k in _kinds)
-                    ChoiceChip(
+                    StudioChoiceChip(
                       key: ValueKey('moment-kind-${k.wire}'),
                       label: Text(kindName(c, k)),
                       selected: values['kind'] == k.wire,
@@ -163,7 +166,14 @@ class MomentForms {
                 ],
               ),
             ),
-          _dateButton(c, values, rebuild, 'date', c.tr('Date', 'التاريخ')),
+          _dateButton(
+            c,
+            values,
+            rebuild,
+            'date',
+            c.tr('Date', 'التاريخ'),
+            required: true,
+          ),
           _dateButton(
             c,
             values,
@@ -204,7 +214,7 @@ class MomentForms {
     final saved = context.tr('Moment moved.', 'الموعد اتنقل.');
     final start =
         CairoTime.parse(mo.effectiveDate ?? mo.date) ?? DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showStudioDatePicker(
       context: context,
       initialDate: start,
       firstDate: DateTime(2025),

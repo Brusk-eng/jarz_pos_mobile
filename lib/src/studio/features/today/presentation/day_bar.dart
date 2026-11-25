@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -94,7 +95,7 @@ class DayBar extends ConsumerWidget {
           spacing: StudioSpacing.sm,
           children: [
             if (date != null)
-              ActionChip(
+              StudioActionChip(
                 key: const ValueKey('day-today'),
                 avatar: const Icon(Icons.today, size: 18),
                 label: Text(context.tr('Back to today', 'ارجع للنهارده')),
@@ -102,7 +103,7 @@ class DayBar extends ConsumerWidget {
                     ref.read(todayDateProvider.notifier).state = null,
               ),
             if (canPickPerson)
-              ActionChip(
+              StudioActionChip(
                 key: const ValueKey('day-person'),
                 avatar: const Icon(Icons.person_outline, size: 18),
                 label: Text(
@@ -113,7 +114,7 @@ class DayBar extends ConsumerWidget {
                 onPressed: () => _pickPerson(context, ref),
               ),
             if (asKey != null)
-              ActionChip(
+              StudioActionChip(
                 key: const ValueKey('day-mine'),
                 label: Text(context.tr('Back to my day', 'ارجع ليومي')),
                 onPressed: () =>

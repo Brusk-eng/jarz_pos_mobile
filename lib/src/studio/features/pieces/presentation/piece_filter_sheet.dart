@@ -1,3 +1,5 @@
+import '../../../shared/studio_chips.dart';
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -70,7 +72,7 @@ class PieceFilterBar extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsetsDirectional.only(end: StudioSpacing.sm),
-            child: ActionChip(
+            child: StudioActionChip(
               key: const ValueKey('piece-filters-open'),
               avatar: const Icon(Icons.tune, size: 18),
               label: Text(
@@ -184,7 +186,7 @@ class PieceFilterSheet extends ConsumerWidget {
       String label,
       bool selected,
       VoidCallback onTap,
-    ) => ChoiceChip(
+    ) => StudioChoiceChip(
       key: ValueKey(key),
       label: Text(label),
       selected: selected,
@@ -261,12 +263,12 @@ class PieceFilterSheet extends ConsumerWidget {
                   onWeek(1),
                   () => set(f.copyWith(week: onWeek(1) ? null : weekStart(1))),
                 ),
-                ActionChip(
+                StudioActionChip(
                   key: const ValueKey('pf-week-pick'),
                   avatar: const Icon(Icons.calendar_month, size: 18),
                   label: Text(context.tr('Pick a date', 'اختار تاريخ')),
                   onPressed: () async {
-                    final picked = await showDatePicker(
+                    final picked = await showStudioDatePicker(
                       context: context,
                       initialDate: DateTime.now(),
                       firstDate: DateTime(2025),

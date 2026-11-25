@@ -335,7 +335,7 @@ class _NextCard extends StatelessWidget {
         ? s.withPerson(piece.assignee!.fullName)
         : (piece.assigneeTeam != null &&
               piece.assigneeTeam != OwnerTeam.unknown)
-        ? s.withPerson(s.team(piece.assigneeTeam!))
+        ? s.withTeam(piece.assigneeTeam!)
         : s.withNobody;
 
     return Card(
@@ -351,7 +351,7 @@ class _NextCard extends StatelessWidget {
             Text(
               [
                 who,
-                if (due != null) s.dueOn(CairoFormat.dayMonth(due, ar)),
+                due != null ? s.dueOn(CairoFormat.dayMonth(due, ar)) : s.noDue,
               ].join(' · '),
               key: const ValueKey('next-who'),
             ),

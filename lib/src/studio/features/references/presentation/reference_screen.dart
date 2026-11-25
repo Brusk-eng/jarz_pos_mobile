@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -270,7 +271,7 @@ class _Feasibility extends ConsumerWidget {
             Feasibility.cant,
             Feasibility.used,
           ])
-            ChoiceChip(
+            StudioChoiceChip(
               key: ValueKey('feas-${f.wire}'),
               label: Text(t.feasibilityLabel(f)),
               selected: values['feas'] == f.wire,

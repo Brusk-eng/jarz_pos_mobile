@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -257,7 +258,7 @@ class _ChannelFilter extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsetsDirectional.only(end: StudioSpacing.sm),
-              child: ChoiceChip(
+              child: StudioChoiceChip(
                 key: const ValueKey('channel-all'),
                 label: Text(c.allChannels),
                 selected: selected == null,
@@ -270,7 +271,7 @@ class _ChannelFilter extends ConsumerWidget {
                   padding: const EdgeInsetsDirectional.only(
                     end: StudioSpacing.sm,
                   ),
-                  child: ChoiceChip(
+                  child: StudioChoiceChip(
                     key: ValueKey('channel-${ch.wire}'),
                     avatar: Icon(channelIcon(ch), size: 16),
                     label: Text(names.channel(ch)),
@@ -488,7 +489,7 @@ class _DayBlock extends StatelessWidget {
                 runSpacing: StudioSpacing.xs,
                 children: [
                   for (final m in moments)
-                    ActionChip(
+                    StudioActionChip(
                       key: ValueKey('moment-chip-${m.id}'),
                       avatar: const Icon(Icons.star_outline, size: 16),
                       label: Text(m.title),
@@ -496,7 +497,7 @@ class _DayBlock extends StatelessWidget {
                       onPressed: () => MomentSheet.show(context, m),
                     ),
                   for (final s in shoots)
-                    ActionChip(
+                    StudioActionChip(
                       avatar: const Icon(Icons.videocam_outlined, size: 16),
                       label: Text(s.title),
                       visualDensity: VisualDensity.compact,

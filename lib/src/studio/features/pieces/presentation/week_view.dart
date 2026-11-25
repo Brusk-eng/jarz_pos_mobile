@@ -98,6 +98,7 @@ class _WeekGroupBlock extends StatelessWidget {
             title: Text(shot.what),
             subtitle: Text(
               [
+                s.shotLabel,
                 shot.shootTitle,
                 if (CairoTime.parse(shot.shootDate) case final d?)
                   CairoFormat.dayMonth(d, ar),
@@ -114,9 +115,12 @@ class _WeekGroupBlock extends StatelessWidget {
               size: 20,
             ),
             title: PersonText(task.text),
-            subtitle: task.due == null
-                ? null
-                : Text(s.dueOn(CairoFormat.stamp(task.due, ar))),
+            subtitle: Text(
+              [
+                s.taskLabel,
+                if (task.due != null) s.dueOn(CairoFormat.stamp(task.due, ar)),
+              ].join(' · '),
+            ),
           ),
       ],
     );

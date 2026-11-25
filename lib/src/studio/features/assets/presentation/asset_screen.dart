@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -350,7 +351,7 @@ class _AssetBodyState extends ConsumerState<_AssetBody> {
               spacing: StudioSpacing.sm,
               children: [
                 for (var s = 1; s <= 5; s++)
-                  ChoiceChip(
+                  StudioChoiceChip(
                     key: ValueKey('rate-$s'),
                     label: Text('$s  ${t.scoreLabel(s)}'),
                     selected: a.myRating?.score == s,

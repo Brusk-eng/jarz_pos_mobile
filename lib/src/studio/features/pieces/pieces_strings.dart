@@ -31,6 +31,9 @@ class PiecesStrings {
       tr('No piece in this stage yet.', 'مفيش قطعة في المرحلة دي لسه.');
   String get showMore => tr('Show more', 'اعرض أكتر');
   String get nobodyYet => tr('Nobody yet', 'لسه مفيش حد');
+  String get noDue => tr('No due date', 'مفيش ميعاد');
+  String get taskLabel => tr('Task', 'مهمة');
+  String get shotLabel => tr('Shot', 'شوت');
   String dueOn(String d) => tr('Due $d', 'الموعد $d');
   String waitingOn(String r) => tr('Waiting: $r', 'مستني: $r');
   String parkedWhy(String r) => tr('Parked: $r', 'مؤجّلة: $r');
@@ -56,10 +59,14 @@ class PiecesStrings {
     'مفيش قطعة مطابقة. امسح فلتر أو دوّر على حاجة تانية.',
   );
   String get ownerClaude => 'Claude';
-  String get ownerCreators => tr('The creators', 'صنّاع المحتوى');
+  String get ownerCreators => tr('Any creator', 'أي واحد من صنّاع المحتوى');
 
   // Piece screen.
   String get pieceNext => tr('What happens next', 'الخطوة الجاية');
+  String withTeam(OwnerTeam t) => switch (t) {
+    OwnerTeam.creators => tr('With the creators', 'عند صنّاع المحتوى'),
+    _ => withPerson(team(t)),
+  };
   String withPerson(String n) => tr('With $n', 'عند $n');
   String get withNobody => tr('Nobody has it yet', 'لسه مفيش حد ماسكها');
 
@@ -204,6 +211,7 @@ class PiecesStrings {
 
   // Moves, parking.
   String get reasonLabel => tr('Reason', 'السبب');
+  String get requiredHint => tr('Required', 'مطلوب');
   String get reasonNeeded => tr('Write the reason first.', 'اكتب السبب الأول.');
   String get skipShootReasonLabel =>
       tr('Why does it not need a shoot?', 'ليه مش محتاجة تصوير؟');

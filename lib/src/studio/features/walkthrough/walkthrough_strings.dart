@@ -118,8 +118,8 @@ class WalkthroughStrings {
         icon: Icons.photo_library_outlined,
         title: tr('Your main job screens', 'شاشات شغلك الأساسية'),
         body: tr(
-          'More > Shoots: open the shoot, tap On set and tick each shot as you film it (it works without a connection). More > Library: upload clips and cuts.',
-          'المزيد > التصوير: افتح التصوير ودوس على On set وعلّم كل شوت وإنت بتصوّره (بيشتغل من غير نت). المزيد > المكتبة: ارفع الكليبات والنسخ.',
+          'More > Shoots: open the shoot, tap On set and tick each shot as you film it (it works without a connection). More > Library: upload clips and cuts. Ideas: Inbox > Ideas. Results: More > Results.',
+          'المزيد > التصوير: افتح التصوير ودوس على On set وعلّم كل شوت وإنت بتصوّره (بيشتغل من غير نت). المزيد > المكتبة: ارفع الكليبات والنسخ. الأفكار: الوارد > الأفكار. النتايج: المزيد > النتايج.',
         ),
       ),
       WalkthroughCard(

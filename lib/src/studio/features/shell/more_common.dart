@@ -1,3 +1,4 @@
+import '../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -378,7 +379,7 @@ class ChoiceChipRow<T> extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsetsDirectional.only(end: StudioSpacing.sm),
-            child: ChoiceChip(
+            child: StudioChoiceChip(
               key: const ValueKey('chip-all'),
               label: Text(allLabel ?? t.all),
               selected: value == null,
@@ -388,7 +389,7 @@ class ChoiceChipRow<T> extends StatelessWidget {
           for (final o in options)
             Padding(
               padding: const EdgeInsetsDirectional.only(end: StudioSpacing.sm),
-              child: ChoiceChip(
+              child: StudioChoiceChip(
                 key: ValueKey('chip-${labelOf(o)}'),
                 label: Text(labelOf(o)),
                 selected: value == o,

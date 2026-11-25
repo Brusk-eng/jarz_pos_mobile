@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -67,7 +68,7 @@ class CompetitorsScreen extends ConsumerWidget {
                     ('Active', 'Active', 'شغّالين'),
                     ('Removed', 'Removed', 'اتشالوا'),
                   ])
-                    ChoiceChip(
+                    StudioChoiceChip(
                       key: ValueKey('competitor-status-$key'),
                       label: Text(context.tr(en, ar)),
                       selected: status == key,
@@ -82,11 +83,23 @@ class CompetitorsScreen extends ConsumerWidget {
               child: StudioAsyncView<PagedState<StudioCompetitor>>(
                 value: list,
                 onRetry: () => ref.invalidate(competitorListProvider),
-                empty: StudioEmptyConfig(
-                  purpose: t.competitorsEmptyPurpose,
-                  firstStep: t.competitorsEmptyFirstStep,
-                  icon: Icons.groups_outlined,
-                ),
+                empty: status == 'Removed'
+                    ? StudioEmptyConfig(
+                        purpose: context.tr(
+                          'No removed competitors.',
+                          'مفيش منافسين اتشالوا.',
+                        ),
+                        firstStep: context.tr(
+                          'A competitor you remove shows here, and you can restore it.',
+                          'أي منافس تشيله هيظهر هنا وتقدر ترجّعه.',
+                        ),
+                        icon: Icons.groups_outlined,
+                      )
+                    : StudioEmptyConfig(
+                        purpose: t.competitorsEmptyPurpose,
+                        firstStep: t.competitorsEmptyFirstStep,
+                        icon: Icons.groups_outlined,
+                      ),
                 isEmpty: (s) => s.items.isEmpty,
                 builder: (context, state) => ListView(
                   key: const ValueKey('competitor-list'),

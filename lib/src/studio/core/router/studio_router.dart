@@ -17,6 +17,7 @@ import '../../features/shell/presentation/inbox_screen.dart';
 import '../../features/shell/presentation/more_screen.dart';
 import '../../features/shell/presentation/shell_scaffold.dart';
 import '../../features/shell/presentation/today_screen.dart';
+import '../../shared/not_found_screen.dart';
 import '../../shared/studio_toast.dart';
 import '../l10n/studio_locale.dart';
 import '../push/studio_push_router.dart';
@@ -98,6 +99,7 @@ final studioRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: StudioRoutes.today,
     refreshListenable: refresh,
     redirect: redirect,
+    errorBuilder: (_, _) => const StudioNotFoundScreen(),
     routes: [
       GoRoute(path: '/', redirect: (_, _) => StudioRoutes.today),
       GoRoute(

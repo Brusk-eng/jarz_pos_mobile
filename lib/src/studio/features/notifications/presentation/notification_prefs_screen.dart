@@ -1,3 +1,4 @@
+import '../../../shared/studio_pickers.dart';
 import '../../../data/api/studio_api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,7 +63,7 @@ class _PrefsState extends ConsumerState<NotificationPrefsScreen> {
   }
 
   Future<void> _pick(String? current, void Function(String) then) async {
-    final picked = await showTimePicker(
+    final picked = await showStudioTimePicker(
       context: context,
       initialTime: _parse(current, const TimeOfDay(hour: 22, minute: 0)),
     );

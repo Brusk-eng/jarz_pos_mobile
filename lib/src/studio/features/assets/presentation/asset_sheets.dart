@@ -1,3 +1,5 @@
+import '../../../shared/studio_chips.dart';
+import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -168,7 +170,7 @@ class _ConsentSheetState extends ConsumerState<_ConsentSheet> {
 
   Future<void> pickDate() async {
     final now = DateTime.now();
-    final d = await showDatePicker(
+    final d = await showStudioDatePicker(
       context: context,
       initialDate: date == null ? now : (DateTime.tryParse(date!) ?? now),
       firstDate: DateTime(now.year - 2),
@@ -208,7 +210,7 @@ class _ConsentSheetState extends ConsumerState<_ConsentSheet> {
               children: [
                 for (final s in ConsentStatus.values)
                   if (s != ConsentStatus.unknown)
-                    ChoiceChip(
+                    StudioChoiceChip(
                       key: ValueKey('consent-${s.wire}'),
                       label: Text(t.consentStatus(s)),
                       selected: status == s,
@@ -248,7 +250,7 @@ class _ConsentSheetState extends ConsumerState<_ConsentSheet> {
                 children: [
                   for (final s in ConsentScope.values)
                     if (s != ConsentScope.unknown)
-                      ChoiceChip(
+                      StudioChoiceChip(
                         key: ValueKey('scope-${s.wire}'),
                         label: Text(t.scope(s)),
                         selected: scope == s,
@@ -403,7 +405,7 @@ class _UsedSheetState extends State<_UsedSheet> {
             children: [
               for (final s in AssetStatus.values)
                 if (s != AssetStatus.unknown)
-                  ChoiceChip(
+                  StudioChoiceChip(
                     key: ValueKey('used-${s.wire}'),
                     label: Text(t.status(s)),
                     selected: status == s,

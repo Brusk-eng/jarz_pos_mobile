@@ -1,3 +1,5 @@
+import '../../../shared/studio_chips.dart';
+import '../../../shared/studio_pickers.dart';
 import '../../../data/api/studio_api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -324,7 +326,7 @@ class _EditDialogState extends State<_EditDialog> {
 
   Future<void> _pick(bool from) async {
     final cur = DateTime.tryParse((from ? _from : _to) ?? '') ?? DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showStudioDatePicker(
       context: context,
       initialDate: cur,
       firstDate: DateTime(2025),
@@ -362,7 +364,7 @@ class _EditDialogState extends State<_EditDialog> {
                   FlavourStatus.seasonal,
                   FlavourStatus.coming,
                 ])
-                  ChoiceChip(
+                  StudioChoiceChip(
                     key: ValueKey('flavour-status-${s.wire}'),
                     label: Text(t.statusLabel(s)),
                     selected: _status == s,

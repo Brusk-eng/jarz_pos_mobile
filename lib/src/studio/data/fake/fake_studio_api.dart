@@ -431,13 +431,25 @@ class FakeStudioApi extends StudioApi {
       // The status filter, as the server applies it (after the writes made
       // here are applied).
       final status = p['status'];
+      final from = '${p['from'] ?? ''}';
+      final to = '${p['to'] ?? ''}';
       final now = _overlay(data) as Map<String, dynamic>;
-      if (status == null) return now;
+      // Window-bounded, as the contract says: a post outside the days asked
+      // for is not in the answer.
+      bool inWindow(Map post) {
+        final slot = '${post['slot_time'] ?? ''}';
+        if (from.isEmpty || to.isEmpty || slot.length < 10) return true;
+        final day = slot.substring(0, 10);
+        return day.compareTo(from) >= 0 && day.compareTo(to) <= 0;
+      }
+
       return {
         ...now,
         'posts': [
           for (final post in now['posts'] as List)
-            if ((post as Map)['status'] == status) post,
+            if (inWindow(post as Map) &&
+                (status == null || post['status'] == status))
+              post,
         ],
       };
     }

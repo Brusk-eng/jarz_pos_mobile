@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -147,7 +148,7 @@ class _AddReferenceState extends ConsumerState<AddReferenceSheet> {
                     RefSrcType.igPost,
                     RefSrcType.igReel,
                   ])
-                    ChoiceChip(
+                    StudioChoiceChip(
                       key: ValueKey('ref-add-src-${s.wire}'),
                       label: Text(t.sourceLabel(s)),
                       selected: _src == s,
@@ -165,7 +166,7 @@ class _AddReferenceState extends ConsumerState<AddReferenceSheet> {
                     RefMedia.staticValue,
                     RefMedia.carousel,
                   ])
-                    ChoiceChip(
+                    StudioChoiceChip(
                       key: ValueKey('ref-add-media-${m.wire}'),
                       label: Text(t.formatLabel(m)),
                       selected: _media == m,

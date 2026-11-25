@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -41,7 +42,7 @@ class StatusFilter extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsetsDirectional.only(end: StudioSpacing.sm),
-              child: ChoiceChip(
+              child: StudioChoiceChip(
                 key: const ValueKey('status-all'),
                 label: Text(context.tr('Any status', 'أي حالة')),
                 selected: selected == null,
@@ -54,7 +55,7 @@ class StatusFilter extends ConsumerWidget {
                   padding: const EdgeInsetsDirectional.only(
                     end: StudioSpacing.sm,
                   ),
-                  child: ChoiceChip(
+                  child: StudioChoiceChip(
                     key: ValueKey('status-${s.wire}'),
                     label: Text(labels.postStatus(s)),
                     selected: selected == s,
@@ -117,7 +118,7 @@ class _ChangesState extends ConsumerState<CalendarChangesSheet> {
                 spacing: StudioSpacing.sm,
                 children: [
                   for (final d in const [1, 7, 30])
-                    ChoiceChip(
+                    StudioChoiceChip(
                       key: ValueKey('changes-days-$d'),
                       label: Text(
                         d == 1

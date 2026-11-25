@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/studio_tokens.dart';
@@ -270,14 +271,14 @@ class _CommentSheetState extends State<_CommentSheet> {
             spacing: StudioSpacing.sm,
             runSpacing: StudioSpacing.sm,
             children: [
-              ChoiceChip(
+              StudioChoiceChip(
                 key: const ValueKey('comment-frame-none'),
                 label: Text(t.wholeVersion),
                 selected: _frame == null,
                 onSelected: (_) => setState(() => _frame = null),
               ),
               for (final f in frames)
-                ChoiceChip(
+                StudioChoiceChip(
                   key: ValueKey('comment-frame-pick-${f.position}'),
                   label: Text(t.frameLabel(f.position)),
                   selected: _frame == f.position,

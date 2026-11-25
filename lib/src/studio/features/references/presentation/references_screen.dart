@@ -1,3 +1,4 @@
+import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -285,7 +286,7 @@ class _FiltersSheet extends ConsumerWidget {
             spacing: StudioSpacing.sm,
             children: [
               for (final o in options)
-                ChoiceChip(
+                StudioChoiceChip(
                   key: ValueKey('filter-${wireOf(o)}'),
                   label: Text(labelOf(o)),
                   selected: current == wireOf(o),
