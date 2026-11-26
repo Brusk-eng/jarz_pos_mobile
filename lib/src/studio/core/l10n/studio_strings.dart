@@ -74,6 +74,8 @@ abstract class StudioStrings {
   String get loginSubtitle;
   String get username;
   String get password;
+  String get showPassword;
+  String get hidePassword;
   String get signIn;
   String get signInFailed;
   String get noAccessTitle;
@@ -169,6 +171,10 @@ class StudioStringsEn extends StudioStrings {
   String get username => 'Username';
   @override
   String get password => 'Password';
+  @override
+  String get showPassword => 'Show password';
+  @override
+  String get hidePassword => 'Hide password';
   @override
   String get signIn => 'Sign in';
   @override
@@ -498,6 +504,10 @@ class StudioStringsAr extends StudioStrings {
   String get username => 'اسم المستخدم';
   @override
   String get password => 'كلمة السر';
+  @override
+  String get showPassword => 'إظهار كلمة السر';
+  @override
+  String get hidePassword => 'إخفاء كلمة السر';
   @override
   String get signIn => 'دخول';
   @override

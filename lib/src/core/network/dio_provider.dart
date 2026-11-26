@@ -290,7 +290,15 @@ Future<void> clearStoredSessionAfterUnauthorized({
   await clearCookies();
 }
 
-final dioProvider = Provider<Dio>((ref) {
+final dioProvider = Provider<Dio>(
+  (ref) => buildSessionDio(ref, sendBuildIdentity: true),
+);
+
+/// Builds the session Dio behind [dioProvider]. [sendBuildIdentity] is false
+/// only for Jarz Studio (see [SessionInterceptor.sendBuildIdentity]), which
+/// overrides [dioProvider] with this so login, biometric sign-in, logout and
+/// every other request of that app go without the POS build headers.
+Dio buildSessionDio(Ref ref, {required bool sendBuildIdentity}) {
   final sessionManager = ref.watch(sessionManagerProvider);
   final offlineQueue = ref.watch(offlineQueueProvider);
   final baseUrl = dotenv.get('ERP_BASE_URL');
@@ -345,7 +353,12 @@ final dioProvider = Provider<Dio>((ref) {
   );
 
   // Add enhanced session interceptor with offline support
-  dio.interceptors.add(SessionInterceptor(sessionManager, offlineQueue, frappeSite));
+  dio.interceptors.add(SessionInterceptor(
+    sessionManager,
+    offlineQueue,
+    frappeSite,
+    sendBuildIdentity: sendBuildIdentity,
+  ));
 
   // Add logging interceptor for debugging
   if (kDebugMode) {
@@ -358,4 +371,4 @@ final dioProvider = Provider<Dio>((ref) {
   }
 
   return dio;
-});
+}

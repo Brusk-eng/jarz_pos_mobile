@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/dio_provider.dart'
-    show SessionInterceptor, dioProvider;
+    show SessionInterceptor, buildSessionDio, dioProvider;
 import '../../../core/offline/offline_queue.dart';
 import '../../../core/session/session_manager.dart';
 import '../../data/api/studio_api_endpoints.dart';
@@ -178,6 +178,18 @@ class NoReplayOfflineQueue extends OfflineQueue {
   @override
   Future<void> addTransaction(Map<String, dynamic> transaction) async {}
 }
+
+/// Root overrides of the Studio app (`main_studio.dart`). The POS [dioProvider]
+/// stamps X-Jarz-Build and X-Jarz-Platform, which the server's POS release
+/// floor turns into 426 for a Studio build. Studio reaches that provider
+/// through the POS auth repository (login, biometric silent login, logout), so
+/// the whole app gets a Dio without the headers. The POS app does not use
+/// these overrides and keeps sending them.
+List<Override> studioRootOverrides() => [
+  dioProvider.overrideWith(
+    (ref) => buildSessionDio(ref, sendBuildIdentity: false),
+  ),
+];
 
 /// A Dio with the POS options and session handling (cookies, site header,
 /// 401 and dead-session signals) but that never queues a failed

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'src/core/env/env.dart';
 import 'src/core/monitoring/sentry_service.dart';
 import 'src/studio/core/config/studio_config.dart';
+import 'src/studio/core/network/studio_api.dart';
 import 'src/studio/studio_app.dart';
 
 /// Entry point of Jarz Studio.
@@ -29,7 +30,9 @@ Future<void> main() async {
   var started = false;
   Future<void> start() async {
     started = true;
-    runApp(const ProviderScope(child: StudioApp()));
+    runApp(
+      ProviderScope(overrides: studioRootOverrides(), child: const StudioApp()),
+    );
   }
 
   try {

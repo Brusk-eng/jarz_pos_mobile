@@ -18,6 +18,7 @@ class _StudioLoginScreenState extends ConsumerState<StudioLoginScreen> {
   final _user = TextEditingController();
   final _password = TextEditingController();
   bool _busy = false;
+  bool _showPassword = false;
   String? _error;
 
   @override
@@ -74,10 +75,21 @@ class _StudioLoginScreenState extends ConsumerState<StudioLoginScreen> {
                 TextField(
                   key: const ValueKey('login-password'),
                   controller: _password,
-                  obscureText: true,
+                  obscureText: !_showPassword,
                   autofillHints: const [AutofillHints.password],
                   onSubmitted: (_) => _busy ? null : _submit(),
-                  decoration: InputDecoration(labelText: t.password),
+                  decoration: InputDecoration(
+                    labelText: t.password,
+                    suffixIcon: IconButton(
+                      key: const ValueKey('login-password-toggle'),
+                      tooltip: _showPassword ? t.hidePassword : t.showPassword,
+                      icon: Icon(
+                        _showPassword ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () =>
+                          setState(() => _showPassword = !_showPassword),
+                    ),
+                  ),
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: StudioSpacing.md),
