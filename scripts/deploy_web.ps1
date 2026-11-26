@@ -378,7 +378,9 @@ try {
     $buildCommand = """$repoRoot\scripts\build_release.bat"" $Environment web"
     if ($App -eq 'studio') {
         # The Studio app reads the POS env file and logs in against the Frappe site.
-        $buildCommand = "flutter build web --release -t lib/main_studio.dart --base-href /studio/ --dart-define=ENV=$Environment --dart-define=SENTRY_ENVIRONMENT=$Environment --dart-define=SENTRY_RELEASE=$sentryRelease --dart-define=SENTRY_DIST=$sentryDist --dart-define-from-file=.env.$Environment"
+        # Same names build_release.bat uses: production builds with ENV=prod and the .env.prod file.
+        $studioEnvDefine = if ($Environment -eq 'production') { 'prod' } else { $Environment }
+        $buildCommand = "flutter build web --release -t lib/main_studio.dart --base-href /studio/ --dart-define=ENV=$studioEnvDefine --dart-define=SENTRY_ENVIRONMENT=$Environment --dart-define=SENTRY_RELEASE=$sentryRelease --dart-define=SENTRY_DIST=$sentryDist --dart-define-from-file=.env.$studioEnvDefine"
     }
     $buildProcess = Start-Process -FilePath 'cmd.exe' `
         -ArgumentList '/c', $buildCommand `
