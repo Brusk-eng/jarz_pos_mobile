@@ -538,7 +538,9 @@ jobs:
           if ! sentry-cli releases info "$RELEASE_ID" >/dev/null 2>&1; then
             sentry-cli releases new -p "$SENTRY_PROJECT" "$RELEASE_ID"
           fi
-          sentry-cli releases set-commits "$RELEASE_ID" --auto
+          # --ignore-missing: a squashed or rewritten previous release SHA must not
+          # block the Firebase upload that runs after this step (2026-11-26).
+          sentry-cli releases set-commits "$RELEASE_ID" --auto --ignore-missing
           sentry-cli releases finalize "$RELEASE_ID"
           sentry-cli releases deploys "$RELEASE_ID" new -e "$DEPLOY_ENVIRONMENT"
 
