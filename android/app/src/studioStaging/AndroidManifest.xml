@@ -1,0 +1,33 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Studio flavours only. local_auth needs a FragmentActivity, so the Studio
+         launches StudioMainActivity (FlutterFragmentActivity) and the POS
+         MainActivity stays untouched for the POS flavours. The alias keeps the
+         name .MainActivity alive for the explicit notification intents in
+         OrderAlertNative, which target MainActivity::class. -->
+    <application>
+        <activity android:name=".MainActivity" tools:node="remove" />
+        <activity
+            android:name=".StudioMainActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/StudioLaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/StudioNormalTheme" />
+        </activity>
+        <activity-alias
+            android:name=".MainActivity"
+            android:exported="true"
+            android:targetActivity=".StudioMainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+    </application>
+</manifest>

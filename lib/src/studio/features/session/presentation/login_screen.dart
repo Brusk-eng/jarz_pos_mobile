@@ -5,6 +5,7 @@ import '../../../core/l10n/studio_strings.dart';
 import '../../../core/theme/studio_tokens.dart';
 import '../../../shared/language_switch.dart';
 import '../state/studio_session_notifier.dart';
+import 'biometric_widgets.dart';
 
 class StudioLoginScreen extends ConsumerStatefulWidget {
   const StudioLoginScreen({super.key});
@@ -100,6 +101,7 @@ class _StudioLoginScreenState extends ConsumerState<StudioLoginScreen> {
                         )
                       : Text(t.signIn),
                 ),
+                const BiometricLoginButton(),
               ],
             ),
           ),
