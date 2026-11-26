@@ -141,6 +141,7 @@ class FakeStudioApi extends StudioApi {
     Map<String, dynamic>? params,
     bool get = false,
   }) async {
+    if (method.startsWith(_tiktokPrefix)) return _tiktok(method);
     final key = method.startsWith(studioMethodPrefix)
         ? method.substring(studioMethodPrefix.length)
         : method;
@@ -156,6 +157,42 @@ class FakeStudioApi extends StudioApi {
     final result = written ?? _read(key, p);
     if (!get) announceCall(key);
     return _forRole(_copy(result));
+  }
+
+  // ------------------------------------------------------------------ TikTok
+
+  static const _tiktokPrefix = 'jarz_social.api.tiktok.';
+  bool _tiktokConnected = false;
+
+  /// The TikTok connect endpoints (outside the contract). Only the founder may
+  /// use them; the fake browser round trip of Connect is instant.
+  Future<dynamic> _tiktok(String method) async {
+    await Future<void>.delayed(delay);
+    final fn = method.substring(_tiktokPrefix.length);
+    _calls.add('tiktok.$fn');
+    if (role != 'founder') {
+      throw const StudioNotPermitted('Only the founder may do this.');
+    }
+    Map<String, dynamic> status() => {
+      'configured': true,
+      'connected': _tiktokConnected,
+      'account_name': _tiktokConnected ? 'jarzegypt' : null,
+      'expires_at': _tiktokConnected ? '2026-11-27T12:00:00' : null,
+      'refresh_expires_at': _tiktokConnected ? '2027-11-26T12:00:00' : null,
+      'scopes': _tiktokConnected ? ['accounts'] : <String>[],
+      'error': null,
+    };
+    switch (fn) {
+      case 'status':
+        return status();
+      case 'connect_url':
+        _tiktokConnected = true;
+        return {'url': 'https://example.test/tiktok/authorize'};
+      case 'disconnect':
+        _tiktokConnected = false;
+        return status();
+    }
+    throw StudioNotFound('No fake TikTok endpoint $fn', statusCode: 404);
   }
 
   // ---------------------------------------------------------- role filtering
