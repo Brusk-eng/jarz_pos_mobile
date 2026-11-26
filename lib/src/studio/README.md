@@ -208,7 +208,7 @@ roles gets the "You don't have Studio access" screen and cannot get past it by d
 ## How to test-build the Studio app
 
 Never run `flutter build apk` or Gradle on the dev PC (it takes about 3 GB of RAM). The workflow
-`.github/workflows/studio-android-build.yml` analyzes, tests and builds a debug APK on GitHub (no signing, no Firebase).
+`.github/workflows/studio-android-build.yml` analyzes, tests and builds a debug APK on GitHub (no signing, no Firebase). Golden tests are skipped there (they differ on Linux); run them locally.
 It also runs on every push or pull request that touches `lib/src/studio/**`, `lib/main_studio.dart`, `test/studio/**`,
 `android/**` or `pubspec.*`.
 
