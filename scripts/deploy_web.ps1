@@ -38,17 +38,14 @@ $remoteServedDownloadDir = "$remoteWebDir/download"
 $remoteMetaPath = "$remoteWebDir/release-metadata.json"
 $localNginxConfigPath = Join-Path $repoRoot 'scripts\pos-web\nginx.conf'
 $remoteNginxConfigPath = '/home/ubuntu/pos-web/nginx.conf'
-# Tracked copies of the container's Dockerfile and compose file. Applied on staging only
-# for now: production's compose differs in its Host() rule and keeps its server-side copy.
+# Tracked copies of the container's Dockerfile and compose file. Applied on staging, and on
+# production only for -App studio (it needs the studio-web COPY and the /studio Traefik route);
+# the compose file is tracked with the staging Host() rule and production's is substituted below.
 $localDockerfilePath = Join-Path $repoRoot 'scripts\pos-web\Dockerfile'
 $localComposePath = Join-Path $repoRoot 'scripts\pos-web\docker-compose.yml'
 $remoteDockerfilePath = '/home/ubuntu/pos-web/Dockerfile'
 $remoteComposePath = '/home/ubuntu/pos-web/docker-compose.yml'
 $remoteStudioDir = '/home/ubuntu/pos-web/studio-web'
-
-if ($App -eq 'studio' -and $Environment -ne 'staging') {
-    throw "-App studio is staging-only for now; refusing to deploy it to $Environment."
-}
 
 if (-not (Test-Path $SshKeyPath)) {
     throw "SSH key not found at $SshKeyPath"
@@ -464,12 +461,16 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host ''
 
-if ($Environment -eq 'staging') {
-    Write-Step 'Applying the tracked pos-web Dockerfile and compose file (staging)...'
+if ($Environment -eq 'staging' -or $App -eq 'studio') {
+    Write-Step "Applying the tracked pos-web Dockerfile and compose file ($Environment)..."
     # The compose file is staged with LF endings whatever the checkout's autocrlf did.
     $composeTmp = [System.IO.Path]::GetTempFileName()
     try {
         $composeText = [System.IO.File]::ReadAllText($localComposePath) -replace "`r`n", "`n"
+        if ($Environment -eq 'production') {
+            # The tracked file carries the staging Host() rule; production serves erp.orderjarz.com.
+            $composeText = $composeText -replace 'erpstg\.orderjarz\.com', 'erp.orderjarz.com'
+        }
         [System.IO.File]::WriteAllText($composeTmp, $composeText, (New-Object System.Text.UTF8Encoding($false)))
         & scp -o StrictHostKeyChecking=no -i $SshKeyPath "$composeTmp" "${sshTarget}:$remoteComposePath" 2>&1 | ForEach-Object { Write-Host $_ }
         if ($LASTEXITCODE -ne 0) { throw 'pos-web compose upload failed' }
