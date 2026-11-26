@@ -53,12 +53,20 @@ class SessionInterceptor extends Interceptor {
     this._offlineQueue,
     this._frappeSite, {
     bool? isWebOverride,
+    this.sendBuildIdentity = true,
   }) : _isWeb = isWebOverride ?? kIsWeb;
 
   final SessionManager _sessionManager;
   final OfflineQueue _offlineQueue;
   final String _frappeSite;
   final bool _isWeb;
+
+  /// Whether requests carry the build number and platform the server's release
+  /// gate reads. The POS leaves this on. Jarz Studio turns it off: it is a
+  /// different app whose build number comes from its own CI run count, and the
+  /// gate floor belongs to the POS build line, so a Studio build would be
+  /// refused with 426 on every call.
+  final bool sendBuildIdentity;
 
   /// Resolved once and reused. PackageInfo hits a platform channel, and this
   /// runs on every single request.
@@ -96,8 +104,8 @@ class SessionInterceptor extends Interceptor {
     // Identify the build to the server's release gate. Wrapped because a
     // platform-channel failure must cost us the header, not the request.
     try {
-      final identity = await _resolveBuildIdentity();
-      if (identity.buildNumber != null) {
+      final identity = sendBuildIdentity ? await _resolveBuildIdentity() : null;
+      if (identity != null && identity.buildNumber != null) {
         options.headers[kBuildHeader] = '${identity.buildNumber}';
         options.headers[kPlatformHeader] = identity.platform;
       }

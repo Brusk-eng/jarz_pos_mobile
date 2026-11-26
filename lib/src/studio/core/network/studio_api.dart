@@ -168,9 +168,10 @@ class NoReplayOfflineQueue extends OfflineQueue {
 }
 
 /// A Dio with the POS options and session handling (cookies, site header,
-/// build headers, 401 and dead-session signals) but that never queues a failed
+/// 401 and dead-session signals) but that never queues a failed
 /// POST for replay: the POS rule replays any POST whose path contains
-/// "create", and a replayed Studio write would double-create.
+/// "create", and a replayed Studio write would double-create. It sends no
+/// build headers: the POS release floor on the server must not gate Studio.
 final studioDioProvider = Provider<Dio>((ref) {
   final posDio = ref.watch(dioProvider);
   final dio = Dio(posDio.options.copyWith());
@@ -179,6 +180,7 @@ final studioDioProvider = Provider<Dio>((ref) {
       ref.watch(sessionManagerProvider),
       NoReplayOfflineQueue(),
       dotenv.get('FRAPPE_SITE', fallback: ''),
+      sendBuildIdentity: false,
     ),
   );
   return dio;
