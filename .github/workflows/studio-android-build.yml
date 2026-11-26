@@ -1,9 +1,9 @@
 name: Studio Android build check
 
-run-name: Studio build / ${{ inputs.flavor || 'studioStaging' }} / ${{ github.ref_name }}
+run-name: Android build check / ${{ inputs.flavor || 'studioStaging + staging' }} / ${{ github.ref_name }}
 
-# Test build of Jarz Studio (lib/main_studio.dart): analyze, tests, debug APK as a workflow artifact.
-# Replaces local `flutter build apk` on the dev PC. No signing, no Firebase, no Shorebird.
+# Test build of Jarz Studio (lib/main_studio.dart) and of the POS app (lib/main.dart): debug APKs as workflow artifacts.
+# Studio also runs analyze + tests. Replaces local `flutter build apk` on the dev PC. No signing, no distribution, no Shorebird.
 on:
   workflow_dispatch:
     inputs:
@@ -15,18 +15,20 @@ on:
         options:
           - studioStaging
           - studioProduction
+          - staging
+          - production
   push:
     paths:
-      - 'lib/src/studio/**'
-      - 'lib/main_studio.dart'
+      - 'lib/**'
+      - 'assets/**'
       - 'test/studio/**'
       - 'android/**'
       - 'pubspec.*'
       - '.github/workflows/studio-android-build.yml'
   pull_request:
     paths:
-      - 'lib/src/studio/**'
-      - 'lib/main_studio.dart'
+      - 'lib/**'
+      - 'assets/**'
       - 'test/studio/**'
       - 'android/**'
       - 'pubspec.*'
@@ -37,17 +39,38 @@ permissions:
 
 env:
   FLUTTER_VERSION: "3.44.6"
-  FLAVOR: ${{ inputs.flavor || 'studioStaging' }}
 
 concurrency:
   group: studio-build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  studio-build:
-    name: Studio build (${{ inputs.flavor || 'studioStaging' }})
+  plan:
+    name: Plan matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - id: m
+        env:
+          FLAVOR_INPUT: ${{ inputs.flavor }}
+        run: |
+          if [ -z "$FLAVOR_INPUT" ]; then
+            echo 'matrix={"flavor":["studioStaging","staging"]}' >> "$GITHUB_OUTPUT"
+          else
+            echo "matrix={\"flavor\":[\"$FLAVOR_INPUT\"]}" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build (${{ matrix.flavor }})
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    env:
+      FLAVOR: ${{ matrix.flavor }}
 
     steps:
       - name: Checkout source revision
@@ -79,18 +102,21 @@ jobs:
         run: flutter pub get
 
       - name: Analyze Studio
+        if: startsWith(matrix.flavor, 'studio')
         run: flutter analyze lib/src/studio lib/main_studio.dart test/studio
 
       # Goldens are made on Windows with the bundled fonts (see lib/src/studio/README.md) and differ by a few pixels
       # on the Linux runner, so the golden files are left to the local run; every other Studio test runs here.
       - name: Test Studio (without goldens)
+        if: startsWith(matrix.flavor, 'studio')
         shell: bash
         run: |
           files=$(find test/studio -name '*_test.dart' ! -name '*golden*' ! -name 'ui_fix2_lang_test.dart' | sort)
           flutter test $files
           flutter test test/studio/ui_fix2_lang_test.dart --name '^(?!.*golden)'
 
-      - name: Restore google-services.json
+      - name: Restore google-services.json (Studio)
+        if: startsWith(matrix.flavor, 'studio')
         shell: bash
         env:
           CFG: ${{ secrets.STUDIO_GOOGLE_SERVICES_JSON_BASE64 }}
@@ -104,18 +130,33 @@ jobs:
           echo "$CFG" | base64 -d > "android/app/src/$FLAVOR/google-services.json"
           test -s "android/app/src/$FLAVOR/google-services.json"
 
-      - name: Build Studio debug APK
+      - name: Restore google-services.json (POS)
+        if: ${{ !startsWith(matrix.flavor, 'studio') }}
+        shell: bash
+        env:
+          CFG: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CFG" ]; then
+            echo "::error::ANDROID_GOOGLE_SERVICES_JSON_BASE64 is not set (not available to pull requests from forks)"
+            exit 1
+          fi
+          echo "$CFG" | base64 -d > android/app/google-services.json
+          test -s android/app/google-services.json
+
+      - name: Build debug APK
         id: build
         shell: bash
         run: |
-          if [ "$FLAVOR" = "studioProduction" ]; then
-            env_define=prod; env_file=.env.prod
-          else
-            env_define=staging; env_file=.env.staging
-          fi
+          case "$FLAVOR" in
+            studioProduction|production) env_define=prod; env_file=.env.prod ;;
+            *) env_define=staging; env_file=.env.staging ;;
+          esac
+          target=lib/main.dart
+          case "$FLAVOR" in studio*) target=lib/main_studio.dart ;; esac
           flutter build apk --debug \
             --flavor "$FLAVOR" \
-            -t lib/main_studio.dart \
+            -t "$target" \
             --dart-define=ENV="$env_define" \
             --dart-define-from-file="$env_file" \
             --build-number="${{ github.run_number }}"
@@ -127,7 +168,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: studio-${{ env.FLAVOR }}-debug-apk
+          name: ${{ env.FLAVOR }}-debug-apk
           path: ${{ steps.build.outputs.apk_path }}
           retention-days: 7
           if-no-files-found: error
