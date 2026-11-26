@@ -204,3 +204,20 @@ roles gets the "You don't have Studio access" screen and cannot get past it by d
 
 `flutter test test/studio`. Goldens (`test/studio/goldens/`) are made on Windows with the bundled fonts; regenerate with
 `--update-goldens` if they differ on another platform.
+
+## How to test-build the Studio app
+
+Never run `flutter build apk` or Gradle on the dev PC (it takes about 3 GB of RAM). The workflow
+`.github/workflows/studio-android-build.yml` analyzes, tests and builds a debug APK on GitHub (no signing, no Firebase). Golden tests are skipped there (they differ on Linux); run them locally.
+It also runs on every push or pull request that touches `lib/src/studio/**`, `lib/main_studio.dart`, `test/studio/**`,
+`android/**` or `pubspec.*`.
+
+```
+gh workflow run studio-android-build.yml --ref <branch> -f flavor=studioStaging
+gh run list --workflow studio-android-build.yml --limit 1
+gh run watch <run-id>
+gh run download <run-id> -n studio-studioStaging-debug-apk -D studio-apk
+```
+
+Flavor is `studioStaging` or `studioProduction`. The APK is kept 7 days. `workflow_dispatch` only works once the workflow
+file is on the default branch; before that, push the branch and the push trigger starts the run.

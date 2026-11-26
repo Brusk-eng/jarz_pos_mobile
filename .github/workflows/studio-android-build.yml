@@ -1,0 +1,133 @@
+name: Studio Android build check
+
+run-name: Studio build / ${{ inputs.flavor || 'studioStaging' }} / ${{ github.ref_name }}
+
+# Test build of Jarz Studio (lib/main_studio.dart): analyze, tests, debug APK as a workflow artifact.
+# Replaces local `flutter build apk` on the dev PC. No signing, no Firebase, no Shorebird.
+on:
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: Studio flavor to build
+        required: true
+        default: studioStaging
+        type: choice
+        options:
+          - studioStaging
+          - studioProduction
+  push:
+    paths:
+      - 'lib/src/studio/**'
+      - 'lib/main_studio.dart'
+      - 'test/studio/**'
+      - 'android/**'
+      - 'pubspec.*'
+      - '.github/workflows/studio-android-build.yml'
+  pull_request:
+    paths:
+      - 'lib/src/studio/**'
+      - 'lib/main_studio.dart'
+      - 'test/studio/**'
+      - 'android/**'
+      - 'pubspec.*'
+      - '.github/workflows/studio-android-build.yml'
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.44.6"
+  FLAVOR: ${{ inputs.flavor || 'studioStaging' }}
+
+concurrency:
+  group: studio-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  studio-build:
+    name: Studio build (${{ inputs.flavor || 'studioStaging' }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout source revision
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze Studio
+        run: flutter analyze lib/src/studio lib/main_studio.dart test/studio
+
+      # Goldens are made on Windows with the bundled fonts (see lib/src/studio/README.md) and differ by a few pixels
+      # on the Linux runner, so the golden files are left to the local run; every other Studio test runs here.
+      - name: Test Studio (without goldens)
+        shell: bash
+        run: |
+          files=$(find test/studio -name '*_test.dart' ! -name '*golden*' ! -name 'ui_fix2_lang_test.dart' | sort)
+          flutter test $files
+          flutter test test/studio/ui_fix2_lang_test.dart --name '^(?!.*golden)'
+
+      - name: Restore google-services.json
+        shell: bash
+        env:
+          CFG: ${{ secrets.STUDIO_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CFG" ]; then
+            echo "::error::STUDIO_GOOGLE_SERVICES_JSON_BASE64 is not set (not available to pull requests from forks)"
+            exit 1
+          fi
+          mkdir -p "android/app/src/$FLAVOR"
+          echo "$CFG" | base64 -d > "android/app/src/$FLAVOR/google-services.json"
+          test -s "android/app/src/$FLAVOR/google-services.json"
+
+      - name: Build Studio debug APK
+        id: build
+        shell: bash
+        run: |
+          if [ "$FLAVOR" = "studioProduction" ]; then
+            env_define=prod; env_file=.env.prod
+          else
+            env_define=staging; env_file=.env.staging
+          fi
+          flutter build apk --debug \
+            --flavor "$FLAVOR" \
+            -t lib/main_studio.dart \
+            --dart-define=ENV="$env_define" \
+            --dart-define-from-file="$env_file" \
+            --build-number="${{ github.run_number }}"
+          flavor_lc=$(echo "$FLAVOR" | tr '[:upper:]' '[:lower:]')
+          apk="build/app/outputs/flutter-apk/app-${flavor_lc}-debug.apk"
+          test -f "$apk"
+          echo "apk_path=$apk" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-${{ env.FLAVOR }}-debug-apk
+          path: ${{ steps.build.outputs.apk_path }}
+          retention-days: 7
+          if-no-files-found: error
