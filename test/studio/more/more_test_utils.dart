@@ -128,6 +128,7 @@ Future<ProviderContainer> pumpMore(
   bool openResult = true,
   bool fake = true,
   bool settle = true,
+  List<Override> overrides = const [],
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
@@ -145,6 +146,7 @@ Future<ProviderContainer> pumpMore(
           opened?.add(u);
           return openResult;
         }),
+        ...overrides,
       ],
       child: Consumer(
         builder: (context, ref, _) {

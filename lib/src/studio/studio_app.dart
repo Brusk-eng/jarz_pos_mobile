@@ -13,6 +13,7 @@ import 'core/upload/upload_tray.dart';
 import 'data/write_refresh.dart';
 import 'features/assets/state/library_state.dart';
 import 'features/pieces/state/add_version_state.dart';
+import 'features/session/presentation/biometric_widgets.dart';
 import 'shared/studio_toast.dart';
 
 /// Root of the Jarz Studio app.
@@ -65,11 +66,14 @@ class _StudioAppState extends ConsumerState<StudioApp> {
       scaffoldMessengerKey: studioMessengerKey,
       // The upload tray sits under every screen, so a running upload stays in
       // sight while the person moves around. It draws nothing when idle.
-      builder: (context, child) => Column(
-        children: [
-          Expanded(child: child ?? const SizedBox.shrink()),
-          const SafeArea(top: false, child: UploadTray()),
-        ],
+      builder: (context, child) => BiometricOfferHost(
+        dialogContext: () => router.routerDelegate.navigatorKey.currentContext,
+        child: Column(
+          children: [
+            Expanded(child: child ?? const SizedBox.shrink()),
+            const SafeArea(top: false, child: UploadTray()),
+          ],
+        ),
       ),
     );
   }

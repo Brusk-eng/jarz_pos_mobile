@@ -13,6 +13,8 @@ import '../../data/api/studio_api_endpoints.dart';
 import '../../data/fake/fake_studio_api.dart';
 import '../../data/models/studio_models.dart' show MeProfile;
 import '../../data/studio_error.dart';
+import '../../features/session/state/studio_session_notifier.dart'
+    show studioSessionProvider;
 import '../config/studio_config.dart';
 
 export '../../data/api/studio_api_base.dart' show newRequestId;
@@ -48,9 +50,15 @@ class DioStudioApi extends StudioApi {
   DioStudioApi(
     this._dio, {
     this.retryDelay = const Duration(milliseconds: 1500),
+    this.onDeadSession,
   });
 
   final Dio _dio;
+
+  /// Called when a call (other than `session.me`, which the session notifier
+  /// handles itself) found the session dead. The app uses it to offer the
+  /// fingerprint sign-in; the call still fails with [StudioUnauthenticated].
+  final void Function()? onDeadSession;
 
   /// Wait before the one automatic retry of a read that got a 502, 503 or 504.
   final Duration retryDelay;
@@ -104,7 +112,11 @@ class DioStudioApi extends StudioApi {
       if (data is Map && data.containsKey('message')) return data['message'];
       return data;
     } on DioException catch (e) {
-      throw _toStudioError(e);
+      final error = _toStudioError(e);
+      if (error.deadSession && !method.endsWith('session.me')) {
+        onDeadSession?.call();
+      }
+      throw error;
     }
   }
 
@@ -199,5 +211,13 @@ final studioApiProvider = Provider<StudioApi>((ref) {
       storyFrames: true,
     );
   }
-  return DioStudioApi(ref.watch(studioDioProvider));
+  return DioStudioApi(
+    ref.watch(studioDioProvider),
+    onDeadSession: () {
+      // Lazy: the session notifier depends on this provider.
+      Future<void>.microtask(
+        () => ref.read(studioSessionProvider.notifier).onSessionExpired(),
+      );
+    },
+  );
 });

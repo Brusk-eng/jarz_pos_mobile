@@ -6,6 +6,7 @@ import '../../../core/theme/studio_tokens.dart';
 import '../../../shared/view_edit_scaffold.dart';
 import '../../shell/more_common.dart';
 import '../../session/state/studio_session_notifier.dart';
+import '../../session/presentation/biometric_widgets.dart';
 import '../settings_strings.dart';
 import 'tiktok_card.dart';
 
@@ -66,6 +67,7 @@ class SettingsHubScreen extends ConsumerWidget {
             tile('people', Icons.people_outline, t.people, t.peopleBlurb),
             tile('options', Icons.list_alt, t.options, t.optionsBlurb),
             if (isFounder) const TikTokCard(),
+            const BiometricSettingsTile(),
           ],
         ),
       ),

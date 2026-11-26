@@ -96,12 +96,14 @@ dependencies:
   # a temp file on Android/iOS. Already in the tree via just_audio.
   path_provider: ^2.1.5
   video_player: ^2.14.1
+  local_auth: ^2.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
+  local_auth_platform_interface: ^1.1.0
   build_runner: ^2.4.14
   riverpod_generator: 2.6.4
   freezed: ^2.5.8
