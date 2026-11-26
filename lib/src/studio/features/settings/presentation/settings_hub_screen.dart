@@ -7,6 +7,7 @@ import '../../../shared/view_edit_scaffold.dart';
 import '../../shell/more_common.dart';
 import '../../session/state/studio_session_notifier.dart';
 import '../settings_strings.dart';
+import 'tiktok_card.dart';
 
 /// Settings: rules, flavors, approved claims, moments, people and the option
 /// lists. Everyone may read; the founder edits through the pencil on each
@@ -64,6 +65,7 @@ class SettingsHubScreen extends ConsumerWidget {
             tile('moments', Icons.event_outlined, t.moments, t.momentsBlurb),
             tile('people', Icons.people_outline, t.people, t.peopleBlurb),
             tile('options', Icons.list_alt, t.options, t.optionsBlurb),
+            if (isFounder) const TikTokCard(),
           ],
         ),
       ),
