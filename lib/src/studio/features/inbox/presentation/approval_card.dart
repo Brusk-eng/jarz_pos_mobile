@@ -8,6 +8,7 @@ import '../../../shared/media/studio_media_viewer.dart';
 import '../../../shared/media/studio_thumb.dart';
 import '../../../shared/person_text.dart';
 import '../../../shared/verdict_badge.dart';
+import '../../../shared/post_platforms.dart';
 import '../state/approvals_logic.dart';
 import 'approvals_strings.dart';
 
@@ -128,7 +129,12 @@ class _ApprovalCardState extends State<ApprovalCard> {
                       ),
                       const SizedBox(height: StudioSpacing.xs),
                       Text(
-                        channelWords(post?.channel, piece.format, ar: s.ar),
+                        channelWords(
+                          post?.channel,
+                          piece.format,
+                          ar: s.ar,
+                          platforms: post?.platforms,
+                        ),
                         key: const ValueKey('card-channel'),
                         style: theme.textTheme.bodyMedium,
                       ),
@@ -421,9 +427,15 @@ class _ApprovalCardState extends State<ApprovalCard> {
     DateTime? slot,
     ({bool byHand, String? name}) who,
   ) {
-    final platform = platformWords(post?.channel);
+    final platform = platformsWords(post?.channel, post?.platforms, ar: s.ar);
+    final tikTokByHand =
+        !who.byHand &&
+        hasTikTokPart(post?.platforms) &&
+        platformState(post?.platformStatus, platformTikTok) == 'by hand';
     final text = slot == null
         ? s.approvedNoSlot
+        : tikTokByHand
+        ? s.approvedTikTokByHand(post?.assignee?.fullName, s.when(slot))
         : who.byHand
         ? s.approvedByHand(who.name, s.when(slot), platform)
         : s.approvedByItself(s.when(slot), platform);

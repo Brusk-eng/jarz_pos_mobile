@@ -213,7 +213,10 @@ void main() {
         'Pick one: Mango or Pistachio',
       );
       expect(_text(tester, _in(id, 'card-id')), 'PC-00188');
-      expect(_text(tester, _in(id, 'card-channel')), 'Instagram feed reel');
+      expect(
+        _text(tester, _in(id, 'card-channel')),
+        'Instagram feed reel + TikTok',
+      );
       expect(_text(tester, _in(id, 'card-when')), 'Fri 27 Nov · 8:00 pm');
       expect(_text(tester, _in(id, 'card-countdown')), 'in 11 h');
       expect(
@@ -247,11 +250,11 @@ void main() {
         );
         expect(
           _text(tester, _in('PC-00163-v2', 'card-channel')),
-          'Instagram static',
+          'Instagram static + TikTok',
         );
         expect(
           _text(tester, _in('PC-00147-v1', 'card-channel')),
-          'Instagram carousel',
+          'Instagram carousel + TikTok',
         );
         expect(_in('PC-00188-v1', 'badge-hard-yes'), findsOneWidget);
         expect(
@@ -334,7 +337,7 @@ void main() {
         find.descendant(
           of: note,
           matching: find.text(
-            'Approved. Posts by itself Fri 27 Nov · 8:00 pm on Instagram',
+            'Approved. Posts by itself Fri 27 Nov · 8:00 pm on Instagram and TikTok',
           ),
         ),
         findsOneWidget,
@@ -351,7 +354,7 @@ void main() {
         find.descendant(
           of: _in('PC-00147-v1', 'card-approved-note'),
           matching: find.text(
-            'Approved. Abdelrahman posts it by hand Sat 28 Nov · 1:00 pm on Instagram',
+            'Approved. Abdelrahman posts it by hand Sat 28 Nov · 1:00 pm on Instagram and TikTok',
           ),
         ),
         findsOneWidget,
@@ -551,7 +554,7 @@ void main() {
       );
       expect(
         _text(tester, _in('PC-00188-v1', 'card-channel')),
-        'Instagram ريل على الفيد',
+        'Instagram ريل على الفيد + TikTok',
       );
       expect(
         _text(tester, _in('PC-00188-v1', 'card-when')),
@@ -575,7 +578,7 @@ void main() {
         find.descendant(
           of: _in('PC-00188-v1', 'card-approved-note'),
           matching: find.text(
-            'اتوافق عليها. هتتنشر لوحدها الجمعة 27 نوفمبر · 8:00 م على Instagram',
+            'اتوافق عليها. هتتنشر لوحدها الجمعة 27 نوفمبر · 8:00 م على Instagram و TikTok',
           ),
         ),
         findsOneWidget,

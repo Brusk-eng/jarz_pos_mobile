@@ -2946,6 +2946,13 @@ mixin _$PostBrief {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode => throw _privateConstructorUsedError;
 
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  List<String>? get platforms => throw _privateConstructorUsedError;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus => throw _privateConstructorUsedError;
+
   /// Serializes this PostBrief to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -2968,6 +2975,8 @@ abstract class $PostBriefCopyWith<$Res> {
     @JsonKey(unknownEnumValue: PostStatus.unknown) PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+    List<String>? platforms,
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
   });
 }
 
@@ -2991,6 +3000,8 @@ class _$PostBriefCopyWithImpl<$Res, $Val extends PostBrief>
     Object? slotTime = freezed,
     Object? status = null,
     Object? postingMode = freezed,
+    Object? platforms = freezed,
+    Object? platformStatus = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -3014,6 +3025,14 @@ class _$PostBriefCopyWithImpl<$Res, $Val extends PostBrief>
                 ? _value.postingMode
                 : postingMode // ignore: cast_nullable_to_non_nullable
                       as PostingMode?,
+            platforms: freezed == platforms
+                ? _value.platforms
+                : platforms // ignore: cast_nullable_to_non_nullable
+                      as List<String>?,
+            platformStatus: freezed == platformStatus
+                ? _value.platformStatus
+                : platformStatus // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
           )
           as $Val,
     );
@@ -3036,6 +3055,8 @@ abstract class _$$PostBriefImplCopyWith<$Res>
     @JsonKey(unknownEnumValue: PostStatus.unknown) PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+    List<String>? platforms,
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
   });
 }
 
@@ -3058,6 +3079,8 @@ class __$$PostBriefImplCopyWithImpl<$Res>
     Object? slotTime = freezed,
     Object? status = null,
     Object? postingMode = freezed,
+    Object? platforms = freezed,
+    Object? platformStatus = freezed,
   }) {
     return _then(
       _$PostBriefImpl(
@@ -3081,6 +3104,14 @@ class __$$PostBriefImplCopyWithImpl<$Res>
             ? _value.postingMode
             : postingMode // ignore: cast_nullable_to_non_nullable
                   as PostingMode?,
+        platforms: freezed == platforms
+            ? _value._platforms
+            : platforms // ignore: cast_nullable_to_non_nullable
+                  as List<String>?,
+        platformStatus: freezed == platformStatus
+            ? _value._platformStatus
+            : platformStatus // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
       ),
     );
   }
@@ -3097,7 +3128,10 @@ class _$PostBriefImpl implements _PostBrief {
     @JsonKey(unknownEnumValue: PostStatus.unknown) required this.status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     this.postingMode,
-  });
+    final List<String>? platforms,
+    @JsonKey(name: 'platform_status') final Map<String, String>? platformStatus,
+  }) : _platforms = platforms,
+       _platformStatus = platformStatus;
 
   factory _$PostBriefImpl.fromJson(Map<String, dynamic> json) =>
       _$$PostBriefImplFromJson(json);
@@ -3117,9 +3151,36 @@ class _$PostBriefImpl implements _PostBrief {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   final PostingMode? postingMode;
 
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  final List<String>? _platforms;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  @override
+  List<String>? get platforms {
+    final value = _platforms;
+    if (value == null) return null;
+    if (_platforms is EqualUnmodifiableListView) return _platforms;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// additive: per platform, posted | by hand | failed | planned
+  final Map<String, String>? _platformStatus;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @override
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus {
+    final value = _platformStatus;
+    if (value == null) return null;
+    if (_platformStatus is EqualUnmodifiableMapView) return _platformStatus;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'PostBrief(id: $id, channel: $channel, slotTime: $slotTime, status: $status, postingMode: $postingMode)';
+    return 'PostBrief(id: $id, channel: $channel, slotTime: $slotTime, status: $status, postingMode: $postingMode, platforms: $platforms, platformStatus: $platformStatus)';
   }
 
   @override
@@ -3133,13 +3194,29 @@ class _$PostBriefImpl implements _PostBrief {
                 other.slotTime == slotTime) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.postingMode, postingMode) ||
-                other.postingMode == postingMode));
+                other.postingMode == postingMode) &&
+            const DeepCollectionEquality().equals(
+              other._platforms,
+              _platforms,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._platformStatus,
+              _platformStatus,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, channel, slotTime, status, postingMode);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    channel,
+    slotTime,
+    status,
+    postingMode,
+    const DeepCollectionEquality().hash(_platforms),
+    const DeepCollectionEquality().hash(_platformStatus),
+  );
 
   /// Create a copy of PostBrief
   /// with the given fields replaced by the non-null parameter values.
@@ -3164,6 +3241,8 @@ abstract class _PostBrief implements PostBrief {
     required final PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     final PostingMode? postingMode,
+    final List<String>? platforms,
+    @JsonKey(name: 'platform_status') final Map<String, String>? platformStatus,
   }) = _$PostBriefImpl;
 
   factory _PostBrief.fromJson(Map<String, dynamic> json) =
@@ -3183,6 +3262,15 @@ abstract class _PostBrief implements PostBrief {
   @override
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  @override
+  List<String>? get platforms;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @override
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus;
 
   /// Create a copy of PostBrief
   /// with the given fields replaced by the non-null parameter values.
@@ -15012,6 +15100,13 @@ mixin _$PostSummary {
   PostStatus get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode => throw _privateConstructorUsedError;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  List<String>? get platforms => throw _privateConstructorUsedError;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus => throw _privateConstructorUsedError;
   PersonRef? get assignee => throw _privateConstructorUsedError;
   @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
   OwnerTeam? get assigneeTeam => throw _privateConstructorUsedError;
@@ -15059,6 +15154,8 @@ abstract class $PostSummaryCopyWith<$Res> {
     @JsonKey(unknownEnumValue: PostStatus.unknown) PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+    List<String>? platforms,
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
     PersonRef? assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     OwnerTeam? assigneeTeam,
@@ -15101,6 +15198,8 @@ class _$PostSummaryCopyWithImpl<$Res, $Val extends PostSummary>
     Object? slotTime = freezed,
     Object? status = null,
     Object? postingMode = freezed,
+    Object? platforms = freezed,
+    Object? platformStatus = freezed,
     Object? assignee = freezed,
     Object? assigneeTeam = freezed,
     Object? thumb = freezed,
@@ -15146,6 +15245,14 @@ class _$PostSummaryCopyWithImpl<$Res, $Val extends PostSummary>
                 ? _value.postingMode
                 : postingMode // ignore: cast_nullable_to_non_nullable
                       as PostingMode?,
+            platforms: freezed == platforms
+                ? _value.platforms
+                : platforms // ignore: cast_nullable_to_non_nullable
+                      as List<String>?,
+            platformStatus: freezed == platformStatus
+                ? _value.platformStatus
+                : platformStatus // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
             assignee: freezed == assignee
                 ? _value.assignee
                 : assignee // ignore: cast_nullable_to_non_nullable
@@ -15267,6 +15374,8 @@ abstract class _$$PostSummaryImplCopyWith<$Res>
     @JsonKey(unknownEnumValue: PostStatus.unknown) PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+    List<String>? platforms,
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
     PersonRef? assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     OwnerTeam? assigneeTeam,
@@ -15312,6 +15421,8 @@ class __$$PostSummaryImplCopyWithImpl<$Res>
     Object? slotTime = freezed,
     Object? status = null,
     Object? postingMode = freezed,
+    Object? platforms = freezed,
+    Object? platformStatus = freezed,
     Object? assignee = freezed,
     Object? assigneeTeam = freezed,
     Object? thumb = freezed,
@@ -15357,6 +15468,14 @@ class __$$PostSummaryImplCopyWithImpl<$Res>
             ? _value.postingMode
             : postingMode // ignore: cast_nullable_to_non_nullable
                   as PostingMode?,
+        platforms: freezed == platforms
+            ? _value._platforms
+            : platforms // ignore: cast_nullable_to_non_nullable
+                  as List<String>?,
+        platformStatus: freezed == platformStatus
+            ? _value._platformStatus
+            : platformStatus // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
         assignee: freezed == assignee
             ? _value.assignee
             : assignee // ignore: cast_nullable_to_non_nullable
@@ -15416,6 +15535,8 @@ class _$PostSummaryImpl implements _PostSummary {
     @JsonKey(unknownEnumValue: PostStatus.unknown) required this.status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     this.postingMode,
+    final List<String>? platforms,
+    @JsonKey(name: 'platform_status') final Map<String, String>? platformStatus,
     this.assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     this.assigneeTeam,
@@ -15427,7 +15548,8 @@ class _$PostSummaryImpl implements _PostSummary {
     @JsonKey(name: 'waits_on') this.waitsOn,
     @JsonKey(unknownEnumValue: NoteLevel.unknown) this.level,
     required this.modified,
-  });
+  }) : _platforms = platforms,
+       _platformStatus = platformStatus;
 
   factory _$PostSummaryImpl.fromJson(Map<String, dynamic> json) =>
       _$$PostSummaryImplFromJson(json);
@@ -15453,6 +15575,34 @@ class _$PostSummaryImpl implements _PostSummary {
   @override
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   final PostingMode? postingMode;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  final List<String>? _platforms;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  @override
+  List<String>? get platforms {
+    final value = _platforms;
+    if (value == null) return null;
+    if (_platforms is EqualUnmodifiableListView) return _platforms;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// additive: per platform, posted | by hand | failed | planned
+  final Map<String, String>? _platformStatus;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @override
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus {
+    final value = _platformStatus;
+    if (value == null) return null;
+    if (_platformStatus is EqualUnmodifiableMapView) return _platformStatus;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   final PersonRef? assignee;
   @override
@@ -15485,7 +15635,7 @@ class _$PostSummaryImpl implements _PostSummary {
 
   @override
   String toString() {
-    return 'PostSummary(id: $id, title: $title, piece: $piece, versionId: $versionId, channel: $channel, slotTime: $slotTime, status: $status, postingMode: $postingMode, assignee: $assignee, assigneeTeam: $assigneeTeam, thumb: $thumb, captionReady: $captionReady, moment: $moment, postedAt: $postedAt, permalink: $permalink, waitsOn: $waitsOn, level: $level, modified: $modified)';
+    return 'PostSummary(id: $id, title: $title, piece: $piece, versionId: $versionId, channel: $channel, slotTime: $slotTime, status: $status, postingMode: $postingMode, platforms: $platforms, platformStatus: $platformStatus, assignee: $assignee, assigneeTeam: $assigneeTeam, thumb: $thumb, captionReady: $captionReady, moment: $moment, postedAt: $postedAt, permalink: $permalink, waitsOn: $waitsOn, level: $level, modified: $modified)';
   }
 
   @override
@@ -15504,6 +15654,14 @@ class _$PostSummaryImpl implements _PostSummary {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.postingMode, postingMode) ||
                 other.postingMode == postingMode) &&
+            const DeepCollectionEquality().equals(
+              other._platforms,
+              _platforms,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._platformStatus,
+              _platformStatus,
+            ) &&
             (identical(other.assignee, assignee) ||
                 other.assignee == assignee) &&
             (identical(other.assigneeTeam, assigneeTeam) ||
@@ -15524,7 +15682,7 @@ class _$PostSummaryImpl implements _PostSummary {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     title,
@@ -15534,6 +15692,8 @@ class _$PostSummaryImpl implements _PostSummary {
     slotTime,
     status,
     postingMode,
+    const DeepCollectionEquality().hash(_platforms),
+    const DeepCollectionEquality().hash(_platformStatus),
     assignee,
     assigneeTeam,
     thumb,
@@ -15544,7 +15704,7 @@ class _$PostSummaryImpl implements _PostSummary {
     waitsOn,
     level,
     modified,
-  );
+  ]);
 
   /// Create a copy of PostSummary
   /// with the given fields replaced by the non-null parameter values.
@@ -15572,6 +15732,8 @@ abstract class _PostSummary implements PostSummary {
     required final PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     final PostingMode? postingMode,
+    final List<String>? platforms,
+    @JsonKey(name: 'platform_status') final Map<String, String>? platformStatus,
     final PersonRef? assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     final OwnerTeam? assigneeTeam,
@@ -15609,6 +15771,15 @@ abstract class _PostSummary implements PostSummary {
   @override
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  @override
+  List<String>? get platforms;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @override
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus;
   @override
   PersonRef? get assignee;
   @override
@@ -15882,6 +16053,13 @@ mixin _$SocialPost {
   PostStatus get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode => throw _privateConstructorUsedError;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  List<String>? get platforms => throw _privateConstructorUsedError;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus => throw _privateConstructorUsedError;
   PersonRef? get assignee => throw _privateConstructorUsedError;
   @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
   OwnerTeam? get assigneeTeam => throw _privateConstructorUsedError;
@@ -15955,6 +16133,8 @@ abstract class $SocialPostCopyWith<$Res> {
     @JsonKey(unknownEnumValue: PostStatus.unknown) PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+    List<String>? platforms,
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
     PersonRef? assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     OwnerTeam? assigneeTeam,
@@ -16014,6 +16194,8 @@ class _$SocialPostCopyWithImpl<$Res, $Val extends SocialPost>
     Object? slotTime = freezed,
     Object? status = null,
     Object? postingMode = freezed,
+    Object? platforms = freezed,
+    Object? platformStatus = freezed,
     Object? assignee = freezed,
     Object? assigneeTeam = freezed,
     Object? thumb = freezed,
@@ -16074,6 +16256,14 @@ class _$SocialPostCopyWithImpl<$Res, $Val extends SocialPost>
                 ? _value.postingMode
                 : postingMode // ignore: cast_nullable_to_non_nullable
                       as PostingMode?,
+            platforms: freezed == platforms
+                ? _value.platforms
+                : platforms // ignore: cast_nullable_to_non_nullable
+                      as List<String>?,
+            platformStatus: freezed == platformStatus
+                ? _value.platformStatus
+                : platformStatus // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
             assignee: freezed == assignee
                 ? _value.assignee
                 : assignee // ignore: cast_nullable_to_non_nullable
@@ -16269,6 +16459,8 @@ abstract class _$$SocialPostImplCopyWith<$Res>
     @JsonKey(unknownEnumValue: PostStatus.unknown) PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+    List<String>? platforms,
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
     PersonRef? assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     OwnerTeam? assigneeTeam,
@@ -16332,6 +16524,8 @@ class __$$SocialPostImplCopyWithImpl<$Res>
     Object? slotTime = freezed,
     Object? status = null,
     Object? postingMode = freezed,
+    Object? platforms = freezed,
+    Object? platformStatus = freezed,
     Object? assignee = freezed,
     Object? assigneeTeam = freezed,
     Object? thumb = freezed,
@@ -16392,6 +16586,14 @@ class __$$SocialPostImplCopyWithImpl<$Res>
             ? _value.postingMode
             : postingMode // ignore: cast_nullable_to_non_nullable
                   as PostingMode?,
+        platforms: freezed == platforms
+            ? _value._platforms
+            : platforms // ignore: cast_nullable_to_non_nullable
+                  as List<String>?,
+        platformStatus: freezed == platformStatus
+            ? _value._platformStatus
+            : platformStatus // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
         assignee: freezed == assignee
             ? _value.assignee
             : assignee // ignore: cast_nullable_to_non_nullable
@@ -16511,6 +16713,8 @@ class _$SocialPostImpl implements _SocialPost {
     @JsonKey(unknownEnumValue: PostStatus.unknown) required this.status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     this.postingMode,
+    final List<String>? platforms,
+    @JsonKey(name: 'platform_status') final Map<String, String>? platformStatus,
     this.assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     this.assigneeTeam,
@@ -16539,7 +16743,9 @@ class _$SocialPostImpl implements _SocialPost {
     required final List<StudioProblem> captionProblems,
     required final List<PostRead> reads,
     required final List<String> actions,
-  }) : _files = files,
+  }) : _platforms = platforms,
+       _platformStatus = platformStatus,
+       _files = files,
        _frames = frames,
        _checks = checks,
        _captionProblems = captionProblems,
@@ -16570,6 +16776,34 @@ class _$SocialPostImpl implements _SocialPost {
   @override
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   final PostingMode? postingMode;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  final List<String>? _platforms;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  @override
+  List<String>? get platforms {
+    final value = _platforms;
+    if (value == null) return null;
+    if (_platforms is EqualUnmodifiableListView) return _platforms;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// additive: per platform, posted | by hand | failed | planned
+  final Map<String, String>? _platformStatus;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @override
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus {
+    final value = _platformStatus;
+    if (value == null) return null;
+    if (_platformStatus is EqualUnmodifiableMapView) return _platformStatus;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   final PersonRef? assignee;
   @override
@@ -16680,7 +16914,7 @@ class _$SocialPostImpl implements _SocialPost {
 
   @override
   String toString() {
-    return 'SocialPost(id: $id, title: $title, piece: $piece, versionId: $versionId, channel: $channel, slotTime: $slotTime, status: $status, postingMode: $postingMode, assignee: $assignee, assigneeTeam: $assigneeTeam, thumb: $thumb, captionReady: $captionReady, moment: $moment, postedAt: $postedAt, permalink: $permalink, waitsOn: $waitsOn, level: $level, modified: $modified, caption: $caption, postHow: $postHow, skipReason: $skipReason, note: $note, momentOffsetDays: $momentOffsetDays, postedBy: $postedBy, postedHow: $postedHow, lastError: $lastError, files: $files, frames: $frames, version: $version, checks: $checks, captionProblems: $captionProblems, reads: $reads, actions: $actions)';
+    return 'SocialPost(id: $id, title: $title, piece: $piece, versionId: $versionId, channel: $channel, slotTime: $slotTime, status: $status, postingMode: $postingMode, platforms: $platforms, platformStatus: $platformStatus, assignee: $assignee, assigneeTeam: $assigneeTeam, thumb: $thumb, captionReady: $captionReady, moment: $moment, postedAt: $postedAt, permalink: $permalink, waitsOn: $waitsOn, level: $level, modified: $modified, caption: $caption, postHow: $postHow, skipReason: $skipReason, note: $note, momentOffsetDays: $momentOffsetDays, postedBy: $postedBy, postedHow: $postedHow, lastError: $lastError, files: $files, frames: $frames, version: $version, checks: $checks, captionProblems: $captionProblems, reads: $reads, actions: $actions)';
   }
 
   @override
@@ -16699,6 +16933,14 @@ class _$SocialPostImpl implements _SocialPost {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.postingMode, postingMode) ||
                 other.postingMode == postingMode) &&
+            const DeepCollectionEquality().equals(
+              other._platforms,
+              _platforms,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._platformStatus,
+              _platformStatus,
+            ) &&
             (identical(other.assignee, assignee) ||
                 other.assignee == assignee) &&
             (identical(other.assigneeTeam, assigneeTeam) ||
@@ -16752,6 +16994,8 @@ class _$SocialPostImpl implements _SocialPost {
     slotTime,
     status,
     postingMode,
+    const DeepCollectionEquality().hash(_platforms),
+    const DeepCollectionEquality().hash(_platformStatus),
     assignee,
     assigneeTeam,
     thumb,
@@ -16805,6 +17049,8 @@ abstract class _SocialPost implements SocialPost {
     required final PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     final PostingMode? postingMode,
+    final List<String>? platforms,
+    @JsonKey(name: 'platform_status') final Map<String, String>? platformStatus,
     final PersonRef? assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     final OwnerTeam? assigneeTeam,
@@ -16859,6 +17105,15 @@ abstract class _SocialPost implements SocialPost {
   @override
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode;
+
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+  @override
+  List<String>? get platforms;
+
+  /// additive: per platform, posted | by hand | failed | planned
+  @override
+  @JsonKey(name: 'platform_status')
+  Map<String, String>? get platformStatus;
   @override
   PersonRef? get assignee;
   @override

@@ -1,6 +1,7 @@
 import '../../../shared/person_name.dart';
 import 'package:flutter/material.dart';
 import '../../../shared/person_text.dart';
+import '../../../shared/post_platforms.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_status_colors.dart' as theme;
@@ -125,6 +126,12 @@ class PostTile extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         PostStatusChip(status: post.status),
+                        if (platformsOf(post.platforms).isNotEmpty)
+                          PlatformMarks(
+                            platforms: post.platforms,
+                            status: post.platformStatus,
+                            ar: ar,
+                          ),
                         if (showDate && when != null)
                           Text(
                             CairoFormat.dayMonth(when, ar),

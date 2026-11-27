@@ -1,6 +1,7 @@
 import '../../../core/l10n/studio_labels.dart';
 import '../../../shared/bidi_text.dart';
 import '../../../shared/person_name.dart';
+import '../../../shared/post_platforms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -596,6 +597,17 @@ class _SlotBlock extends StatelessWidget {
         Row(
           children: [
             PostStatusChip(status: post.status),
+            if (platformsOf(post.platforms).isNotEmpty)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  start: StudioSpacing.sm,
+                ),
+                child: PlatformMarks(
+                  platforms: post.platforms,
+                  status: post.platformStatus,
+                  ar: ar,
+                ),
+              ),
             if (post.waitsOn != null && post.waitsOn!.isNotEmpty)
               Expanded(
                 child: Padding(
@@ -615,7 +627,13 @@ class _SlotBlock extends StatelessWidget {
         const SizedBox(height: StudioSpacing.md),
         row(
           channelIcon(post.channel),
-          post.channel == null ? '' : names.channel(post.channel!),
+          post.channel == null
+              ? ''
+              : names.channel(post.channel!) +
+                    (hasTikTokPart(post.platforms) &&
+                            post.channel != PostChannel.tikTok
+                        ? ' + TikTok'
+                        : ''),
           key: const ValueKey('post-channel'),
         ),
         row(

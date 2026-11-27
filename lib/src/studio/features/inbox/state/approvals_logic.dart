@@ -1,5 +1,6 @@
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
+import '../../../shared/post_platforms.dart';
 import '../../calendar/state/cairo_time.dart';
 
 /// Pure rules of the founder's approvals list: which post a card is about,
@@ -132,7 +133,19 @@ bool canUndoApproval(ApproveCard c, DateTime now) {
 
 /// What a channel is called in words, as the founder says it. [ar] picks
 /// Arabic. Flavour of platform: everything is Instagram except TikTok.
-String channelWords(PostChannel? ch, PieceFormat format, {required bool ar}) {
+String channelWords(
+  PostChannel? ch,
+  PieceFormat format, {
+  required bool ar,
+  List<String>? platforms,
+}) {
+  final base = _channelBase(ch, format, ar: ar);
+  return hasTikTokPart(platforms) && ch != PostChannel.tikTok
+      ? '$base + TikTok'
+      : base;
+}
+
+String _channelBase(PostChannel? ch, PieceFormat format, {required bool ar}) {
   final c = ch ?? _channelOfFormat(format);
   if (ar) {
     return switch (c) {
@@ -170,6 +183,18 @@ PostChannel _channelOfFormat(PieceFormat f) => switch (f) {
 /// The platform name used in "Approved. Posts by itself ... on Instagram".
 String platformWords(PostChannel? ch) =>
     ch == PostChannel.tikTok ? 'TikTok' : 'Instagram';
+
+/// The platforms a post goes to, joined: "Instagram and TikTok". With no list
+/// from the server it is the single platform of the channel, as before.
+String platformsWords(
+  PostChannel? ch,
+  List<String>? platforms, {
+  required bool ar,
+}) {
+  final list = platformsOf(platforms);
+  if (list.length < 2) return platformWords(ch);
+  return list.join(ar ? ' و ' : ' and ');
+}
 
 /// Who puts the post up: the system at the slot, or a person by hand.
 ({bool byHand, String? name}) whoPosts(PostSummary? p) {

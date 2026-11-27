@@ -235,6 +235,12 @@ abstract class PostBrief with _$PostBrief {
     @JsonKey(unknownEnumValue: PostStatus.unknown) required PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+
+    /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+    List<String>? platforms,
+
+    /// additive: per platform, posted | by hand | failed | planned
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
   }) = _PostBrief;
 
   factory PostBrief.fromJson(Map<String, dynamic> json) =>
@@ -968,6 +974,12 @@ abstract class PostSummary with _$PostSummary {
     @JsonKey(unknownEnumValue: PostStatus.unknown) required PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+
+    /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+    List<String>? platforms,
+
+    /// additive: per platform, posted | by hand | failed | planned
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
     PersonRef? assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     OwnerTeam? assigneeTeam,
@@ -1021,6 +1033,12 @@ abstract class SocialPost with _$SocialPost {
     @JsonKey(unknownEnumValue: PostStatus.unknown) required PostStatus status,
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
+
+    /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
+    List<String>? platforms,
+
+    /// additive: per platform, posted | by hand | failed | planned
+    @JsonKey(name: 'platform_status') Map<String, String>? platformStatus,
     PersonRef? assignee,
     @JsonKey(name: 'assignee_team', unknownEnumValue: OwnerTeam.unknown)
     OwnerTeam? assigneeTeam,

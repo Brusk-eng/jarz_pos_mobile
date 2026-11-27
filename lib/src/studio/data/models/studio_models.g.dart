@@ -284,6 +284,12 @@ _$PostBriefImpl _$$PostBriefImplFromJson(Map<String, dynamic> json) =>
         json['posting_mode'],
         unknownValue: PostingMode.unknown,
       ),
+      platforms: (json['platforms'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      platformStatus: (json['platform_status'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
     );
 
 Map<String, dynamic> _$$PostBriefImplToJson(_$PostBriefImpl instance) =>
@@ -293,6 +299,8 @@ Map<String, dynamic> _$$PostBriefImplToJson(_$PostBriefImpl instance) =>
       'slot_time': instance.slotTime,
       'status': _$PostStatusEnumMap[instance.status]!,
       'posting_mode': _$PostingModeEnumMap[instance.postingMode],
+      'platforms': instance.platforms,
+      'platform_status': instance.platformStatus,
     };
 
 const _$PostChannelEnumMap = {
@@ -1578,6 +1586,12 @@ _$PostSummaryImpl _$$PostSummaryImplFromJson(Map<String, dynamic> json) =>
         json['posting_mode'],
         unknownValue: PostingMode.unknown,
       ),
+      platforms: (json['platforms'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      platformStatus: (json['platform_status'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
       assignee: json['assignee'] == null
           ? null
           : PersonRef.fromJson(json['assignee'] as Map<String, dynamic>),
@@ -1614,6 +1628,8 @@ Map<String, dynamic> _$$PostSummaryImplToJson(_$PostSummaryImpl instance) =>
       'slot_time': instance.slotTime,
       'status': _$PostStatusEnumMap[instance.status]!,
       'posting_mode': _$PostingModeEnumMap[instance.postingMode],
+      'platforms': instance.platforms,
+      'platform_status': instance.platformStatus,
       'assignee': instance.assignee?.toJson(),
       'assignee_team': _$OwnerTeamEnumMap[instance.assigneeTeam],
       'thumb': instance.thumb?.toJson(),
@@ -1680,6 +1696,12 @@ _$SocialPostImpl _$$SocialPostImplFromJson(Map<String, dynamic> json) =>
         _$PostingModeEnumMap,
         json['posting_mode'],
         unknownValue: PostingMode.unknown,
+      ),
+      platforms: (json['platforms'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      platformStatus: (json['platform_status'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
       ),
       assignee: json['assignee'] == null
           ? null
@@ -1751,6 +1773,8 @@ Map<String, dynamic> _$$SocialPostImplToJson(
   'slot_time': instance.slotTime,
   'status': _$PostStatusEnumMap[instance.status]!,
   'posting_mode': _$PostingModeEnumMap[instance.postingMode],
+  'platforms': instance.platforms,
+  'platform_status': instance.platformStatus,
   'assignee': instance.assignee?.toJson(),
   'assignee_team': _$OwnerTeamEnumMap[instance.assigneeTeam],
   'thumb': instance.thumb?.toJson(),
