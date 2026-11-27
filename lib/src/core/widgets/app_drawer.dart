@@ -417,6 +417,18 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuProductionRound,
           onTap: () => navigate(AppRoutes.productionRound),
         ),
+      // Every recipe and its versions, scalable by any ingredient. Same gate
+      // as the board: `recipe_book` checks the production view set.
+      if (canAccessProductionBoard)
+        navTile(
+          icon: Icons.menu_book_outlined,
+          // Feature-local wording rather than an `.arb` key, which would force
+          // a full APK for one label.
+          title: Localizations.localeOf(context).languageCode == 'ar'
+              ? 'الوصفات'
+              : 'Recipes',
+          onTap: () => navigate(AppRoutes.recipes),
+        ),
     ];
 
     // People and shifts: who works where and when, and what they are doing.
@@ -612,6 +624,7 @@ class AppDrawer extends ConsumerWidget {
           AppRoutes.manufacturing,
           AppRoutes.productionToday,
           AppRoutes.productionRound,
+          AppRoutes.recipes,
         ],
       ),
       _DrawerGroupSpec(

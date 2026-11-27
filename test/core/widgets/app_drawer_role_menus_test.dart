@@ -46,6 +46,7 @@ const _allGated = {
   'Inventory Count',
   'Production Board',
   'Production Round',
+  'Recipes',
   'Tasks',
   'Shift Distribution',
   'Attendance',

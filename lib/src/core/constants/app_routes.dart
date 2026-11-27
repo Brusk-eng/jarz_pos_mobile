@@ -57,6 +57,14 @@ abstract final class AppRoutes {
   /// cycle plus backup. The sibling of [replenishment], which says what to
   /// SEND out of what already exists.
   static const productionRound = '/production-round';
+
+  /// The Recipe Book: every recipe and its SOP versions, scalable by any
+  /// ingredient. Its own destination so the owner reaches a recipe without
+  /// opening the Production Board.
+  static const recipes = '/recipes';
+  static const recipeDetail = '/recipes/:sop';
+  static String recipeDetailFor(String sop) =>
+      '$recipes/${Uri.encodeComponent(sop)}';
   static const cashTransfer = '/cash-transfer';
 
   /// Company cash held by named employees (العُهد).

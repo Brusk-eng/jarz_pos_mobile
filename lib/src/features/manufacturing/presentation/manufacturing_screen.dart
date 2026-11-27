@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../recipe_book/presentation/recipe_book_list_screen.dart';
+import '../../recipe_book/presentation/recipe_book_strings.dart';
 import '../state/base_production_providers.dart';
 import '../state/daily_plan_providers.dart';
 import '../state/production_basket_notifier.dart';
@@ -116,6 +118,15 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
           style: isNarrow ? Theme.of(context).textTheme.titleMedium : null,
         ),
         actions: [
+          // The Recipe Book, pushed as a plain route so the board does not
+          // depend on a router entry for it.
+          IconButton(
+            key: const ValueKey('production-open-recipes'),
+            tooltip: RecipeBookStrings.of(context).title,
+            icon: const Icon(Icons.menu_book_outlined),
+            onPressed: () =>
+                Navigator.of(context).push(RecipeBookListScreen.route()),
+          ),
           IconButton(
             tooltip: l10n.manufacturingRecentWorkOrdersTooltip,
             icon: const Icon(Icons.history),

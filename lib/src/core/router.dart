@@ -25,6 +25,8 @@ import '../features/manufacturing/presentation/manufacturing_screen.dart';
 import '../features/manufacturing/presentation/screens/sop_execute_screen.dart';
 import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
 import '../features/production_round/presentation/production_round_screen.dart';
+import '../features/recipe_book/presentation/recipe_book_list_screen.dart';
+import '../features/recipe_book/presentation/recipe_detail_screen.dart';
 import '../features/replenishment/presentation/replenishment_screen.dart';
 import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
 import '../features/cash_custody/presentation/cash_custody_screen.dart';
@@ -571,6 +573,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.productionRound,
         name: 'production-round',
         builder: (context, state) => const ProductionRoundScreen(),
+      ),
+      // Ungated here like the board: the drawer offers it on the production
+      // view gate, both screens re-check it, and `recipe_book` refuses
+      // anyone else.
+      GoRoute(
+        path: AppRoutes.recipes,
+        name: 'recipes',
+        builder: (context, state) =>
+            const RecipeBookListScreen(showDrawer: true),
+      ),
+      GoRoute(
+        path: AppRoutes.recipeDetail,
+        name: 'recipe-detail',
+        builder: (context, state) => RecipeDetailScreen(
+          sop: Uri.decodeComponent(state.pathParameters['sop'] ?? ''),
+        ),
       ),
       GoRoute(
         path: AppRoutes.cashTransfer,
