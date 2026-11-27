@@ -1381,7 +1381,7 @@ mixin _$MeProfile {
   @JsonKey(name: 'seen_help')
   List<String> get seenHelp => throw _privateConstructorUsedError;
 
-  /// Frappe CSRF token for the cookie session (contract 1.5); null when none
+  /// send as header X-Frappe-CSRF-Token on every POST; null for API-key requests and Guest
   @JsonKey(name: 'csrf_token')
   String? get csrfToken => throw _privateConstructorUsedError;
 
@@ -1715,7 +1715,7 @@ class _$MeProfileImpl implements _MeProfile {
     return EqualUnmodifiableListView(_seenHelp);
   }
 
-  /// Frappe CSRF token for the cookie session (contract 1.5); null when none
+  /// send as header X-Frappe-CSRF-Token on every POST; null for API-key requests and Guest
   @override
   @JsonKey(name: 'csrf_token')
   final String? csrfToken;
@@ -1843,7 +1843,7 @@ abstract class _MeProfile implements MeProfile {
   @JsonKey(name: 'seen_help')
   List<String> get seenHelp;
 
-  /// Frappe CSRF token for the cookie session (contract 1.5); null when none
+  /// send as header X-Frappe-CSRF-Token on every POST; null for API-key requests and Guest
   @override
   @JsonKey(name: 'csrf_token')
   String? get csrfToken;
@@ -12163,6 +12163,18 @@ mixin _$ApproveCard {
   /// cards waiting
   int get total => throw _privateConstructorUsedError;
 
+  /// launch or price-or-box post: the founder gives the hard yes
+  @JsonKey(name: 'needs_hard_yes')
+  bool? get needsHardYes => throw _privateConstructorUsedError;
+
+  /// launch price_or_box
+  @JsonKey(name: 'hard_yes_reason')
+  String? get hardYesReason => throw _privateConstructorUsedError;
+
+  /// the piece already ran as a trial reel
+  @JsonKey(name: 'ran_as_trial')
+  bool? get ranAsTrial => throw _privateConstructorUsedError;
+
   /// Serializes this ApproveCard to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -12189,6 +12201,9 @@ abstract class $ApproveCardCopyWith<$Res> {
     @JsonKey(name: 'waiting_since') String waitingSince,
     int position,
     int total,
+    @JsonKey(name: 'needs_hard_yes') bool? needsHardYes,
+    @JsonKey(name: 'hard_yes_reason') String? hardYesReason,
+    @JsonKey(name: 'ran_as_trial') bool? ranAsTrial,
   });
 
   $PieceVersionCopyWith<$Res> get version;
@@ -12219,6 +12234,9 @@ class _$ApproveCardCopyWithImpl<$Res, $Val extends ApproveCard>
     Object? waitingSince = null,
     Object? position = null,
     Object? total = null,
+    Object? needsHardYes = freezed,
+    Object? hardYesReason = freezed,
+    Object? ranAsTrial = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -12254,6 +12272,18 @@ class _$ApproveCardCopyWithImpl<$Res, $Val extends ApproveCard>
                 ? _value.total
                 : total // ignore: cast_nullable_to_non_nullable
                       as int,
+            needsHardYes: freezed == needsHardYes
+                ? _value.needsHardYes
+                : needsHardYes // ignore: cast_nullable_to_non_nullable
+                      as bool?,
+            hardYesReason: freezed == hardYesReason
+                ? _value.hardYesReason
+                : hardYesReason // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            ranAsTrial: freezed == ranAsTrial
+                ? _value.ranAsTrial
+                : ranAsTrial // ignore: cast_nullable_to_non_nullable
+                      as bool?,
           )
           as $Val,
     );
@@ -12308,6 +12338,9 @@ abstract class _$$ApproveCardImplCopyWith<$Res>
     @JsonKey(name: 'waiting_since') String waitingSince,
     int position,
     int total,
+    @JsonKey(name: 'needs_hard_yes') bool? needsHardYes,
+    @JsonKey(name: 'hard_yes_reason') String? hardYesReason,
+    @JsonKey(name: 'ran_as_trial') bool? ranAsTrial,
   });
 
   @override
@@ -12340,6 +12373,9 @@ class __$$ApproveCardImplCopyWithImpl<$Res>
     Object? waitingSince = null,
     Object? position = null,
     Object? total = null,
+    Object? needsHardYes = freezed,
+    Object? hardYesReason = freezed,
+    Object? ranAsTrial = freezed,
   }) {
     return _then(
       _$ApproveCardImpl(
@@ -12375,6 +12411,18 @@ class __$$ApproveCardImplCopyWithImpl<$Res>
             ? _value.total
             : total // ignore: cast_nullable_to_non_nullable
                   as int,
+        needsHardYes: freezed == needsHardYes
+            ? _value.needsHardYes
+            : needsHardYes // ignore: cast_nullable_to_non_nullable
+                  as bool?,
+        hardYesReason: freezed == hardYesReason
+            ? _value.hardYesReason
+            : hardYesReason // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        ranAsTrial: freezed == ranAsTrial
+            ? _value.ranAsTrial
+            : ranAsTrial // ignore: cast_nullable_to_non_nullable
+                  as bool?,
       ),
     );
   }
@@ -12393,6 +12441,9 @@ class _$ApproveCardImpl implements _ApproveCard {
     @JsonKey(name: 'waiting_since') required this.waitingSince,
     required this.position,
     required this.total,
+    @JsonKey(name: 'needs_hard_yes') this.needsHardYes,
+    @JsonKey(name: 'hard_yes_reason') this.hardYesReason,
+    @JsonKey(name: 'ran_as_trial') this.ranAsTrial,
   }) : _posts = posts;
 
   factory _$ApproveCardImpl.fromJson(Map<String, dynamic> json) =>
@@ -12430,9 +12481,24 @@ class _$ApproveCardImpl implements _ApproveCard {
   @override
   final int total;
 
+  /// launch or price-or-box post: the founder gives the hard yes
+  @override
+  @JsonKey(name: 'needs_hard_yes')
+  final bool? needsHardYes;
+
+  /// launch price_or_box
+  @override
+  @JsonKey(name: 'hard_yes_reason')
+  final String? hardYesReason;
+
+  /// the piece already ran as a trial reel
+  @override
+  @JsonKey(name: 'ran_as_trial')
+  final bool? ranAsTrial;
+
   @override
   String toString() {
-    return 'ApproveCard(version: $version, piece: $piece, posts: $posts, caption: $caption, gate: $gate, waitingSince: $waitingSince, position: $position, total: $total)';
+    return 'ApproveCard(version: $version, piece: $piece, posts: $posts, caption: $caption, gate: $gate, waitingSince: $waitingSince, position: $position, total: $total, needsHardYes: $needsHardYes, hardYesReason: $hardYesReason, ranAsTrial: $ranAsTrial)';
   }
 
   @override
@@ -12449,7 +12515,13 @@ class _$ApproveCardImpl implements _ApproveCard {
                 other.waitingSince == waitingSince) &&
             (identical(other.position, position) ||
                 other.position == position) &&
-            (identical(other.total, total) || other.total == total));
+            (identical(other.total, total) || other.total == total) &&
+            (identical(other.needsHardYes, needsHardYes) ||
+                other.needsHardYes == needsHardYes) &&
+            (identical(other.hardYesReason, hardYesReason) ||
+                other.hardYesReason == hardYesReason) &&
+            (identical(other.ranAsTrial, ranAsTrial) ||
+                other.ranAsTrial == ranAsTrial));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -12464,6 +12536,9 @@ class _$ApproveCardImpl implements _ApproveCard {
     waitingSince,
     position,
     total,
+    needsHardYes,
+    hardYesReason,
+    ranAsTrial,
   );
 
   /// Create a copy of ApproveCard
@@ -12490,6 +12565,9 @@ abstract class _ApproveCard implements ApproveCard {
     @JsonKey(name: 'waiting_since') required final String waitingSince,
     required final int position,
     required final int total,
+    @JsonKey(name: 'needs_hard_yes') final bool? needsHardYes,
+    @JsonKey(name: 'hard_yes_reason') final String? hardYesReason,
+    @JsonKey(name: 'ran_as_trial') final bool? ranAsTrial,
   }) = _$ApproveCardImpl;
 
   factory _ApproveCard.fromJson(Map<String, dynamic> json) =
@@ -12518,6 +12596,21 @@ abstract class _ApproveCard implements ApproveCard {
   /// cards waiting
   @override
   int get total;
+
+  /// launch or price-or-box post: the founder gives the hard yes
+  @override
+  @JsonKey(name: 'needs_hard_yes')
+  bool? get needsHardYes;
+
+  /// launch price_or_box
+  @override
+  @JsonKey(name: 'hard_yes_reason')
+  String? get hardYesReason;
+
+  /// the piece already ran as a trial reel
+  @override
+  @JsonKey(name: 'ran_as_trial')
+  bool? get ranAsTrial;
 
   /// Create a copy of ApproveCard
   /// with the given fields replaced by the non-null parameter values.
@@ -15560,7 +15653,7 @@ CheckItem _$CheckItemFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CheckItem {
-  /// R1..R9
+  /// R1..R10
   String get code => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: CheckSeverity.unknown)
   CheckSeverity get severity => throw _privateConstructorUsedError;
@@ -15695,7 +15788,7 @@ class _$CheckItemImpl implements _CheckItem {
   factory _$CheckItemImpl.fromJson(Map<String, dynamic> json) =>
       _$$CheckItemImplFromJson(json);
 
-  /// R1..R9
+  /// R1..R10
   @override
   final String code;
   @override
@@ -15751,7 +15844,7 @@ abstract class _CheckItem implements CheckItem {
   factory _CheckItem.fromJson(Map<String, dynamic> json) =
       _$CheckItemImpl.fromJson;
 
-  /// R1..R9
+  /// R1..R10
   @override
   String get code;
   @override

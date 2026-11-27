@@ -109,53 +109,20 @@ void main() {
   });
 
   group('To approve list', () {
-    testWidgets('rows show title, flavour, slot, verdict, score, wait', (
+    testWidgets('a card opens the version screen route from its details link', (
       tester,
     ) async {
-      usePhone(tester, height: 1200);
-      final c = await pumpStudioWith(
-        tester,
-        fakeApi(),
-        now: DateTime(2026, 11, 25, 12),
-      );
-      await goTo(tester, c, '/inbox/approve');
-      final row = find.byKey(const ValueKey('approve-PC-00163-v2'));
-      expect(row, findsOneWidget);
-      expect(
-        find.descendant(of: row, matching: find.text('#3 Thank you, me')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: row, matching: find.text('RUN')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: row, matching: find.text('sell 4.2')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: row,
-          matching: find.textContaining('waiting 1 day'),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: row, matching: find.textContaining('Red Velvet')),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('a row opens the version screen route', (tester) async {
-      usePhone(tester, height: 1200);
+      usePhone(tester, height: 3000);
       final c = await pumpStudioWith(tester, fakeApi());
       await goTo(tester, c, '/inbox/approve');
-      await tester.tap(find.byKey(const ValueKey('approve-PC-00188-v1')));
+      final link = find.byKey(const ValueKey('approve-details-PC-00188-v1'));
+      await tester.ensureVisible(link);
+      await tester.tap(link);
       await tester.pumpAndSettle();
       expect(topLocation(c), '/inbox/approve/PC-00188-v1');
     });
 
-    testWidgets('empty state says what happens next', (tester) async {
+    testWidgets('empty state says nothing is waiting', (tester) async {
       usePhone(tester, height: 900);
       final c = await pumpStudioWith(
         tester,
@@ -163,6 +130,7 @@ void main() {
       );
       await goTo(tester, c, '/inbox/approve');
       expect(find.byKey(const ValueKey('empty-purpose')), findsOneWidget);
+      expect(find.text('Nothing waiting for you.'), findsOneWidget);
       expect(find.textContaining('lands here'), findsOneWidget);
     });
 

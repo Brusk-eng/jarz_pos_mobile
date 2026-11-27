@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/roles/studio_role.dart';
+import '../../calendar/state/cairo_time.dart';
 import '../../notifications/data/notifications_repository.dart';
 import '../../review/data/review_repository.dart';
 import '../../session/state/studio_session_notifier.dart';
 
 /// "Now" for waiting times. A provider so tests can pin it.
-final studioNowProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+final studioNowProvider = Provider<DateTime Function()>((ref) => CairoTime.now);
 
 /// The five sections of the Inbox hub.
 enum InboxSection { approve, rate, decisions, ideas, notifications }

@@ -142,7 +142,7 @@ abstract class MeProfile with _$MeProfile {
     /// help sheets and walkthroughs already seen
     @JsonKey(name: 'seen_help') required List<String> seenHelp,
 
-    /// Frappe CSRF token for the cookie session (contract 1.5); null when none
+    /// send as header X-Frappe-CSRF-Token on every POST; null for API-key requests and Guest
     @JsonKey(name: 'csrf_token') String? csrfToken,
   }) = _MeProfile;
 
@@ -798,6 +798,15 @@ abstract class ApproveCard with _$ApproveCard {
 
     /// cards waiting
     required int total,
+
+    /// launch or price-or-box post: the founder gives the hard yes
+    @JsonKey(name: 'needs_hard_yes') bool? needsHardYes,
+
+    /// launch price_or_box
+    @JsonKey(name: 'hard_yes_reason') String? hardYesReason,
+
+    /// the piece already ran as a trial reel
+    @JsonKey(name: 'ran_as_trial') bool? ranAsTrial,
   }) = _ApproveCard;
 
   factory ApproveCard.fromJson(Map<String, dynamic> json) =>
@@ -985,7 +994,7 @@ abstract class PostSummary with _$PostSummary {
 abstract class CheckItem with _$CheckItem {
   @JsonSerializable(explicitToJson: true)
   const factory CheckItem({
-    /// R1..R9
+    /// R1..R10
     required String code,
     @JsonKey(unknownEnumValue: CheckSeverity.unknown)
     required CheckSeverity severity,

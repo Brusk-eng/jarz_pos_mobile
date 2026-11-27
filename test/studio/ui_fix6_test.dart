@@ -51,7 +51,9 @@ void main() {
       usePhone(tester, height: 1800);
       final c = await pumpStudio(tester);
       await goTo(tester, c, '/inbox');
-      final card = find.byKey(const ValueKey('approve-PC-00188-v1'));
+      final card = find.byKey(
+        const ValueKey('approve-details-PC-00188-v1'),
+      );
       await reveal(tester, card);
       await tester.tap(card);
       await tester.pumpAndSettle();

@@ -1,178 +1,359 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../shared/person_text.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/studio_tokens.dart';
-import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
-import '../../../shared/media/studio_media_widgets.dart';
 import '../../../shared/studio_async_view.dart';
-import '../../../shared/verdict_badge.dart';
-import '../../../core/theme/studio_status_colors.dart' show Verdict;
+import '../../../shared/studio_pickers.dart';
+import '../../../shared/studio_toast.dart';
+import '../../calendar/state/cairo_time.dart';
 import '../../review/data/review_repository.dart';
+import '../../review/presentation/review_helpers.dart';
+import '../../review/presentation/review_sheets.dart';
+import '../../review/review_strings.dart';
+import '../../review/state/action_outcome.dart';
+import '../state/approvals_logic.dart';
+import '../state/approvals_state.dart';
 import '../state/inbox_state.dart';
+import 'approval_card.dart';
+import 'approvals_strings.dart';
 import 'inbox_hub.dart';
-import 'inbox_strings.dart';
-import 'ui_helpers.dart';
 
-/// The versions waiting for the founder's yes, oldest first. A tap opens the
-/// version screen (`/inbox/approve/<id>`), where approve and fix live.
-class ToApproveList extends ConsumerWidget {
+/// The founder's approvals screen: what waits for his yes, and what he has
+/// approved that goes out in the next 7 days. One list per tab, ordered by the
+/// time it goes out and grouped by day. Every card carries what he needs to
+/// decide; the version screen (`/inbox/approve/<id>`) is one tap further.
+class ToApproveList extends ConsumerStatefulWidget {
   const ToApproveList({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final s = InboxStrings.of(context);
-    final value = ref.watch(toApproveProvider);
-    final now = ref.watch(studioNowProvider)();
+  ConsumerState<ToApproveList> createState() => _ToApproveListState();
+}
 
+class _ToApproveListState extends ConsumerState<ToApproveList> {
+  bool _approvedTab = false;
+  final _busy = <String>{};
+
+  /// A page that failed to load stops the automatic loading of the rest; the
+  /// "Load more" button tries again.
+  bool _autoFailed = false;
+
+  ApprovalsActions get _actions => ref.read(approvalsActionsProvider);
+
+  Future<void> _run(
+    ApproveCard c,
+    Future<ActionOutcome> Function() call,
+    String Function(ApprovalsStrings s) okText,
+  ) async {
+    if (_busy.contains(c.version.id)) return;
+    setState(() => _busy.add(c.version.id));
+    final outcome = await call();
+    if (!mounted) return;
+    setState(() => _busy.remove(c.version.id));
+    if (outcome.ok) {
+      showStudioToast(okText(ApprovalsStrings.of(context)));
+      return;
+    }
+    if (outcome.failure == ActionFailure.gateFailed) {
+      await showGateProblems(
+        context,
+        ReviewStrings.of(context),
+        outcome.problems,
+      );
+      return;
+    }
+    showStudioToast(failureText(context, outcome));
+  }
+
+  Future<void> _approve(ApproveCard c) =>
+      _run(c, () => _actions.approve(c), (s) => _approvedToast(c, s));
+
+  /// The card itself says what happens next; the toast only confirms.
+  String _approvedToast(ApproveCard c, ApprovalsStrings s) => s.approvedToast;
+
+  Future<void> _sendBack(ApproveCard c) async {
+    final reason = await showSendBackSheet(context);
+    if (reason == null || !mounted) return;
+    await _run(c, () => _actions.sendBack(c, reason), (s) => s.sentBack);
+  }
+
+  Future<void> _undo(ApproveCard c) =>
+      _run(c, () => _actions.undo(c), (s) => s.approvalUndone);
+
+  Future<void> _changeTime(ApproveCard c) async {
+    final post = primaryPost(c);
+    if (post == null) return;
+    final s = ApprovalsStrings.of(context);
+    final now = ref.read(studioNowProvider)();
+    final current = approvalSlot(c) ?? now;
+    final today = DateTime(now.year, now.month, now.day);
+    final day = await showStudioDatePicker(
+      context: context,
+      initialDate: current.isBefore(today) ? today : current,
+      firstDate: today,
+      lastDate: DateTime(now.year + 1, now.month, now.day),
+      helpText: s.pickDate,
+    );
+    if (day == null || !mounted) return;
+    final time = await showStudioTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: current.hour, minute: current.minute),
+      helpText: s.pickTime,
+    );
+    if (time == null || !mounted) return;
+    final slot = CairoTime.wire(
+      DateTime(day.year, day.month, day.day, time.hour, time.minute),
+    );
+    await _run(c, () => _actions.changeTime(c, post, slot), (s) => s.timeSaved);
+  }
+
+  void _open(ApproveCard c) => context.push(InboxPaths.approve(c.version.id));
+
+  /// One list ordered by time needs every page, so the rest load as soon as
+  /// the first one is on screen.
+  void _loadAll(PagedState<ApproveCard> d, Future<void> Function() more) {
+    if (!d.hasMore || d.loadingMore || _autoFailed) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      try {
+        await more();
+      } catch (_) {
+        _autoFailed = true;
+        if (mounted) setState(() {});
+      }
+    });
+  }
+
+  Future<void> _more(Future<void> Function() load) async {
+    _autoFailed = false;
+    try {
+      await load();
+    } catch (_) {
+      _autoFailed = true;
+    }
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = ApprovalsStrings.of(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            StudioSpacing.gutter,
+            StudioSpacing.xs,
+            StudioSpacing.gutter,
+            StudioSpacing.sm,
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<bool>(
+              key: const ValueKey('approvals-tabs'),
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(
+                    s.tabToApprove,
+                    key: const ValueKey('approvals-tab-waiting'),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(
+                    s.tabApproved,
+                    key: const ValueKey('approvals-tab-approved'),
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+              selected: {_approvedTab},
+              onSelectionChanged: (v) => setState(() => _approvedTab = v.first),
+            ),
+          ),
+        ),
+        Expanded(child: _approvedTab ? _approvedBody(s) : _waitingBody(s)),
+      ],
+    );
+  }
+
+  Widget _waitingBody(ApprovalsStrings s) {
+    final value = ref.watch(toApproveProvider);
+    final here = ref.watch(approvedHereProvider);
+    final now = ref.watch(studioNowProvider)();
     return StudioAsyncView<PagedState<ApproveCard>>(
       value: value,
       onRetry: () => ref.invalidate(toApproveProvider),
       empty: StudioEmptyConfig(
-        purpose: s.approveEmptyPurpose,
-        firstStep: s.approveEmptyFirstStep,
+        purpose: s.emptyToApprove,
+        firstStep: s.emptyToApproveHint,
         icon: Icons.verified_outlined,
       ),
-      isEmpty: (d) => d.items.isEmpty,
-      builder: (context, d) => RefreshIndicator(
-        onRefresh: () => ref.read(toApproveProvider.notifier).refresh(),
-        child: ListView(
-          key: const ValueKey('approve-list'),
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(StudioSpacing.gutter),
-          children: [
-            NextStepLine(s.nextStepApprove),
-            const SizedBox(height: StudioSpacing.md),
-            for (final card in d.items)
-              Padding(
-                padding: const EdgeInsets.only(bottom: StudioSpacing.md),
-                child: ApproveRow(card: card, now: now),
-              ),
-            if (d.hasMore)
-              Center(
-                child: TextButton(
-                  key: const ValueKey('approve-more'),
-                  onPressed: () =>
-                      ref.read(toApproveProvider.notifier).loadMore(),
-                  child: Text(s.loadMore),
-                ),
-              ),
-          ],
-        ),
+      isEmpty: (d) => d.items.isEmpty && here.isEmpty,
+      builder: (context, d) {
+        final notifier = ref.read(toApproveProvider.notifier);
+        _loadAll(d, notifier.loadMore);
+        final waiting = {for (final c in d.items) c.version.id};
+        final cards = [
+          ...d.items,
+          for (final c in here.values)
+            if (!waiting.contains(c.version.id)) c,
+        ];
+        return RefreshIndicator(
+          onRefresh: () async {
+            _autoFailed = false;
+            ref.read(approvedHereProvider.notifier).clear();
+            await notifier.refresh();
+          },
+          child: _CardList(
+            listKey: const ValueKey('approve-list'),
+            cards: cards,
+            now: now,
+            hasMore: d.hasMore,
+            onMore: () => _more(notifier.loadMore),
+            modeOf: (c) => here.containsKey(c.version.id)
+                ? ApprovalCardMode.approved
+                : ApprovalCardMode.waiting,
+            busy: _busy,
+            onApprove: _approve,
+            onSendBack: _sendBack,
+            onChangeTime: _changeTime,
+            onUndo: _undo,
+            onOpen: _open,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _approvedBody(ApprovalsStrings s) {
+    final value = ref.watch(approvedSoonProvider);
+    final now = ref.watch(studioNowProvider)();
+    return StudioAsyncView<PagedState<ApproveCard>>(
+      value: value,
+      onRetry: () => ref.invalidate(approvedSoonProvider),
+      empty: StudioEmptyConfig(
+        purpose: s.emptyApproved,
+        firstStep: s.emptyApprovedHint,
+        icon: Icons.event_available_outlined,
       ),
+      isEmpty: (d) => d.items.isEmpty,
+      builder: (context, d) {
+        final notifier = ref.read(approvedSoonProvider.notifier);
+        _loadAll(d, notifier.loadMore);
+        return RefreshIndicator(
+          onRefresh: () async {
+            _autoFailed = false;
+            await notifier.refresh();
+          },
+          child: _CardList(
+            listKey: const ValueKey('approved-list'),
+            cards: d.items,
+            now: now,
+            hasMore: d.hasMore,
+            onMore: () => _more(notifier.loadMore),
+            modeOf: (_) => ApprovalCardMode.approved,
+            busy: _busy,
+            onApprove: _approve,
+            onSendBack: _sendBack,
+            onChangeTime: _changeTime,
+            onUndo: _undo,
+            onOpen: _open,
+          ),
+        );
+      },
     );
   }
 }
 
-class ApproveRow extends StatelessWidget {
-  const ApproveRow({super.key, required this.card, required this.now});
+class _CardList extends StatelessWidget {
+  const _CardList({
+    required this.listKey,
+    required this.cards,
+    required this.now,
+    required this.hasMore,
+    required this.onMore,
+    required this.modeOf,
+    required this.busy,
+    required this.onApprove,
+    required this.onSendBack,
+    required this.onChangeTime,
+    required this.onUndo,
+    required this.onOpen,
+  });
 
-  final ApproveCard card;
+  final Key listKey;
+  final List<ApproveCard> cards;
   final DateTime now;
+  final bool hasMore;
+  final VoidCallback onMore;
+  final ApprovalCardMode Function(ApproveCard) modeOf;
+  final Set<String> busy;
+  final void Function(ApproveCard) onApprove;
+  final void Function(ApproveCard) onSendBack;
+  final void Function(ApproveCard) onChangeTime;
+  final void Function(ApproveCard) onUndo;
+  final void Function(ApproveCard) onOpen;
 
   @override
   Widget build(BuildContext context) {
-    final s = InboxStrings.of(context);
+    final s = ApprovalsStrings.of(context);
     final theme = Theme.of(context);
-    final piece = card.piece;
-    final media = card.version.files.isNotEmpty
-        ? card.version.files.first.media
-        : piece.picture;
-    final slot = card.posts.isNotEmpty ? card.posts.first.slotTime : null;
-    final flavours = piece.noFlavour
-        ? ''
-        : piece.flavours.map((f) => f.name).join(', ');
-    final verdict = piece.verdict;
-
-    return Card(
-      key: ValueKey('approve-${card.version.id}'),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(InboxPaths.approve(card.version.id)),
-        child: Padding(
-          padding: const EdgeInsets.all(StudioSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              StudioThumb(
-                media: media,
-                width: 72,
-                height: 90,
-                radius: BorderRadius.circular(StudioRadii.sm),
+    final groups = groupApprovals(cards, now);
+    return ListView(
+      key: listKey,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(StudioSpacing.gutter),
+      children: [
+        for (final g in groups) ...[
+          Padding(
+            padding: const EdgeInsets.only(
+              top: StudioSpacing.xs,
+              bottom: StudioSpacing.sm,
+            ),
+            child: Text(
+              s.groupTitle(g, g.date == null ? '' : s.dayText(g.date!)),
+              key: ValueKey(
+                'group-${g.kind.name}${g.kind == ApprovalDay.later ? '-${CairoTime.date(g.date!)}' : ''}',
               ),
-              const SizedBox(width: StudioSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    PersonText(
-                      piece.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall,
-                    ),
-                    if (flavours.isNotEmpty)
-                      Text(flavours, style: theme.textTheme.bodySmall),
-                    const SizedBox(height: StudioSpacing.xs),
-                    Text(
-                      slot == null ? s.noSlot : slotText(s, slot),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: StudioSpacing.sm),
-                    Wrap(
-                      spacing: StudioSpacing.sm,
-                      runSpacing: StudioSpacing.xs,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        if (verdict == null)
-                          Text(s.notJudged, style: theme.textTheme.bodySmall)
-                        else ...[
-                          _verdictChip(context, verdict),
-                          if (verdict.sell != null)
-                            Text(
-                              s.sellScore(verdict.sell!.toStringAsFixed(1)),
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          if (verdict.stale)
-                            Text(
-                              s.stale,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: StudioColors.warning,
-                              ),
-                            ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: StudioSpacing.xs),
-                    Text(
-                      s.waiting(waitedText(s, card.waitingSince, now)),
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  ],
-                ),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: g.kind == ApprovalDay.overdue
+                    ? StudioColors.danger
+                    : StudioColors.deepPlum,
+                fontWeight: FontWeight.w700,
               ),
-              const Icon(Icons.chevron_right, color: StudioColors.plumMuted),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _verdictChip(BuildContext context, VerdictBrief v) {
-    final mapped = switch (v.label) {
-      VerdictLabel.rUN => Verdict.run,
-      VerdictLabel.fIX => Verdict.fix,
-      VerdictLabel.dROP => Verdict.drop,
-      _ => null,
-    };
-    if (mapped != null) return VerdictBadge(verdict: mapped);
-    return Text(
-      v.label == VerdictLabel.bLOCKED ? 'BLOCKED' : '-',
-      style: Theme.of(context).textTheme.labelMedium,
+          for (final c in g.cards)
+            Padding(
+              padding: const EdgeInsets.only(bottom: StudioSpacing.md),
+              child: ApprovalCard(
+                card: c,
+                now: now,
+                mode: modeOf(c),
+                busy: busy.contains(c.version.id),
+                onApprove: () => onApprove(c),
+                onSendBack: () => onSendBack(c),
+                onChangeTime: () => onChangeTime(c),
+                onUndo: () => onUndo(c),
+                onOpenDetails: () => onOpen(c),
+              ),
+            ),
+        ],
+        if (hasMore)
+          Center(
+            child: TextButton(
+              key: const ValueKey('approve-more'),
+              onPressed: onMore,
+              child: Text(s.loadMore),
+            ),
+          ),
+      ],
     );
   }
 }

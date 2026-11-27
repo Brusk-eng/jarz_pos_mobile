@@ -1306,6 +1306,9 @@ _$ApproveCardImpl _$$ApproveCardImplFromJson(Map<String, dynamic> json) =>
       waitingSince: json['waiting_since'] as String,
       position: (json['position'] as num).toInt(),
       total: (json['total'] as num).toInt(),
+      needsHardYes: json['needs_hard_yes'] as bool?,
+      hardYesReason: json['hard_yes_reason'] as String?,
+      ranAsTrial: json['ran_as_trial'] as bool?,
     );
 
 Map<String, dynamic> _$$ApproveCardImplToJson(_$ApproveCardImpl instance) =>
@@ -1318,6 +1321,9 @@ Map<String, dynamic> _$$ApproveCardImplToJson(_$ApproveCardImpl instance) =>
       'waiting_since': instance.waitingSince,
       'position': instance.position,
       'total': instance.total,
+      'needs_hard_yes': instance.needsHardYes,
+      'hard_yes_reason': instance.hardYesReason,
+      'ran_as_trial': instance.ranAsTrial,
     };
 
 _$RateCardImpl _$$RateCardImplFromJson(Map<String, dynamic> json) =>

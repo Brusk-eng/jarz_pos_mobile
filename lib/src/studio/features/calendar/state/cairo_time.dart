@@ -20,6 +20,21 @@ class CairoTime {
     return DateTime(y, m, d, hh, mm);
   }
 
+  /// The Cairo wall clock now, whatever zone the device is set to.
+  static DateTime now() {
+    final utc = DateTime.now().toUtc();
+    final summer =
+        offsetFor(DateTime(utc.year, utc.month, utc.day)) == '+03:00';
+    return DateTime(
+      utc.year,
+      utc.month,
+      utc.day,
+      utc.hour + (summer ? 3 : 2),
+      utc.minute,
+      utc.second,
+    );
+  }
+
   static String _p(int v, [int w = 2]) => v.toString().padLeft(w, '0');
 
   /// `2026-11-23`.
