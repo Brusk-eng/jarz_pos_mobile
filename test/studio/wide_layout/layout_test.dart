@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/studio/shared/layout/master_detail.dart';
@@ -179,6 +180,41 @@ void main() {
       await tester.pumpWidget(page());
       await tester.pump();
       expect(tester.getSize(find.byKey(const ValueKey('p'))).width, 390);
+    });
+  });
+
+  group('StudioPage margins', () {
+    testWidgets('a wheel turn over the left and right margin scrolls', (
+      tester,
+    ) async {
+      final controller = ScrollController();
+      addTearDown(controller.dispose);
+      useSize(tester, 1920, 1080);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StudioPage(
+              maxWidth: 840,
+              child: ListView(
+                controller: controller,
+                children: [
+                  for (var i = 0; i < 80; i++)
+                    SizedBox(height: 60, child: Text('row $i')),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(controller.offset, 0);
+      for (final x in [100.0, 1800.0]) {
+        final before = controller.offset;
+        final pointer = TestPointer(1, PointerDeviceKind.mouse);
+        await tester.sendEventToBinding(pointer.hover(Offset(x, 500)));
+        await tester.sendEventToBinding(pointer.scroll(const Offset(0, 200)));
+        await tester.pump();
+        expect(controller.offset, greaterThan(before), reason: 'margin x=$x');
+      }
     });
   });
 

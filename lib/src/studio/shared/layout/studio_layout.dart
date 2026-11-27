@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/studio_tokens.dart';
@@ -70,7 +71,8 @@ class StudioContentWidth {
   static const double full = double.infinity;
 }
 
-/// Centres [child] and caps its width at [maxWidth]. On a phone (narrower than
+/// Centres [child] and caps its width at [maxWidth]; the empty side margins
+/// still scroll the content with the mouse wheel. On a phone (narrower than
 /// the cap) it changes nothing. Height stays exactly what the parent gave, so
 /// a `Column` with `Expanded` or a list inside keeps working.
 class StudioPage extends StatelessWidget {
@@ -89,17 +91,48 @@ class StudioPage extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, box) {
         if (box.maxWidth <= maxWidth) return child;
-        return Align(
-          alignment: Alignment.topCenter,
-          child: SizedBox(
-            width: maxWidth,
-            height: box.hasBoundedHeight ? box.maxHeight : null,
-            child: child,
+        final margin = (box.maxWidth - maxWidth) / 2;
+        // The side margins pass a mouse wheel on to the content, so the page
+        // scrolls with the pointer anywhere over it.
+        Widget side(bool left) => SizedBox(
+          width: margin,
+          height: box.hasBoundedHeight ? box.maxHeight : null,
+          child: Listener(
+            behavior: HitTestBehavior.opaque,
+            onPointerSignal: (e) => _forward(e, left: left, margin: margin),
           ),
+        );
+        return Row(
+          children: [
+            side(true),
+            SizedBox(
+              width: maxWidth,
+              height: box.hasBoundedHeight ? box.maxHeight : null,
+              child: child,
+            ),
+            side(false),
+          ],
         );
       },
     );
   }
+}
+
+/// A wheel turn over a margin is replayed just inside the content's edge, so
+/// the scroll view under it takes it.
+void _forward(
+  PointerSignalEvent e, {
+  required bool left,
+  required double margin,
+}) {
+  if (e is! PointerScrollEvent) return;
+  // The origin of this margin on screen; the content starts at the left
+  // margin's end and ends where the right margin starts.
+  final origin = e.position.dx - e.localPosition.dx;
+  final x = left ? origin + margin + 1 : origin - 1;
+  GestureBinding.instance.handlePointerEvent(
+    e.copyWith(position: Offset(x, e.position.dy)),
+  );
 }
 
 /// How many columns a grid of sections gets in a space [width] wide:
