@@ -109,6 +109,17 @@ class ApprovalsStrings {
           'Approved. $name posts it by hand $when on $platform',
           'اتوافق عليها. هتتنشر بإيد $name $when على $platform',
         );
+
+  /// Instagram by itself, TikTok put up by a person.
+  String approvedTikTokByHand(String? name, String when) => name == null
+      ? _t(
+          'Approved. Posts by itself $when on Instagram; TikTok: posted by hand by the team',
+          'اتوافق عليها. هتتنشر لوحدها $when على Instagram؛ TikTok: هتتنشر بإيد الفريق',
+        )
+      : _t(
+          'Approved. Posts by itself $when on Instagram; TikTok: posted by hand by $name',
+          'اتوافق عليها. هتتنشر لوحدها $when على Instagram؛ TikTok: هتتنشر بإيد $name',
+        );
   String get approvedNoSlot => _t(
     'Approved. It has no time yet, so it will not post until one is set.',
     'اتوافق عليها. لسه من غير معاد، فمش هتتنشر قبل ما يتحدد معاد.',
