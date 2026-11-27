@@ -24,7 +24,7 @@ class ApprovalsStrings {
       _t('Nothing waiting for you.', 'مفيش حاجة مستنياك.');
   String get emptyToApproveHint => _t(
     'When a piece is ready for your yes it lands here, in the order it goes out.',
-    'أول ما قطعة تبقى جاهزة لموافقتك هتظهر هنا، بترتيب معاد نزولها.',
+    'أول ما بوست يبقى جاهز لموافقتك هيظهر هنا، بترتيب معاد نزوله.',
   );
   String get emptyApprovedHint => _t(
     'What you approve shows here with the time it goes out and who posts it.',
@@ -50,7 +50,7 @@ class ApprovalsStrings {
 
   // Card.
   String get noSlot => _t('No time set yet', 'لسه من غير معاد');
-  String get notJudged => _t('Not judged yet', 'لسه متقيمتش');
+  String get notJudged => _t('Not judged yet', 'لسه متحكمش عليها');
   String get judgeStale =>
       _t('(judged before the last change)', '(اتقيّمت قبل آخر تعديل)');
   String judgeLine(String verdict, String? reason) =>
@@ -61,7 +61,7 @@ class ApprovalsStrings {
   String get noCaption => _t('No caption yet', 'مفيش كابشن لسه');
   String get showAll => _t('Show all', 'اعرض الكل');
   String get showLess => _t('Show less', 'اعرض أقل');
-  String get failedChecks => _t('Checks that failed', 'فحوصات مش ناجحة');
+  String get failedChecks => _t('Checks that failed', 'فحوصات منجحتش');
   String get badgeHardYesPrice => _t(
     'Needs your hard yes (price/box post)',
     'محتاجة موافقتك الصريحة (بوست سعر/بوكس)',
@@ -71,7 +71,7 @@ class ApprovalsStrings {
     'محتاجة موافقتك الصريحة (بوست إطلاق)',
   );
   String get badgeTrial =>
-      _t('Already ran as a trial reel', 'نزلت قبل كده كريل تجريبي');
+      _t('Already ran as a trial reel', 'نزلت قبل كده Trial reel');
   String get openMedia => _t('Open the file', 'افتح الملف');
   String get openDetails => _t('Open details', 'افتح التفاصيل');
   String filesCount(int n) => _t('$n files', '$n ملفات');
@@ -85,7 +85,7 @@ class ApprovalsStrings {
   String get approve => _t('Approve', 'وافق');
   String get sendBack => _t('Send back', 'رجّعها');
   String get changeTime => _t('Change time', 'غيّر المعاد');
-  String get undoApproval => _t('Undo approval', 'ألغي الموافقة');
+  String get undoApproval => _t('Undo approval', 'الغي الموافقة');
   String get undoTooLate => _t(
     'Too close to the slot to undo (15 min).',
     'قريب أوي من المعاد، مينفعش تلغي (15 دقيقة).',
@@ -117,7 +117,7 @@ class ApprovalsStrings {
   String get timeSaved => _t('New time saved.', 'المعاد الجديد اتحفظ.');
   String get approvalUndone => _t(
     'Approval undone. It is back in To approve.',
-    'الموافقة اتلغت. رجعت لـ مستنية موافقتك.',
+    'الموافقة اتلغت، ورجعت لقايمة مستنية موافقتك.',
   );
   String get loadMore => _t('Load more', 'حمّل كمان');
 

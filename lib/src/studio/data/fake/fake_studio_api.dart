@@ -37,6 +37,7 @@ class FakeStudioApi extends StudioApi {
     this.textDecisions = false,
     this.firstLogin = false,
     this.storyFrames = false,
+    this.pageSize,
     String? serverLang,
   }) : _lang = serverLang,
        _fixtures = fixtures ?? studioFixtures;
@@ -45,6 +46,10 @@ class FakeStudioApi extends StudioApi {
   final String role;
   final Duration delay;
   final Map<String, String> _fixtures;
+
+  /// When set, the to-approve reads (both scopes) come in pages of this many
+  /// cards with a cursor, as the server pages them.
+  final int? pageSize;
 
   /// Adds the two decisions answered in words (one open, one answered) to
   /// the decisions list and to the Inbox count. They are served by id either way.
@@ -311,7 +316,7 @@ class FakeStudioApi extends StudioApi {
     var data = _fixture(key);
     if (key == 'today.get' && data is Map) data = _todayFor(data, p);
     if (key == 'inbox.to_approve' && data is Map && p['scope'] == 'approved') {
-      data = _approvedSoon(data);
+      data = _paged(_approvedSoon(data), p);
     } else if (key == 'inbox.to_approve' && data is Map) {
       final items = [
         for (final c in data['items'] as List)
@@ -328,6 +333,7 @@ class FakeStudioApi extends StudioApi {
             },
         ],
       };
+      data = _paged(data, p);
     }
     if (key == 'today.get' && data is Map) {
       // A line the person acted on (approved, ticked) is gone on the next read,
@@ -962,6 +968,20 @@ class FakeStudioApi extends StudioApi {
     }
     if (date.isNotEmpty) sample['date'] = date;
     return sample;
+  }
+
+  /// One page of a `{items, next}` answer when [pageSize] is set.
+  Map<String, dynamic> _paged(Map data, Map<String, dynamic> p) {
+    final size = pageSize;
+    final all = data['items'] as List;
+    if (size == null) return Map<String, dynamic>.from(data);
+    final start = int.tryParse('${p['after'] ?? ''}') ?? 0;
+    final end = (start + size).clamp(0, all.length);
+    return {
+      ...Map<String, dynamic>.from(data),
+      'items': all.sublist(start.clamp(0, all.length), end),
+      'next': end < all.length ? '$end' : null,
+    };
   }
 
   /// The approved list: what was approved in this run (the waiting cards, with

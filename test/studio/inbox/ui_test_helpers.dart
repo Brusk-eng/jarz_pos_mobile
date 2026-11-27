@@ -45,7 +45,8 @@ FakeStudioApi fakeApi({
     delay: delay,
     fixtures: fx,
     textDecisions: textDecisions,
-    serverLang: 'en', // the person's language is already saved: no first-open send
+    serverLang:
+        'en', // the person's language is already saved: no first-open send
   );
 }
 

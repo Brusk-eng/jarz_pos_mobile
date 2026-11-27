@@ -33,6 +33,9 @@ class ToApproveList extends ConsumerStatefulWidget {
 }
 
 class _ToApproveListState extends ConsumerState<ToApproveList> {
+  /// Cards loaded before the list shows; past it "Load more" is the way on.
+  static const _cap = 300;
+
   bool _approvedTab = false;
   final _busy = <String>{};
 
@@ -111,10 +114,14 @@ class _ToApproveListState extends ConsumerState<ToApproveList> {
 
   void _open(ApproveCard c) => context.push(InboxPaths.approve(c.version.id));
 
+  /// More pages to fetch before the list can be grouped by time.
+  bool _loading(PagedState<ApproveCard> d) =>
+      d.hasMore && d.items.length < _cap && !_autoFailed;
+
   /// One list ordered by time needs every page, so the rest load as soon as
   /// the first one is on screen.
   void _loadAll(PagedState<ApproveCard> d, Future<void> Function() more) {
-    if (!d.hasMore || d.loadingMore || _autoFailed) return;
+    if (d.loadingMore || !_loading(d)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       try {
@@ -197,7 +204,10 @@ class _ToApproveListState extends ConsumerState<ToApproveList> {
       isEmpty: (d) => d.items.isEmpty && here.isEmpty,
       builder: (context, d) {
         final notifier = ref.read(toApproveProvider.notifier);
-        _loadAll(d, notifier.loadMore);
+        if (_loading(d)) {
+          _loadAll(d, notifier.loadMore);
+          return const StudioSkeleton();
+        }
         final waiting = {for (final c in d.items) c.version.id};
         final cards = [
           ...d.items,
@@ -245,7 +255,10 @@ class _ToApproveListState extends ConsumerState<ToApproveList> {
       isEmpty: (d) => d.items.isEmpty,
       builder: (context, d) {
         final notifier = ref.read(approvedSoonProvider.notifier);
-        _loadAll(d, notifier.loadMore);
+        if (_loading(d)) {
+          _loadAll(d, notifier.loadMore);
+          return const StudioSkeleton();
+        }
         return RefreshIndicator(
           onRefresh: () async {
             _autoFailed = false;

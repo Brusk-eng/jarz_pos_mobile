@@ -593,4 +593,49 @@ void main() {
       expect(find.text('مفيش حاجة مستنياك.'), findsOneWidget);
     });
   });
+  group('paged answers', () {
+    testWidgets('every page loads before the list is grouped by time', (
+      tester,
+    ) async {
+      usePhone(tester, height: 3000);
+      // The server pages by oldest wait, one card a page: the order in time is
+      // only known once all three are in.
+      final api = FakeStudioApi(
+        delay: Duration.zero,
+        serverLang: 'en',
+        pageSize: 1,
+      );
+      final c = await pumpStudioWith(tester, api, now: _fri9);
+      await goTo(tester, c, '/inbox/approve');
+      expect(
+        api.callLog.where((e) => e.key == 'inbox.to_approve').length,
+        greaterThanOrEqualTo(3),
+      );
+      expect(find.byKey(const ValueKey('approve-more')), findsNothing);
+      final y = [
+        for (final id in ['PC-00188-v1', 'PC-00147-v1', 'PC-00163-v2'])
+          tester.getTopLeft(_card_(id)).dy,
+      ];
+      expect(y[0], lessThan(y[1]));
+      expect(y[1], lessThan(y[2]));
+      expect(find.byKey(const ValueKey('group-today')), findsOneWidget);
+      expect(find.byKey(const ValueKey('group-tomorrow')), findsOneWidget);
+    });
+
+    testWidgets('the approved tab loads all its pages too', (tester) async {
+      usePhone(tester, height: 3000);
+      final api = FakeStudioApi(
+        delay: Duration.zero,
+        serverLang: 'en',
+        pageSize: 1,
+      );
+      final c = await pumpStudioWith(tester, api, now: _fri9);
+      await goTo(tester, c, '/inbox/approve');
+      await tester.tap(find.byKey(const ValueKey('approvals-tab-approved')));
+      await tester.pumpAndSettle();
+      expect(_card_('PC-00170-v1'), findsOneWidget);
+      expect(_card_('PC-00171-v1'), findsOneWidget);
+      expect(find.byKey(const ValueKey('approve-more')), findsNothing);
+    });
+  });
 }
