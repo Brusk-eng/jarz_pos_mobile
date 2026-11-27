@@ -106,7 +106,13 @@ class CompetitorsScreen extends ConsumerWidget {
                 builder: (context, state) => ListView(
                   key: const ValueKey('competitor-list'),
                   children: [
-                    for (final c in state.items) _CompetitorRow(c: c),
+                    ResponsiveCardGrid(
+                      minCellWidth: 420,
+                      gap: 0,
+                      children: [
+                        for (final c in state.items) _CompetitorRow(c: c),
+                      ],
+                    ),
                     ShowMoreFooter(
                       state: state,
                       onMore: () =>

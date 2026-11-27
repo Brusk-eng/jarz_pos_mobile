@@ -21,6 +21,8 @@ const _sizes = {
   'd1920': (1920.0, 1080.0),
 };
 
+const _w2 = ['m360', 'm390', 'd1024', 'd1440', 'd1920'];
+
 /// (name, route, sizes, locales)
 final _shots = <(String, String, List<String>, List<String>)>[
   ('today', '/today', ['m390', 'd1024', 'd1440', 'd1920'], ['en', 'ar']),
@@ -37,6 +39,20 @@ final _shots = <(String, String, List<String>, List<String>)>[
   ('pieces_list', '/pieces', ['m390', 'd1024', 'd1440', 'd1920'], ['en']),
   ('library', '/assets', ['m390', 'd1440', 'd1920'], ['en']),
   ('shoots', '/shoots', ['m390', 'd1440', 'd1920'], ['en']),
+  // Wide-layout pass 2.
+  ('references', '/more/references', _w2, ['en']),
+  ('competitors', '/more/references/competitors', _w2, ['en']),
+  ('paid', '/more/paid', _w2, ['en', 'ar']),
+  ('paid_queue', '/more/paid/queue', _w2, ['en']),
+  ('results', '/more/results', _w2, ['en', 'ar']),
+  ('results_pieces', '/more/results/pieces', _w2, ['en']),
+  ('results_summary', '/more/results/summary', _w2, ['en']),
+  ('results_ratings', '/more/results/ratings', _w2, ['en']),
+  ('decisions', '/inbox/decisions', _w2, ['en', 'ar']),
+  ('decisions_open', '/inbox/decisions', ['d1440', 'd1920'], ['en', 'ar']),
+  ('ideas', '/inbox/ideas', _w2, ['en', 'ar']),
+  ('my_ideas', '/inbox/my-ideas', _w2, ['en']),
+  ('board', '/pieces', _w2, ['en']),
   ('phone360', '/today', ['m360'], ['en', 'ar']),
   ('phone360_inbox', '/inbox/approve', ['m360'], ['en', 'ar']),
   ('phone360_calendar', '/calendar', ['m360'], ['en']),
@@ -66,6 +82,22 @@ void main() {
               now: DateTime.parse('2026-11-25T14:05:00+02:00'),
             );
             if (route != '/today') await goTo(tester, c, route);
+            if (name == 'decisions_open') {
+              await tester.tap(
+                find
+                    .byWidgetPredicate(
+                      (w) =>
+                          w.key is ValueKey<String> &&
+                          (w.key! as ValueKey<String>).value.startsWith('dr-'),
+                    )
+                    .first,
+              );
+              await tester.pumpAndSettle();
+            }
+            if (name == 'board') {
+              c.read(piecesViewProvider.notifier).choose(PiecesView.board);
+              await tester.pumpAndSettle();
+            }
             if (name == 'pieces_list') {
               c.read(piecesViewProvider.notifier).choose(PiecesView.list);
               await tester.pumpAndSettle();

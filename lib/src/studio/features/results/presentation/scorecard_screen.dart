@@ -176,101 +176,138 @@ class _ScorecardBody extends ConsumerWidget {
               ),
             ),
           ),
-        SectionLabel(t.numbersTitle),
-        for (final n in card.numbers) _NumberRow(n: n),
-        if (card.gates.isNotEmpty) ...[
-          SectionLabel(t.gatesTitle),
-          MoreCard(
-            child: Column(
-              children: [
-                for (final g in card.gates)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: StudioSpacing.xs,
-                    ),
-                    child: Row(
-                      key: ValueKey('gate-${g.key}'),
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          g.ok ? Icons.check_circle : Icons.cancel,
-                          size: 20,
-                          color: g.ok
-                              ? StudioColors.success
-                              : StudioColors.danger,
-                        ),
-                        const SizedBox(width: StudioSpacing.sm),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                StudioLabels.of(context).metric(g.key) ??
-                                    g.label,
+        // The cards: one column on a phone, 2 to 3 on a wide window. The
+        // cards carry their own side margins, so the grid adds no gap.
+        ResponsiveSectionGrid(
+          gap: 0,
+          sections: [
+            GridSection(
+              weight: 1.0 + card.numbers.length,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SectionLabel(t.numbersTitle),
+                  for (final n in card.numbers) _NumberRow(n: n),
+                ],
+              ),
+            ),
+            if (card.gates.isNotEmpty)
+              GridSection(
+                weight: 2.0 + card.gates.length,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SectionLabel(t.gatesTitle),
+                    MoreCard(
+                      child: Column(
+                        children: [
+                          for (final g in card.gates)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: StudioSpacing.xs,
                               ),
-                              if (g.detail != null)
-                                Text(
-                                  g.detail!,
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                            ],
+                              child: Row(
+                                key: ValueKey('gate-${g.key}'),
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    g.ok ? Icons.check_circle : Icons.cancel,
+                                    size: 20,
+                                    color: g.ok
+                                        ? StudioColors.success
+                                        : StudioColors.danger,
+                                  ),
+                                  const SizedBox(width: StudioSpacing.sm),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          StudioLabels.of(
+                                                context,
+                                              ).metric(g.key) ??
+                                              g.label,
+                                        ),
+                                        if (g.detail != null)
+                                          Text(
+                                            g.detail!,
+                                            style: theme.textTheme.bodySmall,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: StudioSpacing.sm),
+                                  Text(
+                                    g.ok
+                                        ? context.tr('Held', 'متحقق')
+                                        : context.tr('Not held', 'مش متحقق'),
+                                    key: ValueKey('gate-state-${g.key}'),
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: g.ok
+                                              ? StudioColors.success
+                                              : StudioColors.danger,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          const Divider(),
+                          Text(
+                            t.gatesHeld(card.gatesHeldWeeks),
+                            style: theme.textTheme.bodySmall,
                           ),
-                        ),
-                        const SizedBox(width: StudioSpacing.sm),
-                        Text(
-                          g.ok
-                              ? context.tr('Held', 'متحقق')
-                              : context.tr('Not held', 'مش متحقق'),
-                          key: ValueKey('gate-state-${g.key}'),
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: g.ok
-                                ? StudioColors.success
-                                : StudioColors.danger,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                const Divider(),
-                Text(
-                  t.gatesHeld(card.gatesHeldWeeks),
-                  style: theme.textTheme.bodySmall,
+                  ],
                 ),
-              ],
+              ),
+            GridSection(
+              weight: 2.0 + card.lines.length,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SectionLabel(
+                    t.linesTitle,
+                    trailing: card.actions.contains('add_line')
+                        ? TextButton.icon(
+                            key: const ValueKey('add-line'),
+                            onPressed: () => _addLine(context, ref),
+                            icon: const Icon(Icons.add, size: 18),
+                            label: Text(t.addLine),
+                          )
+                        : null,
+                  ),
+                  if (card.lines.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: StudioSpacing.gutter,
+                      ),
+                      child: Text(t.noLines, style: theme.textTheme.bodySmall),
+                    )
+                  else
+                    MoreCard(
+                      child: Column(
+                        children: [
+                          for (final l in card.lines)
+                            LabeledValue(
+                              l.label,
+                              l.value ?? t.sourceLabel(l.source),
+                            ),
+                        ],
+                      ),
+                    ),
+                  SectionLabel(t.reviewNotes),
+                  _TextBlock(text: card.reviewNotes, empty: t.nothingWritten),
+                  SectionLabel(t.actionsAgreed),
+                  _TextBlock(text: card.actionsAgreed, empty: t.nothingWritten),
+                ],
+              ),
             ),
-          ),
-        ],
-        SectionLabel(
-          t.linesTitle,
-          trailing: card.actions.contains('add_line')
-              ? TextButton.icon(
-                  key: const ValueKey('add-line'),
-                  onPressed: () => _addLine(context, ref),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: Text(t.addLine),
-                )
-              : null,
+          ],
         ),
-        if (card.lines.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: StudioSpacing.gutter,
-            ),
-            child: Text(t.noLines, style: theme.textTheme.bodySmall),
-          )
-        else
-          MoreCard(
-            child: Column(
-              children: [
-                for (final l in card.lines)
-                  LabeledValue(l.label, l.value ?? t.sourceLabel(l.source)),
-              ],
-            ),
-          ),
-        SectionLabel(t.reviewNotes),
-        _TextBlock(text: card.reviewNotes, empty: t.nothingWritten),
-        SectionLabel(t.actionsAgreed),
-        _TextBlock(text: card.actionsAgreed, empty: t.nothingWritten),
         if (card.reviewedBy != null && card.reviewedAt != null)
           Padding(
             padding: const EdgeInsets.all(StudioSpacing.gutter),

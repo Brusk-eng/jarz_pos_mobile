@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/studio_labels.dart';
 import '../../../core/router/studio_screen.dart';
 import '../../../core/theme/studio_tokens.dart';
+import '../../../shared/layout/studio_layout.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
@@ -32,6 +33,7 @@ class MyIdeasScreen extends ConsumerWidget {
     return ViewEditScaffold(
       title: t.myIdeas,
       parentRoute: StudioRoutes.inboxIdeas,
+      contentWidth: StudioContentWidth.full,
       showLanguageSwitch: true,
       actions: [
         IconButton(
@@ -57,16 +59,17 @@ class MyIdeasScreen extends ConsumerWidget {
           child: ListView(
             key: const ValueKey('my-ideas-list'),
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(StudioSpacing.gutter),
+            padding: EdgeInsets.all(
+              context.isWideScreen ? StudioSpacing.xl : StudioSpacing.gutter,
+            ),
             children: [
-              for (final idea in d.items)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: StudioSpacing.md),
-                  child: MyIdeaRow(
-                    key: ValueKey('my-idea-${idea.id}'),
-                    idea: idea,
-                  ),
-                ),
+              ResponsiveCardGrid(
+                minCellWidth: 400,
+                children: [
+                  for (final idea in d.items)
+                    MyIdeaRow(key: ValueKey('my-idea-${idea.id}'), idea: idea),
+                ],
+              ),
               if (d.hasMore)
                 Center(
                   child: Tooltip(

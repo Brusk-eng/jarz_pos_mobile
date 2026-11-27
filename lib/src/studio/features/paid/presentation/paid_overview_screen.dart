@@ -30,6 +30,7 @@ class PaidOverviewScreen extends ConsumerWidget {
       parentRoute: '/more',
       actions: [moreHelpAction(context, title: t.helpTitle, lines: t.help)],
       body: MoreBody(
+        maxWidth: StudioContentWidth.full,
         child: StudioAsyncView<PaidOverview>(
           emptyOnNotFound: true,
           value: value,
@@ -67,6 +68,11 @@ class _OverviewBody extends StatelessWidget {
     final m = MoreStrings.of(context);
     final theme = Theme.of(context);
 
+    Widget section(List<Widget> children) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: children,
+    );
+
     return ListView(
       key: const ValueKey('paid-overview'),
       padding: const EdgeInsets.only(bottom: StudioSpacing.xxl),
@@ -84,33 +90,60 @@ class _OverviewBody extends StatelessWidget {
             style: theme.textTheme.bodySmall,
           ),
         ),
-        SectionLabel(t.dueNow),
-        if (o.due.isEmpty)
-          _Quiet(t.nothingDue)
-        else
-          for (final d in o.due) _DueRow(d: d),
-        SectionLabel(t.liveRounds),
-        if (o.rounds.isEmpty)
-          _Quiet(t.noRounds)
-        else
-          for (final r in o.rounds) _RoundRow(r: r),
-        SectionLabel(t.stopSigns),
-        if (o.stopSigns.isEmpty)
-          _Quiet(t.noStopSigns)
-        else
-          for (final s in o.stopSigns) _StopSign(s: s),
-        SectionLabel(
-          t.queueSection,
-          trailing: TextButton(
-            key: const ValueKey('paid-open-queue'),
-            onPressed: () => context.go('/more/paid/queue'),
-            child: Text(t.seeQueue),
-          ),
+        // Four sections: one column on a phone, 2 to 3 on a wide window.
+        // The cards carry their own side margins, so the grid adds none.
+        ResponsiveSectionGrid(
+          gap: 0,
+          sections: [
+            GridSection(
+              weight: 1 + 2.0 * o.due.length,
+              child: section([
+                SectionLabel(t.dueNow),
+                if (o.due.isEmpty)
+                  _Quiet(t.nothingDue)
+                else
+                  for (final d in o.due) _DueRow(d: d),
+              ]),
+            ),
+            GridSection(
+              weight: 1 + 1.0 * o.rounds.length,
+              child: section([
+                SectionLabel(t.liveRounds),
+                if (o.rounds.isEmpty)
+                  _Quiet(t.noRounds)
+                else
+                  for (final r in o.rounds) _RoundRow(r: r),
+              ]),
+            ),
+            GridSection(
+              weight: 1 + 1.0 * o.stopSigns.length,
+              child: section([
+                SectionLabel(t.stopSigns),
+                if (o.stopSigns.isEmpty)
+                  _Quiet(t.noStopSigns)
+                else
+                  for (final s in o.stopSigns) _StopSign(s: s),
+              ]),
+            ),
+            GridSection(
+              weight: 1 + 1.0 * (o.queue.length > 3 ? 3 : o.queue.length),
+              child: section([
+                SectionLabel(
+                  t.queueSection,
+                  trailing: TextButton(
+                    key: const ValueKey('paid-open-queue'),
+                    onPressed: () => context.go('/more/paid/queue'),
+                    child: Text(t.seeQueue),
+                  ),
+                ),
+                if (o.queue.isEmpty)
+                  _Quiet(t.queueEmptyShort)
+                else
+                  for (final q in o.queue.take(3)) _QueueGlance(q: q),
+              ]),
+            ),
+          ],
         ),
-        if (o.queue.isEmpty)
-          _Quiet(t.queueEmptyShort)
-        else
-          for (final q in o.queue.take(3)) _QueueGlance(q: q),
       ],
     );
   }

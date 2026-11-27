@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -33,6 +34,7 @@ class SummaryScreen extends ConsumerWidget {
     final days = ref.watch(summaryDaysProvider);
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.summaryTitle,
       parentRoute: '/more/results',
       actions: [
@@ -43,6 +45,7 @@ class SummaryScreen extends ConsumerWidget {
         ),
       ],
       body: MoreBody(
+        maxWidth: StudioContentWidth.full,
         child: Column(
           children: [
             ChoiceChipRow<String>(
@@ -101,38 +104,46 @@ class _Groups extends StatelessWidget {
       key: const ValueKey('summary-groups'),
       padding: const EdgeInsets.only(bottom: StudioSpacing.xxl),
       children: [
-        for (final g in summary.groups)
-          MoreCard(
-            key: ValueKey('group-${g.key}'),
-            padding: const EdgeInsets.all(StudioSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(g.label, style: theme.textTheme.titleSmall),
-                Text(
-                  t.piecesLine(g.pieces, g.posts, g.reads),
-                  style: theme.textTheme.bodySmall,
+        // One column on a phone, 2 to 4 groups a row on a wide window; the
+        // cards carry their own side margins, so the grid adds no gap.
+        ResponsiveCardGrid(
+          minCellWidth: 360,
+          gap: 0,
+          children: [
+            for (final g in summary.groups)
+              MoreCard(
+                key: ValueKey('group-${g.key}'),
+                padding: const EdgeInsets.all(StudioSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(g.label, style: theme.textTheme.titleSmall),
+                    Text(
+                      t.piecesLine(g.pieces, g.posts, g.reads),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: StudioSpacing.sm),
+                    _Bar(
+                      keyName: 'bar-${g.key}',
+                      label: t.avgViews,
+                      value: g.avgViews == null
+                          ? '-'
+                          : groupDigits(g.avgViews!.round()),
+                      fraction: best == 0 || g.avgViews == null
+                          ? 0
+                          : g.avgViews! / best,
+                    ),
+                    if (g.avgHold3 != null)
+                      LabeledValue(t.avgHold, m.percent(g.avgHold3!)),
+                    if (g.ads > 0) ...[
+                      LabeledValue(t.spendLabel, m.egp(g.spend)),
+                      LabeledValue(t.purchasesLabel, '${g.purchases}'),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: StudioSpacing.sm),
-                _Bar(
-                  keyName: 'bar-${g.key}',
-                  label: t.avgViews,
-                  value: g.avgViews == null
-                      ? '-'
-                      : groupDigits(g.avgViews!.round()),
-                  fraction: best == 0 || g.avgViews == null
-                      ? 0
-                      : g.avgViews! / best,
-                ),
-                if (g.avgHold3 != null)
-                  LabeledValue(t.avgHold, m.percent(g.avgHold3!)),
-                if (g.ads > 0) ...[
-                  LabeledValue(t.spendLabel, m.egp(g.spend)),
-                  LabeledValue(t.purchasesLabel, '${g.purchases}'),
-                ],
-              ],
-            ),
-          ),
+              ),
+          ],
+        ),
       ],
     );
   }

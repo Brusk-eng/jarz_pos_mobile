@@ -9,6 +9,7 @@ abstract class DecisionsStrings {
       : const DecisionsStringsEn();
 
   String get tabOpen;
+  String get pickToOpen;
   String get tabAnswered;
   String get emptyOpenPurpose;
   String get emptyOpenFirstStep;
@@ -54,6 +55,8 @@ abstract class DecisionsStrings {
 
 class DecisionsStringsEn extends DecisionsStrings {
   const DecisionsStringsEn();
+  @override
+  String get pickToOpen => 'Pick a decision to open it here.';
   @override
   String get tabOpen => 'Open';
   @override
@@ -151,6 +154,8 @@ class DecisionsStringsEn extends DecisionsStrings {
 
 class DecisionsStringsAr extends DecisionsStrings {
   const DecisionsStringsAr();
+  @override
+  String get pickToOpen => 'اختار قرار عشان تفتحه هنا.';
   @override
   String get tabOpen => 'مفتوحة';
   @override
