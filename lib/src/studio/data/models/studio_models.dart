@@ -236,7 +236,7 @@ abstract class PostBrief with _$PostBrief {
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
 
-    /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+    /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
     List<String>? platforms,
 
     /// additive: per platform, posted | by hand | failed | planned
@@ -975,7 +975,7 @@ abstract class PostSummary with _$PostSummary {
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
 
-    /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+    /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
     List<String>? platforms,
 
     /// additive: per platform, posted | by hand | failed | planned
@@ -1034,7 +1034,7 @@ abstract class SocialPost with _$SocialPost {
     @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
     PostingMode? postingMode,
 
-    /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+    /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
     List<String>? platforms,
 
     /// additive: per platform, posted | by hand | failed | planned

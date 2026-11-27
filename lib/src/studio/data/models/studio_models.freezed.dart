@@ -2946,7 +2946,7 @@ mixin _$PostBrief {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode => throw _privateConstructorUsedError;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   List<String>? get platforms => throw _privateConstructorUsedError;
 
   /// additive: per platform, posted | by hand | failed | planned
@@ -3151,10 +3151,10 @@ class _$PostBriefImpl implements _PostBrief {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   final PostingMode? postingMode;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   final List<String>? _platforms;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   @override
   List<String>? get platforms {
     final value = _platforms;
@@ -3263,7 +3263,7 @@ abstract class _PostBrief implements PostBrief {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   @override
   List<String>? get platforms;
 
@@ -15101,7 +15101,7 @@ mixin _$PostSummary {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode => throw _privateConstructorUsedError;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   List<String>? get platforms => throw _privateConstructorUsedError;
 
   /// additive: per platform, posted | by hand | failed | planned
@@ -15576,10 +15576,10 @@ class _$PostSummaryImpl implements _PostSummary {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   final PostingMode? postingMode;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   final List<String>? _platforms;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   @override
   List<String>? get platforms {
     final value = _platforms;
@@ -15772,7 +15772,7 @@ abstract class _PostSummary implements PostSummary {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   @override
   List<String>? get platforms;
 
@@ -16054,7 +16054,7 @@ mixin _$SocialPost {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode => throw _privateConstructorUsedError;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   List<String>? get platforms => throw _privateConstructorUsedError;
 
   /// additive: per platform, posted | by hand | failed | planned
@@ -16777,10 +16777,10 @@ class _$SocialPostImpl implements _SocialPost {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   final PostingMode? postingMode;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   final List<String>? _platforms;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   @override
   List<String>? get platforms {
     final value = _platforms;
@@ -17106,7 +17106,7 @@ abstract class _SocialPost implements SocialPost {
   @JsonKey(name: 'posting_mode', unknownEnumValue: PostingMode.unknown)
   PostingMode? get postingMode;
 
-  /// additive (switch fixes): "Instagram", "TikTok" ... the platforms this one post goes to
+  /// additive (one post, two platforms): "Instagram", "TikTok" ...; absent or empty from an older server
   @override
   List<String>? get platforms;
 
