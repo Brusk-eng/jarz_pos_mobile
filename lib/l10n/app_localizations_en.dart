@@ -22080,4 +22080,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get returnOrderGoodsDamagedNo =>
       'They go back into branch stock, ready to sell.';
+
+  @override
+  String get shiftSheetReasonPaid => 'Paid in drawer';
+
+  @override
+  String shiftSheetPaidInDrawerAt(String time) {
+    return 'Paid in drawer at $time';
+  }
+
+  @override
+  String get shiftSheetNoDrawerOrders =>
+      'No order touched the drawer this shift yet (sent out, settled or paid in).';
+
+  @override
+  String get shiftSheetOverdueTitle => 'Late — not sent out';
+
+  @override
+  String get shiftSheetNoOverdue => 'No late orders';
+
+  @override
+  String shiftSheetLateBy(String duration) {
+    return 'Late by $duration';
+  }
+
+  @override
+  String shiftSheetDurationMinutes(int minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String shiftSheetDurationHoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String shiftSheetDurationDaysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get shiftSheetDueThisShift => 'Due this shift';
+
+  @override
+  String get shiftSheetFromEarlierShift => 'From an earlier shift';
+
+  @override
+  String shiftSheetWentOutLaterAt(String time) {
+    return 'Went out later at $time';
+  }
+
+  @override
+  String get shiftSheetNotSentOutYet => 'Not sent out yet';
 }

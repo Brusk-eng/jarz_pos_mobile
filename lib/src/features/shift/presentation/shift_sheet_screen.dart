@@ -120,6 +120,8 @@ class _SheetBody extends StatelessWidget {
           amountsHidden: sheet.amountsHidden,
         ),
         const SizedBox(height: 16),
+        _OverdueSection(orders: sheet.overdue),
+        const SizedBox(height: 16),
         _ReturnsSection(
           returns: sheet.returns,
           amountsHidden: sheet.amountsHidden,
@@ -218,7 +220,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-enum _OrderFilter { all, created, outForDelivery, settled }
+enum _OrderFilter { all, outForDelivery, settled, paid }
 
 class _OrdersSection extends StatefulWidget {
   const _OrdersSection({required this.orders, required this.amountsHidden});
@@ -235,9 +237,9 @@ class _OrdersSectionState extends State<_OrdersSection> {
 
   static bool _matchesFilter(ShiftSheetOrder o, _OrderFilter f) => switch (f) {
     _OrderFilter.all => true,
-    _OrderFilter.created => o.isNew,
     _OrderFilter.outForDelivery => o.isOutForDelivery,
     _OrderFilter.settled => o.isSettled,
+    _OrderFilter.paid => o.isPaidInDrawer,
   };
 
   bool _matches(ShiftSheetOrder o) => _matchesFilter(o, _filter);
@@ -248,9 +250,9 @@ class _OrdersSectionState extends State<_OrdersSection> {
     final visible = widget.orders.where(_matches).toList();
     final labels = <_OrderFilter, String>{
       _OrderFilter.all: l10n.shiftSheetFilterAll,
-      _OrderFilter.created: l10n.shiftSheetReasonNew,
       _OrderFilter.outForDelivery: l10n.shiftSheetReasonOutForDelivery,
       _OrderFilter.settled: l10n.shiftSheetReasonSettled,
+      _OrderFilter.paid: l10n.shiftSheetReasonPaid,
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,7 +280,8 @@ class _OrdersSectionState extends State<_OrdersSection> {
           ),
         if (visible.isEmpty)
           Text(
-            l10n.shiftSheetNoOrders,
+            // Only orders that touched the drawer are listed now.
+            l10n.shiftSheetNoDrawerOrders,
             style: Theme.of(context).textTheme.bodyMedium,
           )
         else
@@ -405,6 +408,7 @@ class _OrderRow extends StatelessWidget {
 
     final ofd = order.outForDeliveryAt;
     final settled = order.settledAt;
+    final paid = order.paidAt;
     String hm(DateTime d) => formatDateTime(context, d, pattern: 'h:mm a');
     final reasonChips = <Widget>[
       if (order.isNew)
@@ -422,10 +426,23 @@ class _OrderRow extends StatelessWidget {
           label: l10n.shiftSheetReasonSettled,
           color: Colors.green.shade700,
         ),
+      if (order.isPaidInDrawer)
+        _ReasonChip(
+          label: l10n.shiftSheetReasonPaid,
+          color: Colors.teal.shade700,
+        ),
       if (ofd != null)
         Text(l10n.shiftSheetOutForDeliveryAt(hm(ofd)), style: muted),
       if (settled != null)
         Text(l10n.shiftSheetSettledAt(hm(settled)), style: muted),
+      if (paid != null)
+        Text(
+          // The amount is drawer cash, so it follows the blind-count rule.
+          amountsHidden || _isZero(order.paidAmount)
+              ? l10n.shiftSheetPaidInDrawerAt(hm(paid))
+              : '${l10n.shiftSheetPaidInDrawerAt(hm(paid))} · ${formatCurrency(context, order.paidAmount)}',
+          style: muted,
+        ),
     ];
 
     final shipping = order.shippingExpense;
@@ -513,6 +530,146 @@ class _OrderRow extends StatelessWidget {
               runSpacing: 2,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: reasonChips,
+            ),
+            const SizedBox(height: 4),
+            Wrap(spacing: 10, runSpacing: 2, children: details),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "2h 5m" style duration; days once it reaches a full day.
+String _lateDuration(BuildContext context, int minutes) {
+  final l10n = context.l10n;
+  final m = minutes < 0 ? 0 : minutes;
+  if (m < 60) return l10n.shiftSheetDurationMinutes(m);
+  if (m < 24 * 60) {
+    return l10n.shiftSheetDurationHoursMinutes(m ~/ 60, m % 60);
+  }
+  return l10n.shiftSheetDurationDaysHours(
+    m ~/ (24 * 60),
+    (m % (24 * 60)) ~/ 60,
+  );
+}
+
+/// Orders whose delivery slot ended without them going out. Shown to staff
+/// and managers alike: it is the "what did we miss" list for the shift.
+class _OverdueSection extends StatelessWidget {
+  const _OverdueSection({required this.orders});
+
+  final List<ShiftSheetOverdueOrder> orders;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      key: const ValueKey('shiftSheetOverdue'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(l10n.shiftSheetOverdueTitle),
+        if (orders.isEmpty)
+          Text(
+            l10n.shiftSheetNoOverdue,
+            style: Theme.of(context).textTheme.bodyMedium,
+          )
+        else
+          for (final o in orders) _OverdueRow(order: o),
+      ],
+    );
+  }
+}
+
+class _OverdueRow extends StatelessWidget {
+  const _OverdueRow({required this.order});
+
+  final ShiftSheetOverdueOrder order;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.bodySmall;
+    final wentOut = order.wentOutAt;
+    // Red while it is still sitting in the branch; amber once it left late.
+    final accent = wentOut == null
+        ? Colors.red.shade700
+        : Colors.orange.shade800;
+
+    final customer = order.customerName;
+    final title = (customer ?? '').isEmpty
+        ? '#${order.orderNumber}'
+        : '#${order.orderNumber} · $customer';
+
+    final slotStart = order.slotStart;
+    final deadline = order.deadline;
+    final slot = (order.slotLabel ?? '').isNotEmpty
+        ? order.slotLabel!
+        : slotStart != null
+        ? formatDateTime(context, slotStart)
+        : deadline != null
+        ? formatDateTime(context, deadline)
+        : null;
+
+    final tags = <Widget>[
+      _ReasonChip(
+        label: l10n.shiftSheetLateBy(_lateDuration(context, order.minutesLate)),
+        color: accent,
+      ),
+      _ReasonChip(
+        label: order.dueInThisShift
+            ? l10n.shiftSheetDueThisShift
+            : l10n.shiftSheetFromEarlierShift,
+        color: order.dueInThisShift
+            ? Colors.orange.shade800
+            : Colors.red.shade700,
+      ),
+      if (order.isPickup)
+        _ReasonChip(label: l10n.shiftSheetPickup, color: Colors.blue.shade700),
+    ];
+
+    final details = <Widget>[
+      if (slot != null) Text(slot, style: muted),
+      if ((order.state ?? '').isNotEmpty)
+        Text(localizedKanbanState(context, order.state), style: muted),
+      if ((order.area ?? '').isNotEmpty) Text(order.area!, style: muted),
+      Text(
+        wentOut != null
+            ? l10n.shiftSheetWentOutLaterAt(formatDateTime(context, wentOut))
+            : l10n.shiftSheetNotSentOutYet,
+        style: muted?.copyWith(
+          color: wentOut != null ? Colors.orange.shade800 : Colors.red.shade700,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ];
+
+    return Card(
+      key: ValueKey('shiftSheetOverdue_${order.name}'),
+      margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.04),
+          border: BorderDirectional(start: BorderSide(color: accent, width: 3)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleSmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 6,
+              runSpacing: 2,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: tags,
             ),
             const SizedBox(height: 4),
             Wrap(spacing: 10, runSpacing: 2, children: details),

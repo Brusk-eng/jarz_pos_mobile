@@ -316,4 +316,91 @@ void main() {
     expect(f.lines, isEmpty);
     expect(f.salesCash, 0);
   });
+
+  test('parses paid-in-drawer orders, overdue list and new totals', () {
+    final sheet = ShiftSheet.fromJson({
+      'opening_entry': 'O',
+      'orders': [
+        {
+          'name': 'ACC-9',
+          'order_number': '1009',
+          'reasons': ['created', 'paid'],
+          'paid_at': '2026-11-27T12:30:00',
+          'paid_amount': '180.5',
+        },
+      ],
+      'overdue': [
+        {
+          'name': 'ACC-7',
+          'order_number': '1007',
+          'customer_name': 'Mona',
+          'created_at': '2026-11-26T18:00:00',
+          'slot_start': '2026-11-27T10:00:00',
+          'slot_end': '2026-11-27T12:00:00',
+          'slot_label': '10 AM - 12 PM',
+          'deadline': '2026-11-27T12:00:00',
+          'minutes_late': 95,
+          'state': 'Recieved',
+          'is_pickup': 1,
+          'area': 'Maadi',
+          'payment_method': 'Cash',
+          'grand_total': 300,
+          'outstanding_amount': 300,
+          'due_in_this_shift': true,
+          'went_out_at': '2026-11-27T23:10:00',
+        },
+        'junk',
+        {'name': 'ACC-8'},
+      ],
+      'totals': {'paid_orders': 3, 'paid_amount': 540, 'overdue_orders': '2'},
+    });
+    final o = sheet.orders.single;
+    expect(o.isPaidInDrawer, isTrue);
+    expect(o.isNew, isTrue);
+    expect(o.isOutForDelivery, isFalse);
+    expect(o.paidAt, DateTime(2026, 11, 27, 12, 30));
+    expect(o.paidAmount, 180.5);
+
+    expect(sheet.overdue.length, 2);
+    final late = sheet.overdue.first;
+    expect(late.orderNumber, '1007');
+    expect(late.customerName, 'Mona');
+    expect(late.slotLabel, '10 AM - 12 PM');
+    expect(late.slotEnd, DateTime(2026, 11, 27, 12));
+    expect(late.deadline, DateTime(2026, 11, 27, 12));
+    expect(late.minutesLate, 95);
+    expect(late.state, 'Recieved');
+    expect(late.isPickup, isTrue);
+    expect(late.grandTotal, 300);
+    expect(late.outstandingAmount, 300);
+    expect(late.dueInThisShift, isTrue);
+    expect(late.wentOutAt, DateTime(2026, 11, 27, 23, 10));
+    // a bare row falls back safely
+    final bare = sheet.overdue.last;
+    expect(bare.orderNumber, 'ACC-8');
+    expect(bare.deadline, isNull);
+    expect(bare.dueInThisShift, isFalse);
+    expect(bare.wentOutAt, isNull);
+
+    expect(sheet.totals!.paidOrders, 3);
+    expect(sheet.totals!.paidAmount, 540);
+    expect(sheet.totals!.overdueOrders, 2);
+  });
+
+  test('old server JSON has no paid fields and an empty overdue list', () {
+    final sheet = ShiftSheet.fromJson({
+      'opening_entry': 'O',
+      'orders': [
+        {'name': 'A'},
+      ],
+      'overdue': null,
+      'totals': {'orders': 1},
+    });
+    expect(sheet.orders.single.isPaidInDrawer, isFalse);
+    expect(sheet.orders.single.paidAt, isNull);
+    expect(sheet.orders.single.paidAmount, 0);
+    expect(sheet.overdue, isEmpty);
+    expect(sheet.totals!.paidOrders, 0);
+    expect(sheet.totals!.overdueOrders, 0);
+  });
 }

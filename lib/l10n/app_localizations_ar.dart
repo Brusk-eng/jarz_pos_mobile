@@ -22060,4 +22060,56 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get returnOrderGoodsDamagedNo => 'هترجع لمخزن الفرع وتتباع تاني.';
+
+  @override
+  String get shiftSheetReasonPaid => 'اتدفع في الدرج';
+
+  @override
+  String shiftSheetPaidInDrawerAt(String time) {
+    return 'اتدفع في الدرج الساعة $time';
+  }
+
+  @override
+  String get shiftSheetNoDrawerOrders =>
+      'مفيش طلبات دخلت الدرج في الوردية دي لسه (خرجت للتوصيل، أو اتسوّت، أو اتدفعت في الدرج).';
+
+  @override
+  String get shiftSheetOverdueTitle => 'متأخرة — لم تخرج';
+
+  @override
+  String get shiftSheetNoOverdue => 'مفيش طلبات متأخرة';
+
+  @override
+  String shiftSheetLateBy(String duration) {
+    return 'متأخر $duration';
+  }
+
+  @override
+  String shiftSheetDurationMinutes(int minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String shiftSheetDurationHoursMinutes(int hours, int minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String shiftSheetDurationDaysHours(int days, int hours) {
+    return '$days يوم $hours س';
+  }
+
+  @override
+  String get shiftSheetDueThisShift => 'ميعاده في الوردية دي';
+
+  @override
+  String get shiftSheetFromEarlierShift => 'من وردية قبلها';
+
+  @override
+  String shiftSheetWentOutLaterAt(String time) {
+    return 'خرج بعد كده $time';
+  }
+
+  @override
+  String get shiftSheetNotSentOutYet => 'لسه ماخرجش';
 }

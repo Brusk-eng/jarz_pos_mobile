@@ -12052,5 +12052,66 @@
   },
   "returnOrderGoodsDamagedTitle": "The goods are damaged",
   "returnOrderGoodsDamagedYes": "Written off as waste. They will not go back into stock.",
-  "returnOrderGoodsDamagedNo": "They go back into branch stock, ready to sell."
+  "returnOrderGoodsDamagedNo": "They go back into branch stock, ready to sell.",
+  "shiftSheetReasonPaid": "Paid in drawer",
+  "shiftSheetPaidInDrawerAt": "Paid in drawer at {time}",
+  "@shiftSheetPaidInDrawerAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetNoDrawerOrders": "No order touched the drawer this shift yet (sent out, settled or paid in).",
+  "shiftSheetOverdueTitle": "Late — not sent out",
+  "shiftSheetNoOverdue": "No late orders",
+  "shiftSheetLateBy": "Late by {duration}",
+  "@shiftSheetLateBy": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetDurationMinutes": "{minutes}m",
+  "@shiftSheetDurationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftSheetDurationHoursMinutes": "{hours}h {minutes}m",
+  "@shiftSheetDurationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftSheetDurationDaysHours": "{days}d {hours}h",
+  "@shiftSheetDurationDaysHours": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftSheetDueThisShift": "Due this shift",
+  "shiftSheetFromEarlierShift": "From an earlier shift",
+  "shiftSheetWentOutLaterAt": "Went out later at {time}",
+  "@shiftSheetWentOutLaterAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetNotSentOutYet": "Not sent out yet"
 }

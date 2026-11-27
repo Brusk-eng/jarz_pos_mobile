@@ -80,6 +80,8 @@ class ShiftSheetOrder {
     this.shippingExpense,
     this.courierCashIn = 0,
     this.courierFeePaid = 0,
+    this.paidAt,
+    this.paidAmount = 0,
   });
 
   factory ShiftSheetOrder.fromJson(Map<String, dynamic> json) {
@@ -105,6 +107,8 @@ class ShiftSheetOrder {
       shippingExpense: _optNum(json['shipping_expense']),
       courierCashIn: _num(json['courier_cash_in']),
       courierFeePaid: _num(json['courier_fee_paid']),
+      paidAt: _date(json['paid_at']),
+      paidAmount: _num(json['paid_amount']),
     );
   }
 
@@ -123,8 +127,9 @@ class ShiftSheetOrder {
   final String? channel;
 
   /// Why the order is on this sheet: subset of `created`,
-  /// `out_for_delivery`, `settled`. Old servers omit it, so it defaults to
-  /// `created`.
+  /// `out_for_delivery`, `settled`, `paid`. Current servers list only orders
+  /// that touched the drawer, so `created` is an extra tag and never alone.
+  /// Old servers omit it, so it defaults to `created`.
   final List<String> reasons;
   final DateTime? outForDeliveryAt;
   final DateTime? settledAt;
@@ -145,11 +150,94 @@ class ShiftSheetOrder {
   /// Courier fee deducted at that settlement.
   final double courierFeePaid;
 
+  /// First time cash for this order reached the branch drawer (till) in this
+  /// shift; null when none did (or old server).
+  final DateTime? paidAt;
+
+  /// Cash into the drawer for this order in this shift; 0 when none.
+  final double paidAmount;
+
   bool get isNew => reasons.contains('created');
   bool get isOutForDelivery => reasons.contains('out_for_delivery');
   bool get isSettled => reasons.contains('settled');
+  bool get isPaidInDrawer => reasons.contains('paid');
 
   bool get isUnpaid => outstandingAmount > 0;
+}
+
+/// An order of the branch whose delivery slot ended before the shift's end
+/// (or before now on an open shift) without it going out by then.
+class ShiftSheetOverdueOrder {
+  const ShiftSheetOverdueOrder({
+    required this.name,
+    required this.orderNumber,
+    this.customerName,
+    this.createdAt,
+    this.slotStart,
+    this.slotEnd,
+    this.slotLabel,
+    this.deadline,
+    this.minutesLate = 0,
+    this.state,
+    this.isPickup = false,
+    this.area,
+    this.paymentMethod,
+    this.grandTotal = 0,
+    this.outstandingAmount = 0,
+    this.dueInThisShift = false,
+    this.wentOutAt,
+  });
+
+  factory ShiftSheetOverdueOrder.fromJson(Map<String, dynamic> json) {
+    final name = _str(json['name']) ?? '';
+    return ShiftSheetOverdueOrder(
+      name: name,
+      orderNumber: _str(json['order_number']) ?? name,
+      customerName: _str(json['customer_name']),
+      createdAt: _date(json['created_at']),
+      slotStart: _date(json['slot_start']),
+      slotEnd: _date(json['slot_end']),
+      slotLabel: _str(json['slot_label']),
+      deadline: _date(json['deadline']),
+      minutesLate: _int(json['minutes_late']),
+      state: _str(json['state']),
+      isPickup: _flag(json['is_pickup']),
+      area: _str(json['area']),
+      paymentMethod: _str(json['payment_method']),
+      grandTotal: _num(json['grand_total']),
+      outstandingAmount: _num(json['outstanding_amount']),
+      dueInThisShift: _flag(json['due_in_this_shift']),
+      wentOutAt: _date(json['went_out_at']),
+    );
+  }
+
+  final String name;
+  final String orderNumber;
+  final String? customerName;
+  final DateTime? createdAt;
+  final DateTime? slotStart;
+  final DateTime? slotEnd;
+  final String? slotLabel;
+
+  /// When the order should have gone out (end of its slot).
+  final DateTime? deadline;
+
+  /// How far past [deadline] at the shift end (or now, on an open shift).
+  final int minutesLate;
+  final String? state;
+  final bool isPickup;
+  final String? area;
+  final String? paymentMethod;
+  final double grandTotal;
+  final double outstandingAmount;
+
+  /// True when [deadline] fell inside this shift; false when it was due in an
+  /// earlier shift and is still carried.
+  final bool dueInThisShift;
+
+  /// Set only on a closed shift's sheet, when the order went out after the
+  /// shift ended.
+  final DateTime? wentOutAt;
 }
 
 class ShiftSheetFlavour {
@@ -269,6 +357,9 @@ class ShiftSheetTotals {
     this.deliveryNet = 0,
     this.courierCashIn = 0,
     this.courierFeesPaid = 0,
+    this.paidOrders = 0,
+    this.paidAmount = 0,
+    this.overdueOrders = 0,
   });
 
   factory ShiftSheetTotals.fromJson(Map<String, dynamic> json) {
@@ -297,6 +388,9 @@ class ShiftSheetTotals {
       deliveryNet: _num(json['delivery_net']),
       courierCashIn: _num(json['courier_cash_in']),
       courierFeesPaid: _num(json['courier_fees_paid']),
+      paidOrders: _int(json['paid_orders']),
+      paidAmount: _num(json['paid_amount']),
+      overdueOrders: _int(json['overdue_orders']),
     );
   }
 
@@ -331,6 +425,15 @@ class ShiftSheetTotals {
   final double deliveryNet;
   final double courierCashIn;
   final double courierFeesPaid;
+
+  /// Orders whose cash reached the branch drawer in this shift.
+  final int paidOrders;
+
+  /// Cash those [paidOrders] put into the drawer.
+  final double paidAmount;
+
+  /// Late orders not sent out (see [ShiftSheet.overdue]).
+  final int overdueOrders;
 }
 
 /// One voucher behind a cash-drawer movement.
@@ -462,6 +565,7 @@ class ShiftSheet {
     this.jarsByFlavour = const [],
     this.payouts = const [],
     this.returns = const [],
+    this.overdue = const [],
     this.totals,
     this.cashFlow,
   });
@@ -491,6 +595,9 @@ class ShiftSheet {
       ).map(ShiftSheetFlavour.fromJson).toList(),
       payouts: _rows(json['payouts']).map(ShiftSheetPayout.fromJson).toList(),
       returns: _rows(json['returns']).map(ShiftSheetReturn.fromJson).toList(),
+      overdue: _rows(
+        json['overdue'],
+      ).map(ShiftSheetOverdueOrder.fromJson).toList(),
       totals: totalsRaw is Map
           ? ShiftSheetTotals.fromJson(Map<String, dynamic>.from(totalsRaw))
           : null,
@@ -515,6 +622,9 @@ class ShiftSheet {
   final List<ShiftSheetFlavour> jarsByFlavour;
   final List<ShiftSheetPayout> payouts;
   final List<ShiftSheetReturn> returns;
+
+  /// Late orders not sent out, deadline ascending; empty on old servers.
+  final List<ShiftSheetOverdueOrder> overdue;
   final ShiftSheetTotals? totals;
 
   /// Manager-only drawer waterfall; null for staff and older servers.

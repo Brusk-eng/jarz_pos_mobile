@@ -147,6 +147,8 @@ void main() {
     // Flavours are collapsed until tapped.
     expect(find.text('Mango'), findsNothing);
     await tester.scrollUntilVisible(find.text('Jars by flavour'), 200);
+    await tester.ensureVisible(find.text('Jars by flavour'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Jars by flavour'));
     await tester.pumpAndSettle();
     expect(find.text('Mango'), findsOneWidget);
@@ -219,12 +221,106 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  Map<String, dynamic> withPaidAndOverdue(Map<String, dynamic> payload) {
+    final orders = List<Map<String, dynamic>>.from(payload['orders'] as List);
+    orders.add({
+      'name': 'ACC-3',
+      'order_number': '1003',
+      'grand_total': 120,
+      'is_pickup': 1,
+      'reasons': ['created', 'paid'],
+      'paid_at': '2026-11-20T12:30:00',
+      'paid_amount': 120,
+    });
+    return {
+      ...payload,
+      'orders': orders,
+      'overdue': [
+        {
+          'name': 'ACC-7',
+          'order_number': '1007',
+          'customer_name': 'Mona Hassan',
+          'slot_label': '10 AM - 12 PM',
+          'deadline': '2026-11-20T12:00:00',
+          'minutes_late': 95,
+          'state': 'In Progress',
+          'due_in_this_shift': true,
+        },
+        {
+          'name': 'ACC-6',
+          'order_number': '1006',
+          'slot_start': '2026-11-19T18:00:00',
+          'deadline': '2026-11-19T20:00:00',
+          'minutes_late': 1530,
+          'state': 'Recieved',
+          'is_pickup': true,
+          'due_in_this_shift': false,
+          'went_out_at': '2026-11-20T21:00:00',
+        },
+      ],
+    };
+  }
+
+  testWidgets('paid-in-drawer filter and the late orders section', (
+    tester,
+  ) async {
+    await _pump(tester, withPaidAndOverdue(_payload(manager: true)));
+    await tester.scrollUntilVisible(find.text('Paid in drawer (1)'), 200);
+    expect(find.text('New (3)'), findsNothing, reason: 'New filter dropped');
+    await tester.ensureVisible(find.text('Paid in drawer (1)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Paid in drawer (1)'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('#1003'), findsOneWidget);
+    expect(find.textContaining('#1001'), findsNothing);
+    expect(find.text('New'), findsOneWidget, reason: 'row reason chip kept');
+    expect(find.textContaining('Paid in drawer at 12:30 PM ·'), findsOneWidget);
+
+    await tester.scrollUntilVisible(find.text('Late — not sent out'), 200);
+    await tester.scrollUntilVisible(find.textContaining('#1006'), 200);
+    expect(find.text('#1007 · Mona Hassan'), findsOneWidget);
+    expect(find.text('Late by 1h 35m'), findsOneWidget);
+    expect(find.text('Due this shift'), findsOneWidget);
+    expect(find.text('Not sent out yet'), findsOneWidget);
+    expect(find.text('10 AM - 12 PM'), findsOneWidget);
+    expect(find.text('Late by 1d 1h'), findsOneWidget);
+    expect(find.text('From an earlier shift'), findsOneWidget);
+    expect(find.textContaining('Went out later at'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('staff sees the paid time but not the drawer amount', (
+    tester,
+  ) async {
+    await _pump(tester, withPaidAndOverdue(_payload(manager: false)));
+    await tester.scrollUntilVisible(find.textContaining('#1003'), 200);
+    expect(find.text('Paid in drawer at 12:30 PM'), findsOneWidget);
+    expect(find.textContaining('Paid in drawer at 12:30 PM ·'), findsNothing);
+    await tester.scrollUntilVisible(find.text('Late — not sent out'), 200);
+    expect(find.text('Late — not sent out'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('no late orders shows the empty state', (tester) async {
+    await _pump(tester, _payload(manager: false));
+    await tester.scrollUntilVisible(find.text('No late orders'), 200);
+    expect(find.text('No late orders'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('renders in Arabic (RTL) at 360 wide without overflow', (
     tester,
   ) async {
-    await _pump(tester, _payload(manager: true), locale: const Locale('ar'));
+    await _pump(
+      tester,
+      withPaidAndOverdue(_payload(manager: true)),
+      locale: const Locale('ar'),
+    );
     expect(find.text('ورقة الوردية'), findsOneWidget);
     expect(find.text('درج الكاش'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('متأخرة — لم تخرج'), 200);
+    await tester.scrollUntilVisible(find.textContaining('#1006'), 200);
+    expect(find.text('لسه ماخرجش'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

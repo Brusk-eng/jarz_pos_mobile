@@ -36459,6 +36459,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'They go back into branch stock, ready to sell.'**
   String get returnOrderGoodsDamagedNo;
+
+  /// No description provided for @shiftSheetReasonPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid in drawer'**
+  String get shiftSheetReasonPaid;
+
+  /// No description provided for @shiftSheetPaidInDrawerAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid in drawer at {time}'**
+  String shiftSheetPaidInDrawerAt(String time);
+
+  /// No description provided for @shiftSheetNoDrawerOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No order touched the drawer this shift yet (sent out, settled or paid in).'**
+  String get shiftSheetNoDrawerOrders;
+
+  /// No description provided for @shiftSheetOverdueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Late — not sent out'**
+  String get shiftSheetOverdueTitle;
+
+  /// No description provided for @shiftSheetNoOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'No late orders'**
+  String get shiftSheetNoOverdue;
+
+  /// No description provided for @shiftSheetLateBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Late by {duration}'**
+  String shiftSheetLateBy(String duration);
+
+  /// No description provided for @shiftSheetDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m'**
+  String shiftSheetDurationMinutes(int minutes);
+
+  /// No description provided for @shiftSheetDurationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String shiftSheetDurationHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @shiftSheetDurationDaysHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String shiftSheetDurationDaysHours(int days, int hours);
+
+  /// No description provided for @shiftSheetDueThisShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Due this shift'**
+  String get shiftSheetDueThisShift;
+
+  /// No description provided for @shiftSheetFromEarlierShift.
+  ///
+  /// In en, this message translates to:
+  /// **'From an earlier shift'**
+  String get shiftSheetFromEarlierShift;
+
+  /// No description provided for @shiftSheetWentOutLaterAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Went out later at {time}'**
+  String shiftSheetWentOutLaterAt(String time);
+
+  /// No description provided for @shiftSheetNotSentOutYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent out yet'**
+  String get shiftSheetNotSentOutYet;
 }
 
 class _AppLocalizationsDelegate

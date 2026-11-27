@@ -7823,5 +7823,66 @@
   },
   "returnOrderGoodsDamagedTitle": "البضاعة تالفة",
   "returnOrderGoodsDamagedYes": "هتتسجل هالك ومش هترجع للمخزن.",
-  "returnOrderGoodsDamagedNo": "هترجع لمخزن الفرع وتتباع تاني."
+  "returnOrderGoodsDamagedNo": "هترجع لمخزن الفرع وتتباع تاني.",
+  "shiftSheetReasonPaid": "اتدفع في الدرج",
+  "shiftSheetPaidInDrawerAt": "اتدفع في الدرج الساعة {time}",
+  "@shiftSheetPaidInDrawerAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetNoDrawerOrders": "مفيش طلبات دخلت الدرج في الوردية دي لسه (خرجت للتوصيل، أو اتسوّت، أو اتدفعت في الدرج).",
+  "shiftSheetOverdueTitle": "متأخرة — لم تخرج",
+  "shiftSheetNoOverdue": "مفيش طلبات متأخرة",
+  "shiftSheetLateBy": "متأخر {duration}",
+  "@shiftSheetLateBy": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetDurationMinutes": "{minutes} د",
+  "@shiftSheetDurationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftSheetDurationHoursMinutes": "{hours} س {minutes} د",
+  "@shiftSheetDurationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftSheetDurationDaysHours": "{days} يوم {hours} س",
+  "@shiftSheetDurationDaysHours": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftSheetDueThisShift": "ميعاده في الوردية دي",
+  "shiftSheetFromEarlierShift": "من وردية قبلها",
+  "shiftSheetWentOutLaterAt": "خرج بعد كده {time}",
+  "@shiftSheetWentOutLaterAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shiftSheetNotSentOutYet": "لسه ماخرجش"
 }
