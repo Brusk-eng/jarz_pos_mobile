@@ -392,6 +392,8 @@ class PosRepository {
               'name': name,
               'title': name,
               'allow_delivery_partner': item['allow_delivery_partner'] == true,
+              'default_delivery_partner':
+                  _normalizedOptionalString(item['default_delivery_partner']),
             });
           }
         }

@@ -36537,6 +36537,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not sent out yet'**
   String get shiftSheetNotSentOutYet;
+
+  /// Hint under the delivery partner switch when the branch has a default delivery partner
+  ///
+  /// In en, this message translates to:
+  /// **'Riders of this branch are {partner} riders unless you turn this off'**
+  String kanbanDeliveryPartnerBranchDefaultHint(String partner);
 }
 
 class _AppLocalizationsDelegate

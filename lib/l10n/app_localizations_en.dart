@@ -22132,4 +22132,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shiftSheetNotSentOutYet => 'Not sent out yet';
+
+  @override
+  String kanbanDeliveryPartnerBranchDefaultHint(String partner) {
+    return 'Riders of this branch are $partner riders unless you turn this off';
+  }
 }

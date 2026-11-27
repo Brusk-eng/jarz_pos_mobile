@@ -631,9 +631,12 @@ class KanbanService {
     required String phone,
     String? posProfile, // used as branch on backend
     String? deliveryPartner, // Delivery Partner to link
+    // Opt out of the branch's default delivery partner (server links a new
+    // Supplier to the branch default unless this is sent).
+    bool noDeliveryPartner = false,
   }) async {
     try {
-      _logger.info('Creating delivery party type=$partyType name=$name branch=$posProfile deliveryPartner=$deliveryPartner');
+      _logger.info('Creating delivery party type=$partyType name=$name branch=$posProfile deliveryPartner=$deliveryPartner noDeliveryPartner=$noDeliveryPartner');
       final resp = await _dio.post(
         ApiEndpoints.createDeliveryParty,
         data: {
@@ -644,6 +647,7 @@ class KanbanService {
           if (firstName != null) 'first_name': firstName,
           if (lastName != null) 'last_name': lastName,
           if (deliveryPartner != null && deliveryPartner.isNotEmpty) 'delivery_partner': deliveryPartner,
+          if (noDeliveryPartner) 'no_delivery_partner': 1,
         },
       );
       final msg = resp.data['message'];

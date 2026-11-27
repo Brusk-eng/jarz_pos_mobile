@@ -31,6 +31,31 @@ void main() {
         expect(result[1]['name'], equals('Branch POS'));
       });
 
+      test('carries allow/default delivery partner from object profiles', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.pos.get_pos_profiles',
+          createSuccessResponse(data: [
+            {
+              'name': '6th of October',
+              'allow_delivery_partner': true,
+              'default_delivery_partner': 'Deliverk',
+            },
+            {
+              'name': 'Main POS',
+              'allow_delivery_partner': false,
+              'default_delivery_partner': null,
+            },
+          ]),
+        );
+
+        final result = await repository.getPosProfiles();
+
+        expect(result[0]['allow_delivery_partner'], isTrue);
+        expect(result[0]['default_delivery_partner'], equals('Deliverk'));
+        expect(result[1]['allow_delivery_partner'], isFalse);
+        expect(result[1]['default_delivery_partner'], isNull);
+      });
+
       test('returns empty list when no profiles exist', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.pos.get_pos_profiles',

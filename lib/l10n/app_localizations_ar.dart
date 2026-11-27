@@ -22112,4 +22112,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shiftSheetNotSentOutYet => 'لسه ماخرجش';
+
+  @override
+  String kanbanDeliveryPartnerBranchDefaultHint(String partner) {
+    return 'سعاة الفرع ده تبع $partner إلا لو قفلت ده';
+  }
 }

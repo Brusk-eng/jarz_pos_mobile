@@ -12113,5 +12113,14 @@
       }
     }
   },
-  "shiftSheetNotSentOutYet": "Not sent out yet"
+  "shiftSheetNotSentOutYet": "Not sent out yet",
+  "kanbanDeliveryPartnerBranchDefaultHint": "Riders of this branch are {partner} riders unless you turn this off",
+  "@kanbanDeliveryPartnerBranchDefaultHint": {
+    "description": "Hint under the delivery partner switch when the branch has a default delivery partner",
+    "placeholders": {
+      "partner": {
+        "type": "String"
+      }
+    }
+  }
 }

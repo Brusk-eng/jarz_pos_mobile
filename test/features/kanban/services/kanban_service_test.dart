@@ -526,6 +526,41 @@ void main() {
         expect(requests.last['data']['first_name'], equals('Jane'));
         expect(requests.last['data']['last_name'], equals('Doe'));
       });
+
+      test('createDeliveryParty - sends no_delivery_partner only when opted out', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.couriers.create_delivery_party',
+          createSuccessResponse(data: {
+            'party_type': 'Supplier',
+            'party': 'SUP-001',
+            'display_name': 'Own Rider',
+          }),
+        );
+
+        await service.createDeliveryParty(
+          partyType: 'Supplier',
+          firstName: 'Own',
+          lastName: 'Rider',
+          phone: '01000000000',
+          posProfile: '6th of October',
+          noDeliveryPartner: true,
+        );
+        final optOut = mockDio.requestLog.last['data'] as Map;
+        expect(optOut['no_delivery_partner'], equals(1));
+        expect(optOut.containsKey('delivery_partner'), isFalse);
+
+        await service.createDeliveryParty(
+          partyType: 'Supplier',
+          firstName: 'Partner',
+          lastName: 'Rider',
+          phone: '01000000001',
+          posProfile: '6th of October',
+          deliveryPartner: 'Deliverk',
+        );
+        final linked = mockDio.requestLog.last['data'] as Map;
+        expect(linked['delivery_partner'], equals('Deliverk'));
+        expect(linked.containsKey('no_delivery_partner'), isFalse);
+      });
     });
 
     group('Idempotency', () {

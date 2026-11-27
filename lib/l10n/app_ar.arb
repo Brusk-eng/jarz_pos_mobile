@@ -7884,5 +7884,6 @@
       }
     }
   },
-  "shiftSheetNotSentOutYet": "لسه ماخرجش"
+  "shiftSheetNotSentOutYet": "لسه ماخرجش",
+  "kanbanDeliveryPartnerBranchDefaultHint": "سعاة الفرع ده تبع {partner} إلا لو قفلت ده"
 }

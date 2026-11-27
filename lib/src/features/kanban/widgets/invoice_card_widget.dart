@@ -2437,12 +2437,27 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           )
         : posState.selectedProfile;
     final allowDeliveryPartner = currentProfile?['allow_delivery_partner'] == true;
+    // Branch default delivery partner: new Supplier riders of this branch are
+    // partner riders unless staff explicitly turn the switch off.
+    final defaultDeliveryPartner = allowDeliveryPartner
+        ? (currentProfile?['default_delivery_partner']?.toString().trim() ?? '')
+        : '';
+    final hasDefaultDeliveryPartner = defaultDeliveryPartner.isNotEmpty;
+    if (hasDefaultDeliveryPartner) {
+      isPartnerCourier = true;
+      selectedDeliveryPartner = defaultDeliveryPartner;
+    }
     try {
       couriers = await container.read(kanbanProvider.notifier).getCouriers(posProfile: effectiveProfile);
       if (effectiveProfile != null) {
         couriers = couriers.where((c) => c['branch'] == effectiveProfile).toList();
       }
     } catch (_) {}
+    if (hasDefaultDeliveryPartner) {
+      try {
+        deliveryPartners = await container.read(kanbanProvider.notifier).getDeliveryPartnersList();
+      } catch (_) {}
+    }
     loading = false;
     if (!context.mounted) return null;
 
@@ -2451,6 +2466,21 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) {
+          // Keep the selected partner (e.g. the branch default) as an option even
+          // if the partners list does not contain it, so the dropdown never asserts.
+          final partnerOptions = <Map<String, String>>[
+            ...deliveryPartners,
+            if (selectedDeliveryPartner != null &&
+                !deliveryPartners.any((dp) => dp['name'] == selectedDeliveryPartner))
+              {'name': selectedDeliveryPartner!, 'partner_name': selectedDeliveryPartner!},
+          ];
+          String defaultPartnerLabel = defaultDeliveryPartner;
+          for (final dp in deliveryPartners) {
+            if (dp['name'] == defaultDeliveryPartner && (dp['partner_name'] ?? '').isNotEmpty) {
+              defaultPartnerLabel = dp['partner_name']!;
+              break;
+            }
+          }
           return AlertDialog(
             title: Text(context.l10n.commonCourierLabel),
             content: SizedBox(
@@ -2630,7 +2660,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               ],
                               onChanged: (v) => setState(() => newPartyType = v ?? 'Employee'),
                             ),
-                            if (allowDeliveryPartner) ...[
+                            // Delivery partners only apply to Supplier riders.
+                            if (allowDeliveryPartner && newPartyType == 'Supplier') ...[
                               const SizedBox(height: 8),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
@@ -2638,7 +2669,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                 subtitle: Text(context.l10n.kanbanDeliveryPartnerCourierSubtitle, style: const TextStyle(fontSize: 12)),
                                 value: isPartnerCourier,
                                 onChanged: (v) async {
-                                  setState(() => isPartnerCourier = v);
+                                  setState(() {
+                                    isPartnerCourier = v;
+                                    if (v && selectedDeliveryPartner == null && hasDefaultDeliveryPartner) {
+                                      selectedDeliveryPartner = defaultDeliveryPartner;
+                                    }
+                                  });
                                   if (v && deliveryPartners.isEmpty) {
                                     try {
                                       deliveryPartners = await container.read(kanbanProvider.notifier).getDeliveryPartnersList();
@@ -2650,8 +2686,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   }
                                 },
                               ),
+                              if (hasDefaultDeliveryPartner)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    context.l10n.kanbanDeliveryPartnerBranchDefaultHint(defaultPartnerLabel),
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                  ),
+                                ),
                               if (isPartnerCourier) ...[
-                                if (deliveryPartners.isEmpty)
+                                if (partnerOptions.isEmpty)
                                   const Padding(
                                     padding: EdgeInsets.symmetric(vertical: 8),
                                     child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
@@ -2662,7 +2706,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                     decoration: InputDecoration(
                                         labelText: context
                                             .l10n.kanbanDeliveryPartnerField),
-                                    items: deliveryPartners.map((dp) => DropdownMenuItem(
+                                    items: partnerOptions.map((dp) => DropdownMenuItem(
                                       value: dp['name'],
                                       child: Text(dp['partner_name'] ?? dp['name'] ?? ''),
                                     )).toList(),
@@ -2687,6 +2731,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                           final phone = phoneController.text.trim();
                                           if (firstName.isEmpty || lastName.isEmpty) return;
                                           setState(() => loading = true);
+                                          final isSupplier = newPartyType == 'Supplier';
                                           try {
                                             final created = await container.read(kanbanProvider.notifier).createDeliveryParty(
                                               partyType: newPartyType,
@@ -2694,7 +2739,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                               lastName: lastName,
                                               phone: phone,
                                               posProfile: effectiveProfile,
-                                              deliveryPartner: isPartnerCourier ? selectedDeliveryPartner : null,
+                                              deliveryPartner: isSupplier && isPartnerCourier ? selectedDeliveryPartner : null,
+                                              // Switch turned off at a branch with a default partner:
+                                              // tell the server not to link the default.
+                                              noDeliveryPartner: isSupplier && hasDefaultDeliveryPartner && !isPartnerCourier,
                                             );
                                             if (created != null) {
                                               couriers = [...couriers, created];

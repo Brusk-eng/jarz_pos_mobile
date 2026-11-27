@@ -1355,6 +1355,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     required String phone,
     String? posProfile,
     String? deliveryPartner,
+    bool noDeliveryPartner = false,
   }) async {
     try {
       final res = await _kanbanService.createDeliveryParty(
@@ -1365,6 +1366,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         phone: phone,
         posProfile: posProfile,
         deliveryPartner: deliveryPartner,
+        noDeliveryPartner: noDeliveryPartner,
       );
       return res;
     } catch (e) {
