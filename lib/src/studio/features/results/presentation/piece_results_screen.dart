@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../shared/person_text.dart';
@@ -28,12 +29,14 @@ class PieceResultsScreen extends ConsumerWidget {
     final sort = ref.watch(pieceResultsSortProvider);
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.piecesTitle,
       parentRoute: '/more/results',
       actions: [
         moreHelpAction(context, title: t.piecesHelpTitle, lines: t.piecesHelp),
       ],
       body: MoreBody(
+        maxWidth: StudioContentWidth.full,
         child: Column(
           children: [
             ChoiceChipRow<String>(
@@ -59,7 +62,13 @@ class PieceResultsScreen extends ConsumerWidget {
                 builder: (context, state) => ListView(
                   key: const ValueKey('piece-results'),
                   children: [
-                    for (final r in state.items) _PieceCard(r: r),
+                    // One column on a phone, 2 to 3 a row on a wide window.
+                    ResponsiveCardGrid(
+                      minCellWidth: 440,
+                      maxColumns: 3,
+                      gap: 0,
+                      children: [for (final r in state.items) _PieceCard(r: r)],
+                    ),
                     ShowMoreFooter(
                       state: state,
                       onMore: () =>

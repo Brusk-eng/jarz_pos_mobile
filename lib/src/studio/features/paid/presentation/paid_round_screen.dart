@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,6 +30,7 @@ class PaidRoundScreen extends ConsumerWidget {
     final value = ref.watch(paidRoundStateProvider(roundCode));
     final round = value.valueOrNull;
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: round?.title ?? roundCode,
       parentRoute: '/more/paid',
       onEdit: round != null && round.actions.contains('edit')
@@ -38,6 +40,7 @@ class PaidRoundScreen extends ConsumerWidget {
         moreHelpAction(context, title: t.roundHelpTitle, lines: t.roundHelp),
       ],
       body: MoreBody(
+        maxWidth: StudioContentWidth.full,
         child: StudioAsyncView<PaidRound>(
           value: value,
           onRetry: () => ref.invalidate(paidRoundStateProvider(roundCode)),
@@ -87,17 +90,21 @@ class _RoundBody extends StatelessWidget {
       key: const ValueKey('round-body'),
       padding: const EdgeInsets.only(bottom: StudioSpacing.xxl),
       children: [
-        MoreCard(
-          child: Column(
-            children: [
-              LabeledValue(t.launchDate, m.date(round.launchDate)),
-              LabeledValue(t.dayFourRead, m.date(round.d4Date)),
-              LabeledValue(t.daySevenRead, m.date(round.d7Date)),
-              if (round.assignee != null)
-                LabeledValue(t.assignedTo, round.assignee!.fullName),
-              if (round.note != null && round.note!.isNotEmpty)
-                LabeledValue(t.roundNoteField, round.note!),
-            ],
+        // The dates card stays one card's width however wide the window is.
+        StudioPage(
+          maxWidth: StudioContentWidth.reading,
+          child: MoreCard(
+            child: Column(
+              children: [
+                LabeledValue(t.launchDate, m.date(round.launchDate)),
+                LabeledValue(t.dayFourRead, m.date(round.d4Date)),
+                LabeledValue(t.daySevenRead, m.date(round.d7Date)),
+                if (round.assignee != null)
+                  LabeledValue(t.assignedTo, round.assignee!.fullName),
+                if (round.note != null && round.note!.isNotEmpty)
+                  LabeledValue(t.roundNoteField, round.note!),
+              ],
+            ),
           ),
         ),
         if (round.stateCounts.isNotEmpty)
@@ -124,12 +131,20 @@ class _RoundBody extends StatelessWidget {
             child: Text(t.noAds, style: theme.textTheme.bodySmall),
           )
         else
-          for (final ad in round.ads)
-            _AdCard(
-              key: ValueKey('ad-${ad.id}'),
-              ad: ad,
-              roundCode: round.code,
-            ),
+          // One column on a phone, 2 to 4 ads a row on a wide window; the
+          // cards carry their own side margins, so the grid adds no gap.
+          ResponsiveCardGrid(
+            minCellWidth: 440,
+            gap: 0,
+            children: [
+              for (final ad in round.ads)
+                _AdCard(
+                  key: ValueKey('ad-${ad.id}'),
+                  ad: ad,
+                  roundCode: round.code,
+                ),
+            ],
+          ),
       ],
     );
   }

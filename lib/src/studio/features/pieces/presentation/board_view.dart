@@ -15,6 +15,10 @@ import '../pieces_strings.dart';
 import '../state/piece_filters.dart';
 import 'piece_widgets.dart';
 
+/// The narrowest a board column gets on a wide window; below it the board
+/// scrolls sideways instead of squeezing the cards.
+const double _minColumnWidth = 220;
+
 /// One entry of the board: a stage, or the Parked shelf at the end.
 class _BoardPage {
   const _BoardPage({
@@ -91,6 +95,27 @@ class _PiecesBoardViewState extends ConsumerState<PiecesBoardView> {
         return LayoutBuilder(
           builder: (context, box) {
             if (context.isWideScreen) {
+              // The columns share the width; only when each would get less
+              // than [_minColumnWidth] do they keep that width and scroll.
+              final inner = box.maxWidth - 2 * StudioSpacing.gutter;
+              final gaps = StudioSpacing.md * (pages.length - 1);
+              final fits = (inner - gaps) / pages.length >= _minColumnWidth;
+              Widget column(_BoardPage p) =>
+                  _BoardColumn(page: p, showHeader: true);
+              if (fits) {
+                return Padding(
+                  key: const ValueKey('board-wide'),
+                  padding: const EdgeInsets.all(StudioSpacing.gutter),
+                  child: Row(
+                    children: [
+                      for (final (i, p) in pages.indexed) ...[
+                        if (i > 0) const SizedBox(width: StudioSpacing.md),
+                        Expanded(child: column(p)),
+                      ],
+                    ],
+                  ),
+                );
+              }
               return ListView(
                 key: const ValueKey('board-wide'),
                 scrollDirection: Axis.horizontal,
@@ -98,12 +123,12 @@ class _PiecesBoardViewState extends ConsumerState<PiecesBoardView> {
                 children: [
                   for (final p in pages)
                     SizedBox(
-                      width: 300,
+                      width: _minColumnWidth,
                       child: Padding(
                         padding: const EdgeInsetsDirectional.only(
                           end: StudioSpacing.md,
                         ),
-                        child: _BoardColumn(page: p, showHeader: true),
+                        child: column(p),
                       ),
                     ),
                 ],

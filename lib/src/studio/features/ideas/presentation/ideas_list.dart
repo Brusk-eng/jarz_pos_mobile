@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/roles/studio_role.dart' show StudioRole;
 import '../../../core/theme/studio_tokens.dart';
+import '../../../shared/layout/studio_layout.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
 import '../../../shared/studio_async_view.dart';
@@ -14,6 +15,9 @@ import 'idea_forms.dart';
 import 'my_ideas_screen.dart';
 import 'ideas_strings.dart';
 import '../../../core/l10n/studio_strings.dart';
+
+/// The narrowest an idea card gets in the wide grid.
+const double _ideaCellWidth = 400;
 
 /// The Ideas inbox: To decide / Kept / Dropped, a New idea button for anyone.
 class IdeasList extends ConsumerWidget {
@@ -107,16 +111,20 @@ class IdeasList extends ConsumerWidget {
               child: ListView(
                 key: const ValueKey('ideas-list'),
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(StudioSpacing.gutter),
+                padding: EdgeInsets.all(
+                  context.isWideScreen
+                      ? StudioSpacing.xl
+                      : StudioSpacing.gutter,
+                ),
                 children: [
-                  for (final idea in d.items)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: StudioSpacing.md),
-                      child: IdeaCard(
-                        key: ValueKey('ic-${idea.id}'),
-                        idea: idea,
-                      ),
-                    ),
+                  // One column on a phone, 2 to 4 cards a row on a wide window.
+                  ResponsiveCardGrid(
+                    minCellWidth: _ideaCellWidth,
+                    children: [
+                      for (final idea in d.items)
+                        IdeaCard(key: ValueKey('ic-${idea.id}'), idea: idea),
+                    ],
+                  ),
                   if (d.hasMore)
                     Center(
                       child: Tooltip(

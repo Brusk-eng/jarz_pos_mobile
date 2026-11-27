@@ -18,6 +18,10 @@ import '../references_strings.dart';
 import 'reference_add_sheet.dart';
 import '../state/references_state.dart';
 
+/// The widest a reference thumbnail card gets: phone and wide window.
+const double _refCellExtent = 200;
+const double _wideRefCellExtent = 240;
+
 /// The references grid: ads and posts to learn from, with the contract's
 /// filters and cursor paging.
 class ReferencesScreen extends ConsumerWidget {
@@ -52,7 +56,7 @@ class ReferencesScreen extends ConsumerWidget {
         moreHelpAction(context, title: t.helpTitle, lines: t.help),
       ],
       body: MoreBody(
-        maxWidth: StudioContentWidth.wide,
+        maxWidth: StudioContentWidth.full,
         child: Column(
           children: [
             Row(
@@ -146,10 +150,16 @@ class _Grid extends ConsumerWidget {
         key: const ValueKey('refs-grid'),
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.all(StudioSpacing.gutter),
+            padding: EdgeInsets.all(
+              context.isWideScreen ? StudioSpacing.xl : StudioSpacing.gutter,
+            ),
             sliver: SliverGrid.builder(
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 200,
+              // Thumbnails: about 2 across on a phone, as many as fit on a
+              // wide window (taller cells there, the picture is the point).
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: context.isWideScreen
+                    ? _wideRefCellExtent
+                    : _refCellExtent,
                 mainAxisSpacing: StudioSpacing.md,
                 crossAxisSpacing: StudioSpacing.md,
                 childAspectRatio: 0.62,

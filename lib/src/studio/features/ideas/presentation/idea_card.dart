@@ -6,6 +6,8 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/l10n/studio_labels.dart';
 import '../../../core/theme/studio_tokens.dart';
+import '../../../shared/layout/studio_layout.dart';
+import '../../../shared/media/studio_media_widgets.dart';
 import '../../../data/models/studio_enums.dart';
 import '../../../data/models/studio_models.dart';
 import '../../inbox/presentation/inbox_strings.dart';
@@ -131,6 +133,17 @@ class _IdeaCardState extends ConsumerState<IdeaCard> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // On a wide window: the picture of the reference it came from.
+                if (context.isWideScreen &&
+                    idea.sourceReference?.image != null) ...[
+                  SizedBox(
+                    key: const ValueKey('idea-thumb'),
+                    width: 64,
+                    height: 80,
+                    child: StudioThumb(media: idea.sourceReference!.image),
+                  ),
+                  const SizedBox(width: StudioSpacing.md),
+                ],
                 Expanded(
                   child: Text(title, style: theme.textTheme.titleMedium),
                 ),
@@ -138,7 +151,6 @@ class _IdeaCardState extends ConsumerState<IdeaCard> {
                   IconButton(
                     key: const ValueKey('idea-edit'),
                     tooltip: t.edit,
-                    visualDensity: VisualDensity.compact,
                     icon: const Icon(Icons.edit_outlined, size: 20),
                     onPressed: _busy ? null : _edit,
                   ),

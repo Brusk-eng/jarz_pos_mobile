@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +24,7 @@ class RatingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final value = ref.watch(ratingsRollupProvider);
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: context.tr('Team ratings', 'تقييمات الفريق'),
       parentRoute: '/more/results',
       actions: [
@@ -44,6 +46,7 @@ class RatingsScreen extends ConsumerWidget {
         ),
       ],
       body: MoreBody(
+        maxWidth: StudioContentWidth.full,
         child: StudioAsyncView<RatingsRollup>(
           emptyOnNotFound: true,
           value: value,
@@ -146,66 +149,102 @@ class _Body extends StatelessWidget {
             ],
           ),
         ),
-        _Group(
-          keyName: 'ready',
-          title: context.tr('Ready to run', 'جاهز للتشغيل'),
-          count: r.counts.readyToRun,
-          rows: r.readyToRun,
-          empty: context.tr('Nothing yet.', 'مفيش لسه.'),
-        ),
-        _Group(
-          keyName: 'drop',
-          title: context.tr('Drop or rework', 'نشيلها أو نعيد شغلها'),
-          count: r.counts.dropOrRework,
-          rows: r.dropOrRework,
-          empty: context.tr('Nothing yet.', 'مفيش لسه.'),
-        ),
-        _Group(
-          keyName: 'split',
-          title: context.tr('Team is split', 'الفريق مش متفق'),
-          count: r.counts.teamSplit,
-          rows: r.teamSplit,
-          empty: context.tr('Nothing yet.', 'مفيش لسه.'),
-        ),
-        SectionLabel(context.tr('Team progress', 'تقدّم الفريق')),
-        for (final p in r.progress)
-          MoreCard(
-            child: Row(
-              children: [
-                Expanded(child: PersonText(p.person.fullName, maxLines: 2)),
-                Flexible(
-                  child: Text(
-                    context.tr(
-                      '${p.rated} rated · ${p.left} left · ${p.total} total',
-                      '${p.rated} قيّم · ${p.left} فاضل · ${p.total} الإجمالي',
+        // The lists side by side on a wide window, one column on a phone.
+        // Rows carry their own side padding, so the grid adds no gap.
+        ResponsiveSectionGrid(
+          gap: 0,
+          sections: [
+            GridSection(
+              weight: 1.0 + r.readyToRun.length,
+              child: _Group(
+                keyName: 'ready',
+                title: context.tr('Ready to run', 'جاهز للتشغيل'),
+                count: r.counts.readyToRun,
+                rows: r.readyToRun,
+                empty: context.tr('Nothing yet.', 'مفيش لسه.'),
+              ),
+            ),
+            GridSection(
+              weight: 1.0 + r.dropOrRework.length,
+              child: _Group(
+                keyName: 'drop',
+                title: context.tr('Drop or rework', 'نشيلها أو نعيد شغلها'),
+                count: r.counts.dropOrRework,
+                rows: r.dropOrRework,
+                empty: context.tr('Nothing yet.', 'مفيش لسه.'),
+              ),
+            ),
+            GridSection(
+              weight: 1.0 + r.teamSplit.length,
+              child: _Group(
+                keyName: 'split',
+                title: context.tr('Team is split', 'الفريق مش متفق'),
+                count: r.counts.teamSplit,
+                rows: r.teamSplit,
+                empty: context.tr('Nothing yet.', 'مفيش لسه.'),
+              ),
+            ),
+            GridSection(
+              weight: 1.0 + r.progress.length,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SectionLabel(context.tr('Team progress', 'تقدّم الفريق')),
+                  for (final p in r.progress)
+                    MoreCard(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: PersonText(p.person.fullName, maxLines: 2),
+                          ),
+                          Flexible(
+                            child: Text(
+                              context.tr(
+                                '${p.rated} rated · ${p.left} left · ${p.total} total',
+                                '${p.rated} قيّم · ${p.left} فاضل · ${p.total} الإجمالي',
+                              ),
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        SectionLabel(context.tr('Latest comments', 'آخر التعليقات')),
-        if (r.latestComments.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(StudioSpacing.gutter),
-            child: Text(context.tr('No comments yet.', 'مفيش تعليقات لسه.')),
-          ),
-        for (final c in r.latestComments)
-          MoreCard(
-            onTap: () => context.push('/pieces/${c.piece.id}'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PersonText(
-                  '${c.person.fullName} · ${c.score}/5 · ${c.piece.title}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: StudioSpacing.xs),
-                PersonText(c.comment),
-              ],
+            GridSection(
+              weight: 1.0 + 2.0 * r.latestComments.length,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SectionLabel(context.tr('Latest comments', 'آخر التعليقات')),
+                  if (r.latestComments.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(StudioSpacing.gutter),
+                      child: Text(
+                        context.tr('No comments yet.', 'مفيش تعليقات لسه.'),
+                      ),
+                    ),
+                  for (final c in r.latestComments)
+                    MoreCard(
+                      onTap: () => context.push('/pieces/${c.piece.id}'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          PersonText(
+                            '${c.person.fullName} · ${c.score}/5 · ${c.piece.title}',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: StudioSpacing.xs),
+                          PersonText(c.comment),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
+          ],
+        ),
       ],
     );
   }
