@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/studio_status_colors.dart' show Verdict;
@@ -224,8 +225,8 @@ class _ApprovalCardState extends State<ApprovalCard> {
           children: [
             StudioThumb(
               media: media,
-              width: 128,
-              height: 176,
+              width: context.isWideScreen ? 160 : 128,
+              height: context.isWideScreen ? 220 : 176,
               radius: BorderRadius.circular(StudioRadii.md),
             ),
             if (all.length > 1)

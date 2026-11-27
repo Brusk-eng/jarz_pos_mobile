@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -27,6 +28,7 @@ class ReportsScreen extends ConsumerWidget {
     final query = ref.watch(reportsSearchProvider);
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.title,
       parentRoute: '/more',
       actions: [moreHelpAction(context, title: t.helpTitle, lines: t.help)],

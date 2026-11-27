@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -74,73 +75,76 @@ class _Page extends ConsumerWidget {
           ),
         ],
       ),
-      body: value.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _Message(
-          title: e is StudioRateLimited
-              ? t.prepTryAgainLater
-              : t.prepBadLinkTitle,
-          body: e is StudioRateLimited
-              ? null
-              : e is StudioNetworkError
-              ? t.errNetwork
-              : t.prepBadLinkBody,
-          onRetry: e is StudioNotFound
-              ? null
-              : () => ref.invalidate(publicPrepProvider(token)),
-        ),
-        data: (p) => ShootPage(
-          child: ListView(
-            padding: const EdgeInsets.all(StudioSpacing.gutter),
-            children: [
-              PersonText(
-                p.title,
-                key: const ValueKey('prep-title'),
-                style: theme.textTheme.headlineSmall,
-              ),
-              const SizedBox(height: StudioSpacing.xs),
-              Text(
-                [
-                  if (p.shootDate != null)
-                    t.dateLabel(p.shootDate, p.shootTime),
-                  if (p.place != null) p.place!,
-                ].join(' · '),
-                style: theme.textTheme.bodyMedium,
-              ),
-              if (p.kit != null && p.kit!.isNotEmpty) ...[
-                const SizedBox(height: StudioSpacing.lg),
-                Text(t.prepKit, style: theme.textTheme.titleMedium),
-                const SizedBox(height: StudioSpacing.xs),
-                Text(p.kit!),
-              ],
-              const SizedBox(height: StudioSpacing.lg),
-              Text(t.prepItems, style: theme.textTheme.titleMedium),
-              const SizedBox(height: StudioSpacing.xs),
-              if (p.items.isEmpty)
-                Text(t.prepNoItems, style: theme.textTheme.bodySmall)
-              else
-                Card(
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < p.items.length; i++)
-                        ListTile(
-                          key: ValueKey('prep-item-$i'),
-                          leading: Icon(
-                            p.items[i].done
-                                ? Icons.check_circle
-                                : Icons.radio_button_unchecked,
-                            color: p.items[i].done
-                                ? StudioColors.success
-                                : StudioColors.plumMuted,
-                          ),
-                          title: Text(p.items[i].text),
-                        ),
-                    ],
-                  ),
+      body: StudioPage(
+        maxWidth: StudioContentWidth.reading,
+        child: value.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => _Message(
+            title: e is StudioRateLimited
+                ? t.prepTryAgainLater
+                : t.prepBadLinkTitle,
+            body: e is StudioRateLimited
+                ? null
+                : e is StudioNetworkError
+                ? t.errNetwork
+                : t.prepBadLinkBody,
+            onRetry: e is StudioNotFound
+                ? null
+                : () => ref.invalidate(publicPrepProvider(token)),
+          ),
+          data: (p) => ShootPage(
+            child: ListView(
+              padding: const EdgeInsets.all(StudioSpacing.gutter),
+              children: [
+                PersonText(
+                  p.title,
+                  key: const ValueKey('prep-title'),
+                  style: theme.textTheme.headlineSmall,
                 ),
-              const SizedBox(height: StudioSpacing.lg),
-              Text(t.prepRead, style: theme.textTheme.bodySmall),
-            ],
+                const SizedBox(height: StudioSpacing.xs),
+                Text(
+                  [
+                    if (p.shootDate != null)
+                      t.dateLabel(p.shootDate, p.shootTime),
+                    if (p.place != null) p.place!,
+                  ].join(' · '),
+                  style: theme.textTheme.bodyMedium,
+                ),
+                if (p.kit != null && p.kit!.isNotEmpty) ...[
+                  const SizedBox(height: StudioSpacing.lg),
+                  Text(t.prepKit, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: StudioSpacing.xs),
+                  Text(p.kit!),
+                ],
+                const SizedBox(height: StudioSpacing.lg),
+                Text(t.prepItems, style: theme.textTheme.titleMedium),
+                const SizedBox(height: StudioSpacing.xs),
+                if (p.items.isEmpty)
+                  Text(t.prepNoItems, style: theme.textTheme.bodySmall)
+                else
+                  Card(
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < p.items.length; i++)
+                          ListTile(
+                            key: ValueKey('prep-item-$i'),
+                            leading: Icon(
+                              p.items[i].done
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              color: p.items[i].done
+                                  ? StudioColors.success
+                                  : StudioColors.plumMuted,
+                            ),
+                            title: Text(p.items[i].text),
+                          ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: StudioSpacing.lg),
+                Text(t.prepRead, style: theme.textTheme.bodySmall),
+              ],
+            ),
           ),
         ),
       ),

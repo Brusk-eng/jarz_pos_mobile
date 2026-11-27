@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +24,7 @@ class PeopleScreen extends ConsumerWidget {
     final t = SettingsStrings.of(context);
     final value = ref.watch(peopleListProvider);
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.peopleTitle,
       parentRoute: '/more/settings',
       actions: [
@@ -98,6 +100,7 @@ class PersonScreen extends ConsumerWidget {
         .firstOrNull;
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: person?.fullName ?? t.personTitle,
       parentRoute: '/more/settings/people',
       onEdit: person != null && person.actions.contains('edit')

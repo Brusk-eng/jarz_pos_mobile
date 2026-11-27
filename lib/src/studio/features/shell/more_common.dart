@@ -1,3 +1,4 @@
+import '../../shared/layout/studio_layout.dart';
 import '../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,19 +69,18 @@ Widget moreHelpAction(
 
 /// Keeps a screen readable on a wide window: centred, at most [maxWidth].
 class MoreBody extends StatelessWidget {
-  const MoreBody({super.key, required this.child, this.maxWidth = 760});
+  const MoreBody({
+    super.key,
+    required this.child,
+    this.maxWidth = StudioContentWidth.reading,
+  });
 
   final Widget child;
   final double maxWidth;
 
   @override
-  Widget build(BuildContext context) => Align(
-    alignment: Alignment.topCenter,
-    child: ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: maxWidth),
-      child: child,
-    ),
-  );
+  Widget build(BuildContext context) =>
+      StudioPage(maxWidth: maxWidth, child: child);
 }
 
 /// Small caps label above a block.

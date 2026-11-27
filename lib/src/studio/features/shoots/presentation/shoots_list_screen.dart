@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -45,6 +46,7 @@ class _ShootsListScreenState extends ConsumerState<ShootsListScreen> {
       child: Stack(
         children: [
           ViewEditScaffold(
+            contentWidth: StudioContentWidth.full,
             title: st.screen(StudioScreen.shoots).title,
             screen: StudioScreen.shoots,
             parentRoute: '/more',
@@ -155,13 +157,11 @@ class _ShootTab extends ConsumerWidget {
           96,
         ),
         children: [
-          for (final s in shoots)
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 720),
-                child: ShootCard(shoot: s),
-              ),
-            ),
+          // One column on a phone; cards in a grid on a wide window.
+          ResponsiveCardGrid(
+            minCellWidth: 440,
+            children: [for (final s in shoots) ShootCard(shoot: s, grid: true)],
+          ),
           if (hasMore)
             Center(
               child: TextButton(
@@ -178,8 +178,11 @@ class _ShootTab extends ConsumerWidget {
 }
 
 class ShootCard extends StatelessWidget {
-  const ShootCard({super.key, required this.shoot});
+  const ShootCard({super.key, required this.shoot, this.grid = false});
   final ShootSummary shoot;
+
+  /// In a grid: the grid sets the gaps, the card has no margin of its own.
+  final bool grid;
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +193,9 @@ class ShootCard extends StatelessWidget {
         : t.dateLabel(shoot.shootDate, shoot.shootTime);
     return Card(
       key: ValueKey('shoot-${shoot.id}'),
-      margin: const EdgeInsets.only(bottom: StudioSpacing.md),
+      margin: grid
+          ? EdgeInsets.zero
+          : const EdgeInsets.only(bottom: StudioSpacing.md),
       child: InkWell(
         borderRadius: BorderRadius.circular(StudioRadii.md),
         onTap: () => context.push('/shoots/${shoot.id}'),

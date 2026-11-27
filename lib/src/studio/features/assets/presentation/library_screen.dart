@@ -1,3 +1,7 @@
+import '../../../shared/layout/master_detail.dart';
+import '../../../shared/studio_tr.dart';
+import 'asset_screen.dart';
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -60,39 +64,54 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     return Stack(
       children: [
         ViewEditScaffold(
+          contentWidth: StudioContentWidth.full,
           title: st.screen(StudioScreen.assets).title,
           screen: StudioScreen.assets,
           parentRoute: '/more',
-          body: Column(
-            children: [
-              _FilterBar(search: _search, filters: filters, onChange: _set),
-              Expanded(
-                child: StudioAsyncView<PagedAssets>(
-                  value: value.whenData((p) => PagedAssets(p.items, p.hasMore)),
-                  onRetry: () => ref.invalidate(libraryProvider),
-                  empty: filters.any
-                      ? StudioEmptyConfig(
-                          purpose: t.emptyFilteredPurpose,
-                          firstStep: t.emptyFilteredFirstStep,
-                          icon: Icons.filter_alt_off_outlined,
-                          actionLabel: t.clearFilters,
-                          onAction: () {
-                            _search.clear();
-                            _set((_) => const AssetFilters());
-                          },
-                        )
-                      : StudioEmptyConfig(
-                          purpose: t.emptyPurpose,
-                          firstStep: t.emptyFirstStep,
-                          icon: Icons.photo_library_outlined,
-                          actionLabel: t.addAsset,
-                          onAction: () => context.push('/assets/new'),
-                        ),
-                  isEmpty: (d) => d.items.isEmpty,
-                  builder: (context, d) => _Grid(data: d),
-                ),
+          body: MasterDetail(
+            masterWidth: 480,
+            onPush: (id) => context.push('/assets/$id'),
+            detailBuilder: (context, id) => AssetScreen(assetId: id),
+            emptyDetail: MasterDetailEmpty(
+              text: context.tr(
+                'Pick a file to see it here.',
+                'اختار ملف عشان تشوفه هنا.',
               ),
-            ],
+              icon: Icons.photo_library_outlined,
+            ),
+            masterBuilder: (context, selected, open) => Column(
+              children: [
+                _FilterBar(search: _search, filters: filters, onChange: _set),
+                Expanded(
+                  child: StudioAsyncView<PagedAssets>(
+                    value: value.whenData(
+                      (p) => PagedAssets(p.items, p.hasMore),
+                    ),
+                    onRetry: () => ref.invalidate(libraryProvider),
+                    empty: filters.any
+                        ? StudioEmptyConfig(
+                            purpose: t.emptyFilteredPurpose,
+                            firstStep: t.emptyFilteredFirstStep,
+                            icon: Icons.filter_alt_off_outlined,
+                            actionLabel: t.clearFilters,
+                            onAction: () {
+                              _search.clear();
+                              _set((_) => const AssetFilters());
+                            },
+                          )
+                        : StudioEmptyConfig(
+                            purpose: t.emptyPurpose,
+                            firstStep: t.emptyFirstStep,
+                            icon: Icons.photo_library_outlined,
+                            actionLabel: t.addAsset,
+                            onAction: () => context.push('/assets/new'),
+                          ),
+                    isEmpty: (d) => d.items.isEmpty,
+                    builder: (context, d) => _Grid(data: d, onOpen: open),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         if (ref.watch(canAddAssetsProvider))
@@ -262,8 +281,9 @@ class _FilterChip<T> extends StatelessWidget {
 const _anyMarker = '__any__';
 
 class _Grid extends ConsumerWidget {
-  const _Grid({required this.data});
+  const _Grid({required this.data, required this.onOpen});
   final PagedAssets data;
+  final void Function(String id) onOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -287,7 +307,10 @@ class _Grid extends ConsumerWidget {
                 childAspectRatio: 0.72,
               ),
               itemCount: data.items.length,
-              itemBuilder: (context, i) => AssetTile(asset: data.items[i]),
+              itemBuilder: (context, i) => AssetTile(
+                asset: data.items[i],
+                onOpen: () => onOpen(data.items[i].id),
+              ),
             ),
           ),
           SliverToBoxAdapter(
@@ -312,8 +335,11 @@ class _Grid extends ConsumerWidget {
 }
 
 class AssetTile extends StatelessWidget {
-  const AssetTile({super.key, required this.asset});
+  const AssetTile({super.key, required this.asset, this.onOpen});
   final StudioAsset asset;
+
+  /// Opens the file; null pushes its screen.
+  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +348,7 @@ class AssetTile extends StatelessWidget {
     return InkWell(
       key: ValueKey('asset-${asset.id}'),
       borderRadius: BorderRadius.circular(StudioRadii.md),
-      onTap: () => context.push('/assets/${asset.id}'),
+      onTap: onOpen ?? () => context.push('/assets/${asset.id}'),
       child: Card(
         clipBehavior: Clip.antiAlias,
         margin: EdgeInsets.zero,

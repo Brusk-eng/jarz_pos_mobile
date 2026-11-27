@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -108,6 +109,7 @@ class _AddVersionState extends ConsumerState<AddVersionScreen> {
     final piece = ref.watch(pieceProvider(widget.pieceId));
     final back = '/pieces/${widget.pieceId}';
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.title,
       parentRoute: back,
       body: StudioAsyncView(

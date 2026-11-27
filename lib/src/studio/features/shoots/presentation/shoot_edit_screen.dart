@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -243,117 +244,126 @@ class _ShootEditScreenState extends ConsumerState<ShootEditScreen> {
           ),
         ],
       ),
-      body: loadFailed
-          ? StudioErrorState(
-              onRetry: () {
-                setState(() => loadFailed = false);
-                _init();
-              },
-            )
-          : !ready
-          ? const Center(child: CircularProgressIndicator())
-          : ShootPage(
-              child: ListView(
-                padding: const EdgeInsets.all(StudioSpacing.gutter),
-                children: [
-                  if (banner != null)
-                    Container(
-                      key: const ValueKey('edit-banner'),
-                      margin: const EdgeInsets.only(bottom: StudioSpacing.md),
-                      padding: const EdgeInsets.all(StudioSpacing.md),
-                      decoration: BoxDecoration(
-                        color: StudioColors.warning.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(StudioRadii.md),
+      body: StudioPage(
+        maxWidth: StudioContentWidth.form,
+        child: loadFailed
+            ? StudioErrorState(
+                onRetry: () {
+                  setState(() => loadFailed = false);
+                  _init();
+                },
+              )
+            : !ready
+            ? const Center(child: CircularProgressIndicator())
+            : ShootPage(
+                child: ListView(
+                  padding: const EdgeInsets.all(StudioSpacing.gutter),
+                  children: [
+                    if (banner != null)
+                      Container(
+                        key: const ValueKey('edit-banner'),
+                        margin: const EdgeInsets.only(bottom: StudioSpacing.md),
+                        padding: const EdgeInsets.all(StudioSpacing.md),
+                        decoration: BoxDecoration(
+                          color: StudioColors.warning.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(StudioRadii.md),
+                        ),
+                        child: Text(banner!),
                       ),
-                      child: Text(banner!),
+                    text(
+                      title,
+                      t.fieldTitle,
+                      'title',
+                      key: const ValueKey('f-title'),
                     ),
-                  text(
-                    title,
-                    t.fieldTitle,
-                    'title',
-                    key: const ValueKey('f-title'),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _PickField(
-                          key: const ValueKey('f-date'),
-                          label: t.fieldDate,
-                          value: date == null ? null : t.dateLabel(date, null),
-                          hint: t.pickDate,
-                          error: errors['shoot_date'],
-                          onTap: pickDate,
-                          onClear: date == null
-                              ? null
-                              : () => setState(() => date = null),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _PickField(
+                            key: const ValueKey('f-date'),
+                            label: t.fieldDate,
+                            value: date == null
+                                ? null
+                                : t.dateLabel(date, null),
+                            hint: t.pickDate,
+                            error: errors['shoot_date'],
+                            onTap: pickDate,
+                            onClear: date == null
+                                ? null
+                                : () => setState(() => date = null),
+                          ),
+                        ),
+                        const SizedBox(width: StudioSpacing.md),
+                        Expanded(
+                          child: _PickField(
+                            key: const ValueKey('f-time'),
+                            label: t.fieldTime,
+                            value: time,
+                            hint: t.pickTime,
+                            error: errors['shoot_time'],
+                            onTap: pickTime,
+                            onClear: time == null
+                                ? null
+                                : () => setState(() => time = null),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: StudioSpacing.md),
+                    text(
+                      place,
+                      t.fieldPlace,
+                      'place',
+                      key: const ValueKey('f-place'),
+                    ),
+                    text(people, t.fieldPeople, 'people'),
+                    text(kit, t.fieldKit, 'kit', lines: 2),
+                    text(notes, t.fieldNotes, 'notes', lines: 2),
+                    if (!isNew && original != null)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: StudioSpacing.md,
+                        ),
+                        child: DropdownButtonFormField<ShootStatus>(
+                          key: const ValueKey('f-status'),
+                          isExpanded: true,
+                          initialValue: status,
+                          decoration: InputDecoration(
+                            labelText: t.fieldStatus,
+                            errorText: errors['status'],
+                          ),
+                          items: [
+                            for (final s in ShootStatus.values)
+                              if (s != ShootStatus.unknown)
+                                DropdownMenuItem(
+                                  value: s,
+                                  child: Text(t.status(s)),
+                                ),
+                          ],
+                          onChanged: (v) => setState(() => status = v),
                         ),
                       ),
-                      const SizedBox(width: StudioSpacing.md),
-                      Expanded(
-                        child: _PickField(
-                          key: const ValueKey('f-time'),
-                          label: t.fieldTime,
-                          value: time,
-                          hint: t.pickTime,
-                          error: errors['shoot_time'],
-                          onTap: pickTime,
-                          onClear: time == null
-                              ? null
-                              : () => setState(() => time = null),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: StudioSpacing.md),
-                  text(
-                    place,
-                    t.fieldPlace,
-                    'place',
-                    key: const ValueKey('f-place'),
-                  ),
-                  text(people, t.fieldPeople, 'people'),
-                  text(kit, t.fieldKit, 'kit', lines: 2),
-                  text(notes, t.fieldNotes, 'notes', lines: 2),
-                  if (!isNew && original != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: StudioSpacing.md),
-                      child: DropdownButtonFormField<ShootStatus>(
-                        key: const ValueKey('f-status'),
-                        isExpanded: true,
-                        initialValue: status,
-                        decoration: InputDecoration(
-                          labelText: t.fieldStatus,
-                          errorText: errors['status'],
-                        ),
-                        items: [
-                          for (final s in ShootStatus.values)
-                            if (s != ShootStatus.unknown)
-                              DropdownMenuItem(
-                                value: s,
-                                child: Text(t.status(s)),
-                              ),
-                        ],
-                        onChanged: (v) => setState(() => status = v),
+                    const SizedBox(height: StudioSpacing.sm),
+                    SizedBox(
+                      height: 52,
+                      child: FilledButton(
+                        key: const ValueKey('f-save'),
+                        onPressed: busy ? null : save,
+                        child: busy
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(t.save),
                       ),
                     ),
-                  const SizedBox(height: StudioSpacing.sm),
-                  SizedBox(
-                    height: 52,
-                    child: FilledButton(
-                      key: const ValueKey('f-save'),
-                      onPressed: busy ? null : save,
-                      child: busy
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(t.save),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }

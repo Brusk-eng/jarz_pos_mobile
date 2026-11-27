@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_chips.dart';
 import '../../../shared/studio_pickers.dart';
 import '../../../data/api/studio_api_base.dart';
@@ -44,6 +45,7 @@ class FlavoursScreen extends ConsumerWidget {
     final t = SettingsStrings.of(context);
     final value = ref.watch(flavoursListProvider);
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.flavoursTitle,
       parentRoute: '/more/settings',
       actions: [
@@ -138,6 +140,7 @@ class FlavourScreen extends ConsumerWidget {
         .firstOrNull;
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: flavour?.name ?? t.flavourTitle,
       parentRoute: '/more/settings/flavours',
       onEdit: flavour != null && flavour.actions.contains('edit')

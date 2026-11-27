@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +32,7 @@ class ReferencesScreen extends ConsumerWidget {
         ref.watch(studioSessionProvider).valueOrNull?.canAddReferences ?? false;
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.title,
       parentRoute: '/more',
       actions: [
@@ -50,7 +52,7 @@ class ReferencesScreen extends ConsumerWidget {
         moreHelpAction(context, title: t.helpTitle, lines: t.help),
       ],
       body: MoreBody(
-        maxWidth: 1100,
+        maxWidth: StudioContentWidth.wide,
         child: Column(
           children: [
             Row(

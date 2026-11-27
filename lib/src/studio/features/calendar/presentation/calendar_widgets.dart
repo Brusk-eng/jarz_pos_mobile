@@ -58,10 +58,19 @@ class PostStatusChip extends StatelessWidget {
 /// One post in a day: channel icon, time, thumbnail, title, status and what it
 /// waits on. Tapping opens the post.
 class PostTile extends StatelessWidget {
-  const PostTile({super.key, required this.post, this.showDate = false});
+  const PostTile({
+    super.key,
+    required this.post,
+    this.showDate = false,
+    this.stacked = false,
+  });
 
   final PostSummary post;
   final bool showDate;
+
+  /// The picture on top, full width of the tile, the words under it (a day
+  /// column of the wide week grid).
+  final bool stacked;
 
   @override
   Widget build(BuildContext context) {
@@ -78,86 +87,105 @@ class PostTile extends StatelessWidget {
         onTap: () => context.push('/calendar/post/${post.id}'),
         child: Padding(
           padding: const EdgeInsets.all(StudioSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              StudioThumb(
-                media: post.thumb,
-                width: 44,
-                height: 56,
-                radius: BorderRadius.circular(StudioRadii.sm),
-              ),
-              const SizedBox(width: StudioSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: _layout(
+            stacked: stacked,
+            thumb: StudioThumb(
+              media: post.thumb,
+              width: stacked ? null : 44,
+              height: stacked ? 128 : 56,
+              radius: BorderRadius.circular(StudioRadii.sm),
+            ),
+            text: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          channelIcon(post.channel),
-                          size: 16,
-                          color: StudioColors.plumMuted,
-                        ),
-                        const SizedBox(width: StudioSpacing.xs),
-                        Flexible(
-                          child: Text(
-                            [
-                              if (post.channel != null)
-                                s.channel(post.channel!),
-                              if (when != null) CairoTime.time(when),
-                            ].where((x) => x.isNotEmpty).join(' · '),
-                            style: StudioTextStyles.caption,
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      channelIcon(post.channel),
+                      size: 16,
+                      color: StudioColors.plumMuted,
                     ),
-                    const SizedBox(height: StudioSpacing.xxs),
-                    PersonText(
-                      post.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleSmall,
+                    const SizedBox(width: StudioSpacing.xs),
+                    Flexible(
+                      child: Text(
+                        [
+                          if (post.channel != null) s.channel(post.channel!),
+                          if (when != null) CairoTime.time(when),
+                        ].where((x) => x.isNotEmpty).join(' · '),
+                        style: StudioTextStyles.caption,
+                      ),
                     ),
-                    const SizedBox(height: StudioSpacing.xs),
-                    Wrap(
-                      spacing: StudioSpacing.sm,
-                      runSpacing: StudioSpacing.xs,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        PostStatusChip(status: post.status),
-                        if (platformsOf(post.platforms).isNotEmpty)
-                          PlatformMarks(
-                            platforms: post.platforms,
-                            status: post.platformStatus,
-                            ar: ar,
-                          ),
-                        if (showDate && when != null)
-                          Text(
-                            CairoFormat.dayMonth(when, ar),
-                            style: StudioTextStyles.caption,
-                          ),
-                      ],
-                    ),
-                    if (post.waitsOn != null && post.waitsOn!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: StudioSpacing.xs),
-                        child: Text(
-                          s.waitingOn(personName(post.waitsOn)),
-                          style: textTheme.bodySmall?.copyWith(
-                            color: stop
-                                ? StudioColors.danger
-                                : StudioColors.warning,
-                          ),
-                        ),
+                  ],
+                ),
+                const SizedBox(height: StudioSpacing.xxs),
+                PersonText(
+                  post.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleSmall,
+                ),
+                const SizedBox(height: StudioSpacing.xs),
+                Wrap(
+                  spacing: StudioSpacing.sm,
+                  runSpacing: StudioSpacing.xs,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    PostStatusChip(status: post.status),
+                    if (platformsOf(post.platforms).isNotEmpty)
+                      PlatformMarks(
+                        platforms: post.platforms,
+                        status: post.platformStatus,
+                        ar: ar,
+                      ),
+                    if (showDate && when != null)
+                      Text(
+                        CairoFormat.dayMonth(when, ar),
+                        style: StudioTextStyles.caption,
                       ),
                   ],
                 ),
-              ),
-            ],
+                if (post.waitsOn != null && post.waitsOn!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: StudioSpacing.xs),
+                    child: Text(
+                      s.waitingOn(personName(post.waitsOn)),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: stop
+                            ? StudioColors.danger
+                            : StudioColors.warning,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  static Widget _layout({
+    required bool stacked,
+    required Widget thumb,
+    required Widget text,
+  }) {
+    if (stacked) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          thumb,
+          const SizedBox(height: StudioSpacing.sm),
+          text,
+        ],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        thumb,
+        const SizedBox(width: StudioSpacing.md),
+        Expanded(child: text),
+      ],
     );
   }
 }

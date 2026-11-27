@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,6 +58,7 @@ class CalendarScreen extends ConsumerWidget {
     }
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.tabCalendar,
       rootTab: true,
       screen: StudioScreen.calendar,
@@ -372,12 +374,13 @@ class _WeekViewState extends State<_WeekView> {
         shoots: shoots,
         canAdd: canAdd,
         onAdd: () => onAdd(day),
+        column: context.isWideScreen,
       );
     }
 
     return LayoutBuilder(
       builder: (context, box) {
-        if (box.maxWidth >= 900) {
+        if (context.isWideScreen) {
           return Row(
             key: const ValueKey('week-wide'),
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,8 +424,11 @@ class _DayBlock extends StatelessWidget {
     required this.shoots,
     required this.canAdd,
     required this.onAdd,
+    this.column = false,
   });
 
+  /// A column of the wide week grid: short heading, stacked tiles.
+  final bool column;
   final DateTime day;
   final bool isToday;
   final List<PostSummary> posts;
@@ -441,7 +447,9 @@ class _DayBlock extends StatelessWidget {
       key: ValueKey('day-$dateKey'),
       margin: const EdgeInsets.only(bottom: StudioSpacing.md),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: column
+            ? CrossAxisAlignment.stretch
+            : CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -461,7 +469,9 @@ class _DayBlock extends StatelessWidget {
                       borderRadius: BorderRadius.circular(StudioRadii.sm),
                     ),
                     child: Text(
-                      CairoFormat.full(day, ar),
+                      column
+                          ? '${CairoFormat.weekday(day, ar)} ${day.day}'
+                          : CairoFormat.full(day, ar),
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.titleSmall?.copyWith(
                         color: isToday ? Colors.white : null,
@@ -511,7 +521,7 @@ class _DayBlock extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: StudioSpacing.xs),
               child: Text(c.nothingPlanned, style: textTheme.bodySmall),
             ),
-          for (final p in posts) PostTile(post: p),
+          for (final p in posts) PostTile(post: p, stacked: column),
         ],
       ),
     );

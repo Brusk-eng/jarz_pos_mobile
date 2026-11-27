@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,7 +90,7 @@ class _PiecesBoardViewState extends ConsumerState<PiecesBoardView> {
         ];
         return LayoutBuilder(
           builder: (context, box) {
-            if (box.maxWidth >= 900) {
+            if (context.isWideScreen) {
               return ListView(
                 key: const ValueKey('board-wide'),
                 scrollDirection: Axis.horizontal,

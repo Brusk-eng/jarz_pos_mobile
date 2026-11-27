@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,6 +47,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
     final value = ref.watch(rulesListProvider);
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.rulesTitle,
       parentRoute: '/more/settings',
       actions: [
@@ -143,6 +145,7 @@ class RuleScreen extends ConsumerWidget {
     final rule = value.valueOrNull?.where((r) => r.key == ruleKey).firstOrNull;
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: rule == null ? t.ruleTitle : _ruleName(rule),
       parentRoute: '/more/settings/rules',
       onEdit: rule != null && rule.actions.contains('set')

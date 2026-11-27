@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,6 +31,7 @@ class PiecesScreen extends ConsumerWidget {
     final canCreate = role == StudioRole.founder || role == StudioRole.lead;
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.tabPieces,
       rootTab: true,
       screen: StudioScreen.pieces,
@@ -62,28 +64,34 @@ class PiecesScreen extends ConsumerWidget {
               StudioSpacing.gutter,
               0,
             ),
-            child: SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<PiecesView>(
-                key: const ValueKey('pieces-view-switch'),
-                showSelectedIcon: false,
-                segments: [
-                  ButtonSegment(
-                    value: PiecesView.board,
-                    label: Text(s.viewBoard, key: const ValueKey('view-board')),
-                  ),
-                  ButtonSegment(
-                    value: PiecesView.week,
-                    label: Text(s.viewWeek, key: const ValueKey('view-week')),
-                  ),
-                  ButtonSegment(
-                    value: PiecesView.list,
-                    label: Text(s.viewList, key: const ValueKey('view-list')),
-                  ),
-                ],
-                selected: {view},
-                onSelectionChanged: (v) =>
-                    ref.read(piecesViewProvider.notifier).choose(v.first),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: SizedBox(
+                width: context.isWideScreen ? 560 : double.infinity,
+                child: SegmentedButton<PiecesView>(
+                  key: const ValueKey('pieces-view-switch'),
+                  showSelectedIcon: false,
+                  segments: [
+                    ButtonSegment(
+                      value: PiecesView.board,
+                      label: Text(
+                        s.viewBoard,
+                        key: const ValueKey('view-board'),
+                      ),
+                    ),
+                    ButtonSegment(
+                      value: PiecesView.week,
+                      label: Text(s.viewWeek, key: const ValueKey('view-week')),
+                    ),
+                    ButtonSegment(
+                      value: PiecesView.list,
+                      label: Text(s.viewList, key: const ValueKey('view-list')),
+                    ),
+                  ],
+                  selected: {view},
+                  onSelectionChanged: (v) =>
+                      ref.read(piecesViewProvider.notifier).choose(v.first),
+                ),
               ),
             ),
           ),

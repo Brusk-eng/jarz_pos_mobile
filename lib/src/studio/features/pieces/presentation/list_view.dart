@@ -1,3 +1,6 @@
+import '../../../shared/layout/master_detail.dart';
+import '../../../shared/studio_tr.dart';
+import 'piece_screen.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -55,6 +58,27 @@ class _PiecesListViewState extends ConsumerState<PiecesListView> {
 
   @override
   Widget build(BuildContext context) {
+    // Wide: the list on the left, the opened piece on the right.
+    return MasterDetail(
+      masterWidth: 440,
+      onPush: (id) => context.push('/pieces/$id'),
+      masterBuilder: (context, selected, open) =>
+          _master(context, selected, open),
+      detailBuilder: (context, id) => PieceScreen(pieceId: id),
+      emptyDetail: MasterDetailEmpty(
+        text: context.tr(
+          'Pick a piece to open it here.',
+          'اختار قطعة عشان تفتحها هنا.',
+        ),
+      ),
+    );
+  }
+
+  Widget _master(
+    BuildContext context,
+    String? selected,
+    void Function(String id) open,
+  ) {
     final t = StudioStrings.of(context);
     final s = PiecesStrings.of(context);
     final filters = ref.watch(pieceFiltersProvider);
@@ -109,10 +133,7 @@ class _PiecesListViewState extends ConsumerState<PiecesListView> {
               padding: const EdgeInsets.all(StudioSpacing.gutter),
               children: [
                 for (final piece in p.items)
-                  PieceCard(
-                    piece: piece,
-                    onTap: () => context.push('/pieces/${piece.id}'),
-                  ),
+                  PieceCard(piece: piece, onTap: () => open(piece.id)),
                 if (p.hasMore)
                   Center(
                     child: TextButton(

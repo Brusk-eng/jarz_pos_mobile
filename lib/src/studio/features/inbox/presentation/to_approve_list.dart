@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -155,32 +156,36 @@ class _ToApproveListState extends ConsumerState<ToApproveList> {
             StudioSpacing.gutter,
             StudioSpacing.sm,
           ),
-          child: SizedBox(
-            width: double.infinity,
-            child: SegmentedButton<bool>(
-              key: const ValueKey('approvals-tabs'),
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(
-                  value: false,
-                  label: Text(
-                    s.tabToApprove,
-                    key: const ValueKey('approvals-tab-waiting'),
-                    textAlign: TextAlign.center,
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: SizedBox(
+              width: context.isWideScreen ? 560 : double.infinity,
+              child: SegmentedButton<bool>(
+                key: const ValueKey('approvals-tabs'),
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(
+                    value: false,
+                    label: Text(
+                      s.tabToApprove,
+                      key: const ValueKey('approvals-tab-waiting'),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
-                ButtonSegment(
-                  value: true,
-                  label: Text(
-                    s.tabApproved,
-                    key: const ValueKey('approvals-tab-approved'),
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
+                  ButtonSegment(
+                    value: true,
+                    label: Text(
+                      s.tabApproved,
+                      key: const ValueKey('approvals-tab-approved'),
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
-              ],
-              selected: {_approvedTab},
-              onSelectionChanged: (v) => setState(() => _approvedTab = v.first),
+                ],
+                selected: {_approvedTab},
+                onSelectionChanged: (v) =>
+                    setState(() => _approvedTab = v.first),
+              ),
             ),
           ),
         ),
@@ -318,34 +323,33 @@ class _CardList extends StatelessWidget {
     final s = ApprovalsStrings.of(context);
     final theme = Theme.of(context);
     final groups = groupApprovals(cards, now);
-    return ListView(
-      key: listKey,
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(StudioSpacing.gutter),
-      children: [
-        for (final g in groups) ...[
-          Padding(
-            padding: const EdgeInsets.only(
-              top: StudioSpacing.xs,
-              bottom: StudioSpacing.sm,
-            ),
-            child: Text(
-              s.groupTitle(g, g.date == null ? '' : s.dayText(g.date!)),
-              key: ValueKey(
-                'group-${g.kind.name}${g.kind == ApprovalDay.later ? '-${CairoTime.date(g.date!)}' : ''}',
-              ),
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: g.kind == ApprovalDay.overdue
-                    ? StudioColors.danger
-                    : StudioColors.deepPlum,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+    List<Widget> groupWidgets(ApprovalGroup g) => [
+      Padding(
+        padding: const EdgeInsets.only(
+          top: StudioSpacing.xs,
+          bottom: StudioSpacing.sm,
+        ),
+        child: Text(
+          s.groupTitle(g, g.date == null ? '' : s.dayText(g.date!)),
+          key: ValueKey(
+            'group-${g.kind.name}${g.kind == ApprovalDay.later ? '-${CairoTime.date(g.date!)}' : ''}',
           ),
-          for (final c in g.cards)
-            Padding(
-              padding: const EdgeInsets.only(bottom: StudioSpacing.md),
-              child: ApprovalCard(
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: g.kind == ApprovalDay.overdue
+                ? StudioColors.danger
+                : StudioColors.deepPlum,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(bottom: StudioSpacing.md),
+        // One column on a phone; 2 to 4 cards a row on a wide window.
+        child: ResponsiveCardGrid(
+          minCellWidth: 470,
+          children: [
+            for (final c in g.cards)
+              ApprovalCard(
                 card: c,
                 now: now,
                 mode: modeOf(c),
@@ -356,8 +360,35 @@ class _CardList extends StatelessWidget {
                 onUndo: () => onUndo(c),
                 onOpenDetails: () => onOpen(c),
               ),
-            ),
-        ],
+          ],
+        ),
+      ),
+    ];
+    return ListView(
+      key: listKey,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.all(
+        context.isWideScreen ? StudioSpacing.xl : StudioSpacing.gutter,
+      ),
+      children: [
+        if (context.isWideScreen)
+          // Wide: the days flow into columns, soonest first.
+          ResponsiveSectionGrid(
+            columnsFor: (w) => w >= 1800 ? 3 : 2,
+            gap: StudioSpacing.xl,
+            sections: [
+              for (final g in groups)
+                GridSection(
+                  weight: 1 + 4.0 * g.cards.length,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: groupWidgets(g),
+                  ),
+                ),
+            ],
+          )
+        else
+          for (final g in groups) ...groupWidgets(g),
         if (hasMore)
           Center(
             child: TextButton(

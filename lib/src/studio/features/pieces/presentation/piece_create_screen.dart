@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -96,6 +97,7 @@ class _PieceCreateScreenState extends ConsumerState<PieceCreateScreen> {
   Widget build(BuildContext context) {
     final s = PiecesStrings.of(context);
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: s.createTitle,
       actions: [
         TextButton(

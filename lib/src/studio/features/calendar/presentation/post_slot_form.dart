@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_pickers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -281,6 +282,7 @@ class _PostSlotFormState extends ConsumerState<PostSlotForm> {
         : widget.post?.piece?.title ?? widget.post?.title;
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: title,
       actions: [
         TextButton(

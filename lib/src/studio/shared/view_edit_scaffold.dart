@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../core/theme/studio_tokens.dart';
+import 'layout/studio_layout.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/l10n/studio_strings.dart';
@@ -23,6 +26,8 @@ class ViewEditScaffold extends StatelessWidget {
     this.showLanguageSwitch = false,
     this.bottom,
     this.rootTab = false,
+    this.contentWidth = StudioContentWidth.reading,
+    this.titleExtra,
   });
 
   final String title;
@@ -43,6 +48,14 @@ class ViewEditScaffold extends StatelessWidget {
   /// where the person lands, so it never shows a back arrow. Pushed screens
   /// leave this false and always do.
   final bool rootTab;
+
+  /// The widest the body gets (centred) on a wide window; collections pass
+  /// [StudioContentWidth.full]. A phone never reaches the cap.
+  final double contentWidth;
+
+  /// A widget next to the title on one line (wide windows, e.g. Today's day
+  /// switcher). It takes the room between the title and the actions.
+  final Widget? titleExtra;
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +85,15 @@ class ViewEditScaffold extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: leading,
-        title: Text(title),
+        title: titleExtra == null
+            ? Text(title)
+            : Row(
+                children: [
+                  Text(title),
+                  const SizedBox(width: StudioSpacing.xl),
+                  Expanded(child: titleExtra!),
+                ],
+              ),
         bottom: bottom,
         actions: [
           ...actions,
@@ -100,7 +121,7 @@ class ViewEditScaffold extends StatelessWidget {
             ),
         ],
       ),
-      body: body,
+      body: StudioPage(maxWidth: contentWidth, child: body),
     );
   }
 }

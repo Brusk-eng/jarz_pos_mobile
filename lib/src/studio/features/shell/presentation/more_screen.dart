@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -111,101 +112,126 @@ class StudioMoreScreen extends ConsumerWidget {
       items = role == null ? const <MoreItem>[] : moreOrder[role]!;
     }
 
+    final entries = <Widget>[
+      for (final item in items)
+        ListTile(
+          key: ValueKey('more-${item.name}'),
+          leading: Icon(_moreIcons[item], color: StudioColors.deepPlum),
+          title: Text(_labelOf(t, item)),
+          trailing: const _Chevron(),
+          onTap: () => context.go(_moreRoutes[item]!),
+        ),
+      ListTile(
+        key: const ValueKey('more-notifications'),
+        leading: const Icon(
+          Icons.notifications_outlined,
+          color: StudioColors.deepPlum,
+        ),
+        title: Text(t.entryNotifications),
+        trailing: const _Chevron(),
+        onTap: () => context.go(notificationSettingsRoute),
+      ),
+      if (role != null)
+        ListTile(
+          key: const ValueKey('more-help'),
+          leading: const Icon(Icons.help_outline, color: StudioColors.deepPlum),
+          title: Text(WalkthroughStrings.of(context).helpEntry),
+          subtitle: Text(WalkthroughStrings.of(context).helpEntryHint),
+          trailing: const _Chevron(),
+          onTap: () => showWalkthrough(context, role),
+        ),
+    ];
+    final account = <Widget>[
+      ListTile(
+        key: const ValueKey('more-language'),
+        leading: const Icon(Icons.translate, color: StudioColors.deepPlum),
+        title: Text(t.languageRow),
+        trailing: Text(
+          t.isArabic ? 'English' : 'العربية',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        onTap: () {
+          final cur = ref.read(studioLocaleProvider);
+          ref
+              .read(studioLocaleProvider.notifier)
+              .state = cur.languageCode == 'ar'
+              ? const Locale('en')
+              : const Locale('ar');
+        },
+      ),
+      ListTile(
+        key: const ValueKey('more-sign-out'),
+        leading: const Icon(Icons.logout),
+        title: Text(t.signOutRow),
+        onTap: () => ref.read(studioSessionProvider.notifier).signOut(),
+      ),
+    ];
+    final versionText = version.isEmpty
+        ? null
+        : Padding(
+            key: const ValueKey('more-version'),
+            padding: const EdgeInsets.all(StudioSpacing.gutter),
+            child: Text(
+              t.appVersion(version),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          );
+    Widget cardOf(Widget tile) => Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: tile,
+    );
+
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.moreTitle,
       rootTab: true,
       showLanguageSwitch: true,
       actions: [
         moreHelpAction(context, title: t.moreHelpTitle, lines: t.moreHelp),
       ],
-      body: MoreBody(
-        child: items.isEmpty && !navState.isLoading
-            ? StudioEmptyState(
+      body: items.isEmpty && !navState.isLoading
+          ? MoreBody(
+              child: StudioEmptyState(
                 config: StudioEmptyConfig(
                   purpose: t.moreEmpty,
                   firstStep: t.moreEmptyFirstStep,
                 ),
-              )
-            : ListView(
+              ),
+            )
+          : context.isWideScreen
+          // Wide: the entries as cards in a grid, the account rows under it.
+          ? ListView(
+              key: const ValueKey('more-list'),
+              padding: const EdgeInsets.all(StudioSpacing.xl),
+              children: [
+                ResponsiveCardGrid(
+                  minCellWidth: 300,
+                  maxColumns: 4,
+                  children: [for (final e in entries) cardOf(e)],
+                ),
+                const SizedBox(height: StudioSpacing.xl),
+                ResponsiveCardGrid(
+                  minCellWidth: 300,
+                  maxColumns: 4,
+                  children: [for (final e in account) cardOf(e)],
+                ),
+                ?versionText,
+              ],
+            )
+          : MoreBody(
+              child: ListView(
                 key: const ValueKey('more-list'),
                 padding: const EdgeInsets.symmetric(vertical: StudioSpacing.sm),
                 children: [
-                  for (final item in items)
-                    ListTile(
-                      key: ValueKey('more-${item.name}'),
-                      leading: Icon(
-                        _moreIcons[item],
-                        color: StudioColors.deepPlum,
-                      ),
-                      title: Text(_labelOf(t, item)),
-                      trailing: const _Chevron(),
-                      onTap: () => context.go(_moreRoutes[item]!),
-                    ),
-                  ListTile(
-                    key: const ValueKey('more-notifications'),
-                    leading: const Icon(
-                      Icons.notifications_outlined,
-                      color: StudioColors.deepPlum,
-                    ),
-                    title: Text(t.entryNotifications),
-                    trailing: const _Chevron(),
-                    onTap: () => context.go(notificationSettingsRoute),
-                  ),
-                  if (role != null)
-                    ListTile(
-                      key: const ValueKey('more-help'),
-                      leading: const Icon(
-                        Icons.help_outline,
-                        color: StudioColors.deepPlum,
-                      ),
-                      title: Text(WalkthroughStrings.of(context).helpEntry),
-                      subtitle: Text(
-                        WalkthroughStrings.of(context).helpEntryHint,
-                      ),
-                      trailing: const _Chevron(),
-                      onTap: () => showWalkthrough(context, role),
-                    ),
+                  ...entries,
                   const Divider(),
-                  ListTile(
-                    key: const ValueKey('more-language'),
-                    leading: const Icon(
-                      Icons.translate,
-                      color: StudioColors.deepPlum,
-                    ),
-                    title: Text(t.languageRow),
-                    trailing: Text(
-                      t.isArabic ? 'English' : 'العربية',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    onTap: () {
-                      final cur = ref.read(studioLocaleProvider);
-                      ref
-                          .read(studioLocaleProvider.notifier)
-                          .state = cur.languageCode == 'ar'
-                          ? const Locale('en')
-                          : const Locale('ar');
-                    },
-                  ),
-                  ListTile(
-                    key: const ValueKey('more-sign-out'),
-                    leading: const Icon(Icons.logout),
-                    title: Text(t.signOutRow),
-                    onTap: () =>
-                        ref.read(studioSessionProvider.notifier).signOut(),
-                  ),
-                  if (version.isNotEmpty)
-                    Padding(
-                      key: const ValueKey('more-version'),
-                      padding: const EdgeInsets.all(StudioSpacing.gutter),
-                      child: Text(
-                        t.appVersion(version),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
+                  ...account,
+                  ?versionText,
                 ],
               ),
-      ),
+            ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -28,6 +29,7 @@ class ClaimsScreen extends ConsumerWidget {
     final status = ref.watch(claimStatusFilterProvider);
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.claimsTitle,
       parentRoute: '/more/settings',
       actions: [
@@ -144,6 +146,7 @@ class MomentsScreen extends ConsumerWidget {
     final value = ref.watch(momentsProvider);
     final me = ref.watch(studioSessionProvider).valueOrNull;
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.momentsTitle,
       parentRoute: '/more/settings',
       actions: [
@@ -290,6 +293,7 @@ class OptionsScreen extends ConsumerWidget {
     final t = SettingsStrings.of(context);
     final value = ref.watch(studioOptionsProvider);
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.optionsTitle,
       parentRoute: '/more/settings',
       actions: [

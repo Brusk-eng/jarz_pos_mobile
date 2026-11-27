@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +39,7 @@ class SettingsHubScreen extends ConsumerWidget {
         );
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: t.title,
       parentRoute: '/more',
       actions: [moreHelpAction(context, title: t.helpTitle, lines: t.help)],

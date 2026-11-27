@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_pickers.dart';
 import '../../../data/api/studio_api_base.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,7 @@ class _PrefsState extends ConsumerState<NotificationPrefsScreen> {
     final value = ref.watch(myNotificationPrefsProvider);
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: copy.title,
       parentRoute: InboxPaths.notifications,
       showLanguageSwitch: true,

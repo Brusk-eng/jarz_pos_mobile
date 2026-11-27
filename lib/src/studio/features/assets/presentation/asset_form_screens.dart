@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -143,160 +144,163 @@ class _AssetAddScreenState extends ConsumerState<AssetAddScreen> {
           ),
         ],
       ),
-      body: AssetPage(
-        child: ListView(
-          padding: const EdgeInsets.all(StudioSpacing.gutter),
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    key: const ValueKey('pick-gallery'),
-                    onPressed: () => pick(true),
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: Text(t.pickFromGallery),
+      body: StudioPage(
+        maxWidth: StudioContentWidth.form,
+        child: AssetPage(
+          child: ListView(
+            padding: const EdgeInsets.all(StudioSpacing.gutter),
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('pick-gallery'),
+                      onPressed: () => pick(true),
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: Text(t.pickFromGallery),
+                    ),
                   ),
-                ),
-                const SizedBox(width: StudioSpacing.sm),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    key: const ValueKey('pick-files'),
-                    onPressed: () => pick(false),
-                    icon: const Icon(Icons.folder_open_outlined),
-                    label: Text(t.pickFiles),
+                  const SizedBox(width: StudioSpacing.sm),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('pick-files'),
+                      onPressed: () => pick(false),
+                      icon: const Icon(Icons.folder_open_outlined),
+                      label: Text(t.pickFiles),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: StudioSpacing.md),
-            if (files.isEmpty)
-              Text(
-                t.noFilesPicked,
-                key: const ValueKey('no-files'),
-                style: Theme.of(context).textTheme.bodySmall,
+                ],
               ),
-            for (final f in files)
-              ListTile(
-                key: ValueKey('file-${f.signature}'),
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(
-                  f.mime.startsWith('video/')
-                      ? Icons.movie_outlined
-                      : Icons.image_outlined,
-                ),
-                title: Text(
-                  f.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text(formatBytes(f.size)),
-                trailing: IconButton(
-                  tooltip: t.removeFile,
-                  icon: const Icon(Icons.close),
-                  onPressed: () => setState(() => files.remove(f)),
-                ),
-              ),
-            if (problems.isNotEmpty)
-              for (final p in problems)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: StudioSpacing.xs),
-                  child: Text(
-                    p,
-                    key: const ValueKey('add-problem'),
-                    style: const TextStyle(color: StudioColors.danger),
-                  ),
-                ),
-            const SizedBox(height: StudioSpacing.md),
-            DropdownButtonFormField<AssetKind>(
-              key: const ValueKey('add-kind'),
-              isExpanded: true,
-              initialValue: kind,
-              decoration: InputDecoration(
-                labelText: t.fieldKind,
-                errorText: kindError,
-              ),
-              items: [
-                for (final k in AssetKind.values)
-                  if (k != AssetKind.unknown)
-                    DropdownMenuItem(value: k, child: Text(t.kind(k))),
-              ],
-              onChanged: (v) => setState(() => kind = v),
-            ),
-            const SizedBox(height: StudioSpacing.md),
-            DropdownButtonFormField<String?>(
-              key: const ValueKey('add-flavour'),
-              isExpanded: true,
-              initialValue: flavourChosen ? (flavourId ?? '') : null,
-              decoration: InputDecoration(
-                labelText: t.fieldFlavour,
-                errorText: flavourError,
-              ),
-              items: [
-                DropdownMenuItem(value: '', child: Text(t.noFlavour)),
-                for (final f in flavours)
-                  DropdownMenuItem(value: f.id, child: Text(f.name)),
-              ],
-              onChanged: (v) => setState(() {
-                flavourChosen = v != null;
-                flavourId = (v == null || v.isEmpty) ? null : v;
-                flavourError = null;
-              }),
-            ),
-            const SizedBox(height: StudioSpacing.md),
-            DropdownButtonFormField<AssetCategory?>(
-              key: const ValueKey('add-category'),
-              isExpanded: true,
-              initialValue: category,
-              decoration: InputDecoration(
-                labelText: t.fieldCategory,
-                errorText: categoryError,
-              ),
-              items: [
-                for (final c in AssetCategory.values)
-                  if (c != AssetCategory.unknown)
-                    DropdownMenuItem(value: c, child: Text(t.category(c))),
-              ],
-              onChanged: (v) => setState(() {
-                category = v;
-                categoryError = null;
-              }),
-            ),
-            if (files.length <= 1) ...[
               const SizedBox(height: StudioSpacing.md),
-              TextField(
-                key: const ValueKey('add-title'),
-                controller: title,
-                decoration: InputDecoration(labelText: t.fieldTitle),
-              ),
-            ],
-            const SizedBox(height: StudioSpacing.md),
-            TextField(
-              key: const ValueKey('add-note'),
-              controller: note,
-              minLines: 1,
-              maxLines: 3,
-              decoration: InputDecoration(labelText: t.fieldNote),
-            ),
-            const SizedBox(height: StudioSpacing.lg),
-            SizedBox(
-              height: 52,
-              child: FilledButton.icon(
-                key: const ValueKey('add-upload'),
-                onPressed: files.isEmpty || busy ? null : upload,
-                icon: const Icon(Icons.cloud_upload_outlined),
-                label: Text(t.uploadButton),
-              ),
-            ),
-            if (files.isEmpty || busy)
-              Padding(
-                padding: const EdgeInsets.only(top: StudioSpacing.sm),
-                child: Text(
-                  busy ? t.uploadStillRunning : t.uploadPickFirst,
-                  key: const ValueKey('add-upload-why'),
+              if (files.isEmpty)
+                Text(
+                  t.noFilesPicked,
+                  key: const ValueKey('no-files'),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
+              for (final f in files)
+                ListTile(
+                  key: ValueKey('file-${f.signature}'),
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    f.mime.startsWith('video/')
+                        ? Icons.movie_outlined
+                        : Icons.image_outlined,
+                  ),
+                  title: Text(
+                    f.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(formatBytes(f.size)),
+                  trailing: IconButton(
+                    tooltip: t.removeFile,
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(() => files.remove(f)),
+                  ),
+                ),
+              if (problems.isNotEmpty)
+                for (final p in problems)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: StudioSpacing.xs),
+                    child: Text(
+                      p,
+                      key: const ValueKey('add-problem'),
+                      style: const TextStyle(color: StudioColors.danger),
+                    ),
+                  ),
+              const SizedBox(height: StudioSpacing.md),
+              DropdownButtonFormField<AssetKind>(
+                key: const ValueKey('add-kind'),
+                isExpanded: true,
+                initialValue: kind,
+                decoration: InputDecoration(
+                  labelText: t.fieldKind,
+                  errorText: kindError,
+                ),
+                items: [
+                  for (final k in AssetKind.values)
+                    if (k != AssetKind.unknown)
+                      DropdownMenuItem(value: k, child: Text(t.kind(k))),
+                ],
+                onChanged: (v) => setState(() => kind = v),
               ),
-          ],
+              const SizedBox(height: StudioSpacing.md),
+              DropdownButtonFormField<String?>(
+                key: const ValueKey('add-flavour'),
+                isExpanded: true,
+                initialValue: flavourChosen ? (flavourId ?? '') : null,
+                decoration: InputDecoration(
+                  labelText: t.fieldFlavour,
+                  errorText: flavourError,
+                ),
+                items: [
+                  DropdownMenuItem(value: '', child: Text(t.noFlavour)),
+                  for (final f in flavours)
+                    DropdownMenuItem(value: f.id, child: Text(f.name)),
+                ],
+                onChanged: (v) => setState(() {
+                  flavourChosen = v != null;
+                  flavourId = (v == null || v.isEmpty) ? null : v;
+                  flavourError = null;
+                }),
+              ),
+              const SizedBox(height: StudioSpacing.md),
+              DropdownButtonFormField<AssetCategory?>(
+                key: const ValueKey('add-category'),
+                isExpanded: true,
+                initialValue: category,
+                decoration: InputDecoration(
+                  labelText: t.fieldCategory,
+                  errorText: categoryError,
+                ),
+                items: [
+                  for (final c in AssetCategory.values)
+                    if (c != AssetCategory.unknown)
+                      DropdownMenuItem(value: c, child: Text(t.category(c))),
+                ],
+                onChanged: (v) => setState(() {
+                  category = v;
+                  categoryError = null;
+                }),
+              ),
+              if (files.length <= 1) ...[
+                const SizedBox(height: StudioSpacing.md),
+                TextField(
+                  key: const ValueKey('add-title'),
+                  controller: title,
+                  decoration: InputDecoration(labelText: t.fieldTitle),
+                ),
+              ],
+              const SizedBox(height: StudioSpacing.md),
+              TextField(
+                key: const ValueKey('add-note'),
+                controller: note,
+                minLines: 1,
+                maxLines: 3,
+                decoration: InputDecoration(labelText: t.fieldNote),
+              ),
+              const SizedBox(height: StudioSpacing.lg),
+              SizedBox(
+                height: 52,
+                child: FilledButton.icon(
+                  key: const ValueKey('add-upload'),
+                  onPressed: files.isEmpty || busy ? null : upload,
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  label: Text(t.uploadButton),
+                ),
+              ),
+              if (files.isEmpty || busy)
+                Padding(
+                  padding: const EdgeInsets.only(top: StudioSpacing.sm),
+                  child: Text(
+                    busy ? t.uploadStillRunning : t.uploadPickFirst,
+                    key: const ValueKey('add-upload-why'),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -419,117 +423,120 @@ class _AssetEditScreenState extends ConsumerState<AssetEditScreen> {
         ),
         title: Text(t.editTitle),
       ),
-      body: original == null
-          ? Center(
-              child: value.hasError
-                  ? Text(t.errGeneric)
-                  : const CircularProgressIndicator(),
-            )
-          : AssetPage(
-              child: ListView(
-                padding: const EdgeInsets.all(StudioSpacing.gutter),
-                children: [
-                  if (banner != null)
-                    Container(
-                      key: const ValueKey('edit-banner'),
-                      margin: const EdgeInsets.only(bottom: StudioSpacing.md),
-                      padding: const EdgeInsets.all(StudioSpacing.md),
-                      decoration: BoxDecoration(
-                        color: StudioColors.warning.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(StudioRadii.md),
+      body: StudioPage(
+        maxWidth: StudioContentWidth.form,
+        child: original == null
+            ? Center(
+                child: value.hasError
+                    ? Text(t.errGeneric)
+                    : const CircularProgressIndicator(),
+              )
+            : AssetPage(
+                child: ListView(
+                  padding: const EdgeInsets.all(StudioSpacing.gutter),
+                  children: [
+                    if (banner != null)
+                      Container(
+                        key: const ValueKey('edit-banner'),
+                        margin: const EdgeInsets.only(bottom: StudioSpacing.md),
+                        padding: const EdgeInsets.all(StudioSpacing.md),
+                        decoration: BoxDecoration(
+                          color: StudioColors.warning.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(StudioRadii.md),
+                        ),
+                        child: Text(banner!),
                       ),
-                      child: Text(banner!),
+                    TextField(
+                      key: const ValueKey('edit-title'),
+                      controller: title,
+                      decoration: InputDecoration(
+                        labelText: t.fieldTitle,
+                        errorText: errors['title'],
+                      ),
                     ),
-                  TextField(
-                    key: const ValueKey('edit-title'),
-                    controller: title,
-                    decoration: InputDecoration(
-                      labelText: t.fieldTitle,
-                      errorText: errors['title'],
+                    const SizedBox(height: StudioSpacing.md),
+                    DropdownButtonFormField<String?>(
+                      key: const ValueKey('edit-flavour'),
+                      isExpanded: true,
+                      initialValue: flavourId,
+                      decoration: InputDecoration(
+                        labelText: t.fieldFlavour,
+                        errorText: errors['flavour_id'],
+                      ),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(t.any)),
+                        for (final f in flavours)
+                          DropdownMenuItem(value: f.id, child: Text(f.name)),
+                      ],
+                      onChanged: (v) => setState(() => flavourId = v),
                     ),
-                  ),
-                  const SizedBox(height: StudioSpacing.md),
-                  DropdownButtonFormField<String?>(
-                    key: const ValueKey('edit-flavour'),
-                    isExpanded: true,
-                    initialValue: flavourId,
-                    decoration: InputDecoration(
-                      labelText: t.fieldFlavour,
-                      errorText: errors['flavour_id'],
+                    const SizedBox(height: StudioSpacing.md),
+                    DropdownButtonFormField<AssetCategory?>(
+                      key: const ValueKey('edit-category'),
+                      isExpanded: true,
+                      initialValue: category,
+                      decoration: InputDecoration(
+                        labelText: t.fieldCategory,
+                        errorText: errors['category'],
+                      ),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(t.any)),
+                        for (final c in AssetCategory.values)
+                          if (c != AssetCategory.unknown)
+                            DropdownMenuItem(
+                              value: c,
+                              child: Text(t.category(c)),
+                            ),
+                      ],
+                      onChanged: (v) => setState(() => category = v),
                     ),
-                    items: [
-                      DropdownMenuItem(value: null, child: Text(t.any)),
-                      for (final f in flavours)
-                        DropdownMenuItem(value: f.id, child: Text(f.name)),
-                    ],
-                    onChanged: (v) => setState(() => flavourId = v),
-                  ),
-                  const SizedBox(height: StudioSpacing.md),
-                  DropdownButtonFormField<AssetCategory?>(
-                    key: const ValueKey('edit-category'),
-                    isExpanded: true,
-                    initialValue: category,
-                    decoration: InputDecoration(
-                      labelText: t.fieldCategory,
-                      errorText: errors['category'],
+                    const SizedBox(height: StudioSpacing.md),
+                    TextField(
+                      key: const ValueKey('edit-tags'),
+                      controller: tags,
+                      decoration: InputDecoration(
+                        labelText: t.fieldTags,
+                        errorText: errors['tags'],
+                      ),
                     ),
-                    items: [
-                      DropdownMenuItem(value: null, child: Text(t.any)),
-                      for (final c in AssetCategory.values)
-                        if (c != AssetCategory.unknown)
-                          DropdownMenuItem(
-                            value: c,
-                            child: Text(t.category(c)),
-                          ),
-                    ],
-                    onChanged: (v) => setState(() => category = v),
-                  ),
-                  const SizedBox(height: StudioSpacing.md),
-                  TextField(
-                    key: const ValueKey('edit-tags'),
-                    controller: tags,
-                    decoration: InputDecoration(
-                      labelText: t.fieldTags,
-                      errorText: errors['tags'],
+                    const SizedBox(height: StudioSpacing.md),
+                    TextField(
+                      key: const ValueKey('edit-note'),
+                      controller: note,
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        labelText: t.fieldNote,
+                        errorText: errors['note'],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: StudioSpacing.md),
-                  TextField(
-                    key: const ValueKey('edit-note'),
-                    controller: note,
-                    minLines: 1,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      labelText: t.fieldNote,
-                      errorText: errors['note'],
+                    SwitchListTile(
+                      key: const ValueKey('edit-rating-open'),
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(t.openForRating),
+                      value: ratingOpen,
+                      onChanged: (v) => setState(() => ratingOpen = v),
                     ),
-                  ),
-                  SwitchListTile(
-                    key: const ValueKey('edit-rating-open'),
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(t.openForRating),
-                    value: ratingOpen,
-                    onChanged: (v) => setState(() => ratingOpen = v),
-                  ),
-                  SwitchListTile(
-                    key: const ValueKey('edit-hidden'),
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(t.hideFromLibrary),
-                    value: hidden,
-                    onChanged: (v) => setState(() => hidden = v),
-                  ),
-                  const SizedBox(height: StudioSpacing.md),
-                  SizedBox(
-                    height: 52,
-                    child: FilledButton(
-                      key: const ValueKey('edit-save'),
-                      onPressed: busy ? null : save,
-                      child: Text(t.saveButton),
+                    SwitchListTile(
+                      key: const ValueKey('edit-hidden'),
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(t.hideFromLibrary),
+                      value: hidden,
+                      onChanged: (v) => setState(() => hidden = v),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: StudioSpacing.md),
+                    SizedBox(
+                      height: 52,
+                      child: FilledButton(
+                        key: const ValueKey('edit-save'),
+                        onPressed: busy ? null : save,
+                        child: Text(t.saveButton),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -65,6 +66,7 @@ class StudioInboxScreen extends ConsumerWidget {
     return ViewEditScaffold(
       title: t.tabInbox,
       rootTab: true,
+      contentWidth: StudioContentWidth.full,
       screen: screens[initialIndex],
       showLanguageSwitch: true,
       body: Column(

@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import '../../../shared/studio_tr.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +34,7 @@ class ScorecardScreen extends ConsumerWidget {
     final card = value.valueOrNull;
 
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.title,
       parentRoute: '/more',
       onEdit: card != null && canReview && card.actions.contains('note')

@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,6 +35,7 @@ class PieceEditScreen extends ConsumerWidget {
     final piece = value.valueOrNull;
     if (piece != null) return _PieceEditForm(pieceId: pieceId, piece: piece);
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: PiecesStrings.of(context).editTitle,
       body: StudioAsyncView<StudioPiece>(
         value: value,
@@ -283,6 +285,7 @@ class _PieceEditScreenState extends ConsumerState<_PieceEditForm> {
     final canEdit = _orig.actions.contains('edit');
     final canAssign = _orig.actions.contains('assign');
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.form,
       title: s.editTitle,
       actions: [
         TextButton(

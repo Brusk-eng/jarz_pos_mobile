@@ -1,4 +1,5 @@
 import '../../../shared/studio_chips.dart';
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -92,63 +93,74 @@ class TodayBody extends ConsumerWidget {
         actionLabel: canAddTasks(role) ? t.addTask : null,
         onAction: canAddTasks(role) ? () => showTaskForm(context) : null,
       ),
-      builder: (context, view) => RefreshIndicator(
-        onRefresh: () => _refresh(ref),
-        child: ListView(
-          key: const ValueKey('today-list'),
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(StudioSpacing.gutter),
-          children: [
-            DayBar(view: view, role: role),
-            if (me != null && role != null && !other) ...[
-              Text(
-                StudioStrings.of(context).helloUser(me.fullName),
-                key: const ValueKey('today-hello'),
-                style: Theme.of(context).textTheme.headlineSmall,
+      builder: (context, view) => context.isWideScreen
+          ? _WideToday(
+              view: view,
+              role: role,
+              userName: me?.fullName,
+              other: other,
+              hidden: hidden,
+              onRefresh: () => _refresh(ref),
+            )
+          : RefreshIndicator(
+              onRefresh: () => _refresh(ref),
+              child: ListView(
+                key: const ValueKey('today-list'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(StudioSpacing.gutter),
+                children: [
+                  DayBar(view: view, role: role),
+                  if (me != null && role != null && !other) ...[
+                    Text(
+                      StudioStrings.of(context).helloUser(me.fullName),
+                      key: const ValueKey('today-hello'),
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: StudioSpacing.xs),
+                    Text(
+                      StudioStrings.of(context).role(role),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: StudioSpacing.md),
+                    if (canAddTasks(role)) ...[
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: FilledButton.tonalIcon(
+                          key: const ValueKey('task-add-top'),
+                          onPressed: () => showTaskForm(context),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: Text(t.addTask),
+                        ),
+                      ),
+                      const SizedBox(height: StudioSpacing.md),
+                    ],
+                    NextStepLine(t.nextBlocks),
+                    const SizedBox(height: StudioSpacing.lg),
+                  ],
+                  for (final block in view.blocks)
+                    if (block.lines.any((l) => !hidden.contains(l.id)))
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: StudioSpacing.md,
+                        ),
+                        child: _BlockCard(block: block, hidden: hidden),
+                      ),
+                  for (final key in _emptyBlocks(view, other ? null : role))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
+                      child: Text(
+                        labels.blockEmpty(key)!,
+                        key: ValueKey('today-empty-${key.name}'),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  if (!other &&
+                      (role == StudioRole.creator || role == StudioRole.story))
+                    const _MyIdeasLink(),
+                  if (!other) _TasksSection(role: role),
+                ],
               ),
-              const SizedBox(height: StudioSpacing.xs),
-              Text(
-                StudioStrings.of(context).role(role),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: StudioSpacing.md),
-              if (canAddTasks(role)) ...[
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: FilledButton.tonalIcon(
-                    key: const ValueKey('task-add-top'),
-                    onPressed: () => showTaskForm(context),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(t.addTask),
-                  ),
-                ),
-                const SizedBox(height: StudioSpacing.md),
-              ],
-              NextStepLine(t.nextBlocks),
-              const SizedBox(height: StudioSpacing.lg),
-            ],
-            for (final block in view.blocks)
-              if (block.lines.any((l) => !hidden.contains(l.id)))
-                Padding(
-                  padding: const EdgeInsets.only(bottom: StudioSpacing.md),
-                  child: _BlockCard(block: block, hidden: hidden),
-                ),
-            for (final key in _emptyBlocks(view, other ? null : role))
-              Padding(
-                padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
-                child: Text(
-                  labels.blockEmpty(key)!,
-                  key: ValueKey('today-empty-${key.name}'),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            if (!other &&
-                (role == StudioRole.creator || role == StudioRole.story))
-              const _MyIdeasLink(),
-            if (!other) _TasksSection(role: role),
-          ],
-        ),
-      ),
+            ),
     );
   }
 }
@@ -175,20 +187,165 @@ List<BlockKey> _emptyBlocks(TodayView view, StudioRole? role) {
   ];
 }
 
-class _BlockCard extends ConsumerWidget {
-  const _BlockCard({required this.block, required this.hidden});
+/// How soon a block needs the person, for the wide layout (the phone keeps the
+/// server's order): 0 what waits on them (approvals, decisions, failed,
+/// missed), 1 the next 48 hours, 2 housekeeping.
+int todayBlockTier(BlockKey key) => switch (key) {
+  BlockKey.toApprove ||
+  BlockKey.decisions ||
+  BlockKey.sentBack ||
+  BlockKey.blocked ||
+  BlockKey.didntGoOut ||
+  BlockKey.warnings => 0,
+  BlockKey.dueToday ||
+  BlockKey.readyToPost ||
+  BlockKey.stories ||
+  BlockKey.shootTomorrow ||
+  BlockKey.adsDue ||
+  BlockKey.dayPosts ||
+  BlockKey.dayTasks ||
+  BlockKey.dayShoots => 1,
+  _ => 2,
+};
 
-  final TodayBlock block;
+/// The wide Today: the blocks flow into 2 or 3 columns, what waits on the
+/// person first. The day switcher and "Add a task" sit in the app bar (see
+/// `StudioTodayScreen`), so the page starts with the sections.
+class _WideToday extends ConsumerWidget {
+  const _WideToday({
+    required this.view,
+    required this.role,
+    required this.userName,
+    required this.other,
+    required this.hidden,
+    required this.onRefresh,
+  });
+
+  final TodayView view;
+  final StudioRole? role;
+  final String? userName;
+  final bool other;
   final Set<String> hidden;
+  final Future<void> Function() onRefresh;
+
+  /// Lines a section shows before "See all".
+  static const _shown = 6;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = TodayStrings.of(context);
     final theme = Theme.of(context);
-    final lines = [
+    final labels = StudioLabels.of(context);
+    final tasks = ref.watch(todayTasksProvider);
+    final blocks = [
+      for (final b in view.blocks)
+        if (b.lines.any((l) => !hidden.contains(l.id))) b,
+    ];
+    // Stable: the server's order inside a tier.
+    final ordered = [
+      for (var tier = 0; tier < 3; tier++)
+        for (final b in blocks)
+          if (todayBlockTier(b.key) == tier) b,
+    ];
+    final taskCount = tasks.valueOrNull?.items.length ?? 2;
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView(
+        key: const ValueKey('today-list'),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          StudioSpacing.xl,
+          StudioSpacing.sm,
+          StudioSpacing.xl,
+          StudioSpacing.xl,
+        ),
+        children: [
+          DayBar(view: view, role: role, part: DayBarPart.banner),
+          if (userName != null && role != null && !other)
+            Padding(
+              padding: const EdgeInsets.only(bottom: StudioSpacing.md),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      '${StudioStrings.of(context).helloUser(userName!)} · '
+                      '${StudioStrings.of(context).role(role!)}',
+                      key: const ValueKey('today-hello'),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: StudioColors.plumMuted,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: StudioSpacing.lg),
+                  Flexible(child: NextStepLine(t.nextBlocks)),
+                ],
+              ),
+            ),
+          ResponsiveSectionGrid(
+            sections: [
+              for (final b in ordered)
+                GridSection(
+                  weight:
+                      1.5 +
+                      (b.lines.length > _shown ? _shown : b.lines.length)
+                          .toDouble(),
+                  child: _BlockCard(block: b, hidden: hidden, limit: _shown),
+                ),
+              if (!other)
+                GridSection(
+                  weight: 2.5 + taskCount.clamp(0, _shown).toDouble(),
+                  child: _TasksSection(role: role),
+                ),
+            ],
+          ),
+          const SizedBox(height: StudioSpacing.md),
+          for (final key in _emptyBlocks(view, other ? null : role))
+            Padding(
+              padding: const EdgeInsets.only(bottom: StudioSpacing.sm),
+              child: Text(
+                labels.blockEmpty(key)!,
+                key: ValueKey('today-empty-${key.name}'),
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          if (!other &&
+              (role == StudioRole.creator || role == StudioRole.story))
+            const _MyIdeasLink(),
+        ],
+      ),
+    );
+  }
+}
+
+class _BlockCard extends ConsumerStatefulWidget {
+  const _BlockCard({required this.block, required this.hidden, this.limit});
+
+  final TodayBlock block;
+  final Set<String> hidden;
+
+  /// Lines shown before "See all" (null: all of them, the phone).
+  final int? limit;
+
+  @override
+  ConsumerState<_BlockCard> createState() => _BlockCardState();
+}
+
+class _BlockCardState extends ConsumerState<_BlockCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final block = widget.block;
+    final hidden = widget.hidden;
+    final t = TodayStrings.of(context);
+    final theme = Theme.of(context);
+    final all = [
       for (final l in block.lines)
         if (!hidden.contains(l.id)) l,
     ];
+    final cap = widget.limit;
+    final cut = cap != null && !_expanded && all.length > cap;
+    final lines = cut ? all.take(cap).toList() : all;
     return Card(
       key: ValueKey('today-block-${block.key.name}'),
       clipBehavior: Clip.antiAlias,
@@ -237,7 +394,18 @@ class _BlockCard extends ConsumerWidget {
                 child: Text(t.clearDrift),
               ),
             ),
-          if (block.moreRoute != null && block.count > lines.length)
+          if (cut)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                key: ValueKey('today-expand-${block.key.name}'),
+                onPressed: () => block.moreRoute != null
+                    ? context.push(block.moreRoute!)
+                    : setState(() => _expanded = true),
+                child: Text(t.seeAll(block.count)),
+              ),
+            )
+          else if (block.moreRoute != null && block.count > lines.length)
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: TextButton(
@@ -423,111 +591,145 @@ class _TodayLineTileState extends ConsumerState<TodayLineTile> {
           a,
     ];
     final bar = levelColor(line.level);
-    return InkWell(
-      key: ValueKey('today-line-${line.id}'),
-      onTap: line.kind == LineKind.read ? _openRead : _open,
-      child: Container(
-        decoration: BoxDecoration(
-          border: BorderDirectional(
-            start: BorderSide(
-              color: bar,
-              width: line.level == NoteLevel.info ? 0 : 4,
-            ),
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: StudioSpacing.lg,
-          vertical: StudioSpacing.sm,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, box) {
+        // Room enough: the buttons sit on the right of the same row.
+        final inline =
+            box.maxWidth >= 520 && doneNote == null && buttons.isNotEmpty;
+        Widget actionRow() => Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (line.thumb != null) ...[
-                  StudioThumb(
-                    media: line.thumb,
-                    width: 44,
-                    height: 56,
-                    radius: BorderRadius.circular(StudioRadii.sm),
-                  ),
-                  const SizedBox(width: StudioSpacing.md),
-                ],
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      PersonText(
-                        line.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      if (line.subtitle != null)
-                        Text(
-                          context.isAr
-                              ? todayLineArabic(line.subtitle!)
-                              : line.subtitle!,
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      if (line.due != null)
-                        Text(
-                          t.taskDue(slotText(s, line.due)),
-                          style: theme.textTheme.labelSmall,
-                        ),
-                      if (line.badge != null)
-                        Text(line.badge!, style: theme.textTheme.labelSmall),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: StudioColors.plumMuted),
-              ],
-            ),
-            if (doneNote != null)
+            for (final a in buttons)
               Padding(
-                padding: const EdgeInsets.only(top: StudioSpacing.sm),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.check_circle_outline,
-                      size: 18,
-                      color: StudioColors.success,
-                    ),
-                    const SizedBox(width: StudioSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        doneNote,
-                        key: ValueKey('line-${line.id}-done'),
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ),
-                  ],
+                padding: const EdgeInsetsDirectional.only(
+                  start: StudioSpacing.sm,
                 ),
-              )
-            else if (buttons.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: StudioSpacing.sm),
-                child: Wrap(
-                  spacing: StudioSpacing.sm,
-                  runSpacing: StudioSpacing.xs,
-                  children: [
-                    for (final a in buttons)
-                      OutlinedButton(
-                        key: ValueKey('line-${line.id}-$a'),
-                        style: OutlinedButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        onPressed: _busy ? null : () => _run(a),
-                        child: Text(t.actionLabel(a)!),
-                      ),
-                  ],
+                child: OutlinedButton(
+                  key: ValueKey('line-${line.id}-$a'),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(0, 36),
+                  ),
+                  onPressed: _busy ? null : () => _run(a),
+                  child: Text(t.actionLabel(a)!),
                 ),
               ),
           ],
-        ),
-      ),
+        );
+        return InkWell(
+          key: ValueKey('today-line-${line.id}'),
+          onTap: line.kind == LineKind.read ? _openRead : _open,
+          child: Container(
+            decoration: BoxDecoration(
+              border: BorderDirectional(
+                start: BorderSide(
+                  color: bar,
+                  width: line.level == NoteLevel.info ? 0 : 4,
+                ),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: StudioSpacing.lg,
+              vertical: StudioSpacing.sm,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (line.thumb != null) ...[
+                      StudioThumb(
+                        media: line.thumb,
+                        width: 44,
+                        height: 56,
+                        radius: BorderRadius.circular(StudioRadii.sm),
+                      ),
+                      const SizedBox(width: StudioSpacing.md),
+                    ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          PersonText(
+                            line.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall,
+                          ),
+                          if (line.subtitle != null)
+                            Text(
+                              context.isAr
+                                  ? todayLineArabic(line.subtitle!)
+                                  : line.subtitle!,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          if (line.due != null)
+                            Text(
+                              t.taskDue(slotText(s, line.due)),
+                              style: theme.textTheme.labelSmall,
+                            ),
+                          if (line.badge != null)
+                            Text(
+                              line.badge!,
+                              style: theme.textTheme.labelSmall,
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (inline) actionRow(),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: StudioColors.plumMuted,
+                    ),
+                  ],
+                ),
+                if (doneNote != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: StudioSpacing.sm),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline,
+                          size: 18,
+                          color: StudioColors.success,
+                        ),
+                        const SizedBox(width: StudioSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            doneNote,
+                            key: ValueKey('line-${line.id}-done'),
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (buttons.isNotEmpty && !inline)
+                  Padding(
+                    padding: const EdgeInsets.only(top: StudioSpacing.sm),
+                    child: Wrap(
+                      spacing: StudioSpacing.sm,
+                      runSpacing: StudioSpacing.xs,
+                      children: [
+                        for (final a in buttons)
+                          OutlinedButton(
+                            key: ValueKey('line-${line.id}-$a'),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(64, 48),
+                            ),
+                            onPressed: _busy ? null : () => _run(a),
+                            child: Text(t.actionLabel(a)!),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -749,7 +951,6 @@ class TaskTile extends ConsumerWidget {
           IconButton(
             key: ValueKey('task-skip-${task.id}'),
             tooltip: t.skip,
-            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.skip_next_outlined, size: 20),
             onPressed: () => act(
               () => ref
@@ -761,7 +962,6 @@ class TaskTile extends ConsumerWidget {
           IconButton(
             key: ValueKey('task-edit-${task.id}'),
             tooltip: t.edit,
-            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.edit_outlined, size: 20),
             onPressed: () => showTaskForm(
               context,

@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import '../../../shared/studio_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,6 +33,7 @@ class CompetitorsScreen extends ConsumerWidget {
     final status = ref.watch(competitorStatusProvider);
     final me = ref.watch(studioSessionProvider).valueOrNull;
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.competitorsTitle,
       parentRoute: '/more/references',
       actions: [
@@ -176,6 +178,7 @@ class CompetitorScreen extends ConsumerWidget {
     final t = ReferencesStrings.of(context);
     final value = ref.watch(competitorProvider(competitorKey));
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: value.valueOrNull?.name ?? t.competitorTitle,
       parentRoute: '/more/references/competitors',
       actions: [

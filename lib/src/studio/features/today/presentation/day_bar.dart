@@ -13,15 +13,26 @@ import '../../calendar/state/cairo_time.dart';
 import '../../settings/data/settings_repository.dart';
 import '../data/today_repository.dart';
 
+/// Which part of the day bar to build: everything (a phone), the arrows and
+/// chips on one line (a wide window, in the app bar), or only the "whose day"
+/// note.
+enum DayBarPart { all, controls, banner }
+
 /// The day arrows (every role), the "See the day of..." person picker
 /// (Founder and Lead), and the banner that says whose day and which day is on
 /// screen. Another day or another person has no action buttons: the server
 /// sends none.
 class DayBar extends ConsumerWidget {
-  const DayBar({super.key, required this.view, required this.role});
+  const DayBar({
+    super.key,
+    required this.view,
+    required this.role,
+    this.part = DayBarPart.all,
+  });
 
   final TodayView view;
   final StudioRole? role;
+  final DayBarPart part;
 
   static String _shift(String date, int days) {
     final d = CairoTime.parse(date) ?? DateTime.now();
@@ -63,67 +74,70 @@ class DayBar extends ConsumerWidget {
         ),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final inline = part == DayBarPart.controls;
+    final dayText = Text(
+      dayWord(),
+      key: const ValueKey('day-label'),
+      textAlign: TextAlign.center,
+      style: theme.textTheme.titleSmall,
+    );
+    final arrows = Row(
+      key: const ValueKey('day-bar'),
+      mainAxisSize: inline ? MainAxisSize.min : MainAxisSize.max,
       children: [
-        Row(
-          key: const ValueKey('day-bar'),
-          children: [
-            IconButton(
-              key: const ValueKey('day-prev'),
-              tooltip: context.tr('Previous day', 'اليوم اللي قبله'),
-              icon: const Icon(Icons.chevron_left),
-              onPressed: () => goTo(-1),
-            ),
-            Expanded(
-              child: Text(
-                dayWord(),
-                key: const ValueKey('day-label'),
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleSmall,
-              ),
-            ),
-            IconButton(
-              key: const ValueKey('day-next'),
-              tooltip: context.tr('Next day', 'اليوم اللي بعده'),
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () => goTo(1),
-            ),
-          ],
+        IconButton(
+          key: const ValueKey('day-prev'),
+          tooltip: context.tr('Previous day', 'اليوم اللي قبله'),
+          icon: const Icon(Icons.chevron_left),
+          onPressed: () => goTo(-1),
         ),
-        Wrap(
-          spacing: StudioSpacing.sm,
-          children: [
-            if (date != null)
-              StudioActionChip(
-                key: const ValueKey('day-today'),
-                avatar: const Icon(Icons.today, size: 18),
-                label: Text(context.tr('Back to today', 'ارجع للنهارده')),
-                onPressed: () =>
-                    ref.read(todayDateProvider.notifier).state = null,
-              ),
-            if (canPickPerson)
-              StudioActionChip(
-                key: const ValueKey('day-person'),
-                avatar: const Icon(Icons.person_outline, size: 18),
-                label: Text(
-                  asKey == null
-                      ? context.tr('See the day of...', 'شوف يوم...')
-                      : context.tr('Someone else', 'حد تاني'),
-                ),
-                onPressed: () => _pickPerson(context, ref),
-              ),
-            if (asKey != null)
-              StudioActionChip(
-                key: const ValueKey('day-mine'),
-                label: Text(context.tr('Back to my day', 'ارجع ليومي')),
-                onPressed: () =>
-                    ref.read(todayAsProvider.notifier).state = null,
-              ),
-          ],
+        if (inline)
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 72),
+            child: dayText,
+          )
+        else
+          Expanded(child: dayText),
+        IconButton(
+          key: const ValueKey('day-next'),
+          tooltip: context.tr('Next day', 'اليوم اللي بعده'),
+          icon: const Icon(Icons.chevron_right),
+          onPressed: () => goTo(1),
         ),
-        if (banner.isNotEmpty)
-          Container(
+      ],
+    );
+    final chips = Wrap(
+      spacing: StudioSpacing.sm,
+      children: [
+        if (date != null)
+          StudioActionChip(
+            key: const ValueKey('day-today'),
+            avatar: const Icon(Icons.today, size: 18),
+            label: Text(context.tr('Back to today', 'ارجع للنهارده')),
+            onPressed: () => ref.read(todayDateProvider.notifier).state = null,
+          ),
+        if (canPickPerson)
+          StudioActionChip(
+            key: const ValueKey('day-person'),
+            avatar: const Icon(Icons.person_outline, size: 18),
+            label: Text(
+              asKey == null
+                  ? context.tr('See the day of...', 'شوف يوم...')
+                  : context.tr('Someone else', 'حد تاني'),
+            ),
+            onPressed: () => _pickPerson(context, ref),
+          ),
+        if (asKey != null)
+          StudioActionChip(
+            key: const ValueKey('day-mine'),
+            label: Text(context.tr('Back to my day', 'ارجع ليومي')),
+            onPressed: () => ref.read(todayAsProvider.notifier).state = null,
+          ),
+      ],
+    );
+    final bannerBox = banner.isEmpty
+        ? null
+        : Container(
             key: const ValueKey('day-banner'),
             margin: const EdgeInsets.symmetric(vertical: StudioSpacing.sm),
             padding: const EdgeInsets.all(StudioSpacing.md),
@@ -150,9 +164,25 @@ class DayBar extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
-      ],
-    );
+          );
+
+    switch (part) {
+      case DayBarPart.controls:
+        return Row(
+          children: [
+            arrows,
+            const SizedBox(width: StudioSpacing.sm),
+            Flexible(child: chips),
+          ],
+        );
+      case DayBarPart.banner:
+        return bannerBox ?? const SizedBox.shrink();
+      case DayBarPart.all:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [arrows, chips, ?bannerBox],
+        );
+    }
   }
 
   Future<void> _pickPerson(BuildContext context, WidgetRef ref) async {

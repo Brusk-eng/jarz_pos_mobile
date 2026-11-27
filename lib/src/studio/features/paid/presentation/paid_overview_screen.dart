@@ -1,3 +1,4 @@
+import '../../../shared/layout/studio_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/person_text.dart';
@@ -24,6 +25,7 @@ class PaidOverviewScreen extends ConsumerWidget {
     final t = PaidStrings.of(context);
     final value = ref.watch(paidOverviewProvider);
     return ViewEditScaffold(
+      contentWidth: StudioContentWidth.full,
       title: t.title,
       parentRoute: '/more',
       actions: [moreHelpAction(context, title: t.helpTitle, lines: t.help)],
