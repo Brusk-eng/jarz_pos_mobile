@@ -49,6 +49,7 @@ final Map<String, List<ProviderOrFamily>> studioWriteRefreshes = () {
   final reviewed = <ProviderOrFamily>[
     ...badges,
     toApproveProvider,
+    approvedSoonProvider,
     versionProvider,
     ...pieces,
     readyToPostProvider,
@@ -75,7 +76,13 @@ final Map<String, List<ProviderOrFamily>> studioWriteRefreshes = () {
     ...pieces,
   ];
   final task = <ProviderOrFamily>[...badges, tasksProvider, todayTasksProvider];
-  final post = <ProviderOrFamily>[...badges, ...posts, ...pieces];
+  final post = <ProviderOrFamily>[
+    ...badges,
+    ...posts,
+    ...pieces,
+    toApproveProvider,
+    approvedSoonProvider,
+  ];
   final read = <ProviderOrFamily>[
     ...badges,
     postProvider,

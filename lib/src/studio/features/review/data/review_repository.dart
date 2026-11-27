@@ -12,8 +12,12 @@ class ReviewRepository {
 
   Future<InboxCounts> counts() => _api.inboxCounts();
 
-  Future<ApproveCardPage> toApprove({String? after, int? limit}) =>
-      _api.inboxToApprove(after: after, limit: limit);
+  /// [scope] is `waiting` (default) or `approved` (going out in the next 7 days).
+  Future<ApproveCardPage> toApprove({
+    String? after,
+    int? limit,
+    String? scope,
+  }) => _api.inboxToApprove(after: after, limit: limit, scope: scope);
 
   /// [kind] is `version`, `asset` or `all` (default).
   Future<RateCardPage> toRate({String? after, String? kind, int? limit}) =>
@@ -156,6 +160,20 @@ class ToApproveNotifier extends PagedNotifier<ApproveCard> {
       fromCurrent: (_) => null,
     );
   }
+}
+
+/// What the founder approved that goes out in the next 7 days, earliest slot
+/// first (`inbox.to_approve` with `scope: approved`).
+final approvedSoonProvider =
+    AsyncNotifierProvider<ApprovedSoonNotifier, PagedState<ApproveCard>>(
+      ApprovedSoonNotifier.new,
+    );
+
+class ApprovedSoonNotifier extends PagedNotifier<ApproveCard> {
+  @override
+  Future<ApproveCardPage> fetchPage(String? after) => ref
+      .read(reviewRepositoryProvider)
+      .toApprove(after: after, scope: 'approved');
 }
 
 /// Versions and assets this person has not rated yet.

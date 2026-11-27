@@ -37,6 +37,7 @@ class FakeStudioApi extends StudioApi {
     this.textDecisions = false,
     this.firstLogin = false,
     this.storyFrames = false,
+    this.pageSize,
     String? serverLang,
   }) : _lang = serverLang,
        _fixtures = fixtures ?? studioFixtures;
@@ -45,6 +46,10 @@ class FakeStudioApi extends StudioApi {
   final String role;
   final Duration delay;
   final Map<String, String> _fixtures;
+
+  /// When set, the to-approve reads (both scopes) come in pages of this many
+  /// cards with a cursor, as the server pages them.
+  final int? pageSize;
 
   /// Adds the two decisions answered in words (one open, one answered) to
   /// the decisions list and to the Inbox count. They are served by id either way.
@@ -89,6 +94,8 @@ class FakeStudioApi extends StudioApi {
   /// Competitors removed or restored in this run, by key.
   final _competitorPatches = <String, Map<String, dynamic>>{};
   final _gone = <String>{}; // version ids that left the to-approve feed
+  // Versions approved in this run and not undone: the approved list reads them.
+  final _approvedIds = <String>[];
   final _calls = <String>[];
   var _approveDelta = 0;
   var _decisionDelta = 0;
@@ -345,7 +352,9 @@ class FakeStudioApi extends StudioApi {
   dynamic _read(String key, Map<String, dynamic> p) {
     var data = _fixture(key);
     if (key == 'today.get' && data is Map) data = _todayFor(data, p);
-    if (key == 'inbox.to_approve' && data is Map) {
+    if (key == 'inbox.to_approve' && data is Map && p['scope'] == 'approved') {
+      data = _paged(_approvedSoon(data), p);
+    } else if (key == 'inbox.to_approve' && data is Map) {
       final items = [
         for (final c in data['items'] as List)
           if (!_gone.contains((c as Map)['version']['id'])) c,
@@ -361,6 +370,7 @@ class FakeStudioApi extends StudioApi {
             },
         ],
       };
+      data = _paged(data, p);
     }
     if (key == 'today.get' && data is Map) {
       // A line the person acted on (approved, ticked) is gone on the next read,
@@ -997,12 +1007,80 @@ class FakeStudioApi extends StudioApi {
     return sample;
   }
 
+  /// One page of a `{items, next}` answer when [pageSize] is set.
+  Map<String, dynamic> _paged(Map data, Map<String, dynamic> p) {
+    final size = pageSize;
+    final all = data['items'] as List;
+    if (size == null) return Map<String, dynamic>.from(data);
+    final start = int.tryParse('${p['after'] ?? ''}') ?? 0;
+    final end = (start + size).clamp(0, all.length);
+    return {
+      ...Map<String, dynamic>.from(data),
+      'items': all.sublist(start.clamp(0, all.length), end),
+      'next': end < all.length ? '$end' : null,
+    };
+  }
+
+  /// The approved list: what was approved in this run (the waiting cards, with
+  /// the approval their patches carry) and two sample cards approved before.
+  Map<String, dynamic> _approvedSoon(Map data) {
+    final fixtureItems = [for (final c in data['items'] as List) c as Map];
+    final cards = <Map<String, dynamic>>[];
+    for (final id in _approvedIds) {
+      final c = fixtureItems.where((c) => c['version']['id'] == id).firstOrNull;
+      if (c != null) cards.add(_copy(c) as Map<String, dynamic>);
+    }
+    final seed = fixtureItems
+        .where((c) => c['version']['id'] == 'PC-00188-v1')
+        .firstOrNull;
+    if (seed != null) {
+      var n = 0;
+      for (final (id, title, slot) in const [
+        ('PC-00170', 'Strawberry spoon, slow', '2026-11-29T20:00:00+02:00'),
+        ('PC-00171', 'Three jars, one table', '2026-12-02T13:00:00+02:00'),
+      ]) {
+        final c = _copy(seed) as Map<String, dynamic>;
+        n++;
+        (c['version'] as Map)
+          ..['id'] = '$id-v1'
+          ..['review_outcome'] = 'Approved'
+          ..['awaiting_review'] = false
+          ..['actions'] = ['clear_review', 'rate', 'comment', 'edit_meta']
+          ..['piece'] = {
+            ...(c['version']['piece'] as Map),
+            'id': id,
+            'title': title,
+          };
+        c['piece'] = {...(c['piece'] as Map), 'id': id, 'title': title};
+        c['needs_hard_yes'] = false;
+        c['hard_yes_reason'] = null;
+        c['ran_as_trial'] = false;
+        c['posts'] = [
+          for (final post in c['posts'] as List)
+            {...(post as Map), 'id': 'SP-2026-0030$n', 'slot_time': slot},
+        ];
+        if (!_approvedIds.contains('$id-v1') && !_gone.contains('$id-v1')) {
+          cards.add(c);
+        }
+      }
+    }
+    return {
+      ...data,
+      'items': [
+        for (final (i, c) in cards.indexed)
+          {...c, 'position': i + 1, 'total': cards.length},
+      ],
+      'next': null,
+    };
+  }
+
   /// Returns the updated object for a simulated write, or null when [key] is
   /// not one (the fixture is then served as it is).
   dynamic _write(String key, Map<String, dynamic> p) {
     switch (key) {
       case 'versions.approve':
         final id = p['version_id'] as String;
+        if (!_approvedIds.contains(id)) _approvedIds.add(id);
         return _versionWrite(id, key, {
           'review_outcome': 'Approved',
           'awaiting_review': false,
@@ -1011,6 +1089,7 @@ class FakeStudioApi extends StudioApi {
         }, leavesFeed: true);
       case 'versions.fix':
         final id = p['version_id'] as String;
+        _approvedIds.remove(id);
         final reason = '${p['reason'] ?? ''}'.trim();
         if (reason.isEmpty) {
           throw const StudioValidation(
@@ -1027,6 +1106,7 @@ class FakeStudioApi extends StudioApi {
         }, leavesFeed: true);
       case 'versions.clear_review':
         final id = p['version_id'] as String;
+        _approvedIds.remove(id);
         final wasGone = _gone.remove(id);
         if (wasGone) _approveDelta++;
         return _versionWrite(id, key, {
@@ -1143,6 +1223,19 @@ class FakeStudioApi extends StudioApi {
           text: "Marked won't post: ${p['reason'] ?? ''}",
         );
         return _overlay(base);
+      case 'calendar.post_move':
+        final id = '${p['post_id']}';
+        _patches[id] = {
+          ...?_patches[id],
+          'slot_time': p['slot_time'],
+          'modified': _stamp(),
+        };
+        final moved = Map<String, dynamic>.from(_fixture(key) as Map);
+        moved['post'] = _overlay({
+          ...Map<String, dynamic>.from(moved['post'] as Map),
+          'id': id,
+        });
+        return moved;
       case 'calendar.post_set':
         // "Put back" sets the slot of a Cancelled post again, which reopens it.
         final id = '${p['post_id']}';

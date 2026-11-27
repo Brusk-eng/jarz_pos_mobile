@@ -14,12 +14,17 @@ mixin StudioApiInbox on StudioApiCore {
   }
 
   /// `inbox.to_approve` (GET).
-  Future<ApproveCardPage> inboxToApprove({int? limit, String? after}) async {
+  Future<ApproveCardPage> inboxToApprove({
+    int? limit,
+    String? after,
+    String? scope,
+  }) async {
     final d = await call(
       'jarz_social.api.studio.inbox.to_approve',
       params: {
         if (limit != null) 'limit': limit,
         if (after != null) 'after': after,
+        if (scope != null) 'scope': scope,
       },
       get: true,
     );
