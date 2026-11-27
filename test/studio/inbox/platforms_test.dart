@@ -10,7 +10,6 @@ import 'package:jarz_pos/src/studio/data/fake/studio_fixtures.g.dart';
 import 'package:jarz_pos/src/studio/data/models/studio_models.dart';
 import 'package:jarz_pos/src/studio/features/calendar/presentation/calendar_widgets.dart';
 import 'package:jarz_pos/src/studio/features/inbox/presentation/approval_card.dart';
-import 'package:jarz_pos/src/studio/features/inbox/state/approvals_logic.dart';
 import 'package:jarz_pos/src/studio/shared/person_text.dart';
 import 'package:jarz_pos/src/studio/shared/post_platforms.dart';
 
