@@ -28,6 +28,12 @@ class DecisionsList extends ConsumerWidget {
     // A phone keeps the cards in one list.
     return MasterDetail(
       masterWidth: 400,
+      defaultId: ref
+          .watch(decisionsProvider)
+          .valueOrNull
+          ?.items
+          .firstOrNull
+          ?.id,
       onPush: (id) {},
       masterBuilder: (context, selected, open) =>
           _list(context, ref, selected, open),

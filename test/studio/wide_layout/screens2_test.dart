@@ -179,7 +179,14 @@ void main() {
     ) async {
       await _open(tester, 1440, 900, '/inbox/decisions');
       expect(_keys('dr-'), findsWidgets);
-      expect(_keys('dc-'), findsNothing, reason: 'nothing open yet');
+      // The first decision is open on arrival: the right pane is never empty.
+      expect(_keys('dc-'), findsOneWidget);
+      expect(
+        _keys('dc-').evaluate().single.widget.key,
+        ValueKey(
+          'dc-${(_keys('dr-').evaluate().first.widget.key! as ValueKey<String>).value.substring(3)}',
+        ),
+      );
       await tester.tap(_keys('dr-').first);
       await tester.pumpAndSettle();
       expect(_keys('dc-'), findsOneWidget);
@@ -200,8 +207,6 @@ void main() {
 
     testWidgets('1440 Arabic: opens and has no overflow', (tester) async {
       await _open(tester, 1440, 900, '/inbox/decisions', locale: 'ar');
-      await tester.tap(_keys('dr-').first);
-      await tester.pumpAndSettle();
       expect(_keys('dc-'), findsOneWidget);
       // RTL: the list is on the right, the detail on its left.
       final row = tester.getRect(_keys('dr-').first);

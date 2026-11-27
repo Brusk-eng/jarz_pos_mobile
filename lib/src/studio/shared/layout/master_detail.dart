@@ -23,6 +23,7 @@ class MasterDetail extends StatefulWidget {
     this.emptyDetail,
     this.masterWidth = 400,
     this.initialId,
+    this.defaultId,
   });
 
   final Widget Function(
@@ -38,6 +39,11 @@ class MasterDetail extends StatefulWidget {
   final Widget? emptyDetail;
   final double masterWidth;
   final String? initialId;
+
+  /// Shown on a wide screen while nothing has been picked: the first item once
+  /// an async list has loaded. Null keeps the right pane empty. A phone ignores
+  /// it.
+  final String? defaultId;
 
   @override
   State<MasterDetail> createState() => _MasterDetailState();
@@ -58,7 +64,7 @@ class _MasterDetailState extends State<MasterDetail> {
     if (!wide) {
       return widget.masterBuilder(context, null, widget.onPush);
     }
-    final id = _selected;
+    final id = _selected ?? widget.defaultId;
     return Row(
       children: [
         SizedBox(
