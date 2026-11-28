@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/recipe_book_models.dart';
 import '../data/recipe_book_service.dart';
-import '../domain/recipe_scaling.dart';
+import '../domain/recipe_list_logic.dart';
 
 /// Every recipe with its versions. Kept (not auto-disposed) so going back to
 /// the list from a recipe does not refetch; pull to refresh does.
@@ -17,6 +17,22 @@ final recipeDetailProvider = FutureProvider.family<RecipeDetail, String>((
   sop,
 ) {
   return ref.watch(recipeBookServiceProvider).getRecipe(sop);
+});
+
+/// A recipe with no SOP, by item code (`get_recipe(item_code=...)`).
+final recipeByItemProvider = FutureProvider.family<RecipeDetail, String>((
+  ref,
+  itemCode,
+) {
+  return ref.watch(recipeBookServiceProvider).getRecipeByItem(itemCode);
+});
+
+/// One jar flavour across its sizes, by family name.
+final jarFamilyProvider = FutureProvider.family<JarFamily, String>((
+  ref,
+  family,
+) {
+  return ref.watch(recipeBookServiceProvider).getJarFamily(family);
 });
 
 /// The list screen's search text.

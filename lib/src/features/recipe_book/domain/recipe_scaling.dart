@@ -57,16 +57,36 @@ String formatQty(double qty) => formatDecimal(qty, maxDecimals: 3);
 /// the nearest half below that (1½ eggs is a real instruction: beat two,
 /// weigh half). Trailing .0 dropped.
 String formatCount(double count) {
-  final rounded =
-      count.abs() >= 10 ? count.roundToDouble() : (count * 2).roundToDouble() / 2;
+  final rounded = count.abs() >= 10
+      ? count.roundToDouble()
+      : (count * 2).roundToDouble() / 2;
   return formatDecimal(rounded, maxDecimals: 1);
 }
 
 bool _isGramUnit(String unit) => unit.trim().toLowerCase() == 'g';
 
-const _pieceUnits = {'piece', 'pieces', 'pcs', 'pc', 'nos', 'no', 'unit', 'units', 'each'};
+const _pieceUnits = {
+  'piece',
+  'pieces',
+  'pcs',
+  'pc',
+  'nos',
+  'no',
+  'unit',
+  'units',
+  'each',
+};
 
-bool _isPieceUnit(String unit) => _pieceUnits.contains(unit.trim().toLowerCase());
+bool _isPieceUnit(String unit) =>
+    _pieceUnits.contains(unit.trim().toLowerCase());
+
+/// Pieces, counted rather than weighed ("piece", "Nos").
+bool isPieceUnit(String unit) => _isPieceUnit(unit);
+
+/// First letter upper-cased, the rest as stored ("cheesecake mix" shows as
+/// "Cheesecake mix").
+String sentenceCase(String text) =>
+    text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
 
 /// A unit as it reads on screen: "Kg" and "KG" become "kg"; anything else is
 /// shown as the server sent it.
@@ -80,8 +100,8 @@ String displayUnit(String unit) {
 String formatIngredientAmount(double amount, String unit) => _isGramUnit(unit)
     ? formatGramsNumber(amount)
     : _isPieceUnit(unit)
-        ? formatCount(amount)
-        : formatQty(amount);
+    ? formatCount(amount)
+    : formatQty(amount);
 
 /// An ingredient's amount at [factor]. Ingredients always scale.
 double scaledIngredientAmount(RecipeIngredient ingredient, double factor) =>
@@ -272,58 +292,6 @@ double? parseAmount(String raw) {
   final text = buffer.toString();
   if (text.isEmpty) return null;
   return double.tryParse(text);
-}
-
-// ── List screen ──────────────────────────────────────────────────────────
-
-enum RecipeFilter { all, approved, trials }
-
-/// Recipes matching [query] (every word must appear in the title,
-/// case-insensitive) and [filter]. Order is kept.
-List<RecipeSummary> filterRecipes(
-  List<RecipeSummary> recipes, {
-  String query = '',
-  RecipeFilter filter = RecipeFilter.all,
-}) {
-  final words = query
-      .toLowerCase()
-      .split(RegExp(r'\s+'))
-      .where((w) => w.isNotEmpty)
-      .toList();
-  bool matchesFilter(RecipeSummary r) => switch (filter) {
-    RecipeFilter.all => true,
-    RecipeFilter.approved => r.status == RecipeStatus.approved,
-    RecipeFilter.trials => r.status == RecipeStatus.trial || r.hasTrial,
-  };
-  return [
-    for (final r in recipes)
-      if (matchesFilter(r) &&
-          words.every((w) => r.title.toLowerCase().contains(w)))
-        r,
-  ];
-}
-
-/// One track and its recipes. [track] is null for recipes with no track.
-typedef RecipeTrackGroup = ({String? track, List<RecipeSummary> recipes});
-
-/// [recipes] grouped by track: [trackOrder] first, then any other track in
-/// the order met, then the recipes with no track. Empty groups are dropped.
-List<RecipeTrackGroup> groupRecipesByTrack(
-  List<RecipeSummary> recipes,
-  List<String> trackOrder,
-) {
-  final byTrack = <String?, List<RecipeSummary>>{};
-  for (final r in recipes) {
-    byTrack.putIfAbsent(r.track, () => <RecipeSummary>[]).add(r);
-  }
-  final order = <String?>[
-    for (final t in trackOrder)
-      if (byTrack.containsKey(t)) t,
-    for (final t in byTrack.keys)
-      if (t != null && !trackOrder.contains(t)) t,
-    if (byTrack.containsKey(null)) null,
-  ];
-  return [for (final t in order) (track: t, recipes: byTrack[t]!)];
 }
 
 /// One ingredient section. [section] is null for ingredients without one.

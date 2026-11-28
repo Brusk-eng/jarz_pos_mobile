@@ -13,17 +13,70 @@ class RecipeBookIndex {
   const RecipeBookIndex({
     this.tracks = const <String>[],
     this.recipes = const <RecipeSummary>[],
+    this.families = const <RecipeFamilySummary>[],
   });
 
   factory RecipeBookIndex.fromJson(Map<String, dynamic> json) =>
       RecipeBookIndex(
         tracks: _strList(json['tracks']),
         recipes: _mapList(json['recipes'], RecipeSummary.fromJson),
+        families: _mapList(json['families'], RecipeFamilySummary.fromJson),
       );
 
   /// Track order as the server sorts them.
   final List<String> tracks;
   final List<RecipeSummary> recipes;
+
+  /// v2 only: one entry per jar flavour. Empty on a v1 payload.
+  final List<RecipeFamilySummary> families;
+}
+
+/// Recipe kinds (v2 `category`). A v1 payload carries none.
+abstract final class RecipeCategory {
+  /// Cakes & biscuits.
+  static const bases = 'bases';
+
+  /// Mixes & fillings.
+  static const fillings = 'fillings';
+  static const jars = 'jars';
+
+  /// Display order.
+  static const order = <String>[bases, fillings, jars];
+}
+
+/// Jar sizes in display order.
+const List<String> kJarSizes = <String>['Small', 'Medium', 'Large'];
+
+/// `families[]` of the v2 `list_recipes(catalog=1)`.
+@immutable
+class RecipeFamilySummary {
+  const RecipeFamilySummary({
+    required this.family,
+    this.track,
+    this.sizes = const <String>[],
+    this.hasTrial = false,
+    this.status = RecipeStatus.approved,
+    this.updated,
+  });
+
+  factory RecipeFamilySummary.fromJson(Map<String, dynamic> json) {
+    final status = _str(json['status']).toLowerCase();
+    return RecipeFamilySummary(
+      family: _str(json['family']),
+      track: _optStr(json['track']),
+      sizes: _strList(json['sizes']),
+      hasTrial: _bool(json['has_trial']),
+      status: status.isEmpty ? RecipeStatus.approved : status,
+      updated: _optStr(json['updated']),
+    );
+  }
+
+  final String family;
+  final String? track;
+  final List<String> sizes;
+  final bool hasTrial;
+  final String status;
+  final String? updated;
 }
 
 /// The recipe as a whole: every version of one key.
@@ -39,6 +92,11 @@ class RecipeSummary {
     this.hasTrial = false,
     this.updated,
     this.versions = const <RecipeVersion>[],
+    this.category = '',
+    this.family,
+    this.size,
+    this.hasMethod = true,
+    this.source = RecipeSource.sop,
   });
 
   factory RecipeSummary.fromJson(Map<String, dynamic> json) {
@@ -53,9 +111,18 @@ class RecipeSummary {
           ? RecipeStatus.approved
           : _str(json['status']).toLowerCase(),
       headline: _str(json['headline']),
-      hasTrial: json['has_trial'] == true || json['has_trial'] == 1,
+      hasTrial: _bool(json['has_trial']),
       updated: _optStr(json['updated']),
       versions: _mapList(json['versions'], RecipeVersion.fromJson),
+      category: _str(json['category']).toLowerCase(),
+      family: _optStr(json['family']),
+      size: _optStr(json['size']),
+      hasMethod: json.containsKey('has_method')
+          ? _bool(json['has_method'])
+          : _mapList(json['versions'], RecipeVersion.fromJson).isNotEmpty,
+      source: _str(json['source']).toLowerCase() == RecipeSource.bom
+          ? RecipeSource.bom
+          : RecipeSource.sop,
     );
   }
 
@@ -75,8 +142,34 @@ class RecipeSummary {
   final bool hasTrial;
   final String? updated;
 
-  /// Newest first.
+  /// Newest first. Empty for a BOM-only recipe.
   final List<RecipeVersion> versions;
+
+  /// [RecipeCategory] value, or empty on a v1 payload.
+  final String category;
+
+  /// Jar flavour ("Tiramisu"); null for anything but a sized jar.
+  final String? family;
+
+  /// Small | Medium | Large, or null.
+  final String? size;
+
+  /// At least one SOP version is written.
+  final bool hasMethod;
+
+  /// [RecipeSource] value.
+  final String source;
+
+  /// [category], with a missing one read as a filling: the quietest bucket for
+  /// a recipe the server did not classify.
+  String get effectiveCategory => RecipeCategory.order.contains(category)
+      ? category
+      : RecipeCategory.fillings;
+
+  bool get isBomOnly => source == RecipeSource.bom;
+
+  /// This recipe is a trial, or has a trial running alongside.
+  bool get isTrialish => status == RecipeStatus.trial || hasTrial;
 
   /// The version named by [headline], else the newest one.
   RecipeVersion? get headlineVersion {
@@ -89,6 +182,12 @@ class RecipeSummary {
   /// The SOP to open: [headline], else the newest version's name.
   String get openSop =>
       headline.isNotEmpty ? headline : (headlineVersion?.name ?? '');
+}
+
+/// Where a recipe comes from (v2 `source`).
+abstract final class RecipeSource {
+  static const sop = 'sop';
+  static const bom = 'bom';
 }
 
 /// Recipe-level status values.
@@ -168,6 +267,9 @@ class RecipeDetail {
     this.steps = const <RecipeStep>[],
     this.versions = const <RecipeVersion>[],
     this.unresolvedTokens = const <String>[],
+    this.category = '',
+    this.family,
+    this.size,
   });
 
   factory RecipeDetail.fromJson(Map<String, dynamic> json) {
@@ -197,6 +299,9 @@ class RecipeDetail {
       steps: _mapList(json['steps'], RecipeStep.fromJson),
       versions: _mapList(json['versions'], RecipeVersion.fromJson),
       unresolvedTokens: _strList(json['unresolved_tokens']),
+      category: _str(json['category']).toLowerCase(),
+      family: _optStr(json['family']),
+      size: _optStr(json['size']),
     );
   }
 
@@ -219,6 +324,13 @@ class RecipeDetail {
   final List<RecipeStep> steps;
   final List<RecipeVersion> versions;
   final List<String> unresolvedTokens;
+  final String category;
+  final String? family;
+  final String? size;
+
+  /// A recipe read from a BOM alone: no SOP behind it, so no version, no
+  /// method.
+  bool get isBomOnly => name.isEmpty;
 
   bool get hasNotes =>
       (notes?.trim().isNotEmpty ?? false) ||
@@ -367,7 +479,138 @@ class RecipeSegment {
   bool get isText => text != null;
 }
 
+/// `get_jar_family(family)`: every size of one jar flavour side by side.
+@immutable
+class JarFamily {
+  const JarFamily({
+    required this.family,
+    this.track,
+    this.sizes = const <JarSize>[],
+    this.layers = const <JarLayer>[],
+    this.packaging = const <JarLayer>[],
+  });
+
+  factory JarFamily.fromJson(Map<String, dynamic> json) => JarFamily(
+    family: _str(json['family']),
+    track: _optStr(json['track']),
+    sizes: sortJarSizes(_mapList(json['sizes'], JarSize.fromJson)),
+    layers: _mapList(json['layers'], JarLayer.fromJson),
+    packaging: _mapList(json['packaging'], JarLayer.fromJson),
+  );
+
+  final String family;
+  final String? track;
+
+  /// Small, Medium, Large order (the sizes that exist).
+  final List<JarSize> sizes;
+
+  /// Everything that is not packaging, in the order the server walked them.
+  final List<JarLayer> layers;
+
+  /// Jar, lid, label.
+  final List<JarLayer> packaging;
+}
+
+/// [sizes] in Small, Medium, Large order; an odd size name goes last.
+List<JarSize> sortJarSizes(List<JarSize> sizes) {
+  int rank(String size) {
+    final i = kJarSizes.indexOf(size);
+    return i < 0 ? kJarSizes.length : i;
+  }
+
+  final sorted = [...sizes];
+  sorted.sort((a, b) => rank(a.size).compareTo(rank(b.size)));
+  return sorted;
+}
+
+@immutable
+class JarSize {
+  const JarSize({
+    required this.size,
+    this.itemCode,
+    this.title = '',
+    this.sop,
+    this.sopVersion,
+    this.status = RecipeStatus.approved,
+    this.jarGrams,
+  });
+
+  factory JarSize.fromJson(Map<String, dynamic> json) {
+    final status = _str(json['status']).toLowerCase();
+    return JarSize(
+      size: _str(json['size']),
+      itemCode: _optStr(json['item_code']),
+      title: _str(json['title']),
+      sop: _optStr(json['sop']),
+      sopVersion: _optNum(json['sop_version'])?.round(),
+      status: status.isEmpty ? RecipeStatus.approved : status,
+      jarGrams: _optNum(json['jar_grams']),
+    );
+  }
+
+  final String size;
+  final String? itemCode;
+  final String title;
+
+  /// Null when this size has no written method.
+  final String? sop;
+  final int? sopVersion;
+
+  /// approved | trial.
+  final String status;
+
+  /// Sum of the gram layers in one jar; null when none.
+  final double? jarGrams;
+
+  bool get isTrial => status == RecipeStatus.trial;
+}
+
+/// One row of the comparison: a layer (or packaging piece) and what each size
+/// carries per jar. A size missing from [perJar] does not have this layer.
+@immutable
+class JarLayer {
+  const JarLayer({
+    required this.key,
+    required this.name,
+    this.unit = 'g',
+    this.perJar = const <String, double>{},
+    this.items = const <String, String>{},
+  });
+
+  factory JarLayer.fromJson(Map<String, dynamic> json) {
+    final name = _str(json['name']);
+    final key = _str(json['key']);
+    final raw = json['per_jar'];
+    final rawItems = json['items'];
+    return JarLayer(
+      key: key.isNotEmpty ? key : name,
+      name: name.isNotEmpty ? name : key,
+      unit: _str(json['unit']).isEmpty ? 'g' : _str(json['unit']),
+      perJar: {
+        if (raw is Map)
+          for (final e in raw.entries)
+            if (_optNum(e.value) != null) e.key.toString(): _optNum(e.value)!,
+      },
+      items: {
+        if (rawItems is Map)
+          for (final e in rawItems.entries)
+            if (_str(e.value).isNotEmpty) e.key.toString(): _str(e.value),
+      },
+    );
+  }
+
+  final String key;
+  final String name;
+  final String unit;
+  final Map<String, double> perJar;
+
+  /// Packaging only: the real item each size uses (size -> item name).
+  final Map<String, String> items;
+}
+
 // ── tolerant parsing ──────────────────────────────────────────────────────
+
+bool _bool(Object? value) => value == true || value == 1 || value == '1';
 
 String _str(Object? value) => value == null ? '' : value.toString().trim();
 

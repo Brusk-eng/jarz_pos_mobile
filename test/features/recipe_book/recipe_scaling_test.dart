@@ -186,51 +186,7 @@ void main() {
     });
   });
 
-  group('list filtering and grouping', () {
-    final index = RecipeBookIndex.fromJson(kRecipeIndexJson);
-
-    test('search matches every word of the title, case-insensitively', () {
-      expect(filterRecipes(index.recipes, query: 'fudge').map((r) => r.title), [
-        'Fudge Cake',
-      ]);
-      expect(
-        filterRecipes(index.recipes, query: 'CAKE fu').map((r) => r.title),
-        ['Fudge Cake'],
-      );
-      expect(filterRecipes(index.recipes, query: 'zzz'), isEmpty);
-    });
-
-    test('Approved and Trials chips', () {
-      expect(
-        filterRecipes(
-          index.recipes,
-          filter: RecipeFilter.approved,
-        ).map((r) => r.title),
-        ['Fudge Cake', 'Tiramisu'],
-      );
-      // A recipe with a trial alongside its current version counts as a trial.
-      expect(
-        filterRecipes(
-          index.recipes,
-          filter: RecipeFilter.trials,
-        ).map((r) => r.title),
-        ['Fudge Cake', 'Carrot Cookie'],
-      );
-    });
-
-    test('groups by track order, unset last', () {
-      final groups = groupRecipesByTrack(index.recipes, index.tracks);
-      expect(groups.map((g) => g.track), [
-        'Standard line',
-        'Cookie jar line',
-        null,
-      ]);
-      expect(groups.first.recipes.map((r) => r.title), [
-        'Fudge Cake',
-        'Tiramisu',
-      ]);
-    });
-
+  group('ingredient grouping', () {
     test('ingredients group by section, unsectioned first', () {
       const items = [
         RecipeIngredient(key: 'a', name: 'A', section: 'Dough'),

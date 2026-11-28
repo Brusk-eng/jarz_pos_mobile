@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/user_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../data/recipe_book_models.dart';
+import '../domain/recipe_targets.dart';
 import '../state/recipe_book_providers.dart';
 import 'recipe_book_list_screen.dart';
+import 'recipe_jar_family_screen.dart';
 import 'recipe_book_strings.dart';
 import 'widgets/recipe_book_common.dart';
 import 'widgets/recipe_content_widgets.dart';
@@ -13,11 +15,12 @@ import 'widgets/recipe_scale_widgets.dart';
 
 enum _RecipeTab { ingredients, method, notes }
 
-/// One recipe: header, a sticky scale bar, then Ingredients | Method | Notes.
+/// What the `/recipes/:sop` route builds. [sop] is the route parameter: a SOP
+/// name, `item:<item_code>` for a recipe with no SOP, or `jar:<family>` for a
+/// jar family; this screen sends each to the screen that shows it.
 ///
-/// [sop] is the version opened first; the version sheet switches in place.
-/// The factor is kept per recipe key (not per version) for the app session.
-class RecipeDetailScreen extends ConsumerStatefulWidget {
+/// The router entry is unchanged: the single parameter carries the target.
+class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({super.key, required this.sop, this.title});
 
   final String sop;
@@ -32,17 +35,47 @@ class RecipeDetailScreen extends ConsumerStatefulWidget {
       );
 
   @override
-  ConsumerState<RecipeDetailScreen> createState() => _RecipeDetailScreenState();
+  Widget build(BuildContext context) {
+    final target = normalizeRecipeTarget(sop);
+    final family = jarFamilyOfTarget(target);
+    if (family != null) {
+      return RecipeJarFamilyScreen(family: family, title: title);
+    }
+    return _RecipeScreen(target: target, title: title);
+  }
 }
 
-class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
-  late String _sop = widget.sop;
+/// One recipe: header, a sticky scale bar, then Ingredients | Method | Notes.
+///
+/// [target] is the version opened first (a SOP name, or `item:<code>` for a
+/// BOM-only recipe); the version sheet switches in place. The factor is kept
+/// per recipe key (not per version) for the app session.
+class _RecipeScreen extends ConsumerStatefulWidget {
+  const _RecipeScreen({required this.target, this.title});
+
+  final String target;
+  final String? title;
+
+  @override
+  ConsumerState<_RecipeScreen> createState() => _RecipeScreenState();
+}
+
+class _RecipeScreenState extends ConsumerState<_RecipeScreen> {
+  late String _sop = widget.target;
   _RecipeTab _tab = _RecipeTab.ingredients;
 
   /// The last recipe shown, kept on screen while another version loads.
   RecipeDetail? _last;
 
-  Future<void> _refresh() => ref.refresh(recipeDetailProvider(_sop).future);
+  /// The provider behind [target]: by item for `item:<code>`, else by SOP.
+  FutureProvider<RecipeDetail> _provider(String target) {
+    final item = itemOfTarget(target);
+    return item != null
+        ? recipeByItemProvider(item)
+        : recipeDetailProvider(target);
+  }
+
+  Future<void> _refresh() => ref.refresh(_provider(_sop).future);
 
   Future<void> _pickVersion(RecipeDetail detail) async {
     final picked = await showRecipeVersionsSheet(
@@ -118,7 +151,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       );
     }
 
-    final async = ref.watch(recipeDetailProvider(_sop));
+    final async = ref.watch(_provider(_sop));
     final detail = async.valueOrNull ?? _last;
     if (async.hasValue) _last = async.value;
     final loadingOther = async.isLoading && detail != null;
@@ -132,7 +165,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         title: s.recipeLoadFailed,
         body: context.userErrorMessage(async.error),
         actionLabel: s.retry,
-        onAction: () => ref.invalidate(recipeDetailProvider(_sop)),
+        onAction: () => ref.invalidate(_provider(_sop)),
       );
     } else {
       body = const _DetailSkeleton();
@@ -167,20 +200,37 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final factor = ref.watch(recipeScaleProvider(detail.key));
     final hintDone = ref.watch(recipeScaleHintDoneProvider);
     final dismissed = ref.watch(recipeChangeNoteDismissedProvider);
+    final bomOnly = detail.isBomOnly;
     final tabs = <_RecipeTab>[
       _RecipeTab.ingredients,
-      _RecipeTab.method,
+      if (!bomOnly) _RecipeTab.method,
       if (detail.hasNotes) _RecipeTab.notes,
     ];
     final tab = tabs.contains(_tab) ? _tab : _RecipeTab.ingredients;
     final summary = detail.changeSummary;
-    final showSummary = summary != null && !dismissed.contains(detail.name);
+    final showSummary =
+        !bomOnly && summary != null && !dismissed.contains(detail.name);
 
     Widget content = switch (tab) {
-      _RecipeTab.ingredients => RecipeIngredientsList(
-        ingredients: detail.ingredients,
-        factor: factor,
-        onTapIngredient: (i) => _scaleByIngredient(detail, i, factor),
+      _RecipeTab.ingredients => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RecipeIngredientsList(
+            ingredients: detail.ingredients,
+            factor: factor,
+            onTapIngredient: (i) => _scaleByIngredient(detail, i, factor),
+          ),
+          if (bomOnly)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              child: Text(
+                s.noWrittenMethod,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+        ],
       ),
       _RecipeTab.method => RecipeStepsList(
         steps: detail.steps,
@@ -201,12 +251,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (loadingOther) const LinearProgressIndicator(minHeight: 2),
-                  _Header(
-                    detail: detail,
-                    onVersions: detail.versions.length > 1
-                        ? () => _pickVersion(detail)
-                        : null,
-                  ),
+                  if (!bomOnly)
+                    _Header(
+                      detail: detail,
+                      onVersions: detail.versions.length > 1
+                          ? () => _pickVersion(detail)
+                          : null,
+                    ),
                   if (showSummary)
                     _WhatChangedCard(
                       summary: summary,
@@ -238,29 +289,30 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                           ? () => _scaleByBatch(detail, factor)
                           : null,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
-                      child: SegmentedButton<_RecipeTab>(
-                        showSelectedIcon: false,
-                        style: const ButtonStyle(
-                          visualDensity: VisualDensity.compact,
+                    if (tabs.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
+                        child: SegmentedButton<_RecipeTab>(
+                          showSelectedIcon: false,
+                          style: const ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          segments: [
+                            for (final t in tabs)
+                              ButtonSegment(
+                                value: t,
+                                label: Text(switch (t) {
+                                  _RecipeTab.ingredients => s.tabIngredients,
+                                  _RecipeTab.method => s.tabMethod,
+                                  _RecipeTab.notes => s.tabNotes,
+                                }),
+                              ),
+                          ],
+                          selected: {tab},
+                          onSelectionChanged: (set) =>
+                              setState(() => _tab = set.first),
                         ),
-                        segments: [
-                          for (final t in tabs)
-                            ButtonSegment(
-                              value: t,
-                              label: Text(switch (t) {
-                                _RecipeTab.ingredients => s.tabIngredients,
-                                _RecipeTab.method => s.tabMethod,
-                                _RecipeTab.notes => s.tabNotes,
-                              }),
-                            ),
-                        ],
-                        selected: {tab},
-                        onSelectionChanged: (set) =>
-                            setState(() => _tab = set.first),
                       ),
-                    ),
                     const Divider(height: 1),
                   ],
                 ),

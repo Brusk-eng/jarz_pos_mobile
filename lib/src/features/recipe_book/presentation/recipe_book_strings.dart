@@ -23,8 +23,13 @@ class RecipeBookStrings {
   String get title => _t('Recipes', 'الوصفات');
   String get searchHint => _t('Search recipes', 'ابحث عن وصفة');
   String get filterAll => _t('All', 'الكل');
-  String get filterApproved => _t('Approved', 'معتمدة');
-  String get filterTrials => _t('Trials', 'تجارب');
+  String get filterBases => _t('Cakes & biscuits', 'الكيك والبسكويت');
+  String get filterFillings => _t('Mixes & fillings', 'الخلطات والحشوات');
+  String get filterJars => _t('Jars', 'البرطمانات');
+  /// Short chip labels so all five chips fit a phone; sections keep the long names.
+  String get chipBases => _t('Cakes', 'الكيك');
+  String get chipFillings => _t('Fillings', 'الحشوات');
+  String get filterTrials => _t('Trials', 'التجارب');
   String get emptyTitle => _t('No recipes yet', 'لا توجد وصفات بعد');
   String get emptyBody => _t(
     'Recipes appear here once an SOP is written for them.',
@@ -37,12 +42,31 @@ class RecipeBookStrings {
   String get recipeLoadFailed =>
       _t("Couldn't load this recipe", 'تعذر تحميل الوصفة');
   String get retry => _t('Retry', 'إعادة المحاولة');
-  String get trialInProgress => _t('Trial in progress', 'تجربة جارية');
+  String get trialPill => _t('Trial', 'تجربة');
+  String get trialRunning => _t('Trial running', 'تجربة جارية');
+  String get ingredientsOnly => _t(
+    'Ingredients · no written method yet',
+    'المكونات · لا توجد طريقة مكتوبة بعد',
+  );
   String get otherTrack => _t('Other', 'أخرى');
   String get accessDenied => _t(
     'Recipes are open to the production team only.',
     'الوصفات متاحة لفريق الإنتاج فقط.',
   );
+
+  /// A section header on the list: the recipe category.
+  String category(String category) => switch (category) {
+    RecipeCategory.bases => filterBases,
+    RecipeCategory.jars => filterJars,
+    _ => filterFillings,
+  };
+
+  String size(String size) => switch (size) {
+    'Small' => _t('Small', 'صغير'),
+    'Medium' => _t('Medium', 'وسط'),
+    'Large' => _t('Large', 'كبير'),
+    _ => size,
+  };
 
   String track(String? track) {
     if (track == null) return otherTrack;
@@ -95,6 +119,23 @@ class RecipeBookStrings {
     'Some amounts in the method could not be matched to an ingredient.',
     'بعض الكميات في الطريقة لم تُطابق أي مكون.',
   );
+
+  String get noWrittenMethod =>
+      _t('No written method yet', 'لا توجد طريقة مكتوبة بعد');
+
+  // ── Jar family ──
+  String get jarLoadFailed =>
+      _t("Couldn't load these jars", 'تعذر تحميل البرطمانات');
+  String get gramsPerJar => _t('Grams per jar', 'جرام لكل برطمان');
+  String get perJar => _t('Per jar', 'للبرطمان');
+  String get total => _t('Total', 'الإجمالي');
+  String get packaging => _t('Packaging', 'التغليف');
+  String get planRun => _t('Plan a run', 'خطط تشغيلة');
+  String get planRunHint =>
+      _t('How many jars of each size?', 'كم برطمانًا من كل حجم؟');
+  String get noLayers => _t('No layers listed', 'لا توجد طبقات مسجلة');
+  String sizeMethod(String size, int? version) =>
+      version == null ? this.size(size) : '${this.size(size)} · v$version';
 
   // ── Scale ──
   String batch(String yieldText) => _t('$yieldText batch', 'دفعة $yieldText');

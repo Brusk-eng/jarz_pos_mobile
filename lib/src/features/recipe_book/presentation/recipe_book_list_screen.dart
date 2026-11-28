@@ -5,7 +5,9 @@ import '../../../core/localization/user_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../data/recipe_book_models.dart';
+import '../domain/recipe_list_logic.dart';
 import '../domain/recipe_scaling.dart';
+import '../domain/recipe_targets.dart';
 import '../state/recipe_book_providers.dart';
 import 'recipe_book_strings.dart';
 import 'recipe_detail_screen.dart';
@@ -163,8 +165,12 @@ class _RecipeBookListScreenState extends ConsumerState<RecipeBookListScreen> {
         ),
       );
     }
-    final visible = filterRecipes(data.recipes, query: query, filter: filter);
-    if (visible.isEmpty) {
+    final sections = buildRecipeSections(
+      data.recipes,
+      query: query,
+      filter: filter,
+    );
+    if (sections.isEmpty) {
       return _scrollable(
         RecipeBookMessage(
           icon: Icons.search_off,
@@ -174,26 +180,43 @@ class _RecipeBookListScreenState extends ConsumerState<RecipeBookListScreen> {
         ),
       );
     }
-    final groups = groupRecipesByTrack(visible, data.tracks);
+    // A single category chip already names the section; headers only help
+    // when rows from several categories share the screen.
+    final showHeaders =
+        filter == RecipeFilter.all || filter == RecipeFilter.trials;
     return RefreshIndicator(
       onRefresh: _refresh,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 24),
         children: [
-          for (final group in groups) ...[
-            _TrackHeader(label: s.track(group.track)),
-            for (final recipe in group.recipes)
-              _RecipeRow(
-                recipe: recipe,
-                onTap: () {
-                  final sop = recipe.openSop;
-                  if (sop.isEmpty) return;
-                  Navigator.of(
-                    context,
-                  ).push(RecipeDetailScreen.route(sop, title: recipe.title));
-                },
-              ),
+          for (final section in sections) ...[
+            if (showHeaders)
+              _SectionHeader(label: s.category(section.category))
+            else
+              const SizedBox(height: 8),
+            for (final entry in section.entries)
+              switch (entry) {
+                RecipeRowEntry(:final recipe) => _RecipeRow(
+                  recipe: recipe,
+                  onTap: () {
+                    final target = recipeTargetFor(recipe);
+                    if (target == null) return;
+                    Navigator.of(context).push(
+                      RecipeDetailScreen.route(target, title: recipe.title),
+                    );
+                  },
+                ),
+                RecipeFamilyEntry() => _FamilyRow(
+                  entry: entry,
+                  onTap: () => Navigator.of(context).push(
+                    RecipeDetailScreen.route(
+                      recipeTargetJar(entry.family),
+                      title: entry.family,
+                    ),
+                  ),
+                ),
+              },
           ],
         ],
       ),
@@ -212,12 +235,15 @@ class _FilterChips extends StatelessWidget {
     final s = RecipeBookStrings.of(context);
     final labels = {
       RecipeFilter.all: s.filterAll,
-      RecipeFilter.approved: s.filterApproved,
+      RecipeFilter.bases: s.chipBases,
+      RecipeFilter.fillings: s.chipFillings,
+      RecipeFilter.jars: s.filterJars,
       RecipeFilter.trials: s.filterTrials,
     };
     return SizedBox(
       height: 48,
       child: ListView(
+        key: const ValueKey('recipe-filter-chips'),
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         children: [
@@ -238,8 +264,8 @@ class _FilterChips extends StatelessWidget {
   }
 }
 
-class _TrackHeader extends StatelessWidget {
-  const _TrackHeader({required this.label});
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label});
 
   final String label;
 
@@ -260,24 +286,39 @@ class _TrackHeader extends StatelessWidget {
   }
 }
 
-class _RecipeRow extends StatelessWidget {
-  const _RecipeRow({required this.recipe, required this.onTap});
+/// The pill on a row: "Trial" for a recipe that is one, "Trial running" when
+/// a trial sits alongside an approved version. Approved needs no pill.
+class _TrialPill extends StatelessWidget {
+  const _TrialPill({required this.running});
 
-  final RecipeSummary recipe;
+  final bool running;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = RecipeBookStrings.of(context);
+    return RecipeStatusPill(
+      status: RecipeStatus.trial,
+      label: running ? s.trialRunning : s.trialPill,
+    );
+  }
+}
+
+class _ListRow extends StatelessWidget {
+  const _ListRow({
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.pill,
+  });
+
+  final String title;
+  final String subtitle;
   final VoidCallback onTap;
+  final Widget? pill;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final s = RecipeBookStrings.of(context);
-    final headline = recipe.headlineVersion;
-    final quiet = theme.textTheme.bodySmall?.copyWith(
-      color: theme.colorScheme.onSurfaceVariant,
-    );
-    final trialColor = recipeStatusColors(
-      context,
-      RecipeStatus.trial,
-    ).foreground;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -289,37 +330,72 @@ class _RecipeRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    recipe.title,
+                    sentenceCase(title),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyLarge,
                   ),
-                  if (headline != null) ...[
+                  if (subtitle.isNotEmpty) ...[
                     const SizedBox(height: 2),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(text: recipeVersionLine(context, headline)),
-                          if (recipe.hasTrial)
-                            TextSpan(
-                              text: ' · ${s.trialInProgress}',
-                              style: TextStyle(color: trialColor),
-                            ),
-                        ],
-                      ),
+                    Text(
+                      subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: quiet,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            RecipeStatusPill(status: recipe.status),
+            if (pill != null) ...[const SizedBox(width: 12), pill!],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RecipeRow extends StatelessWidget {
+  const _RecipeRow({required this.recipe, required this.onTap});
+
+  final RecipeSummary recipe;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = RecipeBookStrings.of(context);
+    final headline = recipe.headlineVersion;
+    return _ListRow(
+      title: recipe.title,
+      subtitle: headline != null
+          ? recipeVersionLine(context, headline)
+          : s.ingredientsOnly,
+      onTap: onTap,
+      pill: recipe.isTrialish
+          ? _TrialPill(running: recipe.status != RecipeStatus.trial)
+          : null,
+    );
+  }
+}
+
+/// A jar flavour: one row, its sizes as the subtitle.
+class _FamilyRow extends StatelessWidget {
+  const _FamilyRow({required this.entry, required this.onTap});
+
+  final RecipeFamilyEntry entry;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = RecipeBookStrings.of(context);
+    final allTrial = entry.members.every((m) => m.status == RecipeStatus.trial);
+    return _ListRow(
+      title: entry.family,
+      subtitle: entry.sizes.map(s.size).join(' · '),
+      onTap: onTap,
+      pill: entry.isTrialish ? _TrialPill(running: !allTrial) : null,
     );
   }
 }

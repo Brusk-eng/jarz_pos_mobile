@@ -9,7 +9,7 @@ final recipeBookServiceProvider = Provider<RecipeBookService>((ref) {
   return RecipeBookService(ref.watch(dioProvider));
 });
 
-/// Reads the Recipe Book. Both calls are read-only and gated server-side on
+/// Reads the Recipe Book. Every call are read-only and gated server-side on
 /// the production view role set.
 class RecipeBookService {
   RecipeBookService(this._dio);
@@ -20,12 +20,19 @@ class RecipeBookService {
       '/api/method/jarz_pos.api.recipe_book.list_recipes';
   static const getRecipeEndpoint =
       '/api/method/jarz_pos.api.recipe_book.get_recipe';
+  static const getJarFamilyEndpoint =
+      '/api/method/jarz_pos.api.recipe_book.get_jar_family';
 
   final Dio _dio;
 
   Future<RecipeBookIndex> listRecipes() async {
     try {
-      final resp = await _dio.get(listRecipesEndpoint);
+      // `catalog=1` asks for every recipe (BOM-only ones too) with its
+      // category, family and size; an older server ignores it.
+      final resp = await _dio.get(
+        listRecipesEndpoint,
+        queryParameters: {'catalog': 1},
+      );
       return RecipeBookIndex.fromJson(_unwrapMap(resp.data));
     } catch (error) {
       throw mapFrappeError(error, fallback: 'Failed to load the recipes');
@@ -42,6 +49,33 @@ class RecipeBookService {
       return RecipeDetail.fromJson(_unwrapMap(resp.data));
     } catch (error) {
       throw mapFrappeError(error, fallback: 'Failed to load the recipe');
+    }
+  }
+
+  /// A recipe that has no SOP, read from its default BOM (or its current SOP
+  /// when one exists), at one batch.
+  Future<RecipeDetail> getRecipeByItem(String itemCode) async {
+    try {
+      final resp = await _dio.get(
+        getRecipeEndpoint,
+        queryParameters: {'item_code': itemCode},
+      );
+      return RecipeDetail.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to load the recipe');
+    }
+  }
+
+  /// Every size of one jar flavour with its per-jar layer weights.
+  Future<JarFamily> getJarFamily(String family) async {
+    try {
+      final resp = await _dio.get(
+        getJarFamilyEndpoint,
+        queryParameters: {'family': family},
+      );
+      return JarFamily.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to load the jar recipes');
     }
   }
 
