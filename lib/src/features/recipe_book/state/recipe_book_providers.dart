@@ -66,3 +66,12 @@ void setRecipeScale(WidgetRef ref, String key, double factor) {
   ref.read(recipeScaleProvider(key).notifier).state = factor;
   ref.read(recipeScaleHintDoneProvider.notifier).state = true;
 }
+
+/// Refreshes every screen that shows recipe data after a save or a stage
+/// change: the list, every opened version and every jar family.
+void invalidateRecipeBook(WidgetRef ref) {
+  ref.invalidate(recipeBookIndexProvider);
+  ref.invalidate(recipeDetailProvider);
+  ref.invalidate(recipeByItemProvider);
+  ref.invalidate(jarFamilyProvider);
+}

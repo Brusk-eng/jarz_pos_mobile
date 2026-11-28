@@ -8,6 +8,7 @@ import '../domain/jar_family_logic.dart';
 import '../domain/recipe_scaling.dart';
 import '../domain/recipe_targets.dart';
 import '../state/recipe_book_providers.dart';
+import 'recipe_layers_editor_screen.dart';
 import 'recipe_book_list_screen.dart';
 import 'recipe_book_strings.dart';
 import 'recipe_detail_screen.dart';
@@ -40,6 +41,9 @@ class _RecipeJarFamilyScreenState extends ConsumerState<RecipeJarFamilyScreen> {
   final _controllers = <String, TextEditingController>{};
   final _counts = <String, double>{};
 
+  /// The size shown in the layers list when the sizes' layers differ.
+  String? _layerSize;
+
   @override
   void dispose() {
     for (final c in _controllers.values) {
@@ -64,6 +68,25 @@ class _RecipeJarFamilyScreenState extends ConsumerState<RecipeJarFamilyScreen> {
 
   Future<void> _refresh() =>
       ref.refresh(jarFamilyProvider(widget.family).future);
+
+  Future<void> _editLayers(JarFamily family) async {
+    final result = await Navigator.of(
+      context,
+    ).push(RecipeLayersEditorScreen.route(family));
+    if (!mounted || result == null) return;
+    final s = RecipeBookStrings.of(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            result.created.isEmpty
+                ? s.saved
+                : s.savedNewVersionFor(result.created),
+          ),
+        ),
+      );
+  }
 
   void _open(String? target, String title) {
     if (target == null) return;
@@ -159,13 +182,21 @@ class _RecipeJarFamilyScreenState extends ConsumerState<RecipeJarFamilyScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
+            _LayersSection(
+              family: family,
+              counts: _counts,
+              selectedSize: _layerSize,
+              onSelectSize: (size) => setState(() => _layerSize = size),
+              onEdit: () => _editLayers(family),
+            ),
+            const SizedBox(height: 22),
             if (family.layers.isEmpty && family.packaging.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Text(s.noLayers, style: quiet),
               )
             else ...[
-              Text(s.gramsPerJar, style: quiet),
+              Text(s.ingredientsPerJar, style: theme.textTheme.titleSmall),
               const SizedBox(height: 6),
               _JarTable(
                 family: family,
@@ -258,6 +289,246 @@ TextStyle? _numberStyle(BuildContext context, {bool bold = false}) =>
 
 /// "—" for an amount that does not exist.
 const String _none = '—';
+
+/// The prepared layers of a jar in fill order. Aligned sizes share one table
+/// (layers down, sizes across, a "Filled jar" total at the foot); sizes whose
+/// layers differ get a size switch and one numbered list.
+class _LayersSection extends StatelessWidget {
+  const _LayersSection({
+    required this.family,
+    required this.counts,
+    required this.selectedSize,
+    required this.onSelectSize,
+    required this.onEdit,
+  });
+
+  final JarFamily family;
+  final Map<String, double> counts;
+  final String? selectedSize;
+  final ValueChanged<String> onSelectSize;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = RecipeBookStrings.of(context);
+    final theme = Theme.of(context);
+    final quiet = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final assembly = family.assembly;
+    final canEdit = family.canEdit;
+    return Column(
+      key: const ValueKey('jar-layers'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(s.layersPerJar, style: theme.textTheme.titleSmall),
+            ),
+            if (canEdit && !assembly.isEmpty)
+              IconButton(
+                key: const ValueKey('jar-layers-edit'),
+                tooltip: s.editLayers,
+                visualDensity: VisualDensity.compact,
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 20),
+              ),
+          ],
+        ),
+        if (assembly.isEmpty) ...[
+          Text(s.noLayersYet, style: quiet),
+          if (canEdit)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                key: const ValueKey('jar-layers-add'),
+                onPressed: onEdit,
+                child: Text(s.addLayers),
+              ),
+            ),
+        ] else ...[
+          const SizedBox(height: 4),
+          if (assembly.aligned && assembly.rows.isNotEmpty)
+            _alignedTable(context)
+          else
+            _sizeList(context),
+          const SizedBox(height: 4),
+          Text(s.layersFillOrder, style: quiet),
+        ],
+      ],
+    );
+  }
+
+  Widget _alignedTable(BuildContext context) {
+    final s = RecipeBookStrings.of(context);
+    final theme = Theme.of(context);
+    final assembly = family.assembly;
+    final showTotal = counts.values.any((c) => c > 0);
+    final sizes = [for (final size in family.sizes) size.size];
+    Widget numberedName(int i, String name) => Row(
+      children: [
+        SizedBox(
+          width: 22,
+          child: Text(
+            '${i + 1}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            sentenceCase(name),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium,
+          ),
+        ),
+      ],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _TableRow(
+          label: const SizedBox.shrink(),
+          cells: [
+            for (final size in sizes)
+              Text(
+                s.size(size),
+                textAlign: TextAlign.end,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+          ],
+          total: showTotal
+              ? Text(
+                  s.total,
+                  textAlign: TextAlign.end,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
+              : null,
+        ),
+        const Divider(height: 1),
+        for (var i = 0; i < assembly.rows.length; i++)
+          _TableRow(
+            label: numberedName(i, assembly.rows[i].layer),
+            cells: [
+              for (final size in sizes)
+                _Num(
+                  assembly.rows[i].grams[size] == null
+                      ? _none
+                      : formatGramsNumber(assembly.rows[i].grams[size]!),
+                ),
+            ],
+            total: showTotal
+                ? _Num(
+                    assemblyRowRunTotal(assembly.rows[i], counts) > 0
+                        ? formatWeight(
+                            assemblyRowRunTotal(assembly.rows[i], counts),
+                          )
+                        : _none,
+                  )
+                : null,
+          ),
+        const Divider(height: 1),
+        _TableRow(
+          label: Text(
+            s.filledJar,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _numberStyle(context, bold: true),
+          ),
+          cells: [
+            for (final size in sizes)
+              _Num(
+                assembly.totals[size] == null
+                    ? _none
+                    : formatGramsNumber(assembly.totals[size]!),
+                bold: true,
+              ),
+          ],
+          total: showTotal
+              ? _Num(
+                  assemblyRunTotal(assembly, counts) > 0
+                      ? formatWeight(assemblyRunTotal(assembly, counts))
+                      : _none,
+                  bold: true,
+                )
+              : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _sizeList(BuildContext context) {
+    final s = RecipeBookStrings.of(context);
+    final theme = Theme.of(context);
+    final assembly = family.assembly;
+    final sizes = assembly.sizes;
+    final size = sizes.contains(selectedSize) ? selectedSize! : sizes.first;
+    final layers = assembly.bySize[size] ?? const <RecipeLayer>[];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SegmentedButton<String>(
+          key: const ValueKey('jar-layers-size'),
+          showSelectedIcon: false,
+          style: const ButtonStyle(visualDensity: VisualDensity.compact),
+          segments: [
+            for (final z in sizes)
+              ButtonSegment(value: z, label: Text(s.size(z))),
+          ],
+          selected: {size},
+          onSelectionChanged: (v) => onSelectSize(v.first),
+        ),
+        const SizedBox(height: 6),
+        for (var i = 0; i < layers.length; i++)
+          _TableRow(
+            label: Row(
+              children: [
+                SizedBox(
+                  width: 22,
+                  child: Text(
+                    '${i + 1}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    sentenceCase(layers[i].layer),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+            cells: [_Num(formatGramsNumber(layers[i].grams))],
+          ),
+        const Divider(height: 1),
+        _TableRow(
+          label: Text(s.filledJar, style: _numberStyle(context, bold: true)),
+          cells: [
+            _Num(
+              assembly.totals[size] == null
+                  ? _none
+                  : formatGramsNumber(assembly.totals[size]!),
+              bold: true,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
 /// The comparison: layers down, sizes across, a Per jar row at the foot and a
 /// Total column once a run is planned.

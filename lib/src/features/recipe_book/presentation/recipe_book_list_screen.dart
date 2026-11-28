@@ -11,6 +11,7 @@ import '../domain/recipe_targets.dart';
 import '../state/recipe_book_providers.dart';
 import 'recipe_book_strings.dart';
 import 'recipe_detail_screen.dart';
+import 'recipe_editor_screen.dart';
 import 'widgets/recipe_book_common.dart';
 
 /// Every recipe and its SOP: approved, previous and trial versions.
@@ -52,6 +53,22 @@ class _RecipeBookListScreenState extends ConsumerState<RecipeBookListScreen> {
     ref.read(recipeBookFilterProvider.notifier).state = RecipeFilter.all;
   }
 
+  /// Opens a blank editor (Jars preselected on the Jars chip); a saved recipe
+  /// is then opened.
+  Future<void> _newRecipe(RecipeFilter filter) async {
+    final saved = await Navigator.of(context).push(
+      RecipeEditorScreen.route(
+        initialCategory: filter == RecipeFilter.jars
+            ? RecipeCategory.jars
+            : null,
+      ),
+    );
+    if (!mounted || saved == null || saved.name.isEmpty) return;
+    Navigator.of(
+      context,
+    ).push(RecipeDetailScreen.route(saved.name, title: saved.title));
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = RecipeBookStrings.of(context);
@@ -74,9 +91,19 @@ class _RecipeBookListScreenState extends ConsumerState<RecipeBookListScreen> {
     final query = ref.watch(recipeBookQueryProvider);
     final filter = ref.watch(recipeBookFilterProvider);
 
+    final canEdit = index.valueOrNull?.canEdit ?? false;
+
     return Scaffold(
       appBar: AppBar(title: Text(s.title)),
       drawer: drawer,
+      floatingActionButton: canEdit
+          ? FloatingActionButton.extended(
+              key: const ValueKey('recipe-new'),
+              onPressed: () => _newRecipe(filter),
+              icon: const Icon(Icons.add),
+              label: Text(s.newRecipe),
+            )
+          : null,
       body: RecipeBookWidth(
         child: Column(
           children: [
@@ -188,7 +215,7 @@ class _RecipeBookListScreenState extends ConsumerState<RecipeBookListScreen> {
       onRefresh: _refresh,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.only(bottom: 88),
         children: [
           for (final section in sections) ...[
             if (showHeaders)

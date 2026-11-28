@@ -90,3 +90,23 @@ String formatRunAmount(double value, String unit) =>
     unit.trim().toLowerCase() == 'g'
     ? formatWeight(value)
     : formatIngredientAmount(value, unit);
+
+/// What a planned run needs of one assembly layer: Σ count × grams per jar.
+double assemblyRowRunTotal(JarAssemblyRow row, Map<String, double> counts) {
+  var sum = 0.0;
+  for (final e in row.grams.entries) {
+    final c = counts[e.key] ?? 0;
+    if (c > 0 && !c.isNaN && !c.isInfinite) sum += c * e.value;
+  }
+  return sum;
+}
+
+/// Grams of filled jars in a planned run: Σ count × the size's layer total.
+double assemblyRunTotal(JarAssembly assembly, Map<String, double> counts) {
+  var sum = 0.0;
+  for (final e in assembly.totals.entries) {
+    final c = counts[e.key] ?? 0;
+    if (c > 0 && !c.isNaN && !c.isInfinite) sum += c * e.value;
+  }
+  return sum;
+}

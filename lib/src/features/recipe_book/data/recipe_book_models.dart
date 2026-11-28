@@ -14,6 +14,7 @@ class RecipeBookIndex {
     this.tracks = const <String>[],
     this.recipes = const <RecipeSummary>[],
     this.families = const <RecipeFamilySummary>[],
+    this.canEdit = false,
   });
 
   factory RecipeBookIndex.fromJson(Map<String, dynamic> json) =>
@@ -21,6 +22,7 @@ class RecipeBookIndex {
         tracks: _strList(json['tracks']),
         recipes: _mapList(json['recipes'], RecipeSummary.fromJson),
         families: _mapList(json['families'], RecipeFamilySummary.fromJson),
+        canEdit: _bool(json['can_edit']),
       );
 
   /// Track order as the server sorts them.
@@ -29,6 +31,9 @@ class RecipeBookIndex {
 
   /// v2 only: one entry per jar flavour. Empty on a v1 payload.
   final List<RecipeFamilySummary> families;
+
+  /// v3: the user may write and edit recipes. False on an older server.
+  final bool canEdit;
 }
 
 /// Recipe kinds (v2 `category`). A v1 payload carries none.
@@ -270,6 +275,10 @@ class RecipeDetail {
     this.category = '',
     this.family,
     this.size,
+    this.canEdit = false,
+    this.editableInPlace = false,
+    this.usedInProduction = false,
+    this.layers = const <RecipeLayer>[],
   });
 
   factory RecipeDetail.fromJson(Map<String, dynamic> json) {
@@ -302,6 +311,10 @@ class RecipeDetail {
       category: _str(json['category']).toLowerCase(),
       family: _optStr(json['family']),
       size: _optStr(json['size']),
+      canEdit: _bool(json['can_edit']),
+      editableInPlace: _bool(json['editable_in_place']),
+      usedInProduction: _bool(json['used_in_production']),
+      layers: _mapList(json['layers'], RecipeLayer.fromJson),
     );
   }
 
@@ -327,6 +340,16 @@ class RecipeDetail {
   final String category;
   final String? family;
   final String? size;
+
+  /// v3: the user may edit this recipe.
+  final bool canEdit;
+
+  /// v3: this version can be changed where it stands (not used in production).
+  final bool editableInPlace;
+  final bool usedInProduction;
+
+  /// v3: a jar's layers in fill order, grams per jar (never scaled).
+  final List<RecipeLayer> layers;
 
   /// A recipe read from a BOM alone: no SOP behind it, so no version, no
   /// method.
@@ -488,6 +511,8 @@ class JarFamily {
     this.sizes = const <JarSize>[],
     this.layers = const <JarLayer>[],
     this.packaging = const <JarLayer>[],
+    this.canEdit = false,
+    this.assembly = const JarAssembly(),
   });
 
   factory JarFamily.fromJson(Map<String, dynamic> json) => JarFamily(
@@ -496,6 +521,10 @@ class JarFamily {
     sizes: sortJarSizes(_mapList(json['sizes'], JarSize.fromJson)),
     layers: _mapList(json['layers'], JarLayer.fromJson),
     packaging: _mapList(json['packaging'], JarLayer.fromJson),
+    canEdit: _bool(json['can_edit']),
+    assembly: json['assembly'] is Map
+        ? JarAssembly.fromJson(Map<String, dynamic>.from(json['assembly']))
+        : const JarAssembly(),
   );
 
   final String family;
@@ -509,6 +538,12 @@ class JarFamily {
 
   /// Jar, lid, label.
   final List<JarLayer> packaging;
+
+  /// v3: the user may edit the layers.
+  final bool canEdit;
+
+  /// v3: the prepared layers in fill order, per size.
+  final JarAssembly assembly;
 }
 
 /// [sizes] in Small, Medium, Large order; an odd size name goes last.
@@ -533,6 +568,7 @@ class JarSize {
     this.sopVersion,
     this.status = RecipeStatus.approved,
     this.jarGrams,
+    this.editableInPlace = false,
   });
 
   factory JarSize.fromJson(Map<String, dynamic> json) {
@@ -545,6 +581,7 @@ class JarSize {
       sopVersion: _optNum(json['sop_version'])?.round(),
       status: status.isEmpty ? RecipeStatus.approved : status,
       jarGrams: _optNum(json['jar_grams']),
+      editableInPlace: _bool(json['editable_in_place']),
     );
   }
 
@@ -561,6 +598,9 @@ class JarSize {
 
   /// Sum of the gram layers in one jar; null when none.
   final double? jarGrams;
+
+  /// v3: this size's headline version can be changed where it stands.
+  final bool editableInPlace;
 
   bool get isTrial => status == RecipeStatus.trial;
 }
@@ -638,3 +678,335 @@ List<T> _mapList<T>(Object? value, T Function(Map<String, dynamic>) parse) => [
     for (final v in value)
       if (v is Map) parse(Map<String, dynamic>.from(v)),
 ];
+
+// ── v3: layers ────────────────────────────────────────────────────────────
+
+/// One prepared layer of a jar, grams per jar. Order is fill order (the first
+/// is the bottom of the jar).
+@immutable
+class RecipeLayer {
+  const RecipeLayer({required this.layer, this.grams = 0, this.note});
+
+  factory RecipeLayer.fromJson(Map<String, dynamic> json) => RecipeLayer(
+    layer: _str(json['layer']),
+    grams: _num(json['grams']),
+    note: _optStr(json['note']),
+  );
+
+  final String layer;
+  final double grams;
+  final String? note;
+}
+
+/// One row of an aligned assembly: a layer and its grams in every size.
+@immutable
+class JarAssemblyRow {
+  const JarAssemblyRow({required this.layer, this.grams = const {}});
+
+  factory JarAssemblyRow.fromJson(Map<String, dynamic> json) {
+    final raw = json['grams'];
+    return JarAssemblyRow(
+      layer: _str(json['layer']),
+      grams: {
+        if (raw is Map)
+          for (final e in raw.entries)
+            if (_optNum(e.value) != null) e.key.toString(): _optNum(e.value)!,
+      },
+    );
+  }
+
+  final String layer;
+
+  /// Size → grams per jar.
+  final Map<String, double> grams;
+}
+
+/// `get_jar_family().assembly`: what goes into each jar, layer by layer.
+@immutable
+class JarAssembly {
+  const JarAssembly({
+    this.aligned = false,
+    this.rows = const <JarAssemblyRow>[],
+    this.bySize = const <String, List<RecipeLayer>>{},
+    this.totals = const <String, double>{},
+  });
+
+  factory JarAssembly.fromJson(Map<String, dynamic> json) {
+    final rawBySize = json['by_size'];
+    final rawTotals = json['totals'];
+    return JarAssembly(
+      aligned: _bool(json['aligned']),
+      rows: _mapList(json['rows'], JarAssemblyRow.fromJson),
+      bySize: {
+        if (rawBySize is Map)
+          for (final e in rawBySize.entries)
+            e.key.toString(): _mapList(e.value, RecipeLayer.fromJson),
+      },
+      totals: {
+        if (rawTotals is Map)
+          for (final e in rawTotals.entries)
+            if (_optNum(e.value) != null) e.key.toString(): _optNum(e.value)!,
+      },
+    );
+  }
+
+  /// Every size that has layers has the same layer names in the same order.
+  final bool aligned;
+  final List<JarAssemblyRow> rows;
+  final Map<String, List<RecipeLayer>> bySize;
+  final Map<String, double> totals;
+
+  /// No size has any layer.
+  bool get isEmpty => bySize.values.every((l) => l.isEmpty);
+
+  /// The sizes that have layers, in Small, Medium, Large order.
+  List<String> get sizes {
+    final known = [
+      for (final s in kJarSizes)
+        if ((bySize[s] ?? const <RecipeLayer>[]).isNotEmpty) s,
+    ];
+    final other = [
+      for (final e in bySize.entries)
+        if (!kJarSizes.contains(e.key) && e.value.isNotEmpty) e.key,
+    ];
+    return [...known, ...other];
+  }
+}
+
+// ── v3: editing ───────────────────────────────────────────────────────────
+
+/// One ingredient row of the editable form.
+@immutable
+class EditIngredient {
+  const EditIngredient({
+    required this.name,
+    this.amount,
+    this.unit = 'g',
+    this.section,
+    this.note,
+    this.itemCode,
+  });
+
+  factory EditIngredient.fromJson(Map<String, dynamic> json) => EditIngredient(
+    name: _str(json['name']),
+    amount: _optNum(json['amount']),
+    unit: _str(json['unit']).isEmpty ? 'g' : _str(json['unit']),
+    section: _optStr(json['section']),
+    note: _optStr(json['note']),
+    itemCode: _optStr(json['item_code']),
+  );
+
+  final String name;
+  final double? amount;
+  final String unit;
+  final String? section;
+  final String? note;
+  final String? itemCode;
+}
+
+/// One method step of the editable form. The fields the editor does not show
+/// ([extra]) are carried through untouched so a save never loses them.
+@immutable
+class EditStep {
+  const EditStep({
+    this.title = '',
+    this.text = '',
+    this.durationMins,
+    this.extra = const <String, dynamic>{},
+  });
+
+  factory EditStep.fromJson(Map<String, dynamic> json) => EditStep(
+    title: _str(json['title']),
+    // Not trimmed: the text is the author's own.
+    text: json['text'] == null ? '' : json['text'].toString(),
+    durationMins: _optNum(json['duration_mins']),
+    extra: {
+      for (final key in const [
+        'scaling_mode',
+        'requires_confirmation',
+        'capture_type',
+        'capture_label',
+        'capture_min',
+        'capture_max',
+      ])
+        if (json.containsKey(key)) key: json[key],
+    },
+  );
+
+  final String title;
+  final String text;
+  final double? durationMins;
+  final Map<String, dynamic> extra;
+}
+
+/// `get_recipe_for_edit`: the editable form of one version, or a blank form
+/// for a BOM-only item.
+@immutable
+class RecipeEditForm {
+  const RecipeEditForm({
+    this.base,
+    this.itemCode,
+    this.title = '',
+    this.track,
+    this.category = '',
+    this.size,
+    this.family,
+    this.stage = '',
+    this.version = 0,
+    this.nextVersion = 1,
+    this.editableInPlace = false,
+    this.usedInProduction = false,
+    this.ingredientsSource = 'table',
+    this.ingredients = const <EditIngredient>[],
+    this.yieldQty,
+    this.yieldUom,
+    this.prepTimeMins,
+    this.equipment = '',
+    this.notes = '',
+    this.changeSummary = '',
+    this.layers = const <RecipeLayer>[],
+    this.steps = const <EditStep>[],
+    this.tokenMap = const <String, String>{},
+  });
+
+  factory RecipeEditForm.fromJson(Map<String, dynamic> json) {
+    final map = json['token_map'];
+    final source = _str(json['ingredients_source']).toLowerCase();
+    return RecipeEditForm(
+      base: _optStr(json['base']),
+      itemCode: _optStr(json['item_code']),
+      title: _str(json['title']),
+      track: _optStr(json['track']),
+      category: _str(json['category']).toLowerCase(),
+      size: _optStr(json['size']),
+      family: _optStr(json['family']),
+      stage: _str(json['stage']),
+      version: _num(json['version']).round(),
+      nextVersion: _optNum(json['next_version'])?.round() ?? 1,
+      editableInPlace: _bool(json['editable_in_place']),
+      usedInProduction: _bool(json['used_in_production']),
+      ingredientsSource: source == 'bom' ? 'bom' : 'table',
+      ingredients: _mapList(json['ingredients'], EditIngredient.fromJson),
+      yieldQty: _optNum(json['yield_qty']),
+      yieldUom: _optStr(json['yield_uom']),
+      prepTimeMins: _optNum(json['prep_time_mins'])?.round(),
+      equipment: json['equipment']?.toString() ?? '',
+      notes: json['notes']?.toString() ?? '',
+      changeSummary: json['change_summary']?.toString() ?? '',
+      layers: _mapList(json['layers'], RecipeLayer.fromJson),
+      steps: _mapList(json['steps'], EditStep.fromJson),
+      tokenMap: {
+        if (map is Map)
+          for (final e in map.entries) e.key.toString(): e.value.toString(),
+      },
+    );
+  }
+
+  /// The SOP being edited; null for a new recipe or a BOM-only item.
+  final String? base;
+  final String? itemCode;
+  final String title;
+  final String? track;
+
+  /// bases | fillings | jars, or empty.
+  final String category;
+  final String? size;
+  final String? family;
+  final String stage;
+  final int version;
+  final int nextVersion;
+  final bool editableInPlace;
+  final bool usedInProduction;
+
+  /// "bom" (amounts are read-only here) or "table".
+  final String ingredientsSource;
+  final List<EditIngredient> ingredients;
+  final double? yieldQty;
+  final String? yieldUom;
+  final int? prepTimeMins;
+  final String equipment;
+  final String notes;
+  final String changeSummary;
+  final List<RecipeLayer> layers;
+  final List<EditStep> steps;
+  final Map<String, String> tokenMap;
+
+  bool get fromBom => ingredientsSource == 'bom';
+  bool get hasItem => itemCode != null && itemCode!.isNotEmpty;
+}
+
+/// What `save_recipe` answers: the saved version and any notes about it.
+@immutable
+class SaveRecipeResult {
+  const SaveRecipeResult({required this.recipe, this.warnings = const []});
+
+  factory SaveRecipeResult.fromJson(Map<String, dynamic> json) {
+    final raw = json['recipe'];
+    return SaveRecipeResult(
+      recipe: RecipeDetail.fromJson(
+        raw is Map ? Map<String, dynamic>.from(raw) : json,
+      ),
+      warnings: _strList(json['warnings']),
+    );
+  }
+
+  final RecipeDetail recipe;
+
+  /// Placeholders the server could not match; the recipe is saved anyway.
+  final List<String> warnings;
+}
+
+/// What `set_recipe_stage` answers: the version, and the one it replaced.
+@immutable
+class SetStageResult {
+  const SetStageResult({required this.recipe, this.replaced});
+
+  factory SetStageResult.fromJson(Map<String, dynamic> json) {
+    final raw = json['recipe'];
+    return SetStageResult(
+      recipe: RecipeDetail.fromJson(
+        raw is Map ? Map<String, dynamic>.from(raw) : json,
+      ),
+      replaced: _optStr(json['replaced']),
+    );
+  }
+
+  final RecipeDetail recipe;
+  final String? replaced;
+}
+
+/// What `save_jar_layers` answers: the family again, and what changed.
+@immutable
+class SaveLayersResult {
+  const SaveLayersResult({
+    required this.family,
+    this.created = const [],
+    this.updated = const [],
+  });
+
+  factory SaveLayersResult.fromJson(Map<String, dynamic> json) {
+    List<String> names(Object? v) => [
+      if (v is List)
+        for (final e in v)
+          if (e is Map)
+            (_str(e['size']).isNotEmpty ? _str(e['size']) : _str(e['sop']))
+          else
+            _str(e),
+    ].where((e) => e.isNotEmpty).toList();
+    final raw = json['family'];
+    return SaveLayersResult(
+      // Contract: "the get_jar_family payload plus created / updated".
+      family: JarFamily.fromJson(
+        raw is Map ? Map<String, dynamic>.from(raw) : json,
+      ),
+      created: names(json['created']),
+      updated: names(json['updated']),
+    );
+  }
+
+  final JarFamily family;
+
+  /// Sizes (or SOPs) that got a new version.
+  final List<String> created;
+  final List<String> updated;
+}

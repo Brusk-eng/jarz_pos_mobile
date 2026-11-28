@@ -4,12 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/user_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../data/recipe_book_models.dart';
+import '../data/recipe_book_service.dart';
+import '../domain/recipe_edit_logic.dart';
+import '../domain/recipe_scaling.dart';
 import '../domain/recipe_targets.dart';
 import '../state/recipe_book_providers.dart';
 import 'recipe_book_list_screen.dart';
+import 'recipe_editor_screen.dart';
 import 'recipe_jar_family_screen.dart';
 import 'recipe_book_strings.dart';
 import 'widgets/recipe_book_common.dart';
+import 'widgets/recipe_edit_widgets.dart';
 import 'widgets/recipe_content_widgets.dart';
 import 'widgets/recipe_scale_widgets.dart';
 
@@ -122,6 +127,149 @@ class _RecipeScreenState extends ConsumerState<_RecipeScreen> {
     setRecipeScale(ref, detail.key, picked);
   }
 
+  void _snack(String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  /// Opens the editor; a saved version becomes the one shown.
+  Future<void> _openEditor(
+    RecipeDetail detail, {
+    bool newVersion = false,
+  }) async {
+    final item = itemOfTarget(_sop) ?? detail.itemCode;
+    final saved = await Navigator.of(context).push(
+      detail.isBomOnly
+          ? RecipeEditorScreen.route(itemCode: item)
+          : RecipeEditorScreen.route(sop: detail.name, newVersion: newVersion),
+    );
+    if (!mounted || saved == null) return;
+    if (saved.name.isNotEmpty && saved.name != _sop) {
+      setState(() => _sop = saved.name);
+    }
+    _snack(RecipeBookStrings.of(context).saved);
+  }
+
+  /// The version currently on the Production Board, other than [detail].
+  int? _replacedVersion(RecipeDetail detail) {
+    for (final v in detail.versions) {
+      if (v.status == VersionStatus.current && v.name != detail.name) {
+        return v.version;
+      }
+    }
+    return null;
+  }
+
+  Future<bool> _confirm(String title, String body, String action) async {
+    final s = RecipeBookStrings.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(s.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(action),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+
+  /// The server refuses an approval when a trial has its own amounts but the
+  /// item has a BOM, and says so; that one can be retried with the BOM.
+  bool _isBomRefusal(Object error) {
+    final text = error.toString().toLowerCase();
+    return text.contains('bom') && text.contains('approve');
+  }
+
+  Future<void> _changeStage(RecipeDetail detail, String stage) async {
+    final s = RecipeBookStrings.of(context);
+    final service = ref.read(recipeBookServiceProvider);
+    final v = detail.version;
+    final (title, body, action) = switch (stage) {
+      RecipeStage.approved => (
+        s.approve,
+        s.approveBody(
+          v,
+          replacing: _replacedVersion(detail),
+          hasItem: detail.itemCode != null,
+        ),
+        s.approve,
+      ),
+      RecipeStage.retired => (s.retire, s.retireBody(v), s.retire),
+      _ => (s.backToTrial, s.backToTrialBody(v), s.backToTrial),
+    };
+    if (!await _confirm(title, body, action) || !mounted) return;
+    var useBom = false;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        await service.setRecipeStage(detail.name, stage, useBom: useBom);
+        invalidateRecipeBook(ref);
+        if (mounted) _snack(s.stageChanged);
+        return;
+      } catch (error) {
+        if (!mounted) return;
+        final message = recipeErrorText(context, error);
+        if (stage == RecipeStage.approved && !useBom && _isBomRefusal(error)) {
+          if (!await _confirm(title, message, s.approveWithBom) || !mounted) {
+            return;
+          }
+          useBom = true;
+          continue;
+        }
+        _snack(message);
+        return;
+      }
+    }
+  }
+
+  List<Widget> _editActions(RecipeDetail? detail) {
+    if (detail == null || !detail.canEdit) return const [];
+    final s = RecipeBookStrings.of(context);
+    final stage = detail.stage;
+    final bomOnly = detail.isBomOnly;
+    return [
+      IconButton(
+        key: const ValueKey('recipe-edit'),
+        tooltip: bomOnly ? s.writeMethod : s.edit,
+        icon: const Icon(Icons.edit_outlined),
+        onPressed: () => _openEditor(detail),
+      ),
+      if (!bomOnly)
+        PopupMenuButton<String>(
+          key: const ValueKey('recipe-menu'),
+          tooltip: s.moreActions,
+          onSelected: (v) => switch (v) {
+            'new_version' => _openEditor(detail, newVersion: true),
+            _ => _changeStage(detail, v),
+          },
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 'new_version', child: Text(s.newVersion)),
+            if (stage == RecipeStage.trial)
+              PopupMenuItem(
+                value: RecipeStage.approved,
+                child: Text(s.approve),
+              ),
+            if (stage != RecipeStage.retired)
+              PopupMenuItem(value: RecipeStage.retired, child: Text(s.retire)),
+            if (stage != RecipeStage.trial && !detail.usedInProduction)
+              PopupMenuItem(
+                value: RecipeStage.trial,
+                child: Text(s.backToTrial),
+              ),
+          ],
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = RecipeBookStrings.of(context);
@@ -175,6 +323,7 @@ class _RecipeScreenState extends ConsumerState<_RecipeScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: leading,
+        actions: _editActions(detail),
         // A long name gets two lines at the smaller size rather than an
         // ellipsis: the title is the only place the recipe is named.
         title: Text(
@@ -230,12 +379,31 @@ class _RecipeScreenState extends ConsumerState<_RecipeScreen> {
                 ),
               ),
             ),
+          if (bomOnly && detail.canEdit)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: FilledButton.tonalIcon(
+                  key: const ValueKey('recipe-write-method'),
+                  onPressed: () => _openEditor(detail),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: Text(s.writeMethod),
+                ),
+              ),
+            ),
         ],
       ),
-      _RecipeTab.method => RecipeStepsList(
-        steps: detail.steps,
-        factor: factor,
-        unresolvedTokens: detail.unresolvedTokens,
+      _RecipeTab.method => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (detail.layers.isNotEmpty) _DetailLayers(layers: detail.layers),
+          RecipeStepsList(
+            steps: detail.steps,
+            factor: factor,
+            unresolvedTokens: detail.unresolvedTokens,
+          ),
+        ],
       ),
       _RecipeTab.notes => RecipeNotesView(detail: detail),
     };
@@ -322,6 +490,67 @@ class _RecipeScreenState extends ConsumerState<_RecipeScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// A jar recipe's layers, bottom first: number, name, grams per jar.
+class _DetailLayers extends StatelessWidget {
+  const _DetailLayers({required this.layers});
+
+  final List<RecipeLayer> layers;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final s = RecipeBookStrings.of(context);
+    final total = layers.fold<double>(0, (a, l) => a + l.grams);
+    final quiet = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final number = theme.textTheme.bodyMedium?.copyWith(
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+    return Padding(
+      key: const ValueKey('recipe-layers'),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(s.layersPerJar, style: theme.textTheme.titleSmall),
+          const SizedBox(height: 4),
+          for (var i = 0; i < layers.length; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  SizedBox(width: 22, child: Text('${i + 1}', style: quiet)),
+                  Expanded(child: Text(sentenceCase(layers[i].layer))),
+                  Text(formatGrams(layers[i].grams), style: number),
+                ],
+              ),
+            ),
+          const Divider(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  s.filledJar,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                formatGrams(total),
+                style: number?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(s.layersFillOrder, style: quiet),
+        ],
       ),
     );
   }
